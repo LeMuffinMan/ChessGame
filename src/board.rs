@@ -1,4 +1,4 @@
-#[derive(Copy, Clone)] //copy pour initialiser le tableau | copy depend de clone ?
+#[derive(Copy, Clone, PartialEq)] //copy pour initialiser le tableau | copy depend de clone ?
 pub enum Pieces {
     PAWN,
     ROOK,
