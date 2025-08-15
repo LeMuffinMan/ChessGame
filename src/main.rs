@@ -10,13 +10,14 @@ struct Coord {
 }
 
 impl Coord {
+    //pas forcement des impl de Coord
     fn is_player_color(coord: &Coord, color: Color, board: &Board) -> bool {
         if color != board.grid[coord.row as usize][coord.col as usize].color {
             return false;
         } 
         true
     }
-    fn get_coord_from_string(cell: String, color: Color, board: &Board) -> Result<Coord, String> {
+    fn get_coord_from_string(cell: String, board: &Board) -> Result<Coord, String> {
         if cell.len() != 2 {
             return Err(format!("Invalid input size : {}", cell.len()));
         }
@@ -50,7 +51,7 @@ fn main() {
             println!("From cell :");
             io::stdin().read_line(&mut from_cell).expect("Error");
             let from_cell = from_cell.trim();
-            match Coord::get_coord_from_string(from_cell.to_string(), Color::WHITE, &board) { 
+            match Coord::get_coord_from_string(from_cell.to_string(), &board) { 
                 Ok(coord) => {
                     if !Coord::is_player_color(&coord, Color::WHITE, &board) {
                         println!("No {:?} piece in {}", Color::WHITE, from_cell);
@@ -69,13 +70,25 @@ fn main() {
             };
         };
         //ici, from_coord est assigne d'une struct coord validee
-        let mut to_cell = String::new();
-        println!("To cell :");
-        io::stdin().read_line(&mut to_cell).expect("Error");
-        let to_cell = to_cell.trim();
-        //Ici checker si la case existe ET si une piece noire s'y trouve
-            //si non : on relance l'input
-        //Si les deux cases existent, on execute le coup 
+        let to_coord = loop {
+            let mut to_cell = String::new();
+            println!("To cell :");
+            io::stdin().read_line(&mut to_cell).expect("Error");
+            let to_cell = to_cell.trim();
+            match Coord::get_coord_from_string(to_cell.to_string(), &board) {
+                Ok(coord) => {
+                    if Coord::is_player_color(&coord, Color::WHITE, &board) {
+                        println!("A {:?} piece is already in {}", Color::WHITE, to_cell);
+                        continue;
+                    }
+                    break coord
+                }
+                Err(e) => {
+                    println!("{e}");
+                    continue;
+                },
+            };
+        };
         // println!("From {from_cell} to {to_cell}");
         break;
         // i += 1;
