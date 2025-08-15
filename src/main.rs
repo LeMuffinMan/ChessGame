@@ -11,14 +11,6 @@ struct Coord {
     row: u8,
 }
 
-///Compare the color given as argument with the color of the cell in argument
-fn is_player_color(coord: &Coord, color: Color, board: &Board) -> bool {
-    if color != board.grid[coord.row as usize][coord.col as usize].color {
-        return false;
-    } 
-    true
-}
-
 ///translate pgn code into regular coordinates, with minimal error management
 fn get_coord_from_string(cell: String) -> Result<Coord, String> {
     if cell.len() != 2 {
@@ -49,11 +41,11 @@ fn get_inputs(msg: &str, color: Color, board: &Board) -> Coord {
         let input = input.trim();
         match get_coord_from_string(input.to_string()) {
             Ok(coord) => {
-                if msg == "from" && !is_player_color(&coord, color, &board) {
+                if msg == "from" && color != board.grid[coord.row as usize][coord.col as usize].color {
                     println!("No {:?} piece in {}", color, input);
                     continue;
                 }
-                if  msg == "to" && is_player_color(&coord, color, &board) {
+                if  msg == "to" && color == board.grid[coord.row as usize][coord.col as usize].color {
                     println!("There is already a {:?} piece in {}", color, input);
                     continue;
                 }
