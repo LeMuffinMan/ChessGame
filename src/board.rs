@@ -21,54 +21,54 @@ impl Board {
                         //pour la ligne tout en bas
                         0 | 7 => Cell {
                             piece: Pieces::ROOK,
-                            color: Color::BLACK,
+                            color: Color::WHITE,
                         },
                         1 | 6 => Cell {
                             piece: Pieces::KNIGHT,
-                            color: Color::BLACK,
+                            color: Color::WHITE,
                         },
                         2 | 5 => Cell {
                             piece: Pieces::BISHOP,
-                            color: Color::BLACK,
+                            color: Color::WHITE,
                         },
                         3 => Cell {
                             piece: Pieces::QUEEN,
-                            color: Color::BLACK,
+                            color: Color::WHITE,
                         },
                         4 => Cell {
                             piece: Pieces::KING,
-                            color: Color::BLACK,
+                            color: Color::WHITE,
                         },
                         _ => empty_cell, //cas a couvrir par defaut mais impossible car board 8x8
                     },
                     1 => Cell {
                         piece: Pieces::PAWN,
-                        color: Color::BLACK,
+                        color: Color::WHITE,
                     },
                     6 => Cell {
                         piece: Pieces::PAWN,
-                        color: Color::WHITE,
+                        color: Color::BLACK,
                     },
                     7 => match x {
                         0 | 7 => Cell {
                             piece: Pieces::ROOK,
-                            color: Color::WHITE,
+                            color: Color::BLACK,
                         },
                         1 | 6 => Cell {
                             piece: Pieces::KNIGHT,
-                            color: Color::WHITE,
+                            color: Color::BLACK,
                         },
                         2 | 5 => Cell {
                             piece: Pieces::BISHOP,
-                            color: Color::WHITE,
+                            color: Color::BLACK,
                         },
                         3 => Cell {
                             piece: Pieces::KING,
-                            color: Color::WHITE,
+                            color: Color::BLACK,
                         },
                         4 => Cell {
                             piece: Pieces::QUEEN,
-                            color: Color::WHITE,
+                            color: Color::BLACK,
                         },
                         _ => empty_cell, //cas a couvrir par defaut mais impossible car board 8x8
                     },
@@ -81,7 +81,8 @@ impl Board {
     pub fn print(&self) {
         print!(" ");
         for x in 0..8 {
-            print!(" {}  ", (b'A' + x as u8) as char);
+            print!("   ");
+            print!("{}", (b'A' + x as u8) as char);
         }
         println!();
         for y in (0..8).rev() {
