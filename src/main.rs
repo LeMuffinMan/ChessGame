@@ -3,6 +3,7 @@ use std::io;
 mod board;
 use board::Board;
 use board::Color;
+use board::Pieces;
 
 #[derive(Debug)]
 struct Coord {
@@ -66,6 +67,73 @@ fn get_inputs(msg: &str, color: Color, board: &Board) -> Coord {
     }
 }
 
+///3 times identical position
+///50 mvoes with no pawn move, no take
+///A player only can ASK for Null : input to add 
+fn special_null() {
+
+}
+
+///if the next player to play has no move possible
+fn is_a_pat() {
+
+}
+
+///Check if on any adjacent case the king could avoid threat
+fn can_king_move() {
+
+}
+
+///If an ally piece can block the threatening piece 
+fn can_block_threat() {
+
+    //Si on peut bloquer, simuler de nouveau le nouveau board avec is_king_exposed pour checker
+    //plusieurs threats
+}
+
+///If an ally piece can take the threatening piece 
+fn can_capture_threat() {
+
+    //Si on peut bloquer, simuler de nouveau le nouveau board avec is_king_exposed pour checker
+    //plusieurs threats
+}
+
+///Once we temporarly validated the move, we must know if the king of the active player is threaten
+///Pour checker si on peut faire un move OU si le move resoud la situation d'echec
+///Pour checker si le move qui a ete valide met le roi adverse en echec
+fn is_king_exposed(king_cell: &Coord, board: &Board) -> bool {
+    //Checker les cavaliers sur les 8 cases possibles
+    //checker en ligne x 4
+    //checker en diag x 4
+    true
+}
+
+///check if the piece situated at from coords, can move to the "to" coords, and if there is an
+///obstacle on way
+fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
+    if board.grid[from.col as usize][from.row as usize].piece == Pieces::PAWN {
+        //prise en passant
+        //promotion
+        return true;
+    } else if board.grid[from.col as usize][from.row as usize].piece == Pieces::ROOK {
+    
+        return true;
+    } else if board.grid[from.col as usize][from.row as usize].piece == Pieces::KNIGHT {
+        //ignore obstacles
+        return true;
+    } else if board.grid[from.col as usize][from.row as usize].piece == Pieces::BISHOP {
+
+        return true;
+    } else if board.grid[from.col as usize][from.row as usize].piece == Pieces::QUEEN {
+    
+        return true;
+    } else if board.grid[from.col as usize][from.row as usize].piece == Pieces::KING {
+        //Roque
+        return true;
+    } 
+    false
+}
+
 fn main() {
     let board = Board::init_board();
 
@@ -88,6 +156,9 @@ fn main() {
             //special : pion en passant / pion promotion / roque
         //Le nouveau board mettrait il le roi du joueur actif en echec ?
         //Si le roi etait en echec, est-ce que ce coup le resoud ?
+            //Dans la struct board : mettre a jour le bool check en fin de move et checker ici sa
+            //valeur ?
+            //si c'est resolu, on peut remttre le bool a false 
         //Le coup provoque t il un check pour le joueur adverse ?
             //si oui : 
                 //si la piece jouee ne peut etre capturee 
