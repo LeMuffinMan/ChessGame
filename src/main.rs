@@ -26,7 +26,7 @@ fn get_coord_from_string(cell: String) -> Result<Coord, String> {
         None => return Err("Invalid input: error parsing row".to_string()),
     };
     if col > 7 || row > 7 {
-        return Err(format!("Invalid input : outside of board : {} {}", row, col));
+        return Err(format!("Invalid input: out of board : {} {}", row, col));
     }
     let coord = Coord {col, row};
     Ok(coord)
@@ -72,7 +72,7 @@ fn is_a_pat() {
 }
 
 ///Check if on any adjacent case the king could avoid threat
-fn can_king_move() {
+fn can_king_survive() {
 
 }
 
@@ -103,27 +103,40 @@ fn is_king_exposed(king_cell: &Coord, board: &Board) -> bool {
 ///check if the piece situated at from coords, can move to the "to" coords, and if there is an
 ///obstacle on way
 fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
-    if board.grid[from.col as usize][from.row as usize].piece == Pieces::PAWN {
+
+    match board.grid[from.col as usize][from.row as usize].piece {
+        Pieces::PAWN => {
+
         //prise en passant
         //promotion
-        return true;
-    } else if board.grid[from.col as usize][from.row as usize].piece == Pieces::ROOK {
-    
-        return true;
-    } else if board.grid[from.col as usize][from.row as usize].piece == Pieces::KNIGHT {
-        //ignore obstacles
-        return true;
-    } else if board.grid[from.col as usize][from.row as usize].piece == Pieces::BISHOP {
+            true
+        }
+        Pieces::ROOK => {
 
-        return true;
-    } else if board.grid[from.col as usize][from.row as usize].piece == Pieces::QUEEN {
-    
-        return true;
-    } else if board.grid[from.col as usize][from.row as usize].piece == Pieces::KING {
+            true
+        }
+        Pieces::KNIGHT => {
+
+        //ignore obstacles
+            true
+        }
+        Pieces::BISHOP => {
+
+            true
+        }
+        Pieces::QUEEN => {
+
+            true
+        }
+        Pieces::KING => {
+
         //Roque
-        return true;
-    } 
-    false
+            true
+        }
+        _ => {
+            false
+        }
+    }
 }
 
 fn main() {
@@ -144,6 +157,9 @@ fn main() {
         let from_coord = get_inputs("from", color, &board);
         let to_coord = get_inputs("to", color, &board);      
         println!("From {:?} to {:?}", from_coord, to_coord);
+
+        //A chaque tour, calculer chaque coup legal et comparer le move a la liste ?
+
         //Coup possible pour la piece ? (legal + obstacle)
             //special : pion en passant / pion promotion / roque
         //Le nouveau board mettrait il le roi du joueur actif en echec ?

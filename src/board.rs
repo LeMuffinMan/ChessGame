@@ -6,7 +6,7 @@ pub enum Pieces {
     BISHOP,
     QUEEN,
     KING,
-    NONE,
+    NONE, //Possile de supprimer none en utilisant Option<T> ?
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -129,8 +129,8 @@ impl Board {
                         _ => "?",
                     },
                     Pieces::KNIGHT => match self.grid[y][x].color {
-                        Color::WHITE => "k",
-                        Color::BLACK => "K",
+                        Color::WHITE => "n",
+                        Color::BLACK => "N",
                         _ => "?",
                     },
                     Pieces::BISHOP => match self.grid[y][x].color {
