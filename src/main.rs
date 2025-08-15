@@ -67,7 +67,18 @@ impl Board {
         board
     }
     fn print(&self) {
+        print!(" ");
+        for x in 0..8 {
+            print!(" {}  ", (b'A' + x as u8) as char);
+        }
+        println!();
         for y in (0..8).rev() {
+            print!("  ");
+            for _ in 0..8 {
+                print!("----");
+            }
+            println!();
+            print!("{} ", y + 1);
             for x in 0..8 {
                 let c = match self.grid[y][x].piece {
                     Pieces::PAWN => match self.grid[y][x].color {
@@ -102,9 +113,9 @@ impl Board {
                     },
                     Pieces::NONE => " ",
                 };
-                print!("{} ", c);
+                print!("| {} ", c);
             }
-            println!();
+            println!("|");
         }
     }
 }
