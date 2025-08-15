@@ -2,6 +2,31 @@ use std::io;
 
 mod board;
 use board::Board;
+use board::Color;
+
+struct Coord {
+    col: u8,
+    row: u8,
+}
+
+impl Coord {
+    fn get_coord_from_string(cell: String, color: Color, board: &Board) -> Result<Coord, String> {
+        if cell.len() != 2 {
+            return Err(format!("Invalid input size : {}", cell.len()));
+        }
+        let mut chars = cell.chars();
+        let col = chars.next().unwrap().to_ascii_lowercase() as u8 - b'a';
+        let row = chars.next().unwrap() as u8 - b'0' - 1;
+        if col > 7 || row > 7 {
+            return Err(format!("Invalid input : outside of board : {} {}", row, col));
+        }
+        if color != board.grid[row as usize][col as usize].color {
+            return Err(format!("No {:?} piece on cell {} {}", color, row, col));
+        }
+        let coord = Coord {col, row};
+        Ok(coord)
+    }
+}
 
 fn main() {
     let board = Board::init_board();
@@ -17,23 +42,34 @@ fn main() {
         else {
             println!("Black to move");
         }
-        let mut from_cell = String::new();
-        println!("From cell :");
-        io::stdin().read_line(&mut from_cell).expect("Error");
-        let from_cell = from_cell.trim();
-        //Ici checker si la case existe
-            //si non : on relance l'input
+        let from_coord = loop {
+            let mut from_cell = String::new();
+            println!("From cell :");
+            io::stdin().read_line(&mut from_cell).expect("Error");
+            let from_cell = from_cell.trim();
+            match Coord::get_coord_from_string(from_cell.to_string(), Color::WHITE, &board) { 
+                Ok(coord) => {break coord} //Si la fct renvoie une struct coord : on break, et le
+                                           //break assigne la coord a from_coord 
+                Err(e) =>  {
+                    println!("{e}");
+                    continue;
+                    //si non : on relance l'input
+                },
+            };
+        };
         let mut to_cell = String::new();
         println!("To cell :");
         io::stdin().read_line(&mut to_cell).expect("Error");
         let to_cell = to_cell.trim();
-        //Ici checker si la case existe
+        //Ici checker si la case existe ET si une piece noire s'y trouve
             //si non : on relance l'input
         //Si les deux cases existent, on execute le coup 
-        println!("From {from_cell} to {to_cell}");
+        // println!("From {from_cell} to {to_cell}");
         break;
     }
-    //loop
+}
+
+//loop
         //Si le dernier coup a fait un check 
             //input + output
                 //Autorise ?
@@ -55,4 +91,3 @@ fn main() {
             //si le move met le roi adverse en mat OU si pat : 
                 //break
         //print
-}
