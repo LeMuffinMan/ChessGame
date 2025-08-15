@@ -4,6 +4,7 @@ mod board;
 use board::Board;
 use board::Color;
 
+#[derive(Debug)]
 struct Coord {
     col: u8,
     row: u8,
@@ -17,7 +18,7 @@ impl Coord {
         } 
         true
     }
-    fn get_coord_from_string(cell: String, board: &Board) -> Result<Coord, String> {
+    fn get_coord_from_string(cell: String) -> Result<Coord, String> {
         if cell.len() != 2 {
             return Err(format!("Invalid input size : {}", cell.len()));
         }
@@ -32,6 +33,29 @@ impl Coord {
     }
 }
 
+fn get_inputs(msg: &str, color: Color, board: &Board) -> Coord {
+    return loop {
+        let mut input = String::new();
+        println!("{} cell :", msg);
+        io::stdin().read_line(&mut input).expect("Error");
+        let input = input.trim();
+        match Coord::get_coord_from_string(input.to_string()) {
+            Ok(coord) => {
+                if (msg == "from" && !Coord::is_player_color(&coord, color, &board) ) || 
+                    (msg == "to" && Coord::is_player_color(&coord, color, &board) ) {
+                    println!("No {:?} piece in {}", color, input);
+                    continue;
+                }
+                break coord
+            }
+            Err(e) => {
+                println!("{e}");
+                continue;
+            }
+        }
+    }
+}
+
 fn main() {
     let board = Board::init_board();
 
@@ -40,56 +64,16 @@ fn main() {
     let i = 1;
     loop {
         println!("Turn {i}");
-        if i % 2 != 0 {
+        let color = if i % 2 != 0 {
             println!("White to move");
-        }
-        else {
+            Color::WHITE
+        } else {
             println!("Black to move");
-        }
-        let from_coord = loop {
-            let mut from_cell = String::new();
-            println!("From cell :");
-            io::stdin().read_line(&mut from_cell).expect("Error");
-            let from_cell = from_cell.trim();
-            match Coord::get_coord_from_string(from_cell.to_string(), &board) { 
-                Ok(coord) => {
-                    if !Coord::is_player_color(&coord, Color::WHITE, &board) {
-                        println!("No {:?} piece in {}", Color::WHITE, from_cell);
-                        continue;
-                    } 
-                    //Si la fct renvoie une struct coord ET
-                    //que la coord est bien une case du joueur : 
-                    //=> on break, et le break assigne la coord a from_coord 
-                    break coord
-                } 
-                Err(e) =>  {
-                    println!("{e}");
-                    continue;
-                    //si non : on relance l'input
-                },
-            };
+            Color::BLACK
         };
-        //ici, from_coord est assigne d'une struct coord validee
-        let to_coord = loop {
-            let mut to_cell = String::new();
-            println!("To cell :");
-            io::stdin().read_line(&mut to_cell).expect("Error");
-            let to_cell = to_cell.trim();
-            match Coord::get_coord_from_string(to_cell.to_string(), &board) {
-                Ok(coord) => {
-                    if Coord::is_player_color(&coord, Color::WHITE, &board) {
-                        println!("A {:?} piece is already in {}", Color::WHITE, to_cell);
-                        continue;
-                    }
-                    break coord
-                }
-                Err(e) => {
-                    println!("{e}");
-                    continue;
-                },
-            };
-        };
-        // println!("From {from_cell} to {to_cell}");
+        let from_coord = get_inputs("from", color, &board);
+        let to_coord = get_inputs("to", color, &board);      
+        println!("From {:?} to {:?}", from_coord, to_coord);
         break;
         // i += 1;
     }
