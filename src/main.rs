@@ -1,3 +1,5 @@
+use std::io;
+
 mod board;
 use board::Board;
 
@@ -6,6 +8,31 @@ fn main() {
 
     board.print();
 
+    let i = 1;
+    loop {
+        println!("Turn {i}");
+        if i % 2 != 0 {
+            println!("White to move");
+        }
+        else {
+            println!("Black to move");
+        }
+        let mut from_cell = String::new();
+        println!("From cell :");
+        io::stdin().read_line(&mut from_cell).expect("Error");
+        let from_cell = from_cell.trim();
+        //Ici checker si la case existe
+            //si non : on relance l'input
+        let mut to_cell = String::new();
+        println!("To cell :");
+        io::stdin().read_line(&mut to_cell).expect("Error");
+        let to_cell = to_cell.trim();
+        //Ici checker si la case existe
+            //si non : on relance l'input
+        //Si les deux cases existent, on execute le coup 
+        println!("From {from_cell} to {to_cell}");
+        break;
+    }
     //loop
         //Si le dernier coup a fait un check 
             //input + output
