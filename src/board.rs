@@ -1,5 +1,29 @@
+#[derive(Copy, Clone)] //copy pour initialiser le tableau | copy depend de clone ?
+pub enum Pieces {
+    PAWN,
+    ROOK,
+    KNIGHT,
+    BISHOP,
+    QUEEN,
+    KING,
+    NONE,
+}
+
+#[derive(Copy, Clone, PartialEq, Debug)]
+pub enum Color {
+    BLACK,
+    WHITE,
+    NONE,
+}
+
+#[derive(Copy, Clone)]
+pub struct Cell {
+    pub piece: Pieces,
+    pub color: Color,
+}
+
 pub struct Board {
-    grid: [[Cell; 8]; 8],
+    pub grid: [[Cell; 8]; 8],
     // check: bool,
     // pat: bool,
     // mate: bool,
@@ -130,29 +154,11 @@ impl Board {
             }
             println!("|");
         }
+        print!("  ");
+        for _ in 0..8 {
+            print!("----");
+        }
+        println!();
     }
 }
 
-#[derive(Copy, Clone)] //copy pour initialiser le tableau | copy depend de clone ?
-enum Pieces {
-    PAWN,
-    ROOK,
-    KNIGHT,
-    BISHOP,
-    QUEEN,
-    KING,
-    NONE,
-}
-
-#[derive(Copy, Clone)]
-enum Color {
-    BLACK,
-    WHITE,
-    NONE,
-}
-
-#[derive(Copy, Clone)]
-struct Cell {
-    piece: Pieces,
-    color: Color,
-}
