@@ -41,9 +41,12 @@ fn get_inputs(msg: &str, color: Color, board: &Board) -> Coord {
         let input = input.trim();
         match Coord::get_coord_from_string(input.to_string()) {
             Ok(coord) => {
-                if (msg == "from" && !Coord::is_player_color(&coord, color, &board) ) || 
-                    (msg == "to" && Coord::is_player_color(&coord, color, &board) ) {
+                if msg == "from" && !Coord::is_player_color(&coord, color, &board) {
                     println!("No {:?} piece in {}", color, input);
+                    continue;
+                }
+                if  msg == "to" && Coord::is_player_color(&coord, color, &board) {
+                    println!("There is already a {:?} piece in {}", color, input);
                     continue;
                 }
                 break coord
@@ -61,7 +64,7 @@ fn main() {
 
     board.print();
 
-    let i = 1;
+    let mut i = 1;
     loop {
         println!("Turn {i}");
         let color = if i % 2 != 0 {
@@ -74,8 +77,7 @@ fn main() {
         let from_coord = get_inputs("from", color, &board);
         let to_coord = get_inputs("to", color, &board);      
         println!("From {:?} to {:?}", from_coord, to_coord);
-        break;
-        // i += 1;
+        i += 1;
     }
 }
 
