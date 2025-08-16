@@ -1,9 +1,11 @@
 mod board;
-mod get_inputs;
 use board::Board;
 use board::Color;
 use board::Pieces;
+mod get_inputs;
 use get_inputs::Coord;
+mod validate_move;
+use validate_move::is_legal_move;
 
 fn main() {
     let board = Board::init_board();
@@ -23,7 +25,11 @@ fn main() {
         let from_coord = get_inputs::get_inputs("from", color, &board);
         let to_coord = get_inputs::get_inputs("to", color, &board);      
         println!("From {:?} to {:?}", from_coord, to_coord);
-
+        if validate_move::is_legal_move(&from_coord, &to_coord, &color, &board) {
+            println!("Move validated");
+        } else {
+            println!("Illegal move");
+        }
         //A chaque tour, calculer chaque coup legal et comparer le move a la liste ?
 
         //Coup possible pour la piece ? (legal + obstacle)
