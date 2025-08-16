@@ -1,3 +1,5 @@
+use crate::Coord; // Mettre Coord ici ?
+
 #[derive(Copy, Clone, PartialEq, Debug)] //copy pour initialiser le tableau | copy depend de clone ?
 pub enum Pieces {
     PAWN,
@@ -50,6 +52,8 @@ impl Board {
             white_short_castle: true,
             black_long_castle: true,
             black_short_castle: true,
+            white_threatening_cells: Vec::new(),
+            black_threatening_cells: Vec::new(),
         };
         for y in 0..8 {
             for x in 0..8 {
