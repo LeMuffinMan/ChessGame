@@ -1,8 +1,9 @@
-use Crate::Board;
-use Crate::Pieces;
-use Crate::Coord;
-use Crate::Color;
-
+use crate::Board;
+use crate::Pieces;
+use crate::Coord;
+use crate::Color;
+use crate::Color::WHITE;
+use crate::Color::NONE;
 ///3 times identical position
 ///50 mvoes with no pawn move, no take
 ///A player only can ASK for Null : input to add 
@@ -44,16 +45,87 @@ fn is_king_exposed(king_cell: &Coord, board: &Board) -> bool {
     true
 }
 
+///recursively search in line or diagonal if any Cell has a piece on it
+///Getting the direction to go with diff
+///setting the step to prorgress
+///creating a next Coord as arg "from" for the next recursive
+///if next == to : we succeed to reach "to" so it's validated
+///if not : check if next is empty
+///if next is empty, we call again the function
+fn find_obstacle(from: &Coord, to: &Coord, board: &Board) -> bool {
+    let from_row = from.row as i8;
+    let from_col = from.col as i8;
+    let to_row = to.row as i8;
+    let to_col = to.col as i8;
+
+    let row_diff = to_row - from_row;
+    let col_diff = to_col - from_col;
+
+    let sign_row = if row_diff > 0 {
+        1
+    } else if row_diff < 0 {
+        -1
+    } else {
+        0
+    };
+
+    let sign_col = if col_diff > 0 {
+        1
+    } else if col_diff < 0 {
+        -1
+    } else {
+        0
+    };
+
+    let next_row = from_row + sign_row;
+    let next_col = from_col + sign_col;
+
+    let next = Coord {
+        row: next_row as u8,
+        col: next_col as u8,
+    };
+
+    if next.row == to.row && next.col == to.col {
+        return false;
+    }
+
+    if board.grid[next.row as usize][next.col as usize].piece != Pieces::NONE {
+        return true;
+    }
+
+    find_obstacle(&next, to, board)
+}
+
 ///check if the piece situated at from coords, can move to the "to" coords, and if there is an
 ///obstacle on way
-fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
+pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
 
-    match board.grid[from.col as usize][from.row as usize].piece {
+    let piece = board.grid[from.row as usize][from.col as usize].piece;
+    match piece {
         Pieces::PAWN => {
+            let dir: i8 = if *color == WHITE {1} else {-1};
+            let start_row = if *color == WHITE {1} else {6};
 
-        //prise en passant
-        //promotion
-            true
+            let row_diff = to.row - from.row;
+            let col_diff = to.col - from.col;
+
+            let target_square = &board.grid[to.row as usize][to.col as usize];
+
+            if row_diff as i8 == dir && (col_diff == 1 || col_diff as i8 == -1) {
+                return target_square.color != *color && target_square.color != NONE;
+            }
+
+            if row_diff as i8 == dir && col_diff == 0 {
+                return target_square.color == NONE;
+            }
+
+            if from.row == start_row && row_diff as i8 == dir * 2 && col_diff == 0 {
+                let mid_row = from.row as i8 + dir;
+                return board.grid[mid_row as usize][from.col as usize].color == NONE
+                    && target_square.color == NONE && !find_obstacle(from, to, board);
+            }
+
+            false
         }
         Pieces::ROOK => {
 

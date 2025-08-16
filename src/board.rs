@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, PartialEq)] //copy pour initialiser le tableau | copy depend de clone ?
+#[derive(Copy, Clone, PartialEq, Debug)] //copy pour initialiser le tableau | copy depend de clone ?
 pub enum Pieces {
     PAWN,
     ROOK,
@@ -16,7 +16,7 @@ pub enum Color {
     NONE,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Cell {
     pub piece: Pieces,
     pub color: Color,
