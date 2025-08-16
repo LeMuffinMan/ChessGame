@@ -1,3 +1,6 @@
+mod threats;
+use threats::find_threat_on_path;
+use threats::update_threatens_cells;
 mod board;
 use board::Board;
 use board::Color;
@@ -25,7 +28,11 @@ fn main() {
         let from_coord = get_inputs::get_inputs("from", color, &board);
         let to_coord = get_inputs::get_inputs("to", color, &board);      
         println!("From {:?} to {:?}", from_coord, to_coord);
-        update_threatens_cells(board);
+
+        //a tester 
+        //a optimiser 
+        update_threatens_cells(&mut board); //&mut to modify the threatens_cells lists
+        
         if validate_move::is_legal_move(&from_coord, &to_coord, &color, &board) {
             println!("Move validated");
         } else {

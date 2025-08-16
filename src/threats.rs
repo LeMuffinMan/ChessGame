@@ -1,3 +1,9 @@
+use crate::Color::*; //This import the enum Color and all its element
+use crate::Color; //Need to import the enum alone to resolve amiguous NONE (Pieces / Color)
+use crate::Coord;
+use crate::Board;
+use crate::Pieces::*;
+use crate::Pieces;
 
 
 // fn find_threat_on_path(color: &Color, board: &Board) -> bool {
@@ -11,22 +17,26 @@
     //iterer sur toutes les cases menacees par la couleur adverse dans board : si un match => true
 // }
 
+pub fn find_threat_on_path(from: &Coord, to: &Coord, board: &Board) -> bool {
+    //Savoir dans quel direction on va
+    //iterer dans cette direction
+    //au premier vec.contains(target) == true : on stop on return true
+    //sinon return false
+    false
+}
+
 fn get_threaten_cells_in_diag(from: &Coord, row : u8, col: u8, board: &Board)
 {
     //Faire une fonction get_vec qui fait juste ce match ?
     let vec = match board.grid[from.row as usize][from.col as usize].color {
-        WHITE => &mut board.white_threatening_cells,
-        BLACK => &mut board.black_threatening_cells,
-        NONE => {
+        WHITE => &board.white_threatening_cells,
+        BLACK => &board.black_threatening_cells,
+        Color::NONE => {
             println!("Invalid from cell"); 
             return;
         }
-        _ => {
-            println!("Error : get_threaten_cells_in_line : Unexpected \"from\" color"); // Faire remonter l'erreur ?
-            return;
-        }
     };
-    let target: Coord = { row, col };
+    let target: Coord = Coord { row, col };
     vec.push(target); //we want to add it in any situation
 
     match (
@@ -37,13 +47,13 @@ fn get_threaten_cells_in_diag(from: &Coord, row : u8, col: u8, board: &Board)
         (std::cmp::Ordering::Greater, std::cmp::Ordering::Greater, WHITE | BLACK) => {
             return get_threaten_cells_in_diag(from, row + 1, col + 1, board);
         }
-        (std::cmp::Ordering::Greater, std::cmp::Ordering::Lower, WHITE | BLACK) => {
+        (std::cmp::Ordering::Greater, std::cmp::Ordering::Less, WHITE | BLACK) => {
             return get_threaten_cells_in_diag(from, row + 1, col - 1, board);
         }
-        (std::cmp::Ordering::Lower, std::cmp::Ordering::Greater, WHITE | BLACK) => {
+        (std::cmp::Ordering::Less, std::cmp::Ordering::Greater, WHITE | BLACK) => {
             return get_threaten_cells_in_diag(from, row - 1, col + 1, board);
         }
-        (std::cmp::Ordering::Lower, std::cmp::Ordering::Lower, WHITE | BLACK) => {
+        (std::cmp::Ordering::Less, std::cmp::Ordering::Less, WHITE | BLACK) => {
             return get_threaten_cells_in_diag(from, row - 1, col - 1, board);
         }
         _ => {
@@ -52,13 +62,14 @@ fn get_threaten_cells_in_diag(from: &Coord, row : u8, col: u8, board: &Board)
     }
 }
 
+
 fn get_threaten_cells_in_line(from: &Coord, row : u8, col: u8, board: &Board)
 {
     //using the from cell we deduce in which vec we will push the new threaten cell
     let vec = match board.grid[from.row as usize][from.col as usize].color {
         WHITE => &mut board.white_threatening_cells,
         BLACK => &mut board.black_threatening_cells,
-        NONE => {
+        Color::NONE => {
             println!("Invalid from cell"); 
             return;
         }
@@ -67,7 +78,7 @@ fn get_threaten_cells_in_line(from: &Coord, row : u8, col: u8, board: &Board)
             return;
         }
     };
-    let target: Coord = { row, col };
+    let target: Coord = Coord { row, col };
     vec.push(target); //we want to add it in any situation
 
     // destructured pattern matching :
@@ -100,21 +111,28 @@ fn get_threaten_cells_in_line(from: &Coord, row : u8, col: u8, board: &Board)
 }
 //Est-ce plus coherent d'en faire une impl de Board ?
 //je vais avoir besoin de le passer en mutable partout 
-fn update_threatens_cells(board: &mut Board) {
+pub fn update_threatens_cells(board: &mut Board) {
     board.white_threatening_cells.clear();
     board.black_threatening_cells.clear();
     for row in 0..8 {
         for col in 0..8 {
             let cell = &board.grid[row][col];
             //we skip the empty cells
-            if cell.piece == NONE { continue; }
-            let mut coord = Coord { row, col }
+            if cell.piece == Pieces::NONE { continue; }
+            let mut coord = Coord { row: row as u8, col: col as u8 };
             //we want 2 maps of the threaten cells
-            let vec = if cell.color == WHITE {
-                board.white_threatening_cells;
-            } else {
-                board.black_threatening_cells;
-            }
+            let vec = match cell.color {
+                WHITE => {
+                    board.white_threatening_cells
+                } 
+                BLACK => {
+                    board.black_threatening_cells
+                }
+                _ => {
+                    println!("Error : update_threatens_cells : Unexpected color in match vec");
+                    return ;
+                }
+            };
             //For each piece, we collect threaten cells
             //if a threaten cell has an ally piece, we still want to collect it
             //if a king would try to take a protected pawn, iterating in this vec will be enough to
@@ -132,11 +150,11 @@ fn update_threatens_cells(board: &mut Board) {
                     vec.push(coord);
                 }
                 ROOK => {
-                    //possibilite de faire des macros pour ces lignes ?
-                    get_threaten_cells_in_line(&coord, row + 1, col, &board);
-                    get_threaten_cells_in_line(&coord, row - 1, col, &board);
-                    get_threaten_cells_in_line(&coord, row, col + 1, &board);
-                    get_threaten_cells_in_line(&coord, row, col + 1, &board);
+                    //verifier avant si on sort du board ?
+                    get_threaten_cells_in_line(&coord, row as u8 + 1, col as u8, &board);
+                    get_threaten_cells_in_line(&coord, row as u8 - 1, col as u8, &board);
+                    get_threaten_cells_in_line(&coord, row as u8, col as u8 + 1, &board);
+                    get_threaten_cells_in_line(&coord, row as u8, col as u8 + 1, &board);
                     //une recursive qui ajoute dans les 4 directions si pas d'obstacle PUIS si
                     //obstacle == advers
 
@@ -163,10 +181,10 @@ fn update_threatens_cells(board: &mut Board) {
                     //trouver plus propre
                 }
                 BISHOP => {
-                    get_threaten_cells_in_diag(&coord, row + 1, col + 1, &board);
-                    get_threaten_cells_in_diag(&coord, row + 1, col - 1, &board);
-                    get_threaten_cells_in_diag(&coord, row - 1, col + 1, &board);
-                    get_threaten_cells_in_diag(&coord, row - 1, col - 1, &board);
+                    get_threaten_cells_in_diag(&coord, row as u8 + 1, col as u8 + 1, &board);
+                    get_threaten_cells_in_diag(&coord, row as u8 + 1, col as u8 - 1, &board);
+                    get_threaten_cells_in_diag(&coord, row as u8 - 1, col as u8 + 1, &board);
+                    get_threaten_cells_in_diag(&coord, row as u8 - 1, col as u8 - 1, &board);
                     //une recursive qui ajoute dans les 4 directions si pas d'obstacle PUIS si
                     //obstacle == advers
 
@@ -186,27 +204,27 @@ fn update_threatens_cells(board: &mut Board) {
 
 
                     //possibilite de faire des macros pour ces lignes ?
-                    get_threaten_cells_in_line(&coord, row + 1, col, &board);
-                    get_threaten_cells_in_line(&coord, row - 1, col, &board);
-                    get_threaten_cells_in_line(&coord, row, col + 1, &board);
-                    get_threaten_cells_in_line(&coord, row, col + 1, &board);
-                    get_threaten_cells_in_diag(&coord, row + 1, col + 1, &board);
-                    get_threaten_cells_in_diag(&coord, row + 1, col - 1, &board);
-                    get_threaten_cells_in_diag(&coord, row - 1, col + 1, &board);
-                    get_threaten_cells_in_diag(&coord, row - 1, col - 1, &board);
+                    get_threaten_cells_in_line(&coord, row as u8 + 1, col as u8, &board);
+                    get_threaten_cells_in_line(&coord, row as u8 - 1, col as u8, &board);
+                    get_threaten_cells_in_line(&coord, row as u8, col as u8 + 1, &board);
+                    get_threaten_cells_in_line(&coord, row as u8, col as u8 + 1, &board);
+                    get_threaten_cells_in_diag(&coord, row as u8 + 1, col as u8 + 1, &board);
+                    get_threaten_cells_in_diag(&coord, row as u8 + 1, col as u8 - 1, &board);
+                    get_threaten_cells_in_diag(&coord, row as u8 - 1, col as u8 + 1, &board);
+                    get_threaten_cells_in_diag(&coord, row as u8 - 1, col as u8 - 1, &board);
 
                 }
                 KING => {
                     coord.row -= 1; //si il est au bord ? 
-                    vec.push(coord)
+                    vec.push(coord);
                     coord.col -= 1;
-                    vec.push(coord)
+                    vec.push(coord);
                     coord.col += 2;
-                    vec.push(coord)
+                    vec.push(coord);
                     coord.row += 1;
-                    vec.push(coord)
+                    vec.push(coord);
                     coord.col -= 2;
-                    vec.push(coord)
+                    vec.push(coord);
                     coord.row += 1;
                     vec.push(coord);
                     coord.col += 1;
