@@ -96,43 +96,6 @@ fn find_obstacle(from: &Coord, to: &Coord, board: &Board) -> bool {
     find_obstacle(&next, to, board)
 }
 
-//je vais avoir besoin de le passer en mutable partout 
-fn update_threatens_cells(board: &mut Board) {
-    board.white_threatening_cells.clear();
-    board.black_threatening_cells.clear();
-    for row in 0..8 {
-        for col in 0..8 {
-            let cell = &board.grid[row][col];
-            let mut coord = Coord { row, col }
-            match cell.piece {
-                PAWN => {
-                    if cell.color == WHITE {
-                       coord.col += 1;
-                       board.white_threatening_cells.push(Coord);
-                       coord.col -= 2;
-                       board.white_threatening_cells.push(Coord);
-                    }
-                }
-                ROOK => {
-
-                }
-                KNIGHT => {
-
-                }
-                BISHOP => {
-
-                }
-                QUEEN => {
-
-                }
-                KING => {
-
-                }
-
-            }
-        }
-    }
-}
 
 ///check if the piece situated at from coords, can move to the "to" coords, and if there is an
 ///obstacle on way
