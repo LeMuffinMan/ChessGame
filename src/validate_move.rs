@@ -128,26 +128,89 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
             false
         }
         Pieces::ROOK => {
+            if from.row == to.row || from.col == to.col {
+                return !find_obstacle(from, to, board)
+            }
+            false 
 
-            true
         }
         Pieces::KNIGHT => {
+            let row_diff = (to.row as i8 - from.row as i8).abs();
+            let col_diff = (to.col as i8 - from.col as i8).abs();
 
-        //ignore obstacles
-            true
+            if (row_diff == 2 && col_diff == 1) || (row_diff == 1 && col_diff == 2) {
+                return board.grid[to.row as usize][to.col as usize].color != board.grid[from.row as usize][from.col as usize].color;
+            }
+
+            false
         }
         Pieces::BISHOP => {
+            let from_row = from.row as i8;
+            let from_col = from.col as i8;
+            let to_row = to.row as i8;
+            let to_col = to.col as i8;
+
+            let row_diff = to_row - from_row;
+            let col_diff = to_col - from_col;
+
+            if row_diff.abs() == col_diff.abs() {
+                return !find_obstacle(from, to, board);
+            }
 
             true
         }
         Pieces::QUEEN => {
+            let from_row = from.row as i8;
+            let from_col = from.col as i8;
+            let to_row = to.row as i8;
+            let to_col = to.col as i8;
 
-            true
+            let row_diff = to_row - from_row;
+            let col_diff = to_col - from_col;
+
+            if row_diff.abs() == col_diff.abs() {
+                return !find_obstacle(from, to, board);
+            }
+            if from.row == to.row || from.col == to.col {
+                return !find_obstacle(from, to, board)
+            }
+            false
         }
         Pieces::KING => {
+            let from_row = from.row as i8;
+            let from_col = from.col as i8;
+            let to_row = to.row as i8;
+            let to_col = to.col as i8;
 
-        //Roque
-            true
+            let row_diff = to_row - from_row;
+            let col_diff = to_col - from_col;
+
+            if row_diff.abs() <= 1 && col_diff.abs() <= 1 {
+                if board.grid[to.row as usize][to.col as usize].color != board.grid[from.row as usize][from.col as usize].color {
+                    return !is_cell_threaten(to, board);
+                }
+            }
+            if col_diff == 3
+                && !find_obstacle(from, to, board)
+                && !find_threat_on_path(from, to, board)
+                && !is_cell_threaten(to, board) {
+                if board.grid[from.row as usize][from.col as usize].color == WHITE {
+                    return board.white_short_castle;
+                } else {
+                    return board.black_short_castle;
+                }
+            }
+            if col_diff == 4
+                && !find_obstacle(from, to, board)
+                && !find_threat_on_path(from, to, board) 
+                && !is_cell_threaten(to, board) {
+                if board.grid[from.row as usize][from.col as usize].color == WHITE {
+                    return board.white_long_castle;
+                } else {
+                    return board.black_long_castle;
+                }
+            }
+            false
         }
         _ => {
             false

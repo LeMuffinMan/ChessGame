@@ -27,6 +27,13 @@ pub struct Board {
     // check: bool,
     // pat: bool,
     // mate: bool,
+    // 
+    // Des que je valide un move pour le roi ou une des tours : on passe ce bool a false
+    // Si le coup correspond a un des roques, on check le bool ici
+    pub white_long_castle: bool,
+    pub white_short_castle: bool,
+    pub black_long_castle: bool,
+    pub black_short_castle: bool,
 }
 
 impl Board {
@@ -37,6 +44,10 @@ impl Board {
         };
         let mut board = Board {
             grid: [[empty_cell; 8]; 8],
+            white_long_castle: true,
+            white_short_castle: true,
+            black_long_castle: true,
+            black_short_castle: true,
         };
         for y in 0..8 {
             for x in 0..8 {
