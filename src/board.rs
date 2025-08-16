@@ -34,6 +34,8 @@ pub struct Board {
     pub white_short_castle: bool,
     pub black_long_castle: bool,
     pub black_short_castle: bool,
+    pub white_threatening_cells: Vec<Coord>,
+    pub black_threatening_cells: Vec<Coord>,
 }
 
 impl Board {
