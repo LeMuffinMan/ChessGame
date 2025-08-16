@@ -11,30 +11,6 @@ fn special_null() {
 
 }
 
-///if the next player to play has no move possible
-fn is_a_pat() {
-
-}
-
-///Check if on any adjacent case the king could avoid threat
-fn can_king_survive() {
-
-}
-
-///If an ally piece can block the threatening piece 
-fn can_block_threat() {
-
-    //Si on peut bloquer, simuler de nouveau le nouveau board avec is_king_exposed pour checker
-    //plusieurs threats
-}
-
-///If an ally piece can take the threatening piece 
-fn can_capture_threat() {
-
-    //Si on peut bloquer, simuler de nouveau le nouveau board avec is_king_exposed pour checker
-    //plusieurs threats
-}
-
 ///Once we temporarly validated the move, we must know if the king of the active player is threaten
 ///Pour checker si on peut faire un move OU si le move resoud la situation d'echec
 ///Pour checker si le move qui a ete valide met le roi adverse en echec
@@ -97,6 +73,8 @@ fn find_obstacle(from: &Coord, to: &Coord, board: &Board) -> bool {
 }
 
 
+//Comment refacto proprement cette fonction ? 
+//faire des is_legal_move_pawn .. ?
 ///check if the piece situated at from coords, can move to the "to" coords, and if there is an
 ///obstacle on way
 pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
