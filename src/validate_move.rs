@@ -79,8 +79,6 @@ fn find_obstacle(from: &Coord, to: &Coord, board: &Board) -> bool {
 ///obstacle on way
 pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
 
-    update_threatens_cells(board);
-
     let piece = board.grid[from.row as usize][from.col as usize].piece;
     match piece {
         Pieces::PAWN => {

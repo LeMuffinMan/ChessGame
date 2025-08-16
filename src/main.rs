@@ -25,6 +25,7 @@ fn main() {
         let from_coord = get_inputs::get_inputs("from", color, &board);
         let to_coord = get_inputs::get_inputs("to", color, &board);      
         println!("From {:?} to {:?}", from_coord, to_coord);
+        update_threatens_cells(board);
         if validate_move::is_legal_move(&from_coord, &to_coord, &color, &board) {
             println!("Move validated");
         } else {
