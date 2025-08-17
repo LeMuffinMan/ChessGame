@@ -57,7 +57,9 @@ fn get_threaten_cells_in_diag(from: &Coord, row : u8, col: u8, board: &mut Board
             return get_threaten_cells_in_diag(from, row - 1, col - 1, board);
         }
         _ => {
-            println!("Error : get_threaten_cells_in_diag : Unexpecte case in seek the next cell call");
+            println!("get_threaten_cells_in_diag : found obstacle in {} {}", target.row, target.col);
+            // println!("Error : get_threaten_cells_in_diag : Unexpecte case in seek the next cell call");
+            return ;
         }
     }
 }
@@ -117,9 +119,9 @@ pub fn update_threatens_cells(board: &mut Board) {
     for row in 0..8 {
         for col in 0..8 {
             let cell = &board.grid[row][col];
-            println!("updateing threathens in cell {} {} containing {:?}", row, col, board.grid[row][col].piece);
             //we skip the empty cells
             if cell.piece == Pieces::NONE { continue; }
+            println!("\n[Updating threathens in cell {} {} containing {:?}]", row, col, board.grid[row][col].piece);
             let coord = Coord { row: row as u8, col: col as u8 };
             //we want 2 maps of the threaten cells
             let vec = match cell.color {
@@ -153,6 +155,7 @@ pub fn update_threatens_cells(board: &mut Board) {
                         let new_col = coord.col as i8 + dc;
 
                         if new_row >= 0 && new_row < 8 && new_col >= 0 && new_col < 8 {
+                            println!("Pushing Coord  col: {} , row: {} in vec", new_row, new_col);
                             vec.push(Coord { row: new_row as u8, col: new_col as u8 });
                         }
                     }
@@ -188,6 +191,7 @@ pub fn update_threatens_cells(board: &mut Board) {
 
                         //Need this to avoid panic on overflow
                         if new_row >= 0 && new_row < 8 && new_col >= 0 && new_col < 8 {
+                            println!("Pushing Coord  col: {} , row: {} in vec", new_row, new_col);
                             vec.push(Coord { row: new_row as u8, col: new_col as u8 });
                         }
                     }
@@ -262,6 +266,7 @@ pub fn update_threatens_cells(board: &mut Board) {
                         let new_col = coord.col as i8 + dc;
 
                         if new_row >= 0 && new_row < 8 && new_col >= 0 && new_col < 8 {
+                            println!("Pushing Coord  col: {} , row: {} in vec", new_row, new_col);
                             vec.push(Coord { row: new_row as u8, col: new_col as u8 });
                         }
                     }
