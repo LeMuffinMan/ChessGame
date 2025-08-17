@@ -98,9 +98,10 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &mut Board)
         Pieces::PAWN => {
             let dir: i8 = if *color == WHITE {1} else {-1};
             let start_row = if *color == WHITE {1} else {6};
+            let passant_row = if *color == WHITE {4} else {3};
 
-            let row_diff = to.row - from.row;
-            let col_diff = to.col - from.col;
+            let row_diff = to.row as i8 - from.row as i8;
+            let col_diff = to.col as i8 - from.col as i8;
 
             let target = &board.grid[to.row as usize][to.col as usize];
 
@@ -112,12 +113,46 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &mut Board)
                 return target.color == NONE;
             }
 
+            //double move
+            //if the pawn is on his start row 
+            //&& the pawn tries to move 2 cells
+            //&& the pawn tries to go straight
             if from.row == start_row && row_diff as i8 == dir * 2 && col_diff == 0 {
                 let mid_row = from.row as i8 + dir;
+                board.en_passant = Some(*to);
+                println!("En passant from pawn {:?}", to);
                 return board.grid[mid_row as usize][from.col as usize].color == NONE
-                    && target.color == NONE && !find_obstacle(from, to, board);
+                    && target.color == NONE 
+                    && !find_obstacle(from, to, board);
             }
-            //Ajouter la prise en passant !!
+
+            //en passant :
+            //if last turn we saved the coord of the pawn expsing itself to en passant
+            // && the pawn to move, is on his possible raw to take en passant
+            // && the pawn try to move on the same col as the en_passant coord
+            // && the pawn moves in 1 diagonaly
+            // && the pawn tries to move behind the pawn exposed
+            if let Some(coord) = board.en_passant {
+                println!("=== Debug en passant ===");
+                println!("from.row = {}, passant_row = {} -> {}",
+                        from.row, passant_row, from.row == passant_row);
+                println!("col_diff.abs() = {} -> {}",
+                        col_diff.abs(), col_diff.abs() == 1);
+                println!("to.col = {}, coord.col = {} -> {}",
+                        to.col, coord.col, to.col == coord.col);
+                println!("to.row = {}, coord.row = {}, dir = {}, coord.row+dir = {} -> {}",
+                        to.row, coord.row, dir, coord.row as i8 + dir,
+                        to.row as i8 == coord.row as i8 + dir);
+            }
+            if let Some(coord) = board.en_passant
+                && from.row == passant_row
+                && coord.col == to.col
+                && col_diff.abs() == 1
+                && to.row as i8 == coord.row as i8 + dir {
+                    return true;
+                    //le print se fait en face du pion qui mange
+                    //le pion mange est pas clean
+            }
             //si pion en face sur sa start raw et que coup precedent a fait deux cases
             //on peut manger en diag sur case vide
             false

@@ -48,17 +48,22 @@ fn get_threaten_cells_in_diag(from: &Coord, row : u8, col: u8, board: &mut Board
             return get_threaten_cells_in_diag(from, row + 1, col + 1, board);
         }
         (std::cmp::Ordering::Greater, std::cmp::Ordering::Less, WHITE | BLACK) => {
-            return get_threaten_cells_in_diag(from, row + 1, col - 1, board);
+            if col > 0 {
+                return get_threaten_cells_in_diag(from, row + 1, col - 1, board);
+            }
         }
         (std::cmp::Ordering::Less, std::cmp::Ordering::Greater, WHITE | BLACK) => {
-            return get_threaten_cells_in_diag(from, row - 1, col + 1, board);
+            if row > 0 {
+                return get_threaten_cells_in_diag(from, row - 1, col + 1, board);
+            }
         }
         (std::cmp::Ordering::Less, std::cmp::Ordering::Less, WHITE | BLACK) => {
-            return get_threaten_cells_in_diag(from, row - 1, col - 1, board);
+            if row > 0 && col > 0 {
+                return get_threaten_cells_in_diag(from, row - 1, col - 1, board);
+            }
         }
         _ => {
-            println!("get_threaten_cells_in_diag : found obstacle in {} {}", target.row, target.col);
-            // println!("Error : get_threaten_cells_in_diag : Unexpecte case in seek the next cell call");
+            // println!("get_threaten_cells_in_diag : found obstacle in {} {}", target.row, target.col);
             return ;
         }
     }
@@ -67,9 +72,9 @@ fn get_threaten_cells_in_diag(from: &Coord, row : u8, col: u8, board: &mut Board
 
 fn get_threaten_cells_in_line(from: &Coord, row : u8, col: u8, board: &mut Board)
 {
-    // if row > 7 || col > 7 { 
-    //     return ;
-    // }
+    if row > 7 || col > 7 { 
+        return ;
+    }
     //using the from cell we deduce in which vec we will push the new threaten cell
     let vec = match board.grid[from.row as usize][from.col as usize].color {
         WHITE => &mut board.white_threatening_cells,
@@ -80,7 +85,7 @@ fn get_threaten_cells_in_line(from: &Coord, row : u8, col: u8, board: &mut Board
         }
     };
     let target: Coord = Coord { row, col };
-    println!("Pushing {:?} in vec", target);
+    // println!("Pushing {:?} in vec", target);
     vec.push(target.clone()); //we want to add it in any situation
 
     // destructured pattern matching :
@@ -97,18 +102,21 @@ fn get_threaten_cells_in_line(from: &Coord, row : u8, col: u8, board: &mut Board
             return get_threaten_cells_in_line(from, row + 1, col, board);
         }
         (std::cmp::Ordering::Less, _, Color::NONE) => {
-            return get_threaten_cells_in_line(from, row - 1, col, board);
+            if row > 0 {
+                return get_threaten_cells_in_line(from, row - 1, col, board);
+            }
         }
         (_, std::cmp::Ordering::Greater, Color::NONE) => {
             return get_threaten_cells_in_line(from, row, col + 1, board);
         }
         (_, std::cmp::Ordering::Less, Color::NONE) => {
-            return get_threaten_cells_in_line(from, row, col - 1, board);
+            if row > 0 {
+                return get_threaten_cells_in_line(from, row, col - 1, board);
+            }
         }
         _ => {
-            println!("get_threaten_cells_in_line : found obstacle in {} {}", target.row, target.col);
-            return ; //reaching this returns means we had an ostacle
-            // println!("Error : get_threaten_cells_in_line : Unexpected case seeking the next cell call\nrow : {} / from.row  : {}\ncol : {} / from.col : {}", row, from.row, col, from.col);
+            // println!("get_threaten_cells_in_line : found obstacle in {} {}", target.row, target.col);
+            return ; //reaching this returns means we had an obstacle
         }
     }
 }
@@ -121,7 +129,7 @@ pub fn update_threatens_cells(board: &mut Board) {
             let cell = &board.grid[row][col];
             //we skip the empty cells
             if cell.piece == Pieces::NONE { continue; }
-            println!("\n[Updating threathens in cell {} {} containing {:?}]", row, col, board.grid[row][col].piece);
+            // println!("\n[Updating threathens in cell {} {} containing {:?}]", row, col, board.grid[row][col].piece);
             let coord = Coord { row: row as u8, col: col as u8 };
             //we want 2 maps of the threaten cells
             let vec = match cell.color {
@@ -155,7 +163,7 @@ pub fn update_threatens_cells(board: &mut Board) {
                         let new_col = coord.col as i8 + dc;
 
                         if new_row >= 0 && new_row < 8 && new_col >= 0 && new_col < 8 {
-                            println!("Pushing Coord  col: {} , row: {} in vec", new_row, new_col);
+                            // println!("Pushing Coord  col: {} , row: {} in vec", new_row, new_col);
                             vec.push(Coord { row: new_row as u8, col: new_col as u8 });
                         }
                     }
@@ -173,7 +181,7 @@ pub fn update_threatens_cells(board: &mut Board) {
                     if col > 0 {
                         get_threaten_cells_in_line(&coord, row as u8, col as u8 - 1, board);
                     }
-                    //une recursive qui ajoute dans les 4 directions si pas d'obstacle PUIS si
+                    //une recursive qui push dans les 4 directions si pas d'obstacle PUIS si
                     //obstacle == advers
 
                 }
@@ -191,7 +199,7 @@ pub fn update_threatens_cells(board: &mut Board) {
 
                         //Need this to avoid panic on overflow
                         if new_row >= 0 && new_row < 8 && new_col >= 0 && new_col < 8 {
-                            println!("Pushing Coord  col: {} , row: {} in vec", new_row, new_col);
+                            // println!("Pushing Coord  col: {} , row: {} in vec", new_row, new_col);
                             vec.push(Coord { row: new_row as u8, col: new_col as u8 });
                         }
                     }
@@ -255,18 +263,18 @@ pub fn update_threatens_cells(board: &mut Board) {
 
                 }
                 KING => {
-                    let moves: [(i8, i8); 8] = [
+                    let cells: [(i8, i8); 8] = [
                         (-1, -1), (-1, 0), (-1, 1),
                         (0, -1),           (0, 1),
-                        (1, -1), (1, 0), (1, 1),
+                        (1, -1),  (1, 0),  (1, 1),
                     ];
 
-                    for (dr, dc) in moves.iter() {
+                    for (dr, dc) in cells.iter() {
                         let new_row = coord.row as i8 + dr;
                         let new_col = coord.col as i8 + dc;
 
                         if new_row >= 0 && new_row < 8 && new_col >= 0 && new_col < 8 {
-                            println!("Pushing Coord  col: {} , row: {} in vec", new_row, new_col);
+                            // println!("Pushing Coord  col: {} , row: {} in vec", new_row, new_col);
                             vec.push(Coord { row: new_row as u8, col: new_col as u8 });
                         }
                     }
