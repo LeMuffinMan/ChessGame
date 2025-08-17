@@ -1,26 +1,26 @@
-use crate::find_threat_on_path;
+// use crate::find_threat_on_path;
 use crate::Board;
 use crate::Pieces;
 use crate::Coord;
 use crate::Color;
-use crate::Color::WHITE;
+use crate::Color::*;
 use crate::Color::NONE;
 ///3 times identical position
 ///50 mvoes with no pawn move, no take
 ///A player only can ASK for Null : input to add 
-fn special_null() {
-
-}
+// fn special_null() {
+//
+// }
 
 ///Once we temporarly validated the move, we must know if the king of the active player is threaten
 ///Pour checker si on peut faire un move OU si le move resoud la situation d'echec
 ///Pour checker si le move qui a ete valide met le roi adverse en echec
-fn is_king_exposed(king_cell: &Coord, board: &Board) -> bool {
-    //Checker les cavaliers sur les 8 cases possibles
-    //checker en ligne x 4
-    //checker en diag x 4
-    true
-}
+// fn is_king_exposed(king_cell: &Coord, board: &Board) -> bool {
+//     //Checker les cavaliers sur les 8 cases possibles
+//     //checker en ligne x 4
+//     //checker en diag x 4
+//     true
+// }
 
 ///recursively search in line or diagonal if any Cell has a piece on it
 ///Getting the direction to go with diff
@@ -79,22 +79,18 @@ fn find_obstacle(from: &Coord, to: &Coord, board: &Board) -> bool {
 //faire des is_legal_move_pawn .. ?
 ///check if the piece situated at from coords, can move to the "to" coords, and if there is an
 ///obstacle on way
-pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
+pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &mut Board) -> bool {
 
     let piece = board.grid[from.row as usize][from.col as usize].piece;
     //This vec contains all cells threatened by opponent
     let vec = match color {
-        WHITE => &mut board.white_threatening_cells,
-        BLACK => &mut board.black_threatening_cells,
+        WHITE => &board.white_threatening_cells,
+        BLACK => &board.black_threatening_cells,
         NONE => {
             println!("Error : invalid is_legal_move cell color"); 
             return false;
             //ameliorer la gestion d'erreur ?
             //to panic or not to panic ?
-        }
-        _ => {
-            println!("Error : is_legal_move : Unexpected \"from\" color"); // Faire remonter l'erreur ?
-            return false;
         }
     };
 
@@ -106,20 +102,20 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
             let row_diff = to.row - from.row;
             let col_diff = to.col - from.col;
 
-            let target_square = &board.grid[to.row as usize][to.col as usize];
+            let target = &board.grid[to.row as usize][to.col as usize];
 
             if row_diff as i8 == dir && (col_diff == 1 || col_diff as i8 == -1) {
-                return target_square.color != *color && target_square.color != NONE;
+                return target.color != *color && target.color != NONE;
             }
 
             if row_diff as i8 == dir && col_diff == 0 {
-                return target_square.color == NONE;
+                return target.color == NONE;
             }
 
             if from.row == start_row && row_diff as i8 == dir * 2 && col_diff == 0 {
                 let mid_row = from.row as i8 + dir;
                 return board.grid[mid_row as usize][from.col as usize].color == NONE
-                    && target_square.color == NONE && !find_obstacle(from, to, board);
+                    && target.color == NONE && !find_obstacle(from, to, board);
             }
             //Ajouter la prise en passant !!
             //si pion en face sur sa start raw et que coup precedent a fait deux cases
@@ -191,7 +187,7 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
             }
             if col_diff == 3
                 && !find_obstacle(from, to, board)
-                && !find_threat_on_path(from, to, board)
+                // && !find_threat_on_path(from, to, board)
                 && !vec.contains(&to) {
                 if board.grid[from.row as usize][from.col as usize].color == WHITE {
                     return board.white_short_castle;
@@ -201,7 +197,7 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
             }
             if col_diff == 4
                 && !find_obstacle(from, to, board)
-                && !find_threat_on_path(from, to, board) 
+                // && !find_threat_on_path(from, to, board) 
                 // && !is_cell_threaten(to, board) declarer le vec des threats et utiliser
                 // .contains
             {
