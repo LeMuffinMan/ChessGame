@@ -10,7 +10,8 @@ pub struct Coord {
 }
 
 ///translate pgn code into regular coordinates, with minimal error management
-fn get_coord_from_string(cell: String) -> Result<Coord, String> {
+//une impl de Coord form string
+pub fn get_coord_from_string(cell: String) -> Result<Coord, String> {
     if cell.len() != 2 {
         return Err(format!("Invalid input size : {}", cell.len()));
     }

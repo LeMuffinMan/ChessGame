@@ -13,10 +13,10 @@ mod validate_move;
 fn main() {
     let mut board = Board::init_board();
 
-    board.print();
-
     let mut i = 1;
     loop {
+        update_threatens_cells(&mut board); //&mut to modify the threatens_cells lists
+        board.print();
         println!("Turn {i}");
         let color = if i % 2 != 0 {
             println!("White to move");
@@ -28,15 +28,21 @@ fn main() {
         let from_coord = get_inputs::get_inputs("from", color, &board);
         let to_coord = get_inputs::get_inputs("to", color, &board);      
         println!("From {:?} to {:?}", from_coord, to_coord);
-
-        //a tester 
-        //a optimiser 
-        update_threatens_cells(&mut board); //&mut to modify the threatens_cells lists
-        
         if validate_move::is_legal_move(&from_coord, &to_coord, &color, &mut board) {
+        //if a pawn is exposed to en_passant, it must be reset at end of its opponent turn
+        // if let Some(coord) = board.en_passant 
+        //     && board.grid[coord.row as usize][coord.col as usize].color != color {
+        //     board.en_passant = None;
+        // } 
             println!("Move validated");
+            board.grid[to_coord.row as usize][to_coord.col as usize].piece = board.grid[from_coord.row as usize][from_coord.col as usize].piece;
+            board.grid[to_coord.row as usize][to_coord.col as usize].color = board.grid[from_coord.row as usize][from_coord.col as usize].color;
+            board.grid[from_coord.row as usize][from_coord.col as usize].piece = Pieces::NONE;
+            board.grid[from_coord.row as usize][from_coord.col as usize].color = Color::NONE;
+            //en passant ne se met pas correctement a jour
         } else {
             println!("Illegal move");
+            continue ;
         }
         //A chaque tour, calculer chaque coup legal et comparer le move a la liste ?
 

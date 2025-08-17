@@ -27,6 +27,17 @@ pub struct Cell {
 // #[derive(Copy, Clone)]
 pub struct Board {
     pub grid: [[Cell; 8]; 8],
+    pub en_passant: Option<Coord>,
+
+    //en passant :
+    //
+    //Une Option<T>
+    //Si Some() ne trouve pas None, ca veut dire que la prise en passant est possible, a la coord T
+    //Si Some() trouve NONE c'est qu'il n'y a pas de en passant possible
+    //On set T aux coordonees du pion qui vient de rendre possible la prise en passant
+    //En fin de tour, on met T a None
+
+
     // check: bool,
     // pat: bool,
     // mate: bool,
@@ -53,6 +64,7 @@ impl Board {
             white_short_castle: true,
             black_long_castle: true,
             black_short_castle: true,
+            en_passant: None,
             white_threatening_cells: Vec::new(),
             black_threatening_cells: Vec::new(),
         };
