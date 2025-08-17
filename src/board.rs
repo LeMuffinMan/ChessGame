@@ -24,6 +24,7 @@ pub struct Cell {
     pub color: Color,
 }
 
+// #[derive(Copy, Clone)]
 pub struct Board {
     pub grid: [[Cell; 8]; 8],
     // check: bool,

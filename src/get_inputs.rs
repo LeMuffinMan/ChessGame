@@ -3,7 +3,7 @@ use std::io;
 use crate::Board;
 use crate::Color;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)] //Clone to add target in vec and still use target for recursives
 pub struct Coord {
     pub col: u8,
     pub row: u8,
