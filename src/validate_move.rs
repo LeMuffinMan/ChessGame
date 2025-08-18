@@ -1,34 +1,26 @@
 use crate::Board;
-use crate::Pieces;
 use crate::Coord;
-use crate::Color;
-use crate::Color::WHITE;
-use crate::Color::NONE;
+use crate::board::Cell;
+use crate::board::{Color, Color::*, Piece};
 ///3 times identical position
 ///50 mvoes with no pawn move, no take
-///A player only can ASK for Null : input to add 
-fn special_null() {
-
-}
+///A player only can ASK for Null : input to add
+fn special_null() {}
 
 ///if the next player to play has no move possible
-fn is_a_pat() {
-
-}
+fn is_a_pat() {}
 
 ///Check if on any adjacent case the king could avoid threat
-fn can_king_survive() {
+fn can_king_survive() {}
 
-}
-
-///If an ally piece can block the threatening piece 
+///If an ally piece can block the threatening piece
 fn can_block_threat() {
 
     //Si on peut bloquer, simuler de nouveau le nouveau board avec is_king_exposed pour checker
     //plusieurs threats
 }
 
-///If an ally piece can take the threatening piece 
+///If an ally piece can take the threatening piece
 fn can_capture_threat() {
 
     //Si on peut bloquer, simuler de nouveau le nouveau board avec is_king_exposed pour checker
@@ -38,7 +30,7 @@ fn can_capture_threat() {
 ///Once we temporarly validated the move, we must know if the king of the active player is threaten
 ///Pour checker si on peut faire un move OU si le move resoud la situation d'echec
 ///Pour checker si le move qui a ete valide met le roi adverse en echec
-fn is_king_exposed(king_cell: &Coord, board: &Board) -> bool {
+fn is_king_exposed(_king_cell: &Coord, _board: &Board) -> bool {
     //Checker les cavaliers sur les 8 cases possibles
     //checker en ligne x 4
     //checker en diag x 4
@@ -85,11 +77,11 @@ fn find_obstacle(from: &Coord, to: &Coord, board: &Board) -> bool {
         col: next_col as u8,
     };
 
-    if next.row == to.row && next.col == to.col {
+    if next == *to {
         return false;
     }
 
-    if board.grid[next.row as usize][next.col as usize].piece != Pieces::NONE {
+    if board.get(&next) != Cell::Free {
         return true;
     }
 
@@ -99,58 +91,50 @@ fn find_obstacle(from: &Coord, to: &Coord, board: &Board) -> bool {
 ///check if the piece situated at from coords, can move to the "to" coords, and if there is an
 ///obstacle on way
 pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
+    let cell = board.get(from);
+    match cell {
+        Cell::Free => false,
+        Cell::Occupied(piece, _piece_color) => {
+            match piece {
+                Piece::Pawn => {
+                    let dir: i8 = if *color == White { 1 } else { -1 };
+                    let start_row = if *color == White { 1 } else { 6 };
 
-    let piece = board.grid[from.row as usize][from.col as usize].piece;
-    match piece {
-        Pieces::PAWN => {
-            let dir: i8 = if *color == WHITE {1} else {-1};
-            let start_row = if *color == WHITE {1} else {6};
+                    let row_diff = to.row - from.row;
+                    let col_diff = to.col - from.col;
 
-            let row_diff = to.row - from.row;
-            let col_diff = to.col - from.col;
+                    let target_square = &board.get(to);
 
-            let target_square = &board.grid[to.row as usize][to.col as usize];
+                    if row_diff as i8 == dir && (col_diff == 1 || col_diff as i8 == -1) {
+                        return target_square.diff_color_and_not_white(color);
+                    }
 
-            if row_diff as i8 == dir && (col_diff == 1 || col_diff as i8 == -1) {
-                return target_square.color != *color && target_square.color != NONE;
+                    if row_diff as i8 == dir && col_diff == 0 {
+                        return target_square.is_color(&Color::White);
+                    }
+
+                    if from.row == start_row && row_diff as i8 == dir * 2 && col_diff == 0 {
+                        let mid_row = from.row as i8 + dir;
+                        let mid_cell = board.grid[mid_row as usize][from.col as usize];
+                        return mid_cell == Cell::Free
+                            && *target_square == Cell::Free
+                            && !find_obstacle(from, to, board);
+                    }
+
+                    false
+                }
+                Piece::Rook => true,
+                Piece::Knight => {
+                    //ignore obstacles
+                    true
+                }
+                Piece::Bishop => true,
+                Piece::Queen => true,
+                Piece::King => {
+                    //Roque
+                    true
+                }
             }
-
-            if row_diff as i8 == dir && col_diff == 0 {
-                return target_square.color == NONE;
-            }
-
-            if from.row == start_row && row_diff as i8 == dir * 2 && col_diff == 0 {
-                let mid_row = from.row as i8 + dir;
-                return board.grid[mid_row as usize][from.col as usize].color == NONE
-                    && target_square.color == NONE && !find_obstacle(from, to, board);
-            }
-
-            false
-        }
-        Pieces::ROOK => {
-
-            true
-        }
-        Pieces::KNIGHT => {
-
-        //ignore obstacles
-            true
-        }
-        Pieces::BISHOP => {
-
-            true
-        }
-        Pieces::QUEEN => {
-
-            true
-        }
-        Pieces::KING => {
-
-        //Roque
-            true
-        }
-        _ => {
-            false
         }
     }
 }
