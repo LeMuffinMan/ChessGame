@@ -1,3 +1,7 @@
+use crate::Coord;
+use crate::validate_move;
+
+
 #[derive(Copy, Clone, Eq, PartialEq, Debug)] //copy pour initialiser le tableau | copy depend de clone ?
 pub enum Piece {
     Pawn,
@@ -23,10 +27,22 @@ pub enum Cell {
 }
 
 impl Cell {
+    pub fn get_piece(&self) -> Option<&Piece> {
+        match self {
+            Cell::Occupied(piece, _) => Some(piece),
+            Cell::Free => None,
+        }
+    }
     pub fn is_color(&self, color: &Color) -> bool {
         match self {
             Cell::Occupied(_, cell_color) => cell_color == color,
             Cell::Free => false,
+        }
+    }
+    pub fn is_empty(&self) -> bool {
+        match self {
+            Cell::Free => true,
+            Cell::Occupied(_, _) => true,
         }
     }
     pub fn diff_color_and_not_white(&self, color: &Color) -> bool {
@@ -113,9 +129,18 @@ impl Board {
     pub fn init_board() -> Board {
         let mut board = Board {
             grid: [[Cell::Free; 8]; 8],
+            en_passant: None,
+            white_long_castle: true,
+            white_short_castle: true,
+            black_long_castle: true,
+            black_short_castle: true,
+            white_threatening_cells: Vec::new(),
+            black_threatening_cells: Vec::new(),
         };
+
         board.fill_side(White);
         board.fill_side(Black);
+
         board
     }
 
