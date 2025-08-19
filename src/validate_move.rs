@@ -6,38 +6,30 @@ use crate::board::{Color, Color::*, Piece};
 ///3 times identical position
 ///50 mvoes with no pawn move, no take
 ///A player only can ASK for Null : input to add
-fn special_null() {}
-
+// fn special_null() {}
 ///if the next player to play has no move possible
-fn is_a_pat() {}
-
+// fn is_a_pat() {}
 ///Check if on any adjacent case the king could avoid threat
-fn can_king_survive() {}
-
+// fn can_king_survive() {}
 ///If an ally piece can block the threatening piece
-fn can_block_threat() {
-
-    //Si on peut bloquer, simuler de nouveau le nouveau board avec is_king_exposed pour checker
-    //plusieurs threats
-}
-
+// fn can_block_threat() {
+//Si on peut bloquer, simuler de nouveau le nouveau board avec is_king_exposed pour checker
+//plusieurs threats
+// }
 ///If an ally piece can take the threatening piece
-fn can_capture_threat() {
-
-    //Si on peut bloquer, simuler de nouveau le nouveau board avec is_king_exposed pour checker
-    //plusieurs threats
-}
-
+// fn can_capture_threat() {
+//Si on peut bloquer, simuler de nouveau le nouveau board avec is_king_exposed pour checker
+//plusieurs threats
+// }
 ///Once we temporarly validated the move, we must know if the king of the active player is threaten
 ///Pour checker si on peut faire un move OU si le move resoud la situation d'echec
 ///Pour checker si le move qui a ete valide met le roi adverse en echec
-fn is_king_exposed(_king_cell: &Coord, _board: &Board) -> bool {
-    //Checker les cavaliers sur les 8 cases possibles
-    //checker en ligne x 4
-    //checker en diag x 4
-    true
-}
-
+// fn is_king_exposed(_king_cell: &Coord, _board: &Board) -> bool {
+//Checker les cavaliers sur les 8 cases possibles
+//checker en ligne x 4
+//checker en diag x 4
+//     true
+// }
 ///recursively search in line or diagonal if any Cell has a piece on it
 ///Getting the direction to go with diff
 ///setting the step to prorgress
@@ -124,54 +116,54 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
                         return target_square.is_empty();
                     }
 
+                    //first double move for pawns
                     if from.row == start_row && row_diff as i8 == dir * 2 && col_diff == 0 {
                         let mid_row = from.row as i8 + dir;
                         let mid_cell = board.grid[mid_row as usize][from.col as usize];
                         return mid_cell == Cell::Free
                             && *target_square == Cell::Free
                             && !find_obstacle(from, to, board);
-                        //en passant :
-                        //if last turn we saved the coord of the pawn expsing itself to en passant
-                        // && the pawn to move, is on his possible raw to take en passant
-                        // && the pawn try to move on the same col as the en_passant coord
-                        // && the pawn moves in 1 diagonaly
-                        // && the pawn tries to move behind the pawn exposed
-                        if let Some(coord) = board.en_passant {
-                            println!("=== Debug en passant ===");
-                            println!(
-                                "from.row = {}, passant_row = {} -> {}",
-                                from.row,
-                                passant_row,
-                                from.row == passant_row
-                            );
-                            println!("col_diff.abs() = {} -> {}", col_diff, col_diff == 1);
-                            println!(
-                                "to.col = {}, coord.col = {} -> {}",
-                                to.col,
-                                coord.col,
-                                to.col == coord.col
-                            );
-                            println!(
-                                "to.row = {}, coord.row = {}, dir = {}, coord.row+dir = {} -> {}",
-                                to.row,
-                                coord.row,
-                                dir,
-                                coord.row as i8 + dir,
-                                to.row as i8 == coord.row as i8 + dir
-                            );
-                        }
-                        if let Some(coord) = board.en_passant
-                            && from.row == passant_row
-                            && coord.col == to.col
-                            && col_diff == 1
-                            && to.row as i8 == coord.row as i8 + dir
-                        {
-                            return true;
-                            //le print se fait en face du pion qui mange
-                            //le pion mange est pas clean
-                        }
                     }
-
+                    //en passant :
+                    //if last turn we saved the coord of the pawn expsing itself to en passant
+                    // && the pawn to move, is on his possible raw to take en passant
+                    // && the pawn try to move on the same col as the en_passant coord
+                    // && the pawn moves in 1 diagonaly
+                    // && the pawn tries to move behind the pawn exposed
+                    if let Some(coord) = &board.en_passant {
+                        println!("Debug en passant");
+                        println!(
+                            "from.row = {}, passant_row = {} -> {}",
+                            from.row,
+                            passant_row,
+                            from.row == passant_row
+                        );
+                        println!("col_diff.abs() = {} -> {}", col_diff, col_diff == 1);
+                        println!(
+                            "to.col = {}, coord.col = {} -> {}",
+                            to.col,
+                            coord.col,
+                            to.col == coord.col
+                        );
+                        println!(
+                            "to.row = {}, coord.row = {}, dir = {}, coord.row+dir = {} -> {}",
+                            to.row,
+                            coord.row,
+                            dir,
+                            coord.row as i8 + dir,
+                            to.row as i8 == coord.row as i8 + dir
+                        );
+                    }
+                    if let Some(coord) = &board.en_passant
+                        && from.row == passant_row
+                        && coord.col == to.col
+                        && col_diff == 1
+                        && to.row as i8 == coord.row as i8 + dir
+                    {
+                        return true;
+                        //le print se fait en face du pion qui mange
+                        //le pion mange est pas clean
+                    }
                     false
                 }
                 Piece::Rook => true,

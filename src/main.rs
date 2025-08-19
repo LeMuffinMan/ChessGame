@@ -1,4 +1,6 @@
 mod threat;
+use crate::threat::update_threatens_cells;
+use crate::update_threatens_cells::update_threatens_cells;
 use threat::get_threaten_cells;
 mod board;
 use board::Board;
@@ -25,7 +27,7 @@ fn main() {
         };
         let from_coord = get_inputs::get_inputs("from", color, &board);
         let to_coord = get_inputs::get_inputs("to", color, &board);
-        println!("From {:?} to {:?}", from_coord, to_coord);
+        println!("From {from_coord:?} to {to_coord:?}");
         if board.is_legal_move(&from_coord, &to_coord, &color) {
             println!("Move validated");
             board.grid[to_coord.row as usize][to_coord.col as usize] = std::mem::replace(
