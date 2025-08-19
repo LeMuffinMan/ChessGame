@@ -10,6 +10,27 @@ use get_inputs::Coord;
 mod validate_move;
 // use validate_move::is_legal_move;
 
+//TO DO
+//- Branch main / dev
+//- accepter la pull request sur main
+//- modifier dev en fct
+//- merge sur main et bloquer les pushs
+//
+//- implementer refacto patoch
+//- implementer stdin en pipe pour tests
+//- refacto TOUT
+//- commenter les doutes etc 
+//      - Casts ? declarer un i32 le board ?
+//      - Unit tests ?
+//      - Iterator : perfs ? (update threats peut iterer differemment ?)
+//      - Quelles fonctions doivent etre des impl ?
+//      - rangement des structs ?
+//
+//++ implementer pat detect
+//++ implementer check / mat detect
+//++ implementer draw rules
+
+
 fn main() {
     let mut board = Board::init_board();
 
