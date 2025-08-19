@@ -45,12 +45,18 @@ impl Cell {
             Cell::Occupied(_, _) => true,
         }
     }
-    pub fn diff_color_and_not_white(&self, color: &Color) -> bool {
+    pub fn is_opponent_color(&self, color: &Color) -> bool {
         match self {
             Cell::Free => false,
-            Cell::Occupied(_, cell_color) => cell_color != color && *cell_color != White,
+            Cell::Occupied(_, cell_color) => cell_color != color,
         }
     }
+    // pub fn diff_color_and_not_white(&self, color: &Color) -> bool {
+    //     match self {
+    //         Cell::Free => false,
+    //         Cell::Occupied(_, cell_color) => cell_color != color && *cell_color != White,
+    //     }
+    // }
 }
 
 impl std::fmt::Display for Cell {

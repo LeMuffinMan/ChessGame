@@ -99,7 +99,7 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
     let cell = board.get(from);
     match cell {
         Cell::Free => false,
-        Cell::Occupied(piece, _piece_color) => {
+        Cell::Occupied(piece, piece_color) => {
             match piece {
                 Piece::Pawn => {
                     let dir: i8 = if *color == White { 1 } else { -1 };
@@ -111,12 +111,18 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
 
                     let target_square = &board.get(to);
 
+                    //takes in diag if 
+                    //- the pawn tries to go one cell in his color direction
+                    //- it tries to move in diagonal 
+                    //- there is an opponent piece in the dest cell
                     if row_diff as i8 == dir && (col_diff == 1 || col_diff as i8 == -1) {
-                        return target_square.diff_color_and_not_white(color);
+                        return target_square.is_opponent_color(&piece_color);
                     }
 
+                    //moves by one cell straight forward
+                    //if it's empty
                     if row_diff as i8 == dir && col_diff == 0 {
-                        return target_square.is_color(&Color::White);
+                        return target_square.is_empty();
                     }
 
                     if from.row == start_row && row_diff as i8 == dir * 2 && col_diff == 0 {
