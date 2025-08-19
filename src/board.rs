@@ -85,30 +85,50 @@ impl std::fmt::Display for Cell {
 // #[derive(Copy, Clone)]
 pub struct Board {
     pub grid: [[Cell; 8]; 8],
+    pub white_castle: (bool, bool), //(short, long)
+    pub black_castle: (bool, bool),
+    pub threaten_cells: Vec<(cell, color_threat)> 
+    //each element of the vector is a tuple :
+    //- the coord of the threaten cell
+    //- the color which is threatening the cell
+
     pub en_passant: Option<Coord>,
+    //Works as a boolean containing a coord if true
+    //if an en_passant takes is possible : exists
+    //- contains the coord of the pawn exposed to en_passant 
+    //else : None
+    //does not update print correctly
+    //does not set back to none correctly
 
-    //en passant :
-    //
-    //Une Option<T>
-    //Si Some() ne trouve pas None, ca veut dire que la prise en passant est possible, a la coord T
-    //Si Some() trouve NONE c'est qu'il n'y a pas de en passant possible
-    //On set T aux coordonees du pion qui vient de rendre possible la prise en passant
-    //En fin de tour, on met T a None
-
-
-    // check: bool,
-    // pat: bool,
-    // mate: bool,
-    // 
-    // Des que je valide un move pour le roi ou une des tours : on passe ce bool a false
-    // Si le coup correspond a un des roques, on check le bool ici
-    pub white_long_castle: bool,
-    pub white_short_castle: bool,
-    pub black_long_castle: bool,
-    pub black_short_castle: bool,
-    pub white_threatening_cells: Vec<Coord>,
-    pub black_threatening_cells: Vec<Coord>,
+    //check: bool,
+    //legal_moves: Vec<(Coord, Coord)>
 }
+
+    //after updating threats, we check each legal moves for active player 
+    //we compose a vector of tuple (from, to) for each possible move using validate_move
+    //- if the vec is empty : return is_pat() || is_check_resolved()
+    //- else we can use the vec to compare user input and reject or accept it
+    //
+    //loop {
+    //
+    // update_threats()
+    // update_legal_moves()
+    //      - if empty return is_path() || is_checkmate()
+    // getinputs()
+    // is_legal_move()
+    // update_check()
+    //
+    //}
+    //Validate move :
+    // - is_legal_move
+    // - if check == true  && active king is threaten
+    //    - reject and ask new inputs
+    //
+    // Update_check() //at end of turn after validated the move, we update the check bool for next
+    // player
+    //   - if check == true -> check = false //we would have rejected a move not solving the check
+    //   - if opponent king is threathen : check = true
+    // 
 
 impl Board {
     fn fill_side(&mut self, color: Color) {

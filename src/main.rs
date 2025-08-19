@@ -13,7 +13,7 @@ fn main() {
 
     let mut i = 1;
     loop {
-        update_threatens_cells(&mut board); //&mut to modify the threatens_cells lists
+        update_threatens_cells(&mut board);
         board.print();
         println!("Turn {i}");
         let color = if i % 2 != 0 {
