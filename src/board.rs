@@ -1,27 +1,63 @@
-use crate::Coord; // Mettre Coord ici ?
-
-#[derive(Copy, Clone, PartialEq, Debug)] //copy pour initialiser le tableau | copy depend de clone ?
-pub enum Pieces {
-    PAWN,
-    ROOK,
-    KNIGHT,
-    BISHOP,
-    QUEEN,
-    KING,
-    NONE, //Possile de supprimer none en utilisant Option<T> ?
+#[derive(Copy, Clone, Eq, PartialEq, Debug)] //copy pour initialiser le tableau | copy depend de clone ?
+pub enum Piece {
+    Pawn,
+    Rook,
+    Knight,
+    Bishop,
+    Queen,
+    King,
 }
+use Piece::*;
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug, Eq)]
 pub enum Color {
-    BLACK,
-    WHITE,
-    NONE,
+    Black,
+    White,
+}
+use Color::*;
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum Cell {
+    Occupied(Piece, Color),
+    Free,
 }
 
-#[derive(Copy, Clone, Debug)]
-pub struct Cell {
-    pub piece: Pieces,
-    pub color: Color,
+impl Cell {
+    pub fn is_color(&self, color: &Color) -> bool {
+        match self {
+            Cell::Occupied(_, cell_color) => cell_color == color,
+            Cell::Free => false,
+        }
+    }
+    pub fn diff_color_and_not_white(&self, color: &Color) -> bool {
+        match self {
+            Cell::Free => false,
+            Cell::Occupied(_, cell_color) => cell_color != color && *cell_color != White,
+        }
+    }
+}
+
+impl std::fmt::Display for Cell {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let display_str = match self {
+            Cell::Occupied(piece, color) => {
+                let piece_char = match piece {
+                    Pawn => "p",
+                    Rook => "r",
+                    Knight => "n",
+                    Bishop => "b",
+                    Queen => "q",
+                    King => "k",
+                };
+                match color {
+                    Black => piece_char.to_uppercase(),
+                    White => piece_char.to_string(),
+                }
+            }
+            Cell::Free => String::from(" "),
+        };
+        write!(f, "{}", display_str)
+    }
 }
 
 // #[derive(Copy, Clone)]
@@ -53,85 +89,36 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn init_board() -> Board {
-        let empty_cell = Cell {
-            piece: Pieces::NONE,
-            color: Color::NONE,
+    fn fill_side(&mut self, color: Color) {
+        let color_idx = match color {
+            White => 0,
+            Black => 6,
         };
-        let mut board = Board {
-            grid: [[empty_cell; 8]; 8],
-            white_long_castle: true,
-            white_short_castle: true,
-            black_long_castle: true,
-            black_short_castle: true,
-            en_passant: None,
-            white_threatening_cells: Vec::new(),
-            black_threatening_cells: Vec::new(),
-        };
-        for y in 0..8 {
-            for x in 0..8 {
-                board.grid[y][x] = match y {
-                    0 => match x {
-                        //pour la ligne tout en bas
-                        0 | 7 => Cell {
-                            piece: Pieces::ROOK,
-                            color: Color::WHITE,
-                        },
-                        1 | 6 => Cell {
-                            piece: Pieces::KNIGHT,
-                            color: Color::WHITE,
-                        },
-                        2 | 5 => Cell {
-                            piece: Pieces::BISHOP,
-                            color: Color::WHITE,
-                        },
-                        3 => Cell {
-                            piece: Pieces::QUEEN,
-                            color: Color::WHITE,
-                        },
-                        4 => Cell {
-                            piece: Pieces::KING,
-                            color: Color::WHITE,
-                        },
-                        _ => empty_cell, //cas a couvrir par defaut mais impossible car board 8x8
-                    },
-                    1 => Cell {
-                        piece: Pieces::PAWN,
-                        color: Color::WHITE,
-                    },
-                    6 => Cell {
-                        piece: Pieces::PAWN,
-                        color: Color::BLACK,
-                    },
-                    7 => match x {
-                        0 | 7 => Cell {
-                            piece: Pieces::ROOK,
-                            color: Color::BLACK,
-                        },
-                        1 | 6 => Cell {
-                            piece: Pieces::KNIGHT,
-                            color: Color::BLACK,
-                        },
-                        2 | 5 => Cell {
-                            piece: Pieces::BISHOP,
-                            color: Color::BLACK,
-                        },
-                        3 => Cell {
-                            piece: Pieces::KING,
-                            color: Color::BLACK,
-                        },
-                        4 => Cell {
-                            piece: Pieces::QUEEN,
-                            color: Color::BLACK,
-                        },
-                        _ => empty_cell, //cas a couvrir par defaut mais impossible car board 8x8
-                    },
-                    _ => empty_cell,
-                };
-            }
+        for x in 0..8 {
+            // fill the base line
+            self.grid[color_idx][x] = match x {
+                //pour la ligne tout en bas
+                0 | 7 => Cell::Occupied(Rook, color),
+                1 | 6 => Cell::Occupied(Knight, color),
+                2 | 5 => Cell::Occupied(Bishop, color),
+                3 => Cell::Occupied(Queen, color),
+                4 => Cell::Occupied(King, color),
+                _ => unreachable!(), //cas a couvrir par defaut mais impossible car board 8x8
+            };
+            // fill the pawns
+            self.grid[color_idx + 1][x] = Cell::Occupied(Pawn, color);
         }
+    }
+
+    pub fn init_board() -> Board {
+        let mut board = Board {
+            grid: [[Cell::Free; 8]; 8],
+        };
+        board.fill_side(White);
+        board.fill_side(Black);
         board
     }
+
     pub fn print(&self) {
         print!(" ");
         for x in 0..8 {
@@ -147,40 +134,6 @@ impl Board {
             println!();
             print!("{} ", y + 1);
             for x in 0..8 {
-                let c = match self.grid[y][x].piece {
-                    Pieces::PAWN => match self.grid[y][x].color {
-                        Color::WHITE => "♟",
-                        Color::BLACK => "♙",
-                        _ => "?",
-                    },
-                    Pieces::ROOK => match self.grid[y][x].color {
-                        Color::WHITE => "♜",
-                        Color::BLACK => "♖",
-                        _ => "?",
-                    },
-                    Pieces::KNIGHT => match self.grid[y][x].color {
-                        Color::WHITE => "♞",
-                        Color::BLACK => "♘",
-                        _ => "?",
-                    },
-                    Pieces::BISHOP => match self.grid[y][x].color {
-                        Color::WHITE => "♝",
-                        Color::BLACK => "♗",
-                        _ => "?",
-                    },
-                    Pieces::QUEEN => match self.grid[y][x].color {
-                        Color::WHITE => "♛",
-                        Color::BLACK => "♕",
-                        _ => "?",
-                    },
-                    Pieces::KING => match self.grid[y][x].color {
-                        Color::WHITE => "♚",
-                        Color::BLACK => "♔",
-                        _ => "?",
-                    },
-                    Pieces::NONE => " ",
-                };
-                print!("| {} ", c);
             }
             println!("|");
         }
@@ -190,5 +143,12 @@ impl Board {
         }
         println!();
     }
-}
 
+    pub fn is_legal_move(&self, from: &Coord, to: &Coord, color: &Color) -> bool {
+        validate_move::is_legal_move(from, to, color, self)
+    }
+
+    pub fn get(&self, coord: &Coord) -> Cell {
+        self.grid[coord.row as usize][coord.col as usize]
+    }
+}

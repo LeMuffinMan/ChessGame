@@ -3,7 +3,7 @@ use std::io;
 use crate::Board;
 use crate::Color;
 
-#[derive(Debug, PartialEq, Copy, Clone)] //Clone to add target in vec and still use target for recursives
+#[derive(Debug, PartialEq, Eq)]
 pub struct Coord {
     pub col: u8,
     pub row: u8,
@@ -27,28 +27,28 @@ pub fn get_coord_from_string(cell: String) -> Result<Coord, String> {
     if col > 7 || row > 7 {
         return Err(format!("Invalid input: out of board : {} {}", row, col));
     }
-    let coord = Coord {col, row};
+    let coord = Coord { col, row };
     Ok(coord)
 }
 
 ///return a struct coord after reading the input from stdin
 pub fn get_inputs(msg: &str, color: Color, board: &Board) -> Coord {
-    return loop {
+    loop {
         let mut input = String::new();
         println!("{} cell :", msg);
         io::stdin().read_line(&mut input).expect("Error");
         let input = input.trim();
         match get_coord_from_string(input.to_string()) {
             Ok(coord) => {
-                if msg == "from" && color != board.grid[coord.row as usize][coord.col as usize].color {
+                if msg == "from" && !board.get(&coord).is_color(&color) {
                     println!("No {:?} piece in {}", color, input);
                     continue;
                 }
-                if  msg == "to" && color == board.grid[coord.row as usize][coord.col as usize].color {
+                if msg == "to" && board.get(&coord).is_color(&color) {
                     println!("There is already a {:?} piece in {}", color, input);
                     continue;
                 }
-                break coord
+                break coord;
             }
             Err(e) => {
                 println!("{e}");
