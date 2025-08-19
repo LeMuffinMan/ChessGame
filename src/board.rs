@@ -108,7 +108,7 @@ impl Board {
     fn fill_side(&mut self, color: Color) {
         let color_idx = match color {
             White => 0,
-            Black => 6,
+            Black => 7,
         };
         for x in 0..8 {
             // fill the base line
@@ -122,7 +122,16 @@ impl Board {
                 _ => unreachable!(), //cas a couvrir par defaut mais impossible car board 8x8
             };
             // fill the pawns
-            self.grid[color_idx + 1][x] = Cell::Occupied(Pawn, color);
+            match color_idx {
+                0 => self.grid[color_idx + 1][x] = Cell::Occupied(Pawn, color),
+                7 => self.grid[color_idx - 1][x] = Cell::Occupied(Pawn, color),
+                _ => unreachable!(),
+            };
+            if color_idx == 0 {
+                self.grid[color_idx + 1][x] = Cell::Occupied(Pawn, color);
+            } else {
+                self.grid[color_idx - 1][x] = Cell::Occupied(Pawn, color);
+            }
         }
     }
 
@@ -159,6 +168,7 @@ impl Board {
             println!();
             print!("{} ", y + 1);
             for x in 0..8 {
+                print!("| {} ", self.grid[y][x]);
             }
             println!("|");
         }
