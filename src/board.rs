@@ -149,33 +149,33 @@ impl Board {
             for x in 0..8 {
                 let c = match self.grid[y][x].piece {
                     Pieces::PAWN => match self.grid[y][x].color {
-                        Color::WHITE => "p",
-                        Color::BLACK => "P",
+                        Color::WHITE => "♟",
+                        Color::BLACK => "♙",
                         _ => "?",
                     },
                     Pieces::ROOK => match self.grid[y][x].color {
-                        Color::WHITE => "r",
-                        Color::BLACK => "R",
+                        Color::WHITE => "♜",
+                        Color::BLACK => "♖",
                         _ => "?",
                     },
                     Pieces::KNIGHT => match self.grid[y][x].color {
-                        Color::WHITE => "n",
-                        Color::BLACK => "N",
+                        Color::WHITE => "♞",
+                        Color::BLACK => "♘",
                         _ => "?",
                     },
                     Pieces::BISHOP => match self.grid[y][x].color {
-                        Color::WHITE => "b",
-                        Color::BLACK => "B",
+                        Color::WHITE => "♝",
+                        Color::BLACK => "♗",
                         _ => "?",
                     },
                     Pieces::QUEEN => match self.grid[y][x].color {
-                        Color::WHITE => "q",
-                        Color::BLACK => "Q",
+                        Color::WHITE => "♛",
+                        Color::BLACK => "♕",
                         _ => "?",
                     },
                     Pieces::KING => match self.grid[y][x].color {
-                        Color::WHITE => "k",
-                        Color::BLACK => "K",
+                        Color::WHITE => "♚",
+                        Color::BLACK => "♔",
                         _ => "?",
                     },
                     Pieces::NONE => " ",
