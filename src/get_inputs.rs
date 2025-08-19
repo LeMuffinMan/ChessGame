@@ -25,7 +25,7 @@ pub fn get_coord_from_string(cell: String) -> Result<Coord, String> {
         None => return Err("Invalid input: error parsing row".to_string()),
     };
     if col > 7 || row > 7 {
-        return Err(format!("Invalid input: out of board : {} {}", row, col));
+        return Err(format!("Invalid input: out of board : {row} {col}"));
     }
     let coord = Coord { col, row };
     Ok(coord)
@@ -35,18 +35,18 @@ pub fn get_coord_from_string(cell: String) -> Result<Coord, String> {
 pub fn get_inputs(msg: &str, color: Color, board: &Board) -> Coord {
     loop {
         let mut input = String::new();
-        println!("{} cell :", msg);
+        println!("{msg} cell :");
         io::stdin().read_line(&mut input).expect("Error");
         let input = input.trim();
         //faire une impl from_str ?
         match get_coord_from_string(input.to_string()) {
             Ok(coord) => {
                 if msg == "from" && !board.get(&coord).is_color(&color) {
-                    println!("No {:?} piece in {}", color, input);
+                    println!("No {color:?} piece in {input}");
                     continue;
                 }
                 if msg == "to" && board.get(&coord).is_color(&color) {
-                    println!("There is already a {:?} piece in {}", color, input);
+                    println!("There is already a {color:?} piece in {input}");
                     continue;
                 }
                 break coord;

@@ -4,8 +4,9 @@ use crate::Board;
 use crate::Coord;
 use crate::board::Cell;
 // use crate::Piece::*;
+use crate::board::Color::*;
 use crate::board::Piece;
-use crate::board::{Color, Color::*, Piece::*};
+use crate::get_threaten_cells::*;
 
 // fn find_threat_on_path(color: &Color, board: &Board) -> bool {
 //trouver la direction du path
@@ -29,8 +30,7 @@ use crate::board::{Color, Color::*, Piece::*};
 //either we give the accurate vector to each recursive so they add in it
 //or i collect from them vectors, that i push in last move ?
 
-fn pawn_threats(cell: &Cell, coord: &Coord) -> Vec<Coord> {
-    let mut threatened_cells = Vec::new();
+fn pawn_threats(cell: &Cell, coord: &Coord, board: &mut Board) {
     let cells: [(i8, i8); 2] = if cell.is_color(&White) {
         [(1, -1), (1, 1)] // blanc : vers le haut
     } else {
@@ -40,32 +40,30 @@ fn pawn_threats(cell: &Cell, coord: &Coord) -> Vec<Coord> {
     for (dr, dc) in cells {
         let new_row = coord.row as i8 + dr;
         let new_col = coord.col as i8 + dc;
-
-        if new_row >= 0 && new_row < 8 && new_col >= 0 && new_col < 8 {
-            threatened_cells.push(Coord {
+        //clippy want me to do this instead comparaing >= 0 and < 8
+        if (0..8).contains(&new_row) && (0..8).contains(&new_col) {
+            board.threaten_cells.push(Coord {
                 row: new_row as u8,
                 col: new_col as u8,
             });
             // println!("Pushing Coord  col: {} , row: {} in vec", new_row, new_col);
             // Coord { row: new_row as u8, col: new_col as u8 };
         }
-        threatened_cells
     }
 }
-
-fn rook_threats(cell: &Cell, coord: &Coord) -> Vec<Coord> {
-    let mut threatened_cells = Vec::new();
+//                                      i8 or u8 or usize ?   too  many args, impl for board?
+fn rook_threats(coord: &Coord, row: usize, col: usize, board: &mut Board) {
     if row < 7 {
-        get_threaten_cells_in_line(&coord, row as u8 + 1, col as u8, board);
+        get_threaten_cells_in_line(coord, row as u8 + 1, col as u8, board);
     }
     if row > 0 {
-        get_threaten_cells_in_line(&coord, row as u8 - 1, col as u8, board);
+        get_threaten_cells_in_line(coord, row as u8 - 1, col as u8, board);
     }
     if col < 7 {
-        get_threaten_cells_in_line(&coord, row as u8, col as u8 + 1, board);
+        get_threaten_cells_in_line(coord, row as u8, col as u8 + 1, board);
     }
     if col > 0 {
-        get_threaten_cells_in_line(&coord, row as u8, col as u8 - 1, board);
+        get_threaten_cells_in_line(coord, row as u8, col as u8 - 1, board);
     }
     //une recursive qui push dans les 4 directions si pas d'obstacle PUIS si
     //obstacle == advers
@@ -73,11 +71,10 @@ fn rook_threats(cell: &Cell, coord: &Coord) -> Vec<Coord> {
 
 //Est-ce plus coherent d'en faire une impl de Board ?
 pub fn update_threatens_cells(board: &mut Board) {
-    board.white_threatening_cells.clear();
-    board.black_threatening_cells.clear();
+    board.threaten_cells.clear();
     for row in 0..8 {
         for col in 0..8 {
-            let cell = &board.grid[row][col];
+            let cell = board.grid[row][col];
             //we skip the empty cells
             if cell.is_empty() {
                 continue;
@@ -87,11 +84,6 @@ pub fn update_threatens_cells(board: &mut Board) {
                 row: row as u8,
                 col: col as u8,
             };
-            //we want 2 maps of the threaten cells
-            let vec = match board.grid[row as usize][col as usize].is_color(&White) {
-                true => &mut board.white_threatening_cells,
-                false => &mut board.black_threatening_cells,
-            }; // i must refaco this 2 vectors in the structs 
 
             //For each piece, we collect the cells this piece threatens, and we push it in the
             //opponenent threats cell vector
@@ -100,8 +92,8 @@ pub fn update_threatens_cells(board: &mut Board) {
             //if a king would try to take a protected pawn, iterating in this vec will be enough to
             //reject the move
             match cell.get_piece() {
-                Some(Piece::Pawn) => vec.extend(pawn_threats(&cell, &coord)),
-                Some(Piece::Rook) => {}
+                Some(Piece::Pawn) => pawn_threats(&cell, &coord, board),
+                Some(Piece::Rook) => rook_threats(&coord, row, col, board),
                 Some(Piece::Knight) => {
                     let cells: [(i8, i8); 8] = [
                         (2, 1),
@@ -119,9 +111,9 @@ pub fn update_threatens_cells(board: &mut Board) {
                         let new_col = coord.col as i8 + dc;
 
                         //Need this to avoid panic on overflow
-                        if new_row >= 0 && new_row < 8 && new_col >= 0 && new_col < 8 {
+                        if (0..8).contains(&new_row) && (0..8).contains(&new_col) {
                             // println!("Pushing Coord  col: {} , row: {} in vec", new_row, new_col);
-                            vec.push(Coord {
+                            board.threaten_cells.push(Coord {
                                 row: new_row as u8,
                                 col: new_col as u8,
                             });
@@ -198,9 +190,9 @@ pub fn update_threatens_cells(board: &mut Board) {
                         let new_row = coord.row as i8 + dr;
                         let new_col = coord.col as i8 + dc;
 
-                        if new_row >= 0 && new_row < 8 && new_col >= 0 && new_col < 8 {
+                        if (0..8).contains(&new_row) && (0..8).contains(&new_col) {
                             // println!("Pushing Coord  col: {} , row: {} in vec", new_row, new_col);
-                            vec.push(Coord {
+                            board.threaten_cells.push(Coord {
                                 row: new_row as u8,
                                 col: new_col as u8,
                             });

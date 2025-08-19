@@ -32,6 +32,12 @@ impl Cell {
             Cell::Free => None,
         }
     }
+    // pub fn get_color(&self) -> &Color {
+    //     match self {
+    //         Cell::Occupied(_, color) => Some(color),
+    //         Cell::Free => None,
+    //     }
+    // }
     pub fn is_color(&self, color: &Color) -> bool {
         match self {
             Cell::Occupied(_, cell_color) => cell_color == color,
@@ -77,16 +83,16 @@ impl std::fmt::Display for Cell {
             }
             Cell::Free => String::from(" "),
         };
-        write!(f, "{}", display_str)
+        write!(f, "{display_str}")
     }
 }
 
 // #[derive(Copy, Clone)]
 pub struct Board {
     pub grid: [[Cell; 8]; 8],
-    pub white_castle: (bool, bool), //(short, long)
-    pub black_castle: (bool, bool),
-    pub threaten_cells: Vec<(cell, color_threat)>,
+    // pub white_castle: (bool, bool), //(short, long)
+    // pub black_castle: (bool, bool),
+    pub threaten_cells: Vec<Coord>, // <=> vec(coord_of_cell_threaten, color_of_player_threatening)
     //each element of the vector is a tuple :
     //- the coord of the threaten cell
     //- the color which is threatening the cell
@@ -165,12 +171,9 @@ impl Board {
         let mut board = Board {
             grid: [[Cell::Free; 8]; 8],
             en_passant: None,
-            white_long_castle: true,
-            white_short_castle: true,
-            black_long_castle: true,
-            black_short_castle: true,
-            white_threatening_cells: Vec::new(),
-            black_threatening_cells: Vec::new(),
+            // white_castle: (true, true),
+            // black_castle: (true, true),
+            threaten_cells: Vec::new(),
         };
 
         board.fill_side(White);
