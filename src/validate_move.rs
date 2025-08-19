@@ -104,7 +104,7 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
                 Piece::Pawn => {
                     let dir: i8 = if *color == White { 1 } else { -1 };
                     let start_row = if *color == White { 1 } else { 6 };
-                    let passant_row = if *color == WHITE {4} else {3};
+                    let passant_row = if *color == White { 4 } else { 3 };
 
                     let row_diff = to.row - from.row;
                     let col_diff = to.col - from.col;
@@ -136,7 +136,7 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
                 println!("from.row = {}, passant_row = {} -> {}",
                         from.row, passant_row, from.row == passant_row);
                 println!("col_diff.abs() = {} -> {}",
-                        col_diff.abs(), col_diff.abs() == 1);
+                        col_diff, col_diff == 1);
                 println!("to.col = {}, coord.col = {} -> {}",
                         to.col, coord.col, to.col == coord.col);
                 println!("to.row = {}, coord.row = {}, dir = {}, coord.row+dir = {} -> {}",
@@ -146,7 +146,7 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
             if let Some(coord) = board.en_passant
                 && from.row == passant_row
                 && coord.col == to.col
-                && col_diff.abs() == 1
+                && col_diff == 1
                 && to.row as i8 == coord.row as i8 + dir {
                     return true;
                     //le print se fait en face du pion qui mange
