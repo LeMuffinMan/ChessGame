@@ -1,11 +1,14 @@
+use crate::Board;
+use crate::Coord;
+use crate::board::Cell;
+use crate::board::{Color, Color::*, Piece};
 
 //refacto : makes these recursive return a Vec<Coord> of all cells threaten : on the path, and once
 //found an obstacle
-fn get_threaten_cells_in_diag(from: &Coord, row : u8, col: u8, board: &mut Board)
-{
+fn get_threaten_cells_in_diag(from: &Coord, row: u8, col: u8, board: &mut Board) {
     let vec = match board.grid[from.row as usize][from.col as usize].is_color(&White) {
-        true => { &mut board.white_threatening_cells }
-        false => { &mut board.black_threatening_cells }
+        true => &mut board.white_threatening_cells,
+        false => &mut board.black_threatening_cells,
     }; // i must refaco this 2 vectors in the structs 
 
     //Faire une fonction get_vec qui fait juste ce match ?
@@ -37,23 +40,20 @@ fn get_threaten_cells_in_diag(from: &Coord, row : u8, col: u8, board: &mut Board
         }
         _ => {
             // println!("get_threaten_cells_in_diag : found obstacle in {} {}", target.row, target.col);
-            return ;
+            return;
         }
     }
 }
 
-
-fn get_threaten_cells_in_line(from: &Coord, row : u8, col: u8, board: &mut Board)
-{
-    if row > 7 || col > 7 { 
-        return ;
+fn get_threaten_cells_in_line(from: &Coord, row: u8, col: u8, board: &mut Board) {
+    if row > 7 || col > 7 {
+        return;
     }
     //using the from cell we deduce in which vec we will push the new threaten cell
     let vec = match board.grid[from.row as usize][from.col as usize].is_color(&White) {
-        true => { &mut board.white_threatening_cells }
-        false => { &mut board.black_threatening_cells }
+        true => &mut board.white_threatening_cells,
+        false => &mut board.black_threatening_cells,
     }; // i must refaco this 2 vectors in the structs 
-
 
     let target: Coord = Coord { row, col };
     // println!("Pushing {:?} in vec", target);
@@ -69,7 +69,7 @@ fn get_threaten_cells_in_line(from: &Coord, row : u8, col: u8, board: &mut Board
         col.cmp(&(from.col as u8)),
         board.grid[target.row as usize][target.col as usize].is_empty(),
     ) {
-        (std::cmp::Ordering::Greater, _, true) => { 
+        (std::cmp::Ordering::Greater, _, true) => {
             return get_threaten_cells_in_line(from, row + 1, col, board);
         }
         (std::cmp::Ordering::Less, _, true) => {
@@ -87,8 +87,7 @@ fn get_threaten_cells_in_line(from: &Coord, row : u8, col: u8, board: &mut Board
         }
         _ => {
             // println!("get_threaten_cells_in_line : found obstacle in {} {}", target.row, target.col);
-            return ; //reaching this returns means we had an obstacle
+            return; //reaching this returns means we had an obstacle
         }
     }
 }
-

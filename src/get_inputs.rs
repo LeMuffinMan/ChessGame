@@ -38,6 +38,7 @@ pub fn get_inputs(msg: &str, color: Color, board: &Board) -> Coord {
         println!("{} cell :", msg);
         io::stdin().read_line(&mut input).expect("Error");
         let input = input.trim();
+        //faire une impl from_str ?
         match get_coord_from_string(input.to_string()) {
             Ok(coord) => {
                 if msg == "from" && !board.get(&coord).is_color(&color) {

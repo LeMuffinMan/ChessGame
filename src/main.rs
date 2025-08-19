@@ -1,9 +1,9 @@
-mod threats;
-use threats::update_threatens_cells;
+mod threat;
+use threat::get_threaten_cells;
 mod board;
 use board::Board;
-use board::Color;
 use board::Cell;
+use board::Color;
 mod get_inputs;
 use get_inputs::Coord;
 mod validate_move;
@@ -28,15 +28,17 @@ fn main() {
         println!("From {:?} to {:?}", from_coord, to_coord);
         if board.is_legal_move(&from_coord, &to_coord, &color) {
             println!("Move validated");
-        board.grid[to_coord.row as usize][to_coord.col as usize] =
-            std::mem::replace(&mut board.grid[from_coord.row as usize][from_coord.col as usize], Cell::Free);
+            board.grid[to_coord.row as usize][to_coord.col as usize] = std::mem::replace(
+                &mut board.grid[from_coord.row as usize][from_coord.col as usize],
+                Cell::Free,
+            );
         //replace puts Cell::Free in the board cell "from" and returns what "from" contained
         //we assign the "to" cell with this returned value
         //
-            //en passant ne se met pas correctement a jour
+        //en passant ne se met pas correctement a jour
         } else {
             println!("Illegal move");
-            continue ;
+            continue;
         }
         //A chaque tour, calculer chaque coup legal et comparer le move a la liste ?
 
@@ -69,7 +71,7 @@ fn main() {
 //- implementer refacto patoch
 //- implementer stdin en pipe pour tests
 //- refacto TOUT
-//- commenter les doutes etc 
+//- commenter les doutes etc
 //      - Casts ? declarer un i32 le board ?
 //      - Unit tests ?
 //      - Iterator : perfs ? (update threats peut iterer differemment ?)
