@@ -97,8 +97,8 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
                     let start_row = if *color == White { 1 } else { 6 };
                     let passant_row = if *color == White { 4 } else { 3 };
 
-                    let row_diff = to.row - from.row;
-                    let col_diff = to.col - from.col;
+                    let row_diff = to.row as i8 - from.row as i8;
+                    let col_diff = to.col as i8 - from.col as i8;
 
                     let target_square = &board.get(to);
 

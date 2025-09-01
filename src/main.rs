@@ -10,6 +10,57 @@ mod get_inputs;
 use get_inputs::Coord;
 mod validate_move;
 
+pub fn get_move_from_stdin(color: Color, board: &Board) -> (Coord, Coord) {
+    use std::io::{self, BufRead};
+
+    let stdin = io::stdin();
+    let mut line = String::new();
+
+    loop {
+        line.clear();
+        if stdin.lock().read_line(&mut line).unwrap() == 0 {
+            // EOF atteint → fin de partie
+            println!("Fin de l'entrée (EOF)");
+            std::process::exit(0);
+        }
+
+        let input = line.trim();
+        if input.len() != 4 {
+            println!("Invalid move format, must be like e2e4");
+            continue;
+        }
+
+        let from_str = &input[0..2];
+        let to_str = &input[2..4];
+
+        let from = match get_inputs::get_coord_from_string(from_str.to_string()) {
+            Ok(c) => c,
+            Err(e) => {
+                println!("{e}");
+                continue;
+            }
+        };
+        let to = match get_inputs::get_coord_from_string(to_str.to_string()) {
+            Ok(c) => c,
+            Err(e) => {
+                println!("{e}");
+                continue;
+            }
+        };
+
+        if !board.get(&from).is_color(&color) {
+            println!("No {color:?} piece in {from_str}");
+            continue;
+        }
+        if board.get(&to).is_color(&color) {
+            println!("There is already a {color:?} piece in {to_str}");
+            continue;
+        }
+
+        return (from, to);
+    }
+}
+
 fn main() {
     let mut board = Board::init_board();
 
@@ -25,8 +76,7 @@ fn main() {
             println!("Black to move");
             Color::Black
         };
-        let from_coord = get_inputs::get_inputs("from", color, &board);
-        let to_coord = get_inputs::get_inputs("to", color, &board);
+        let (from_coord, to_coord) = get_move_from_stdin(color, &board);
         println!("From {from_coord:?} to {to_coord:?}");
         if board.is_legal_move(&from_coord, &to_coord, &color) {
             println!("Move validated");
@@ -65,12 +115,8 @@ fn main() {
 }
 
 //TO DO
-//- Branch main / dev
-//- accepter la pull request sur main
-//- modifier dev en fct
 //- merge sur main et bloquer les pushs
 //
-//- implementer refacto patoch
 //- implementer stdin en pipe pour tests
 //- refacto TOUT
 //- commenter les doutes etc
