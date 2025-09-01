@@ -212,6 +212,36 @@ impl Board {
         validate_move::is_legal_move(from, to, color, self)
     }
 
+    pub fn update_board(&mut self, from: &Coord, to: &Coord, color: &Color) {
+
+        self.en_passant = None;
+        //prise en passant
+        if let Some(piece) = self.grid[from.row as usize][from.col as usize].get_piece() {
+            //si c'est un pion qui a avance de deux : on leve le flag
+            if *piece == Piece::Pawn {
+                let dif = from.row as i8 - to.row as i8;
+                if dif.abs() == 2 {
+                    self.en_passant = Some(*to);
+                    println!("En passant flag at {:?}", to);
+                }
+            }
+            //Si la piece au depart est un pion, et que sa case d'arrivee est vide et en diag
+            if *piece == Pawn && self.grid[to.row as usize][to.col as usize].is_empty() && from.col != to.col {
+                self.en_passant = Some(*to);
+                self.grid[from.row as usize][to.col as usize] = Cell::Free;
+                self.grid[to.row as usize][to.col as usize] = self.grid[from.row as usize][from.col as usize];
+                self.grid[from.row as usize][from.col as usize] = Cell::Free;
+                return ;
+            }
+        }
+        //roque 
+        //promotion
+        self.grid[to.row as usize][to.col as usize] = std::mem::replace(
+            &mut self.grid[from.row as usize][from.col as usize],
+            Cell::Free,
+        );
+    }
+
     pub fn get(&self, coord: &Coord) -> Cell {
         self.grid[coord.row as usize][coord.col as usize]
     }

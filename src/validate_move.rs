@@ -102,34 +102,19 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
 
                     let target_square = &board.get(to);
 
-                    //takes in diag if
-                    //- the pawn tries to go one cell in his color direction
-                    //- it tries to move in diagonal
-                    //- there is an opponent piece in the dest cell
-                    if row_diff as i8 == dir && (col_diff == 1 || col_diff as i8 == -1) {
-                        return target_square.is_opponent_color(&piece_color);
-                    }
 
-                    //moves by one cell straight forward
-                    //if it's empty
-                    if row_diff as i8 == dir && col_diff == 0 {
-                        return target_square.is_empty();
-                    }
-
-                    //first double move for pawns
-                    if from.row == start_row && row_diff as i8 == dir * 2 && col_diff == 0 {
-                        let mid_row = from.row as i8 + dir;
-                        let mid_cell = board.grid[mid_row as usize][from.col as usize];
-                        return mid_cell == Cell::Free
-                            && *target_square == Cell::Free
-                            && !find_obstacle(from, to, board);
-                    }
                     //en passant :
                     //if last turn we saved the coord of the pawn expsing itself to en passant
                     // && the pawn to move, is on his possible raw to take en passant
                     // && the pawn try to move on the same col as the en_passant coord
                     // && the pawn moves in 1 diagonaly
                     // && the pawn tries to move behind the pawn exposed
+                    
+                    if let Some(coord) = &board.en_passant {
+                        println!("en passant flag : {:?}", coord);
+                    } else {
+                        println!("en passant flag : None");
+                    }
                     if let Some(coord) = &board.en_passant {
                         println!("Debug en passant");
                         println!(
@@ -157,12 +142,34 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
                     if let Some(coord) = &board.en_passant
                         && from.row == passant_row
                         && coord.col == to.col
-                        && col_diff == 1
+                        && col_diff.abs() == 1
                         && to.row as i8 == coord.row as i8 + dir
                     {
                         return true;
                         //le print se fait en face du pion qui mange
                         //le pion mange est pas clean
+                    }
+                    //takes in diag if
+                    //- the pawn tries to go one cell in his color direction
+                    //- it tries to move in diagonal
+                    //- there is an opponent piece in the dest cell
+                    if row_diff as i8 == dir && (col_diff == 1 || col_diff as i8 == -1) {
+                        return target_square.is_opponent_color(&piece_color);
+                    }
+
+                    //moves by one cell straight forward
+                    //if it's empty
+                    if row_diff as i8 == dir && col_diff == 0 {
+                        return target_square.is_empty();
+                    }
+
+                    //first double move for pawns
+                    if from.row == start_row && row_diff as i8 == dir * 2 && col_diff == 0 {
+                        let mid_row = from.row as i8 + dir;
+                        let mid_cell = board.grid[mid_row as usize][from.col as usize];
+                        return mid_cell == Cell::Free
+                            && *target_square == Cell::Free
+                            && !find_obstacle(from, to, board);
                     }
                     false
                 }
