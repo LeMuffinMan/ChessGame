@@ -3,7 +3,7 @@ use std::io;
 use crate::Board;
 use crate::Color;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Coord {
     pub col: u8,
     pub row: u8,

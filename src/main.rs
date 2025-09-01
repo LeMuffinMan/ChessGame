@@ -4,7 +4,7 @@ use crate::update_threatens_cells::update_threatens_cells;
 use threat::get_threaten_cells;
 mod board;
 use board::Board;
-use board::Cell;
+// use board::Cell;
 use board::Color;
 mod get_inputs;
 use get_inputs::Coord;
@@ -80,10 +80,7 @@ fn main() {
         println!("From {from_coord:?} to {to_coord:?}");
         if board.is_legal_move(&from_coord, &to_coord, &color) {
             println!("Move validated");
-            board.grid[to_coord.row as usize][to_coord.col as usize] = std::mem::replace(
-                &mut board.grid[from_coord.row as usize][from_coord.col as usize],
-                Cell::Free,
-            );
+            board.update_board(&from_coord, &to_coord, &color);
         //replace puts Cell::Free in the board cell "from" and returns what "from" contained
         //we assign the "to" cell with this returned value
         //
