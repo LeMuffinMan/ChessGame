@@ -1,7 +1,7 @@
 use crate::Coord;
 use crate::validate_move;
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug)] //copy pour initialiser le tableau | copy depend de clone ?
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Piece {
     Pawn,
     Rook,
@@ -90,8 +90,8 @@ impl std::fmt::Display for Cell {
 // #[derive(Copy, Clone)]
 pub struct Board {
     pub grid: [[Cell; 8]; 8],
-    // pub white_castle: (bool, bool), //(short, long)
-    // pub black_castle: (bool, bool),
+    pub white_castle: (bool, bool), //(long, short)
+    pub black_castle: (bool, bool),
     pub threaten_cells: Vec<Coord>, // <=> vec(coord_of_cell_threaten, color_of_player_threatening)
     //each element of the vector is a tuple :
     //- the coord of the threaten cell
@@ -171,8 +171,8 @@ impl Board {
         let mut board = Board {
             grid: [[Cell::Free; 8]; 8],
             en_passant: None,
-            // white_castle: (true, true),
-            // black_castle: (true, true),
+            white_castle: (true, true),
+            black_castle: (true, true),
             threaten_cells: Vec::new(),
         };
 
@@ -212,30 +212,70 @@ impl Board {
         validate_move::is_legal_move(from, to, color, self)
     }
 
+    //est-ce que ca devrait etre une implementation ?
     pub fn update_board(&mut self, from: &Coord, to: &Coord, color: &Color) {
 
         self.en_passant = None;
         //prise en passant
-        if let Some(piece) = self.grid[from.row as usize][from.col as usize].get_piece() {
-            //si c'est un pion qui a avance de deux : on leve le flag
-            if *piece == Piece::Pawn {
+        match let Some(piece) = self.grid[from.row as usize][from.col as usize].get_piece() {
+            Pawn => {
+                //Si la piece au depart est un pion, et que sa case d'arrivee est vide et en diag
+                //c'est une prise en passant : clean from cell, et le pion mange
+                if self.grid[to.row as usize][to.col as usize].is_empty() && from.col != to.col {
+                    self.grid[from.row as usize][to.col as usize] = Cell::Free;
+                    self.grid[to.row as usize][to.col as usize] = self.grid[from.row as usize][from.col as usize];
+                    self.grid[from.row as usize][from.col as usize] = Cell::Free;
+                    return ;
+                }
+                //si le pion bouge de deux cases : c'est un double pas : flag en passant
                 let dif = from.row as i8 - to.row as i8;
                 if dif.abs() == 2 {
                     self.en_passant = Some(*to);
                     println!("En passant flag at {:?}", to);
                 }
+                //promotion
+                //si pion arrive en 0 ou en 7 :
+                    //demander un input en plus pour la promo
+                    //vider la case from
+                    //remplir la case to avec la piece choisie
             }
-            //Si la piece au depart est un pion, et que sa case d'arrivee est vide et en diag
-            if *piece == Pawn && self.grid[to.row as usize][to.col as usize].is_empty() && from.col != to.col {
-                self.en_passant = Some(*to);
-                self.grid[from.row as usize][to.col as usize] = Cell::Free;
-                self.grid[to.row as usize][to.col as usize] = self.grid[from.row as usize][from.col as usize];
-                self.grid[from.row as usize][from.col as usize] = Cell::Free;
-                return ;
+            Rook => {
+                //si une des tour bouge : on passe a false le castle_bool qui correspond
+                let castle_bools = if color == White { board.white_castle } else { board.black_castle };
+                if castle_bools.0 == true || castle_bools.1 == true {
+                    match from.col {
+                        0 => { castle_bools.0 = false }
+                        7 => { castle_bools.1 = false }
+                    }; 
+                }
             }
+            King => {
+                //si le roi bouge : on invalide les deux castles 
+                let castle_bools = if color == White { board.white_castle } else { board.black_castle };
+                if castle_bools.0 == true || castle_bools.1 == true {
+                    castle_bools.0 = false;
+                    castle_bools.1 = false;
+                }
+                //Roque
+                dif_col = to.col as i8 - from.col as i8;
+                row = match color { White => { 0 }, Black => { 7 } };
+                //si le roi fait un castle a gauche : tour a droite
+                if dif_col == -2 {
+                    self.grid[row][0] = Free;
+                    self.grid[row][to.col + 1] = Cell::Occupied(Rook, color),
+                }
+                //si le roi fait un castle a droite : tour a gauche
+                else if dif_col == 2 {
+                    self.grid[row][7] = Free;
+                    self.grid[row][to.col - 1] = Cell::Occupied(Rook, color),
+                }
+                //regular moves : checker la threat
+            }
+
         }
-        //roque 
-        //promotion
+        //Dans tous les autres cas : on vide la case de depart et on ecrase la case d'arrivee
+        //replace puts Cell::Free in the board cell "from" and returns what "from" contained
+        //we assign the "to" cell with this returned value
         self.grid[to.row as usize][to.col as usize] = std::mem::replace(
             &mut self.grid[from.row as usize][from.col as usize],
             Cell::Free,

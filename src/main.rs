@@ -67,6 +67,8 @@ fn main() {
     let mut i = 1;
     loop {
         update_threatens_cells(&mut board);
+        //Ici lister tous les coups possibles pour le joueur actif 
+        //Ici checker si le roi du joueur actif est en echec 
         board.print();
         println!("Turn {i}");
         let color = if i % 2 != 0 {
@@ -81,15 +83,12 @@ fn main() {
         if board.is_legal_move(&from_coord, &to_coord, &color) {
             println!("Move validated");
             board.update_board(&from_coord, &to_coord, &color);
-        //replace puts Cell::Free in the board cell "from" and returns what "from" contained
-        //we assign the "to" cell with this returned value
         //
         //en passant ne se met pas correctement a jour
         } else {
             println!("Illegal move");
             continue;
         }
-        //A chaque tour, calculer chaque coup legal et comparer le move a la liste ?
 
         //Coup possible pour la piece ? (legal + obstacle)
         //special : pion en passant / pion promotion / roque
@@ -113,19 +112,26 @@ fn main() {
 
 //TO DO
 //- merge sur main et bloquer les pushs
-//
-//- implementer stdin en pipe pour tests
 //- refacto TOUT
 //- commenter les doutes etc
 //      - Casts ? declarer un i32 le board ?
 //      - Unit tests ?
+//      - Tests avec cargo et mon stdin qui accepte les pipes ?
+//          - separe les tests qui doivent etre valides / les autres
 //      - Iterator : perfs ? (update threats peut iterer differemment ?)
 //      - Quelles fonctions doivent etre des impl ?
+//          - is legal comme wrapper ou comme impl ?
 //      - rangement des structs ?
 //
+//- validate move : 
+//      - tester is_king_exposed
+//          - tester update_threatens_cells 
+//
+//++ implementer roque
 //++ implementer pat detect
 //++ implementer check / mat detect
 //++ implementer draw rules
+//++ implementer promotions
 
 //Validation :
 //- si Roque : verifier si le roque est valide

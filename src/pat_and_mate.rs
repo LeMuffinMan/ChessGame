@@ -1,4 +1,10 @@
 
+
+///3 times identical position
+///50 mvoes with no pawn move, no take
+///A player only can ASK for Null : input to add
+// fn special_null() {}
+
 ///if the next player to play has no move possible
 fn is_a_pat() {
 
