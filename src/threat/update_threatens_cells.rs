@@ -40,7 +40,7 @@ fn pawn_threats(cell: &Cell, coord: &Coord, board: &mut Board) {
     for (dr, dc) in cells {
         let new_row = coord.row as i8 + dr;
         let new_col = coord.col as i8 + dc;
-        //clippy want me to do this instead comparaing >= 0 and < 8
+        //clippy want me to do this instead comparing >= 0 and < 8
         if (0..8).contains(&new_row) && (0..8).contains(&new_col) {
             board.threaten_cells.push(Coord {
                 row: new_row as u8,
@@ -70,6 +70,7 @@ fn rook_threats(coord: &Coord, row: usize, col: usize, board: &mut Board) {
 }
 
 //Est-ce plus coherent d'en faire une impl de Board ?
+///for each piece 
 pub fn update_threatens_cells(board: &mut Board) {
     board.threaten_cells.clear();
     for row in 0..8 {
@@ -85,7 +86,8 @@ pub fn update_threatens_cells(board: &mut Board) {
                 col: col as u8,
             };
 
-            //For each piece, we collect the cells this piece threatens, and we push it in the
+            //Limiter aussi a une couleur ??
+            //For each piece, we collect the cells it threatens, and we push it in the
             //opponenent threats cell vector
             //if a threaten cell has an ally piece, we still want to collect it, but we stop to
             //seek in this direction

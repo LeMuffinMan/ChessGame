@@ -1,35 +1,8 @@
-// use crate::find_threat_on_path;
 use crate::Board;
 use crate::Coord;
 use crate::board::Cell;
 use crate::board::{Color, Color::*, Piece};
-///3 times identical position
-///50 mvoes with no pawn move, no take
-///A player only can ASK for Null : input to add
-// fn special_null() {}
-///if the next player to play has no move possible
-// fn is_a_pat() {}
-///Check if on any adjacent case the king could avoid threat
-// fn can_king_survive() {}
-///If an ally piece can block the threatening piece
-// fn can_block_threat() {
-//Si on peut bloquer, simuler de nouveau le nouveau board avec is_king_exposed pour checker
-//plusieurs threats
-// }
-///If an ally piece can take the threatening piece
-// fn can_capture_threat() {
-//Si on peut bloquer, simuler de nouveau le nouveau board avec is_king_exposed pour checker
-//plusieurs threats
-// }
-///Once we temporarly validated the move, we must know if the king of the active player is threaten
-///Pour checker si on peut faire un move OU si le move resoud la situation d'echec
-///Pour checker si le move qui a ete valide met le roi adverse en echec
-// fn is_king_exposed(_king_cell: &Coord, _board: &Board) -> bool {
-//Checker les cavaliers sur les 8 cases possibles
-//checker en ligne x 4
-//checker en diag x 4
-//     true
-// }
+
 ///recursively search in line or diagonal if any Cell has a piece on it
 ///Getting the direction to go with diff
 ///setting the step to prorgress
@@ -81,10 +54,15 @@ fn find_obstacle(from: &Coord, to: &Coord, board: &Board) -> bool {
     find_obstacle(&next, to, board)
 }
 
-//Comment refacto proprement cette fonction ?
-//plus de match / moins de if else
-//faire des is_legal_move_pawn .. ?
-///check if the piece situated at from coords, can move to the "to" coords, and if there is an
+fn is_king_exposed(from: &Coord, to: &Coord, color: &Color, board: &Board) -> {
+    let new_board = board;
+    new_board.update_board(from, to, color);
+    update_threatens_cells(&mut new_board);
+    king_cell = new_board.get_king(color);
+    return !new_board.threaten_cells.contains(king_cell)
+}
+
+///check if the piece on from coords, can move to the "to" coords, and if there is an
 ///obstacle on way
 pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
     let cell = board.get(from);
@@ -92,99 +70,119 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
         Cell::Free => false,
         Cell::Occupied(piece, piece_color) => {
             match piece {
-                Piece::Pawn => {
-                    let dir: i8 = if *color == White { 1 } else { -1 };
-                    let start_row = if *color == White { 1 } else { 6 };
-                    let passant_row = if *color == White { 4 } else { 3 };
-
-                    let row_diff = to.row as i8 - from.row as i8;
-                    let col_diff = to.col as i8 - from.col as i8;
-
-                    let target_square = &board.get(to);
-
-
-                    //en passant :
-                    //if last turn we saved the coord of the pawn expsing itself to en passant
-                    // && the pawn to move, is on his possible raw to take en passant
-                    // && the pawn try to move on the same col as the en_passant coord
-                    // && the pawn moves in 1 diagonaly
-                    // && the pawn tries to move behind the pawn exposed
-                    
-                    if let Some(coord) = &board.en_passant {
-                        println!("en passant flag : {:?}", coord);
-                    } else {
-                        println!("en passant flag : None");
-                    }
-                    if let Some(coord) = &board.en_passant {
-                        println!("Debug en passant");
-                        println!(
-                            "from.row = {}, passant_row = {} -> {}",
-                            from.row,
-                            passant_row,
-                            from.row == passant_row
-                        );
-                        println!("col_diff.abs() = {} -> {}", col_diff, col_diff == 1);
-                        println!(
-                            "to.col = {}, coord.col = {} -> {}",
-                            to.col,
-                            coord.col,
-                            to.col == coord.col
-                        );
-                        println!(
-                            "to.row = {}, coord.row = {}, dir = {}, coord.row+dir = {} -> {}",
-                            to.row,
-                            coord.row,
-                            dir,
-                            coord.row as i8 + dir,
-                            to.row as i8 == coord.row as i8 + dir
-                        );
-                    }
-                    if let Some(coord) = &board.en_passant
-                        && from.row == passant_row
-                        && coord.col == to.col
-                        && col_diff.abs() == 1
-                        && to.row as i8 == coord.row as i8 + dir
-                    {
-                        return true;
-                        //le print se fait en face du pion qui mange
-                        //le pion mange est pas clean
-                    }
-                    //takes in diag if
-                    //- the pawn tries to go one cell in his color direction
-                    //- it tries to move in diagonal
-                    //- there is an opponent piece in the dest cell
-                    if row_diff as i8 == dir && (col_diff == 1 || col_diff as i8 == -1) {
-                        return target_square.is_opponent_color(&piece_color);
-                    }
-
-                    //moves by one cell straight forward
-                    //if it's empty
-                    if row_diff as i8 == dir && col_diff == 0 {
-                        return target_square.is_empty();
-                    }
-
-                    //first double move for pawns
-                    if from.row == start_row && row_diff as i8 == dir * 2 && col_diff == 0 {
-                        let mid_row = from.row as i8 + dir;
-                        let mid_cell = board.grid[mid_row as usize][from.col as usize];
-                        return mid_cell == Cell::Free
-                            && *target_square == Cell::Free
-                            && !find_obstacle(from, to, board);
-                    }
-                    false
+                Piece::Pawn => { pawn_case(from, to, color, board) 
+                    // return pawn_case(..) && // is_king_exposed() 
                 }
-                Piece::Rook => true,
+                Piece::Rook => {
+                    //Si pas d'obstacle en lignes : ok
+                    true
+                }
                 Piece::Knight => {
                     //ignore obstacles
                     true
                 }
-                Piece::Bishop => true,
-                Piece::Queen => true,
-                Piece::King => {
-                    //Roque
+                Piece::Bishop => 
+                {
+                    //si pas d'obstacles en diag : ok
                     true
+                }
+                Piece::Queen => 
+                {
+                    //si move en diag : checker obstacle en diag
+                    //si move en line : checker obstacle en line
+                    true
+                }
+                Piece::King => { king_case(from, to, color, board)
+                    // return king_case(..) && is_king_exposed()
                 }
             }
         }
     }
 }
+
+fn pawn_case(from :&Coord, to: &Coord, color: &Color, board: &board) -> bool {
+    let dir: i8 = if *color == White { 1 } else { -1 };
+    let start_row = if *color == White { 1 } else { 6 };
+    let passant_row = if *color == White { 4 } else { 3 };
+
+    let row_diff = to.row as i8 - from.row as i8;
+    let col_diff = to.col as i8 - from.col as i8;
+
+    let target_square = &board.get(to);
+
+    //en passant :
+    //if an opponent pawn moved by 2 last turn
+    // && the pawn to move, is on his possible raw to take en passant
+    // && the pawn try to move on the same col as the en_passant coord
+    // && the pawn moves in 1 diagonaly
+    // && the pawn tries to move behind the pawn exposed
+    if let Some(coord) = &board.en_passant //virer la var en passant / chercher si a cote de coord
+        && from.row == passant_row
+        && coord.col == to.col
+        && col_diff.abs() == 1
+        && to.row as i8 == coord.row as i8 + dir
+    {
+        return true;
+    }
+
+    //takes in diag if
+    //- the pawn tries to go one cell in his color direction
+    //- it tries to move in diagonal
+    //- there is an opponent piece in the dest cell
+    if row_diff as i8 == dir && (col_diff == 1 || col_diff as i8 == -1) {
+        return target_square.is_opponent_color(&piece_color);
+    }
+
+    //moves by one cell straight forward
+    //if it's empty
+    if row_diff as i8 == dir && col_diff == 0 {
+        return target_square.is_empty();
+    }
+
+    //first double move for pawns
+    if from.row == start_row && row_diff as i8 == dir * 2 && col_diff == 0 {
+        let mid_row = from.row as i8 + dir;
+        let mid_cell = board.grid[mid_row as usize][from.col as usize];
+        return mid_cell == Cell::Free
+            && *target_square == Cell::Free
+            && !find_obstacle(from, to, board);
+    }
+    false
+}
+
+fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
+    dif_col = to.col as i8 - from.col as i8;
+    if dif_col.abs() == 2 {
+        let castle_bools = if color == White { board.white_castle } else { board.black_castle };
+        //si il bouge de deux a gauche : grand roque
+        if dif_col < 0 && castle_bools.0 == true {
+            //si le roi et aucune des deux cases qu'il traverse n'est en echec 
+            //Si toutes les cases entre K et R sont vides 
+            to.col += 1;
+            return !find_obstacle(from, to, board);
+        }
+        //si deux a droite : petit roque
+        else if dif_col > 0 && castle_bools.1 == true {
+            //si le roi et aucune des deux cases qu'il traverse n'est en echec 
+            //Si toutes les cases entre K et R sont vides 
+            to.col -= 1;
+            return !find_obstacle(from, to, board);
+        } 
+        else { false; }
+    }
+    //Si il bouge de deux : castle
+        //gauche : big 
+        //droite : little
+        //Ssi bool est ok
+        //checker si le roi est en situation d'echec
+        //Checker les menaces sur toute la ligne de mvt // board.threaten_cells.contains(cells)
+        //si les deux cases traersees par le roi son vides 
+        //update board fera le move, et mettra a off les deux bool
+    //bouge d'une case
+        //si pas occupee par piece alliee
+        //si pas menacee 
+        //a update board : on vire les deux bool de castle
+    true
+}
+
+
