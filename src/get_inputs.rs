@@ -9,6 +9,56 @@ pub struct Coord {
     pub row: u8,
 }
 
+pub fn get_move_from_stdin(color: Color, board: &Board) -> (Coord, Coord) {
+    use std::io::{self, BufRead};
+
+    let stdin = io::stdin();
+    let mut line = String::new();
+
+    loop {
+        line.clear();
+        if stdin.lock().read_line(&mut line).unwrap() == 0 {
+            println!("Fin de l'entrée (EOF)");
+            std::process::exit(0);
+        }
+
+        let input = line.trim();
+        if input.len() != 4 {
+            println!("Invalid move format, must be like e2e4");
+            continue;
+        }
+
+        let from_str = &input[0..2];
+        let to_str = &input[2..4];
+
+        let from = match get_coord_from_string(from_str.to_string()) {
+            Ok(c) => c,
+            Err(e) => {
+                println!("{e}");
+                continue;
+            }
+        };
+        let to = match get_coord_from_string(to_str.to_string()) {
+            Ok(c) => c,
+            Err(e) => {
+                println!("{e}");
+                continue;
+            }
+        };
+
+        if !board.get(&from).is_color(&color) {
+            println!("No {color:?} piece in {from_str}");
+            continue;
+        }
+        if board.get(&to).is_color(&color) {
+            println!("There is already a {color:?} piece in {to_str}");
+            continue;
+        }
+
+        return (from, to);
+    }
+}
+
 ///translate pgn code into regular coordinates, with minimal error management
 //une impl de Coord form string
 pub fn get_coord_from_string(cell: String) -> Result<Coord, String> {
