@@ -2,6 +2,7 @@ use crate::Board;
 use crate::Coord;
 use crate::board::Cell;
 use crate::board::{Color, Color::*, Piece};
+use crate::update_threatens_cells;
 
 ///recursively search in line or diagonal if any Cell has a piece on it
 ///Getting the direction to go with diff
@@ -54,16 +55,23 @@ fn find_obstacle(from: &Coord, to: &Coord, board: &Board) -> bool {
     find_obstacle(&next, to, board)
 }
 
-fn is_king_exposed(from: &Coord, to: &Coord, color: &Color, board: &Board) -> {
-    let new_board = board;
+
+pub fn is_king_exposed(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
+    let mut new_board = board.clone();
     new_board.update_board(from, to, color);
     update_threatens_cells(&mut new_board);
-    king_cell = new_board.get_king(color);
-    return !new_board.threaten_cells.contains(king_cell)
+    if let Some(coord) = new_board.get_king(color) {
+        !new_board.threaten_cells.contains(&coord)
+    } else {
+        false
+    }
 }
+
 
 ///check if the piece on from coords, can move to the "to" coords, and if there is an
 ///obstacle on way
+//il faut qu'elle renvoie un board mis a jour, ou rien
+//on check is_king_exposed sur ce board et on return true ou false
 pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
     let cell = board.get(from);
     match cell {
@@ -93,14 +101,14 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
                     true
                 }
                 Piece::King => { king_case(from, to, color, board)
-                    // return king_case(..) && is_king_exposed()
+                    // return king_case(..) 
                 }
             }
         }
     }
 }
 
-fn pawn_case(from :&Coord, to: &Coord, color: &Color, board: &board) -> bool {
+fn pawn_case(from :&Coord, to: &Coord, color: &Color, board: &Board) -> bool {
     let dir: i8 = if *color == White { 1 } else { -1 };
     let start_row = if *color == White { 1 } else { 6 };
     let passant_row = if *color == White { 4 } else { 3 };
@@ -130,7 +138,7 @@ fn pawn_case(from :&Coord, to: &Coord, color: &Color, board: &board) -> bool {
     //- it tries to move in diagonal
     //- there is an opponent piece in the dest cell
     if row_diff as i8 == dir && (col_diff == 1 || col_diff as i8 == -1) {
-        return target_square.is_opponent_color(&piece_color);
+        return target_square.is_opponent_color(color);
     }
 
     //moves by one cell straight forward
@@ -151,9 +159,9 @@ fn pawn_case(from :&Coord, to: &Coord, color: &Color, board: &board) -> bool {
 }
 
 fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
-    dif_col = to.col as i8 - from.col as i8;
+    let dif_col = to.col as i8 - from.col as i8;
     if dif_col.abs() == 2 {
-        let castle_bools = if color == White { board.white_castle } else { board.black_castle };
+        let castle_bools = if *color == White { board.white_castle } else { board.black_castle };
         //si il bouge de deux a gauche : grand roque
         if dif_col < 0 && castle_bools.0 == true {
             //si le roi et aucune des deux cases qu'il traverse n'est en echec 

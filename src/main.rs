@@ -10,67 +10,50 @@ mod get_inputs;
 use get_inputs::Coord;
 mod validate_move;
 
-pub fn get_move_from_stdin(color: Color, board: &Board) -> (Coord, Coord) {
-    use std::io::{self, BufRead};
 
-    let stdin = io::stdin();
-    let mut line = String::new();
 
-    loop {
-        line.clear();
-        if stdin.lock().read_line(&mut line).unwrap() == 0 {
-            // EOF atteint → fin de partie
-            println!("Fin de l'entrée (EOF)");
-            std::process::exit(0);
-        }
-
-        let input = line.trim();
-        if input.len() != 4 {
-            println!("Invalid move format, must be like e2e4");
-            continue;
-        }
-
-        let from_str = &input[0..2];
-        let to_str = &input[2..4];
-
-        let from = match get_inputs::get_coord_from_string(from_str.to_string()) {
-            Ok(c) => c,
-            Err(e) => {
-                println!("{e}");
-                continue;
-            }
-        };
-        let to = match get_inputs::get_coord_from_string(to_str.to_string()) {
-            Ok(c) => c,
-            Err(e) => {
-                println!("{e}");
-                continue;
-            }
-        };
-
-        if !board.get(&from).is_color(&color) {
-            println!("No {color:?} piece in {from_str}");
-            continue;
-        }
-        if board.get(&to).is_color(&color) {
-            println!("There is already a {color:?} piece in {to_str}");
-            continue;
-        }
-
-        return (from, to);
-    }
-}
+// fn update_legals_moves(board: &Board, color: &Color) {
+//     board.legals_moves.clear();
+//     for x in 0 ..8 {
+//         for y in 0 ..8 {
+//             if board.grid[x][y].is_color(color) {
+//                 match board.grid[x][y].piece {
+//                     from: Coord { x, y };
+//                     Pawn => {
+//                         //tester deux attaques diag et deux pas en avant : 4 coups
+//                         //tester la promotion
+//                         //tester la prise en passant
+//                         //if is_king_exposed(board.is_legal_move(from, to, color), color) {
+//                         //board.legals_moves.push((from, to))
+//                         //}
+//                     }
+//                     Rook => {
+//                         //recursive dans toutes les lignes : ajouter les cell vide ou la premiere
+//                         //avec un ennemi
+//                     }
+//                     Knight => {
+//                         //hard coder les 8 coups
+//                     }
+//                     Bishop => {
+//                         //recursive en diagonale : add cell vide ou premiere avec ennemy
+//                     }
+//                     Queen => {
+//                         //bishop + Rook
+//                     }
+//                     King => {
+//                         //hard coder les 8 coups
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }
 
 fn main() {
     let mut board = Board::init_board();
 
     let mut i = 1;
     loop {
-        update_threatens_cells(&mut board);
-        //Ici lister tous les coups possibles pour le joueur actif 
-        //Ici checker si le roi du joueur actif est en echec 
-        board.print();
-        println!("Turn {i}");
         let color = if i % 2 != 0 {
             println!("White to move");
             Color::White
@@ -78,13 +61,28 @@ fn main() {
             println!("Black to move");
             Color::Black
         };
-        let (from_coord, to_coord) = get_move_from_stdin(color, &board);
+        update_threatens_cells(&mut board);
+        // update_legals_moves(&mut board);
+        if board.legals_moves.is_empty() {
+            let king_cell = board.get_king(&color);
+            if let Some(coord) = king_cell {
+                if board.threaten_cells.contains(&coord) {
+                    println!("Checkmate ! {:?} loose", color);
+                }
+            } else {
+                println!("Pat");
+            }
+            break; 
+        }
+        board.print();
+        println!("Turn {i}");
+
+        let (from_coord, to_coord) = get_inputs::get_move_from_stdin(color, &board);
         println!("From {from_coord:?} to {to_coord:?}");
-        if board.is_legal_move(&from_coord, &to_coord, &color) {
+        // if board.is_legal_move(&from_coord, &to_coord, &color) {
+           if board.is_legal_move(&from_coord, &to_coord, &color) && !validate_move::is_king_exposed(&from_coord, &to_coord, &color, &board) {
             println!("Move validated");
             board.update_board(&from_coord, &to_coord, &color);
-        //
-        //en passant ne se met pas correctement a jour
         } else {
             println!("Illegal move");
             continue;
