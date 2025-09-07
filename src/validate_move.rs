@@ -76,7 +76,11 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
     let cell = board.get(from);
     match cell {
         Cell::Free => false,
+        //ici soit je vire color soit je change de nom de variable
         Cell::Occupied(piece, piece_color) => {
+            if piece_color != *color {
+                return false;
+            }
             match piece {
                 Piece::Pawn => { pawn_case(from, to, color, board) 
                     // return pawn_case(..) && // is_king_exposed() 
@@ -166,15 +170,17 @@ fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
         if dif_col < 0 && castle_bools.0 == true {
             //si le roi et aucune des deux cases qu'il traverse n'est en echec 
             //Si toutes les cases entre K et R sont vides 
-            to.col += 1;
-            return !find_obstacle(from, to, board);
+            let mut to_dir = to.clone();
+            to_dir.col += 1;
+            return !find_obstacle(from, &to_dir, board);
         }
         //si deux a droite : petit roque
         else if dif_col > 0 && castle_bools.1 == true {
             //si le roi et aucune des deux cases qu'il traverse n'est en echec 
             //Si toutes les cases entre K et R sont vides 
-            to.col -= 1;
-            return !find_obstacle(from, to, board);
+            let mut to_dir = to.clone();
+            to_dir.col -= 1;
+            return !find_obstacle(from, &to_dir, board);
         } 
         else { false; }
     }

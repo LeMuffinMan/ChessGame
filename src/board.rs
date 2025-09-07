@@ -309,7 +309,49 @@ impl Board {
             &mut self.grid[from.row as usize][from.col as usize],
             Cell::Free,
         );
+    }
+
+    pub fn update_legals_moves(&mut self, color: &Color) {
+        self.legals_moves.clear();
+        for x in 0 ..8 {
+            for y in 0 ..8 {
+                if self.grid[x][y].is_color(color) {
+                    let from = Coord { row: x as u8, col: y as u8 };
+                    if let Some(piece) = self.get(&from).get_piece() {
+                        match piece {
+                            Piece::Pawn => {
+                                //tester deux attaques diag et deux pas en avant : 4 coups
+                                //tester la promotion
+                                //tester la prise en passant
+                                //if is_king_exposed(board.is_legal_move(from, to, color), color) {
+                                board.legals_moves.push((from, to))
+                                //}
+                            }
+                            Piece::Rook => {
+                                //recursive dans toutes les lignes : ajouter les cell vide ou la premiere
+                                //avec un ennemi
+                            }
+                            Piece::Knight => {
+                                //hard coder les 8 coups
+                            }
+                            Piece::Bishop => {
+                                //recursive en diagonale : add cell vide ou premiere avec ennemy
+                            }
+                            Piece::Queen => {
+                                //bishop + Rook
+                            }
+                            Piece::King => {
+                                //hard coder les 8 coups
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    for (from, to) in &self.legals_moves {
+        println!("from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
 }
+    }
 
     pub fn get(&self, coord: &Coord) -> Cell {
         self.grid[coord.row as usize][coord.col as usize]
