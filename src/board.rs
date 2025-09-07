@@ -48,7 +48,7 @@ impl Cell {
     pub fn is_empty(&self) -> bool {
         match self {
             Cell::Free => true,
-            Cell::Occupied(_, _) => true,
+            Cell::Occupied(_, _) => false,
         }
     }
     pub fn is_opponent_color(&self, color: &Color) -> bool {
@@ -478,9 +478,9 @@ impl Board {
                 }
             }
         }
-        // for (from, to) in &self.legals_moves {
-        //     println!("from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
-        // }
+        for (from, to) in &self.legals_moves {
+            println!("from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
+        }
     }
 
     pub fn get(&self, coord: &Coord) -> Cell {

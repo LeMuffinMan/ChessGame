@@ -53,7 +53,6 @@ pub fn get_threaten_cells_in_line(from: &Coord, row: u8, col: u8, board: &mut Bo
     let target = Coord { row, col };
     board.threaten_cells.push(target);
 
-    // si on a trouvé une pièce, on s'arrête
     if !board.get(&target).is_empty() {
         return;
     }
