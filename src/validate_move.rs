@@ -59,7 +59,7 @@ fn find_obstacle(from: &Coord, to: &Coord, board: &Board) -> bool {
 pub fn is_king_exposed(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
     let mut new_board = board.clone();
     new_board.update_board(from, to, color);
-    update_threatens_cells(&mut new_board);
+    update_threatens_cells(&mut new_board, color);
     if let Some(coord) = new_board.get_king(color) {
         new_board.threaten_cells.contains(&coord)
     } else {

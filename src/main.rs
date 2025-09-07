@@ -25,8 +25,11 @@ fn main() {
             println!("Black to move");
             Color::Black
         };
-        update_threatens_cells(&mut board);
+        update_threatens_cells(&mut board, &color);
         board.update_legals_moves(&color);
+        // for coord in &board.threaten_cells {
+        //     println!("Cell threaten : ({}, {})", coord.row, coord.col);
+        // }
         if board.legals_moves.is_empty() {
             let king_cell = board.get_king(&color);
             if let Some(coord) = king_cell {
@@ -44,11 +47,15 @@ fn main() {
         let (from_coord, to_coord) = get_inputs::get_move_from_stdin(color, &board);
         println!("From {from_coord:?} to {to_coord:?}");
         // if board.is_legal_move(&from_coord, &to_coord, &color) {
-           if board.is_legal_move(&from_coord, &to_coord, &color) && !validate_move::is_king_exposed(&from_coord, &to_coord, &color, &board) {
-            println!("Move validated");
-            board.update_board(&from_coord, &to_coord, &color);
+        if board.is_legal_move(&from_coord, &to_coord, &color) {
+            if !validate_move::is_king_exposed(&from_coord, &to_coord, &color, &board) {
+                println!("Move validated");
+                board.update_board(&from_coord, &to_coord, &color);
+            } else {
+                println!("King is exposed : illegal move");
+            }
         } else {
-            println!("Illegal move");
+            println!("Illegal move : {from_coord:?} -> {to_coord:?}");
             continue;
         }
 

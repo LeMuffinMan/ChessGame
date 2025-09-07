@@ -478,9 +478,9 @@ impl Board {
                 }
             }
         }
-        for (from, to) in &self.legals_moves {
-            println!("from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
-        }
+        // for (from, to) in &self.legals_moves {
+        //     println!("from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
+        // }
     }
 
     pub fn get(&self, coord: &Coord) -> Cell {
