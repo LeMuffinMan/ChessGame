@@ -364,16 +364,13 @@ impl Board {
                                     let mut c = from.col as i8 + dc;
 
                                     while let Some(to) = Board::checked_coord(r, c) {
-                                        // récupère la case cible
                                         let target = self.get(&to);
 
                                         if target.is_color(color) {
                                             break; 
                                         }
-                                        // ajoute le coup si c’est autorisé
                                         self.test_and_push(&from, &to, color);
                                         
-                                        // sinon, on continue plus loin dans la même direction
                                         r += dr;
                                         c += dc;
                                     }
@@ -401,13 +398,82 @@ impl Board {
                                 }
                             }
                             Piece::Bishop => {
-                                //recursive en diagonale : add cell vide ou premiere avec ennemy
+                                let directions = [(1, 1), (-1, -1), (-1, 1), (1, -1)];
+
+                                for (dr, dc) in directions {
+                                    let mut r = from.row as i8 + dr;
+                                    let mut c = from.col as i8 + dc;
+
+                                    while let Some(to) = Board::checked_coord(r, c) {
+                                        let target = self.get(&to);
+
+                                        if target.is_color(color) {
+                                            break; 
+                                        }
+                                        self.test_and_push(&from, &to, color);
+                                        
+                                        r += dr;
+                                        c += dc;
+                                    }
+                                }
                             }
                             Piece::Queen => {
-                                //bishop + Rook
+                                let directions = [(1, 1), (-1, -1), (-1, 1), (1, -1)];
+
+                                for (dr, dc) in directions {
+                                    let mut r = from.row as i8 + dr;
+                                    let mut c = from.col as i8 + dc;
+
+                                    while let Some(to) = Board::checked_coord(r, c) {
+                                        let target = self.get(&to);
+
+                                        if target.is_color(color) {
+                                            break; 
+                                        }
+                                        self.test_and_push(&from, &to, color);
+                                        
+                                        r += dr;
+                                        c += dc;
+                                    }
+                                }
+                                let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+
+                                for (dr, dc) in directions {
+                                    let mut r = from.row as i8 + dr;
+                                    let mut c = from.col as i8 + dc;
+
+                                    while let Some(to) = Board::checked_coord(r, c) {
+                                        let target = self.get(&to);
+
+                                        if target.is_color(color) {
+                                            break; 
+                                        }
+                                        self.test_and_push(&from, &to, color);
+                                        
+                                        r += dr;
+                                        c += dc;
+                                    }
+                                }
                             }
                             Piece::King => {
-                                //hard coder les 8 coups
+                                let cells: [(i8, i8); 8] = [
+                                    (-1, 1),
+                                    (0, 1),
+                                    (1, 1),
+                                    (-1, 0),
+                                    (1, 0),
+                                    (-1, -1),
+                                    (0, -1),
+                                    (1, -1),
+                                ];
+
+                                for (dr, dc) in cells {
+                                    let new_row = from.row as i8 + dr;
+                                    let new_col = from.col as i8 + dc;
+                                    if let Some(to) = Board::checked_coord(new_row, new_col) {
+                                        self.test_and_push(&from, &to, color);
+                                    }
+                                }
                             }
                         }
                     }

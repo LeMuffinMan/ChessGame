@@ -82,12 +82,16 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
                 return false;
             }
             match piece {
-                Piece::Pawn => { pawn_case(from, to, color, board) 
-                    // return pawn_case(..) && // is_king_exposed() 
+                Piece::Pawn => {
+                    pawn_case(from, to, color, board) 
                 }
                 Piece::Rook => {
-                    //Si pas d'obstacle en lignes : ok
-                    true
+                    if !board.get(to).is_color(color) {
+                        if from.row == to.row || from.col == to.col {
+                            return !find_obstacle(from, to, board);
+                        }
+                    }
+                    false
                 }
                 Piece::Knight => {
                     let cells: [(i8, i8); 8] = [
@@ -113,17 +117,29 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
                 }
                 Piece::Bishop => 
                 {
-                    //si pas d'obstacles en diag : ok
-                    true
+                    if !board.get(to).is_color(color) {
+                        //meilleure verfi de la diagonale ?
+                        if from.row != to.row && from.col != to.col {
+                            return !find_obstacle(from, to, board);
+                        }
+                    }
+                    false
                 }
                 Piece::Queen => 
                 {
-                    //si move en diag : checker obstacle en diag
-                    //si move en line : checker obstacle en line
-                    true
+                    if !board.get(to).is_color(color) {
+                        //meilleure verfi de la diagonale ?
+                        if from.row != to.row && from.col != to.col {
+                            return !find_obstacle(from, to, board);
+                        }
+                        if from.row == to.row || from.col == to.col {
+                            return !find_obstacle(from, to, board);
+                        }
+                    }
+                    false
                 }
-                Piece::King => { king_case(from, to, color, board)
-                    // return king_case(..) 
+                Piece::King => {
+                    king_case(from, to, color, board)
                 }
             }
         }
