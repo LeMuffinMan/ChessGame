@@ -63,6 +63,7 @@ pub fn is_king_exposed(from: &Coord, to: &Coord, color: &Color, board: &Board) -
     if let Some(coord) = new_board.get_king(color) {
         new_board.threaten_cells.contains(&coord)
     } else {
+        println!("Error : {:?} king not found", color);
         false
     }
 }

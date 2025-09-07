@@ -26,6 +26,11 @@ fn main() {
             Color::Black
         };
         update_threatens_cells(&mut board, &color);
+        if let Some(coord) = board.get_king(&color) {
+            if board.threaten_cells.contains(&coord) {
+                println!("Check !");
+            }
+        }
         board.update_legals_moves(&color);
         // for coord in &board.threaten_cells {
         //     println!("Cell threaten : ({}, {})", coord.row, coord.col);
@@ -53,6 +58,7 @@ fn main() {
                 board.update_board(&from_coord, &to_coord, &color);
             } else {
                 println!("King is exposed : illegal move");
+                continue;
             }
         } else {
             println!("Illegal move : {from_coord:?} -> {to_coord:?}");
