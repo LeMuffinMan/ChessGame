@@ -159,6 +159,12 @@ pub fn update_threatens_cells(board: &mut Board, color: &Color) {
                         }
                         if row > 0 {
                             get_threaten_cells_in_line(&coord, row as u8 - 1, col as u8, board);
+                            if let Some(last) = board.threaten_cells.last() {
+                                // println!("pushed ({}, {})", last.row, last.col);
+                                // println!("1 6 = {:?}", board.grid[1][6]);
+                            } else {
+                                // println!("Le vecteur est vide");
+                            }
                         }
                         if col < 7 {
                             get_threaten_cells_in_line(&coord, row as u8, col as u8 + 1, board);
