@@ -1,5 +1,6 @@
 use crate::Coord;
 use crate::validate_move;
+use crate::validate_move::is_king_exposed;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Piece {
@@ -239,7 +240,7 @@ impl Board {
                     let dif = from.row as i8 - to.row as i8;
                     if dif.abs() == 2 {
                         self.en_passant = Some(*to);
-                        println!("En passant flag at {:?}", to);
+                        // println!("En passant flag at {:?}", to);
                     }
                     //promotion
                     //si pion arrive en 0 ou en 7 :
@@ -311,6 +312,25 @@ impl Board {
         );
     }
 
+    fn test_and_push(&mut self, from: &Coord, to: &Coord, color: &Color) {
+        if self.is_legal_move(from, to, color) {
+            if !is_king_exposed(from, to, color, self) {
+            // println!("pushing from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
+                self.legals_moves.push((*from, *to));
+            }
+            // println!("king exposed: from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
+        }
+        // println!("illegal move: from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
+    }
+
+    fn checked_coord(row: i8, col: i8) -> Option<Coord> {
+        if (0..8).contains(&row) && (0..8).contains(&col) {
+            Some(Coord { row: row as u8, col: col as u8 })
+        } else {
+            None
+        }
+    }
+
     pub fn update_legals_moves(&mut self, color: &Color) {
         self.legals_moves.clear();
         for x in 0 ..8 {
@@ -320,12 +340,21 @@ impl Board {
                     if let Some(piece) = self.get(&from).get_piece() {
                         match piece {
                             Piece::Pawn => {
-                                //tester deux attaques diag et deux pas en avant : 4 coups
-                                //tester la promotion
-                                //tester la prise en passant
-                                //if is_king_exposed(board.is_legal_move(from, to, color), color) {
-                                board.legals_moves.push((from, to))
-                                //}
+                                let dir: i8 = if *color == White { 1 } else { -1 };
+                                //2 diagonales
+                                if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8 + 1) {
+                                    self.test_and_push(&from, &to, color);
+                                }
+                                if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8 - 1) {
+                                    self.test_and_push(&from, &to, color);
+                                }
+                                //2 straight forward
+                                if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8) {
+                                    self.test_and_push(&from, &to, color);
+                                }
+                                if let Some(to) = Board::checked_coord(from.row as i8 + dir + dir, from.col as i8) {
+                                    self.test_and_push(&from, &to, color);
+                                }
                             }
                             Piece::Rook => {
                                 //recursive dans toutes les lignes : ajouter les cell vide ou la premiere
@@ -348,9 +377,9 @@ impl Board {
                 }
             }
         }
-    for (from, to) in &self.legals_moves {
-        println!("from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
-}
+        for (from, to) in &self.legals_moves {
+            println!("from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
+        }
     }
 
     pub fn get(&self, coord: &Coord) -> Cell {
