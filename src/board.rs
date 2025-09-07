@@ -275,7 +275,6 @@ impl Board {
                         if col > 0 {
                             self.grid[row][0] = Cell::Free;
                             self.grid[row][col - 1] = Cell::Occupied(Piece::Rook, *color);
-                            return ;
                         }
                     }
                     //si le roi fait un castle a droite : tour a gauche
@@ -284,7 +283,6 @@ impl Board {
                         if col > 0 {
                             self.grid[row][7] = Cell::Free;
                             self.grid[row][col - 1] = Cell::Occupied(Rook, *color);
-                            return ;
                         }
                     }
                     //regular moves : checker la threat
