@@ -1,5 +1,3 @@
-use std::io;
-
 use crate::Board;
 use crate::Color;
 
@@ -59,7 +57,6 @@ pub fn get_move_from_stdin(color: Color, board: &Board) -> (Coord, Coord) {
     }
 }
 
-///translate pgn code into regular coordinates, with minimal error management
 //une impl de Coord form string
 pub fn get_coord_from_string(cell: String) -> Result<Coord, String> {
     if cell.len() != 2 {
@@ -81,30 +78,29 @@ pub fn get_coord_from_string(cell: String) -> Result<Coord, String> {
     Ok(coord)
 }
 
-///return a struct coord after reading the input from stdin
-pub fn get_inputs(msg: &str, color: Color, board: &Board) -> Coord {
-    loop {
-        let mut input = String::new();
-        println!("{msg} cell :");
-        io::stdin().read_line(&mut input).expect("Error");
-        let input = input.trim();
-        //faire une impl from_str ?
-        match get_coord_from_string(input.to_string()) {
-            Ok(coord) => {
-                if msg == "from" && !board.get(&coord).is_color(&color) {
-                    println!("No {color:?} piece in {input}");
-                    continue;
-                }
-                if msg == "to" && board.get(&coord).is_color(&color) {
-                    println!("There is already a {color:?} piece in {input}");
-                    continue;
-                }
-                break coord;
-            }
-            Err(e) => {
-                println!("{e}");
-                continue;
-            }
-        }
-    }
-}
+// pub fn get_inputs(msg: &str, color: Color, board: &Board) -> Coord {
+//     loop {
+//         let mut input = String::new();
+//         println!("{msg} cell :");
+//         io::stdin().read_line(&mut input).expect("Error");
+//         let input = input.trim();
+//         //faire une impl from_str ?
+//         match get_coord_from_string(input.to_string()) {
+//             Ok(coord) => {
+//                 if msg == "from" && !board.get(&coord).is_color(&color) {
+//                     println!("No {color:?} piece in {input}");
+//                     continue;
+//                 }
+//                 if msg == "to" && board.get(&coord).is_color(&color) {
+//                     println!("There is already a {color:?} piece in {input}");
+//                     continue;
+//                 }
+//                 break coord;
+//             }
+//             Err(e) => {
+//                 println!("{e}");
+//                 continue;
+//             }
+//         }
+//     }
+// }

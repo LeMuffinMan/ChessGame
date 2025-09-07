@@ -12,42 +12,6 @@ mod validate_move;
 
 
 
-// fn update_legals_moves(board: &Board, color: &Color) {
-//     board.legals_moves.clear();
-//     for x in 0 ..8 {
-//         for y in 0 ..8 {
-//             if board.grid[x][y].is_color(color) {
-//                 match board.grid[x][y].piece {
-//                     from: Coord { x, y };
-//                     Pawn => {
-//                         //tester deux attaques diag et deux pas en avant : 4 coups
-//                         //tester la promotion
-//                         //tester la prise en passant
-//                         //if is_king_exposed(board.is_legal_move(from, to, color), color) {
-//                         //board.legals_moves.push((from, to))
-//                         //}
-//                     }
-//                     Rook => {
-//                         //recursive dans toutes les lignes : ajouter les cell vide ou la premiere
-//                         //avec un ennemi
-//                     }
-//                     Knight => {
-//                         //hard coder les 8 coups
-//                     }
-//                     Bishop => {
-//                         //recursive en diagonale : add cell vide ou premiere avec ennemy
-//                     }
-//                     Queen => {
-//                         //bishop + Rook
-//                     }
-//                     King => {
-//                         //hard coder les 8 coups
-//                     }
-//                 }
-//             }
-//         }
-//     }
-// }
 
 fn main() {
     let mut board = Board::init_board();
@@ -62,7 +26,7 @@ fn main() {
             Color::Black
         };
         update_threatens_cells(&mut board);
-        // update_legals_moves(&mut board);
+        board.update_legals_moves(&color);
         if board.legals_moves.is_empty() {
             let king_cell = board.get_king(&color);
             if let Some(coord) = king_cell {
