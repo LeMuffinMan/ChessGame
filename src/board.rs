@@ -357,11 +357,48 @@ impl Board {
                                 }
                             }
                             Piece::Rook => {
-                                //recursive dans toutes les lignes : ajouter les cell vide ou la premiere
-                                //avec un ennemi
+                                let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+
+                                for (dr, dc) in directions {
+                                    let mut r = from.row as i8 + dr;
+                                    let mut c = from.col as i8 + dc;
+
+                                    while let Some(to) = Board::checked_coord(r, c) {
+                                        // récupère la case cible
+                                        let target = self.get(&to);
+
+                                        if target.is_color(color) {
+                                            break; 
+                                        }
+                                        // ajoute le coup si c’est autorisé
+                                        self.test_and_push(&from, &to, color);
+                                        
+                                        // sinon, on continue plus loin dans la même direction
+                                        r += dr;
+                                        c += dc;
+                                    }
+                                }
                             }
                             Piece::Knight => {
-                                //hard coder les 8 coups
+
+                                let cells: [(i8, i8); 8] = [
+                                    (2, 1),
+                                    (2, -1),
+                                    (-2, 1),
+                                    (-2, -1),
+                                    (1, 2),
+                                    (1, -2),
+                                    (-1, 2),
+                                    (-1, -2),
+                                ];
+
+                                for (dr, dc) in cells {
+                                    let new_row = from.row as i8 + dr;
+                                    let new_col = from.col as i8 + dc;
+                                    if let Some(to) = Board::checked_coord(new_row, new_col) {
+                                        self.test_and_push(&from, &to, color);
+                                    }
+                                }
                             }
                             Piece::Bishop => {
                                 //recursive en diagonale : add cell vide ou premiere avec ennemy
