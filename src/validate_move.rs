@@ -90,8 +90,26 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
                     true
                 }
                 Piece::Knight => {
-                    //ignore obstacles
-                    true
+                    let cells: [(i8, i8); 8] = [
+                        (2, 1),
+                        (2, -1),
+                        (-2, 1),
+                        (-2, -1),
+                        (1, 2),
+                        (1, -2),
+                        (-1, 2),
+                        (-1, -2),
+                    ];
+
+                    for (dx, dy) in cells.iter() {
+                       if to.row as i8 == from.row as i8 + *dx as i8
+                        && to.col as i8 == from.col as i8 + *dy as i8 {
+                            if !board.get(to).is_color(color) {
+                                return true;
+                            }
+                        }
+                    }
+                    false
                 }
                 Piece::Bishop => 
                 {
