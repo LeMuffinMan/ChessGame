@@ -207,4 +207,7 @@ pub fn update_threatens_cells(board: &mut Board) {
             }
         }
     }
+    for coord in &board.threaten_cells {
+        println!("Cell threaten : ({}, {})", coord.row, coord.col);
+    }
 }
