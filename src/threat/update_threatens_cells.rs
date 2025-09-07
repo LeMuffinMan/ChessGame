@@ -31,7 +31,7 @@ use crate::get_threaten_cells::*;
 //either we give the accurate vector to each recursive so they add in it
 //or i collect from them vectors, that i push in last move ?
 
-fn pawn_threats(cell: &Cell, coord: &Coord, board: &mut Board) {
+fn pawn_threats(cell: &Cell, coord: &Coord, color: &Color, board: &mut Board) {
     let cells: [(i8, i8); 2] = if cell.is_color(&White) {
         [(1, -1), (1, 1)] // blanc : vers le haut
     } else {
@@ -44,10 +44,12 @@ fn pawn_threats(cell: &Cell, coord: &Coord, board: &mut Board) {
         //clippy want me to do this instead comparing >= 0 and < 8
         if (0..8).contains(&new_row) && (0..8).contains(&new_col) {
             // println!("Pawn in ({}, {}) threats ({}, {})", coord.row, coord.col, new_row, new_col);
-            board.threaten_cells.push(Coord {
-                row: new_row as u8,
-                col: new_col as u8,
-            });
+            if !cell.is_color(color) {
+                board.threaten_cells.push(Coord {
+                    row: new_row as u8,
+                    col: new_col as u8,
+                });
+            }
             // println!("Pushing Coord  col: {} , row: {} in vec", new_row, new_col);
             // Coord { row: new_row as u8, col: new_col as u8 };
         }
@@ -92,7 +94,7 @@ pub fn update_threatens_cells(board: &mut Board, color: &Color) {
                 //reject the move
                 // println!("Checking cell ({}, {}) -> {:?}", row, col, cell.get_piece());
                 match piece {
-                    Piece::Pawn => pawn_threats(&cell, &coord, board),
+                    Piece::Pawn => pawn_threats(&cell, &coord, color, board),
                     Piece::Rook => rook_threats(&coord, row, col, board),
                     Piece::Knight => {
                         let cells: [(i8, i8); 8] = [
@@ -113,10 +115,13 @@ pub fn update_threatens_cells(board: &mut Board, color: &Color) {
                             //Need this to avoid panic on overflow
                             if (0..8).contains(&new_row) && (0..8).contains(&new_col) {
                                 // println!("Pushing Coord  col: {} , row: {} in vec", new_row, new_col);
-                                board.threaten_cells.push(Coord {
-                                    row: new_row as u8,
-                                    col: new_col as u8,
-                                });
+                                if !cell.is_color(color) {
+
+                                    // board.threaten_cells.push(Coord {
+                                    //     row: new_row as u8,
+                                    //     col: new_col as u8,
+                                    // });
+                                }
                             }
                         }
                     }
@@ -159,7 +164,7 @@ pub fn update_threatens_cells(board: &mut Board, color: &Color) {
                             get_threaten_cells_in_line(&coord, row as u8, col as u8 + 1, board);
                         }
                         if col > 0 {
-                            get_threaten_cells_in_line(&coord, row as u8, col as u8 + 1, board);
+                            get_threaten_cells_in_line(&coord, row as u8, col as u8 - 1, board);
                         }
                         if row < 7 && col < 7 {
                             get_threaten_cells_in_diag(&coord, row as u8 + 1, col as u8 + 1, board);
