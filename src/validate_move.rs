@@ -61,7 +61,7 @@ pub fn is_king_exposed(from: &Coord, to: &Coord, color: &Color, board: &Board) -
     new_board.update_board(from, to, color);
     update_threatens_cells(&mut new_board);
     if let Some(coord) = new_board.get_king(color) {
-        !new_board.threaten_cells.contains(&coord)
+        new_board.threaten_cells.contains(&coord)
     } else {
         false
     }
