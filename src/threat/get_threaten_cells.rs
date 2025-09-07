@@ -67,7 +67,7 @@ pub fn get_threaten_cells_in_line(from: &Coord, row: u8, col: u8, board: &mut Bo
             get_threaten_cells_in_line(from, row, col + 1, board);
         }
         (_, std::cmp::Ordering::Less, true) => {
-            if row > 0 {
+            if col > 0 {
                 get_threaten_cells_in_line(from, row, col - 1, board);
             }
         }
