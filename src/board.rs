@@ -213,11 +213,14 @@ impl Board {
         validate_move::is_legal_move(from, to, color, self)
     }
     pub fn get_king(&self, color: &Color) -> Option<Coord> {
-        for x in 0 ..8 {
-            for y in 0 ..8 {
+        for x in 0..8 {
+            for y in 0..8 {
                 if self.grid[x][y].is_color(color) {
                     if let Some(Piece::King) = self.grid[x][y].get_piece() {
-                        return Some (Coord { row: x as u8, col: y as u8 })
+                        return Some(Coord {
+                            row: x as u8,
+                            col: y as u8,
+                        });
                     }
                 }
             }
@@ -228,16 +231,18 @@ impl Board {
     pub fn update_board(&mut self, from: &Coord, to: &Coord, color: &Color) {
         self.en_passant = None;
         //prise en passant
-        match self.grid[from.row as usize][from.col as usize].get_piece() { 
+        match self.grid[from.row as usize][from.col as usize].get_piece() {
             Some(piece) => match piece {
                 Pawn => {
                     //Si la piece au depart est un pion, et que sa case d'arrivee est vide et en diag
                     //c'est une prise en passant : clean from cell, et le pion mange
-                    if self.grid[to.row as usize][to.col as usize].is_empty() && from.col != to.col {
+                    if self.grid[to.row as usize][to.col as usize].is_empty() && from.col != to.col
+                    {
                         self.grid[from.row as usize][to.col as usize] = Cell::Free;
-                        self.grid[to.row as usize][to.col as usize] = self.grid[from.row as usize][from.col as usize];
+                        self.grid[to.row as usize][to.col as usize] =
+                            self.grid[from.row as usize][from.col as usize];
                         self.grid[from.row as usize][from.col as usize] = Cell::Free;
-                        return ;
+                        return;
                     }
                     //si le pion bouge de deux cases : c'est un double pas : flag en passant
                     let dif = from.row as i8 - to.row as i8;
@@ -245,7 +250,7 @@ impl Board {
                         self.en_passant = Some(*to);
                         // println!("En passant flag at {:?}", to);
                     }
-                    //update avec promotion en parametre 
+                    //update avec promotion en parametre
                     //
                     // let promot_row = if *color == Color::White { 7 } else { 0 };
                     // if to.row == promot_row {
@@ -277,25 +282,36 @@ impl Board {
                 }
                 Rook => {
                     //si une des tour bouge : on passe a false le castle_bool qui correspond
-                    let mut castle_bools = if *color == White { self.white_castle } else { self.black_castle };
+                    let mut castle_bools = if *color == White {
+                        self.white_castle
+                    } else {
+                        self.black_castle
+                    };
                     if castle_bools.0 == true || castle_bools.1 == true {
                         match from.col {
-                            0 => { castle_bools.0 = false }
-                            7 => { castle_bools.1 = false }
-                            _ => { }
-                        }; 
+                            0 => castle_bools.0 = false,
+                            7 => castle_bools.1 = false,
+                            _ => {}
+                        };
                     }
                 }
                 King => {
-                    //si le roi bouge : on invalide les deux castles 
-                    let mut castle_bools = if *color == White { self.white_castle } else { self.black_castle };
+                    //si le roi bouge : on invalide les deux castles
+                    let mut castle_bools = if *color == White {
+                        self.white_castle
+                    } else {
+                        self.black_castle
+                    };
                     if castle_bools.0 == true || castle_bools.1 == true {
                         castle_bools.0 = false;
                         castle_bools.1 = false;
                     }
                     //Roque
                     let dif_col = to.col as i8 - from.col as i8;
-                    let row = match color { White => { 0 }, Black => { 7 } };
+                    let row = match color {
+                        White => 0,
+                        Black => 7,
+                    };
                     //si le roi fait un castle a gauche : tour a droite
                     if dif_col == -2 {
                         let col = to.col as usize;
@@ -317,13 +333,9 @@ impl Board {
                 Knight => {
                     //
                 }
-                Queen => {
-
-                }
-                Bishop => {
-
-                }
-            }
+                Queen => {}
+                Bishop => {}
+            },
             None => {
                 println!("Error : update board : from cell empty")
             }
@@ -340,7 +352,7 @@ impl Board {
     fn test_and_push(&mut self, from: &Coord, to: &Coord, color: &Color) {
         if self.is_legal_move(from, to, color) {
             if !is_king_exposed(from, to, color, self) {
-            // println!("pushing from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
+                // println!("pushing from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
                 self.legals_moves.push((*from, *to));
             }
             // println!("king exposed: from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
@@ -350,7 +362,10 @@ impl Board {
 
     fn checked_coord(row: i8, col: i8) -> Option<Coord> {
         if (0..8).contains(&row) && (0..8).contains(&col) {
-            Some(Coord { row: row as u8, col: col as u8 })
+            Some(Coord {
+                row: row as u8,
+                col: col as u8,
+            })
         } else {
             None
         }
@@ -358,31 +373,42 @@ impl Board {
 
     pub fn update_legals_moves(&mut self, color: &Color) {
         self.legals_moves.clear();
-        for x in 0 ..8 {
-            for y in 0 ..8 {
+        for x in 0..8 {
+            for y in 0..8 {
                 if self.grid[x][y].is_color(color) {
-                    let from = Coord { row: x as u8, col: y as u8 };
+                    let from = Coord {
+                        row: x as u8,
+                        col: y as u8,
+                    };
                     if let Some(piece) = self.get(&from).get_piece() {
                         match piece {
                             Piece::Pawn => {
                                 let dir: i8 = if *color == White { 1 } else { -1 };
                                 //2 diagonales
-                                if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8 + 1) {
+                                if let Some(to) =
+                                    Board::checked_coord(from.row as i8 + dir, from.col as i8 + 1)
+                                {
                                     self.test_and_push(&from, &to, color);
                                 }
-                                if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8 - 1) {
+                                if let Some(to) =
+                                    Board::checked_coord(from.row as i8 + dir, from.col as i8 - 1)
+                                {
                                     self.test_and_push(&from, &to, color);
                                 }
                                 //2 straight forward
-                                if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8) {
+                                if let Some(to) =
+                                    Board::checked_coord(from.row as i8 + dir, from.col as i8)
+                                {
                                     //Si to.row = promote row
-                                    //  tester R 
+                                    //  tester R
                                     //  Tester N
                                     //  Tester B
                                     //  Tester Q
                                     self.test_and_push(&from, &to, color);
                                 }
-                                if let Some(to) = Board::checked_coord(from.row as i8 + dir + dir, from.col as i8) {
+                                if let Some(to) =
+                                    Board::checked_coord(from.row as i8 + dir + dir, from.col as i8)
+                                {
                                     self.test_and_push(&from, &to, color);
                                 }
                             }
@@ -397,17 +423,16 @@ impl Board {
                                         let target = self.get(&to);
 
                                         if target.is_color(color) {
-                                            break; 
+                                            break;
                                         }
                                         self.test_and_push(&from, &to, color);
-                                        
+
                                         r += dr;
                                         c += dc;
                                     }
                                 }
                             }
                             Piece::Knight => {
-
                                 let cells: [(i8, i8); 8] = [
                                     (2, 1),
                                     (2, -1),
@@ -438,10 +463,10 @@ impl Board {
                                         let target = self.get(&to);
 
                                         if target.is_color(color) {
-                                            break; 
+                                            break;
                                         }
                                         self.test_and_push(&from, &to, color);
-                                        
+
                                         r += dr;
                                         c += dc;
                                     }
@@ -458,10 +483,10 @@ impl Board {
                                         let target = self.get(&to);
 
                                         if target.is_color(color) {
-                                            break; 
+                                            break;
                                         }
                                         self.test_and_push(&from, &to, color);
-                                        
+
                                         r += dr;
                                         c += dc;
                                     }
@@ -476,10 +501,10 @@ impl Board {
                                         let target = self.get(&to);
 
                                         if target.is_color(color) {
-                                            break; 
+                                            break;
                                         }
                                         self.test_and_push(&from, &to, color);
-                                        
+
                                         r += dr;
                                         c += dc;
                                     }
@@ -521,9 +546,11 @@ impl Board {
         let mut line = String::new();
 
         let promote_row = if *color == Color::White { 7 } else { 0 };
-        for y in 0 ..8 {
+        for y in 0..8 {
             if self.grid[promote_row][y].is_color(color) {
-                if let Some(piece) = self.grid[7][y].get_piece() && *piece == Piece::Pawn {
+                if let Some(piece) = self.grid[7][y].get_piece()
+                    && *piece == Piece::Pawn
+                {
                     println!("Pawn promote : R/N/B/Q");
                     line.clear();
                     loop {
@@ -533,16 +560,20 @@ impl Board {
                         }
                         let input = line.trim();
                         if input.len() != 1 {
-                            println!("Incorrect input.\nAllowed inputs : R = Rook | N = Knight | B = Bishop | Q = Queen");
+                            println!(
+                                "Incorrect input.\nAllowed inputs : R = Rook | N = Knight | B = Bishop | Q = Queen"
+                            );
                             continue;
                         }
                         self.grid[promote_row as usize][y as usize] = match input {
-                            "R" => { Cell::Occupied(Piece::Rook, *color) }
-                            "N" => { Cell::Occupied(Piece::Knight, *color) }
-                            "B" => { Cell::Occupied(Piece::Bishop, *color) }
-                            "Q" => { Cell::Occupied(Piece::Queen, *color) }
+                            "R" => Cell::Occupied(Piece::Rook, *color),
+                            "N" => Cell::Occupied(Piece::Knight, *color),
+                            "B" => Cell::Occupied(Piece::Bishop, *color),
+                            "Q" => Cell::Occupied(Piece::Queen, *color),
                             _ => {
-                                println!("Incorrect input.\nAllowed inputs : R = Rook | N = Knight | B = Bishop | Q = Queen");
+                                println!(
+                                    "Incorrect input.\nAllowed inputs : R = Rook | N = Knight | B = Bishop | Q = Queen"
+                                );
                                 continue;
                             }
                         };

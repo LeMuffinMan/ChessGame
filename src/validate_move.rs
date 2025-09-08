@@ -55,7 +55,6 @@ fn find_obstacle(from: &Coord, to: &Coord, board: &Board) -> bool {
     find_obstacle(&next, to, board)
 }
 
-
 pub fn is_king_exposed(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
     let mut new_board = board.clone();
     new_board.update_board(from, to, color);
@@ -67,7 +66,6 @@ pub fn is_king_exposed(from: &Coord, to: &Coord, color: &Color, board: &Board) -
         false
     }
 }
-
 
 ///check if the piece on from coords, can move to the "to" coords, and if there is an
 ///obstacle on way
@@ -83,9 +81,7 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
                 return false;
             }
             match piece {
-                Piece::Pawn => {
-                    pawn_case(from, to, color, board) 
-                }
+                Piece::Pawn => pawn_case(from, to, color, board),
                 Piece::Rook => {
                     if !board.get(to).is_color(color) {
                         if from.row == to.row || from.col == to.col {
@@ -107,8 +103,9 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
                     ];
 
                     for (dx, dy) in cells.iter() {
-                       if to.row as i8 == from.row as i8 + *dx as i8
-                        && to.col as i8 == from.col as i8 + *dy as i8 {
+                        if to.row as i8 == from.row as i8 + *dx as i8
+                            && to.col as i8 == from.col as i8 + *dy as i8
+                        {
                             if !board.get(to).is_color(color) {
                                 return true;
                             }
@@ -116,8 +113,7 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
                     }
                     false
                 }
-                Piece::Bishop => 
-                {
+                Piece::Bishop => {
                     if !board.get(to).is_color(color) {
                         //meilleure verfi de la diagonale ?
                         if from.row != to.row && from.col != to.col {
@@ -126,8 +122,7 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
                     }
                     false
                 }
-                Piece::Queen => 
-                {
+                Piece::Queen => {
                     if !board.get(to).is_color(color) {
                         //meilleure verfi de la diagonale ?
                         if from.row != to.row && from.col != to.col {
@@ -139,15 +134,13 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
                     }
                     false
                 }
-                Piece::King => {
-                    king_case(from, to, color, board)
-                }
+                Piece::King => king_case(from, to, color, board),
             }
         }
     }
 }
 
-fn pawn_case(from :&Coord, to: &Coord, color: &Color, board: &Board) -> bool {
+fn pawn_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
     let dir: i8 = if *color == White { 1 } else { -1 };
     let start_row = if *color == White { 1 } else { 6 };
     let passant_row = if *color == White { 4 } else { 3 };
@@ -200,24 +193,29 @@ fn pawn_case(from :&Coord, to: &Coord, color: &Color, board: &Board) -> bool {
 fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
     let dif_col = to.col as i8 - from.col as i8;
     if dif_col.abs() == 2 {
-        let castle_bools = if *color == White { board.white_castle } else { board.black_castle };
+        let castle_bools = if *color == White {
+            board.white_castle
+        } else {
+            board.black_castle
+        };
         //si il bouge de deux a gauche : grand roque
         if dif_col < 0 && castle_bools.0 == true {
-            //si le roi et aucune des deux cases qu'il traverse n'est en echec 
-            //Si toutes les cases entre K et R sont vides 
+            //si le roi et aucune des deux cases qu'il traverse n'est en echec
+            //Si toutes les cases entre K et R sont vides
             let mut to_dir = to.clone();
             to_dir.col += 1;
             return !find_obstacle(from, &to_dir, board);
         }
         //si deux a droite : petit roque
         else if dif_col > 0 && castle_bools.1 == true {
-            //si le roi et aucune des deux cases qu'il traverse n'est en echec 
-            //Si toutes les cases entre K et R sont vides 
+            //si le roi et aucune des deux cases qu'il traverse n'est en echec
+            //Si toutes les cases entre K et R sont vides
             let mut to_dir = to.clone();
             to_dir.col -= 1;
             return !find_obstacle(from, &to_dir, board);
-        } 
-        else { false; }
+        } else {
+            false;
+        }
     }
     let cells: [(i8, i8); 8] = [
         (-1, -1),
@@ -231,8 +229,8 @@ fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
     ];
 
     for (dx, dy) in cells.iter() {
-        if to.row as i8 == from.row as i8 + *dx as i8
-        && to.col as i8 == from.col as i8 + *dy as i8 {
+        if to.row as i8 == from.row as i8 + *dx as i8 && to.col as i8 == from.col as i8 + *dy as i8
+        {
             if !board.get(to).is_color(color) {
                 return true;
             }
@@ -240,5 +238,3 @@ fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
     }
     false
 }
-
-
