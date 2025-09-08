@@ -87,8 +87,6 @@ fn rook_threats(coord: &Coord, row: usize, col: usize, board: &mut Board) {
     if col > 0 {
         get_threaten_cells_in_line(coord, row as u8, col as u8 - 1, board);
     }
-    //une recursive qui push dans les 4 directions si pas d'obstacle PUIS si
-    //obstacle == advers
 }
 
 fn knight_threats(coord: &Coord, color: &Color, cell: &Cell, board: &mut Board) {
