@@ -1,8 +1,8 @@
-use crate::Coord;
-use crate::Color;
-use crate::cell::Cell;
-use crate::Color::*;
 use crate::Board;
+use crate::Color;
+use crate::Color::*;
+use crate::Coord;
+use crate::cell::Cell;
 use crate::validate_move::validate_move::find_obstacle;
 
 pub fn queen_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
@@ -39,8 +39,7 @@ pub fn knight_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bo
     ];
 
     for (dx, dy) in cells.iter() {
-        if to.row as i8 == from.row as i8 + *dx as i8
-            && to.col as i8 == from.col as i8 + *dy as i8
+        if to.row as i8 == from.row as i8 + *dx as i8 && to.col as i8 == from.col as i8 + *dy as i8
         {
             if !board.get(to).is_color(color) {
                 return true;

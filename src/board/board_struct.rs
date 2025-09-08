@@ -1,0 +1,47 @@
+use crate::Color;
+use crate::Color::*;
+use crate::Coord;
+use crate::cell::Cell;
+use crate::cell::Piece::*;
+
+#[derive(Clone)]
+pub struct Board {
+    pub grid: [[Cell; 8]; 8],
+    pub white_castle: (bool, bool), //(long, short)
+    pub black_castle: (bool, bool),
+    pub threaten_cells: Vec<Coord>,
+    pub legals_moves: Vec<(Coord, Coord)>,
+    pub en_passant: Option<Coord>,
+}
+
+impl Board {
+    pub fn fill_side(&mut self, color: Color) {
+        let color_idx = match color {
+            White => 0,
+            Black => 7,
+        };
+        for x in 0..8 {
+            // fill the base line
+            self.grid[color_idx][x] = match x {
+                //pour la ligne tout en bas
+                0 | 7 => Cell::Occupied(Rook, color),
+                1 | 6 => Cell::Occupied(Knight, color),
+                2 | 5 => Cell::Occupied(Bishop, color),
+                3 => Cell::Occupied(Queen, color),
+                4 => Cell::Occupied(King, color),
+                _ => unreachable!(), //cas a couvrir par defaut mais impossible car board 8x8
+            };
+            // fill the pawns
+            match color_idx {
+                0 => self.grid[color_idx + 1][x] = Cell::Occupied(Pawn, color),
+                7 => self.grid[color_idx - 1][x] = Cell::Occupied(Pawn, color),
+                _ => unreachable!(),
+            };
+            if color_idx == 0 {
+                self.grid[color_idx + 1][x] = Cell::Occupied(Pawn, color);
+            } else {
+                self.grid[color_idx - 1][x] = Cell::Occupied(Pawn, color);
+            }
+        }
+    }
+}
