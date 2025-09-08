@@ -1,19 +1,12 @@
 use crate::Board;
+use crate::Color;
 use crate::Coord;
 use crate::cell::Cell;
 use crate::cell::Piece;
-use crate::Color;
 use crate::update_threatens_cells;
 use crate::validate_move::piece_case::{
-    pawn_case,
-    rook_case,
-    bishop_case,
-    knight_case,
-    queen_case,
-    king_case,
+    bishop_case, king_case, knight_case, pawn_case, queen_case, rook_case,
 };
-
-
 
 ///check if the piece on from coords, can move to the "to" coords, and if there is an
 ///obstacle on way
@@ -56,8 +49,20 @@ pub fn find_obstacle(from: &Coord, to: &Coord, board: &Board) -> bool {
     let row_diff = to_row - from_row;
     let col_diff = to_col - from_col;
 
-    let sign_row = if row_diff > 0 { 1 } else if row_diff < 0 { -1 } else { 0 };
-    let sign_col = if col_diff > 0 { 1 } else if col_diff < 0 { -1 } else { 0 };
+    let sign_row = if row_diff > 0 {
+        1
+    } else if row_diff < 0 {
+        -1
+    } else {
+        0
+    };
+    let sign_col = if col_diff > 0 {
+        1
+    } else if col_diff < 0 {
+        -1
+    } else {
+        0
+    };
 
     let next_row = from_row + sign_row;
     let next_col = from_col + sign_col;
@@ -67,9 +72,13 @@ pub fn find_obstacle(from: &Coord, to: &Coord, board: &Board) -> bool {
         col: next_col as u8,
     };
 
-    if next == *to { return false; }
+    if next == *to {
+        return false;
+    }
 
-    if board.get(&next) != Cell::Free { return true; }
+    if board.get(&next) != Cell::Free {
+        return true;
+    }
 
     find_obstacle(&next, to, board)
 }
@@ -85,4 +94,3 @@ pub fn is_king_exposed(from: &Coord, to: &Coord, color: &Color, board: &Board) -
         false
     }
 }
-

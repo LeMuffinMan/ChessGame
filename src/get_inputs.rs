@@ -77,4 +77,3 @@ pub fn get_coord_from_string(cell: String) -> Result<Coord, String> {
     let coord = Coord { col, row };
     Ok(coord)
 }
-
