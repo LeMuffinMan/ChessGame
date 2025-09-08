@@ -1,3 +1,3 @@
+pub mod is_legal_move;
 pub mod piece_case;
-pub mod validate_move;
-pub use validate_move::is_king_exposed;
+pub use is_legal_move::is_king_exposed;

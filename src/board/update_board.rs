@@ -56,7 +56,8 @@ impl Board {
         } else {
             self.black_castle
         };
-        if castle_bools.0 == true || castle_bools.1 == true {
+        //if at least one castle is still available
+        if castle_bools.0 || castle_bools.1 {
             match from.col {
                 0 => castle_bools.0 = false,
                 7 => castle_bools.1 = false,
@@ -67,8 +68,12 @@ impl Board {
 
     pub fn update_king_castle(&mut self, from: &Coord, to: &Coord, color: &Color) {
         //si le roi bouge : on invalide les deux castles
-        let mut castle_bools = if *color == White { self.white_castle } else { self.black_castle };
-        if castle_bools.0 == true || castle_bools.1 == true {
+        let mut castle_bools = if *color == White {
+            self.white_castle
+        } else {
+            self.black_castle
+        };
+        if castle_bools.0 || castle_bools.1 {
             castle_bools.0 = false;
             castle_bools.1 = false;
         }
