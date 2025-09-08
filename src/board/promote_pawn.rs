@@ -1,7 +1,7 @@
 use crate::Board;
 use crate::Color;
-use crate::cell::Piece;
 use crate::cell::Cell;
+use crate::cell::Piece;
 
 impl Board {
     pub fn promote_pawn(&mut self, color: &Color) {
