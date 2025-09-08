@@ -2,8 +2,8 @@ use crate::Board;
 use crate::Color;
 use crate::Color::*;
 use crate::Coord;
-use crate::cell::Piece;
 use crate::cell::Cell;
+use crate::cell::Piece;
 use crate::validate_move::validate_move::is_legal_move;
 
 impl Board {
@@ -71,5 +71,4 @@ impl Board {
         }
         println!();
     }
-
 }

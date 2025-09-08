@@ -2,9 +2,9 @@ use crate::Board;
 use crate::Color;
 use crate::Color::*;
 use crate::Coord;
+use crate::cell::Cell;
 use crate::cell::Piece;
 use crate::cell::Piece::*;
-use crate::cell::Cell;
 
 impl Board {
     pub fn update_board(&mut self, from: &Coord, to: &Coord, color: &Color) {
