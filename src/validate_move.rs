@@ -239,19 +239,6 @@ fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
         }
     }
     false
-    //Si il bouge de deux : castle
-        //gauche : big 
-        //droite : little
-        //Ssi bool est ok
-        //checker si le roi est en situation d'echec
-        //Checker les menaces sur toute la ligne de mvt // board.threaten_cells.contains(cells)
-        //si les deux cases traersees par le roi son vides 
-        //update board fera le move, et mettra a off les deux bool
-    //bouge d'une case
-        //si pas occupee par piece alliee
-        //si pas menacee 
-        //a update board : on vire les deux bool de castle
-    // true
 }
 
 
