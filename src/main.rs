@@ -29,8 +29,12 @@ fn main() {
     let mut board = Board::init_board();
 
     let mut i = 1;
+    let mut turn = 1;
     loop {
         let color = if i % 2 != 0 {
+            if i != 1 {
+                turn += 1;
+            }
             Color::White
         } else {
             Color::Black
@@ -38,10 +42,11 @@ fn main() {
         if mat_or_pat(&mut board, &color) {
             break;
         }
-        println!("Turn {i}");
+        println!("Turn {turn}");
         turn_begin(&board, &color);
         let (from_coord, to_coord) = get_inputs::get_move_from_stdin(color, &board);
         // println!("From {from_coord:?} to {to_coord:?}");
+        // comparer avec la liste des coups legaux
         if board.is_legal_move(&from_coord, &to_coord, &color) {
             if !validate_move::is_king_exposed(&from_coord, &to_coord, &color, &board) {
                 println!("Move validated");
@@ -55,13 +60,16 @@ fn main() {
             continue;
         }
         i += 1;
-        println!("-----------------");
+        println!("---------------------------------");
     }
 }
 
 fn mat_or_pat(board: &mut Board, color: &Color) -> bool {
-    board.promote_pawn(&Color::White);
-    board.promote_pawn(&Color::Black);
+    if *color == Color::White {
+        board.promote_pawn(&Color::Black);
+    } else {
+        board.promote_pawn(&Color::White);
+    }
     update_threatens_cells(board, color);
     board.update_legals_moves(color);
     // for coord in &board.threaten_cells {
