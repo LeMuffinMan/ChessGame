@@ -1,92 +1,13 @@
 use crate::Coord;
+use crate::Color;
+use crate::Color::*;
+use crate::cell::Cell;
+use crate::cell::Piece;
+use crate::cell::Piece::*;
 use crate::validate_move;
 use crate::validate_move::is_king_exposed;
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum Piece {
-    Pawn,
-    Rook,
-    Knight,
-    Bishop,
-    Queen,
-    King,
-}
-use Piece::*;
 
-#[derive(Copy, Clone, PartialEq, Debug, Eq)]
-pub enum Color {
-    Black,
-    White,
-}
-use Color::*;
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum Cell {
-    Occupied(Piece, Color),
-    Free,
-}
-
-impl Cell {
-    pub fn get_piece(&self) -> Option<&Piece> {
-        match self {
-            Cell::Occupied(piece, _) => Some(piece),
-            Cell::Free => None,
-        }
-    }
-    // pub fn get_color(&self) -> &Color {
-    //     match self {
-    //         Cell::Occupied(_, color) => Some(color),
-    //         Cell::Free => None,
-    //     }
-    // }
-    pub fn is_color(&self, color: &Color) -> bool {
-        match self {
-            Cell::Occupied(_, cell_color) => cell_color == color,
-            Cell::Free => false,
-        }
-    }
-    pub fn is_empty(&self) -> bool {
-        match self {
-            Cell::Free => true,
-            Cell::Occupied(_, _) => false,
-        }
-    }
-    pub fn is_opponent_color(&self, color: &Color) -> bool {
-        match self {
-            Cell::Free => false,
-            Cell::Occupied(_, cell_color) => cell_color != color,
-        }
-    }
-    // pub fn diff_color_and_not_white(&self, color: &Color) -> bool {
-    //     match self {
-    //         Cell::Free => false,
-    //         Cell::Occupied(_, cell_color) => cell_color != color && *cell_color != White,
-    //     }
-    // }
-}
-
-impl std::fmt::Display for Cell {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let display_str = match self {
-            Cell::Occupied(piece, color) => {
-                let piece_char = match piece {
-                    Pawn => "p",
-                    Rook => "r",
-                    Knight => "n",
-                    Bishop => "b",
-                    Queen => "q",
-                    King => "k",
-                };
-                match color {
-                    Black => piece_char.to_uppercase(),
-                    White => piece_char.to_string(),
-                }
-            }
-            Cell::Free => String::from(" "),
-        };
-        write!(f, "{display_str}")
-    }
-}
 
 #[derive(Clone)]
 pub struct Board {
@@ -96,41 +17,7 @@ pub struct Board {
     pub threaten_cells: Vec<Coord>,
     pub legals_moves: Vec<(Coord, Coord)>,
     pub en_passant: Option<Coord>,
-    //Works as a boolean containing a coord if true
-    //if an en_passant takes is possible : exists
-    //- contains the coord of the pawn exposed to en_passant
-    //else : None
-
-    //check: bool,
 }
-
-//after updating threats, we check each legal moves for active player
-//we compose a vector of tuple (from, to) for each possible move using validate_move
-//- if the vec is empty : return is_pat() || is_check_resolved()
-//- else we can use the vec to compare user input and reject or accept it
-//
-//loop {
-//
-// update_threats()
-// update_legal_moves()
-//      if vector empty
-//         - if check == true => mat
-//         - else -> pat
-// getinputs()
-// is_legal_move()
-// update_check()
-//
-//}
-//Validate move :
-// - is_legal_move
-// - if check == true  && active king is threaten
-//    - reject and ask new inputs
-//
-// Update_check() //at end of turn after validated the move, we update the check bool for next
-// player
-//   - if check == true -> check = false //we would have rejected a move not solving the check
-//   - if opponent king is threathen : check = true
-//
 
 impl Board {
     fn fill_side(&mut self, color: Color) {
@@ -250,35 +137,6 @@ impl Board {
                         self.en_passant = Some(*to);
                         // println!("En passant flag at {:?}", to);
                     }
-                    //update avec promotion en parametre
-                    //
-                    // let promot_row = if *color == Color::White { 7 } else { 0 };
-                    // if to.row == promot_row {
-                    //     println!("Pawn promote : R/N/B/Q");
-                    //     line.clear();
-                    //     loop {
-                    //         if stdin.lock().read_line(&mut line).unwrap() == 0 {
-                    //             println!("EOF");
-                    //             break;
-                    //         }
-                    //         let input = line.trim();
-                    //         if input.len() != 1 {
-                    //             println!("Incorrect input.\nAllowed inputs : R = Rook | N = Knight | B = Bishop | Q = Queen");
-                    //             continue;
-                    //         }
-                    //         self.grid[to.row as usize][to.col as usize] = match input {
-                    //             "R" => { Cell::Occupied(Piece::Rook, *color) }
-                    //             "N" => { Cell::Occupied(Piece::Knight, *color) }
-                    //             "B" => { Cell::Occupied(Piece::Bishop, *color) }
-                    //             "Q" => { Cell::Occupied(Piece::Queen, *color) }
-                    //             _ => {
-                    //                 println!("Incorrect input.\nAllowed inputs : R = Rook | N = Knight | B = Bishop | Q = Queen");
-                    //                 continue;
-                    //             }
-                    //         };
-                    //         self.grid[from.row as usize][from.col as usize] = Cell::Free;
-                    //     }
-                    // }
                 }
                 Rook => {
                     //si une des tour bouge : on passe a false le castle_bool qui correspond

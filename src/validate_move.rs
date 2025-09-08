@@ -1,7 +1,9 @@
 use crate::Board;
 use crate::Coord;
-use crate::board::Cell;
-use crate::board::{Color, Color::*, Piece};
+use crate::cell::Cell;
+use crate::cell::Piece;
+use crate::Color;
+use crate::Color::*;
 use crate::update_threatens_cells;
 
 ///recursively search in line or diagonal if any Cell has a piece on it

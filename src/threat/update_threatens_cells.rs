@@ -3,10 +3,9 @@
 use crate::Board;
 use crate::Color;
 use crate::Coord;
-use crate::board::Cell;
-// use crate::Piece::*;
-use crate::board::Color::*;
-use crate::board::Piece;
+use crate::cell::Cell;
+use crate::cell::Piece;
+use crate::cell::Color::*;
 use crate::get_threaten_cells::*;
 
 // fn find_threat_on_path(color: &Color, board: &Board) -> bool {
