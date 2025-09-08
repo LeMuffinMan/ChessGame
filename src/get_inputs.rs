@@ -8,7 +8,7 @@ pub struct Coord {
 }
 
 pub fn get_move_from_stdin(color: Color, board: &Board) -> (Coord, Coord) {
-    use std::io::{self, BufRead};
+    use std::io::{self, BufRead}; // en haut ou dans la fonction ?
 
     let stdin = io::stdin();
     let mut line = String::new();
@@ -16,7 +16,7 @@ pub fn get_move_from_stdin(color: Color, board: &Board) -> (Coord, Coord) {
     loop {
         line.clear();
         if stdin.lock().read_line(&mut line).unwrap() == 0 {
-            println!("Fin de l'entrée (EOF)");
+            println!("EOF");
             std::process::exit(0);
         }
 
