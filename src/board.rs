@@ -4,10 +4,8 @@ use crate::Color::*;
 use crate::cell::Cell;
 use crate::cell::Piece;
 use crate::cell::Piece::*;
-use crate::validate_move;
-use crate::validate_move::is_king_exposed;
-
-
+use crate::validate_move::validate_move::is_king_exposed;
+use crate::validate_move::validate_move::is_legal_move;
 
 #[derive(Clone)]
 pub struct Board {
@@ -97,7 +95,7 @@ impl Board {
     }
 
     pub fn is_legal_move(&self, from: &Coord, to: &Coord, color: &Color) -> bool {
-        validate_move::is_legal_move(from, to, color, self)
+        is_legal_move(from, to, color, self)
     }
     pub fn get_king(&self, color: &Color) -> Option<Coord> {
         for x in 0..8 {

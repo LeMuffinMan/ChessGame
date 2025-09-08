@@ -3,7 +3,7 @@ use crate::Color;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Coord {
-    pub col: u8,
+    pub col: u8, //declarer de base des u8 ?
     pub row: u8,
 }
 
@@ -78,29 +78,3 @@ pub fn get_coord_from_string(cell: String) -> Result<Coord, String> {
     Ok(coord)
 }
 
-// pub fn get_inputs(msg: &str, color: Color, board: &Board) -> Coord {
-//     loop {
-//         let mut input = String::new();
-//         println!("{msg} cell :");
-//         io::stdin().read_line(&mut input).expect("Error");
-//         let input = input.trim();
-//         //faire une impl from_str ?
-//         match get_coord_from_string(input.to_string()) {
-//             Ok(coord) => {
-//                 if msg == "from" && !board.get(&coord).is_color(&color) {
-//                     println!("No {color:?} piece in {input}");
-//                     continue;
-//                 }
-//                 if msg == "to" && board.get(&coord).is_color(&color) {
-//                     println!("There is already a {color:?} piece in {input}");
-//                     continue;
-//                 }
-//                 break coord;
-//             }
-//             Err(e) => {
-//                 println!("{e}");
-//                 continue;
-//             }
-//         }
-//     }
-// }

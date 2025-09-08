@@ -11,19 +11,19 @@ use get_inputs::Coord;
 mod validate_move;
 
 //TO DO
-//- merge sur main et bloquer les pushs
+//- fmt + clippy puis merge sur main et bloquer les pushs
 //- refacto TOUT
+//  - Comment organiser board.rs avec les enormes methodes ?
+//  - TOUT en methodes ?
+//- Unit tests ?
+//- Pipeline de tests end to end ? 
 //- commenter les doutes etc
-//      - Casts ? declarer un i32 le board ?
-//      - Unit tests ?
-//      - Tests avec cargo et mon stdin qui accepte les pipes ?
-//          - separe les tests qui doivent etre valides / les autres
-//      - Iterator : perfs ? (update threats peut iterer differemment ?)
+//      - Casts ? declarer un i32 le board / les coords ?
 //      - Quelles fonctions doivent etre des impl ?
 //          - is legal comme wrapper ou comme impl ?
-//      - rangement des structs ?
 //
 //++ implementer draw rules
+//++ roque : checker la verif de la menace sur les cases separant roi et tour
 
 fn main() {
     let mut board = Board::init_board();
@@ -35,7 +35,7 @@ fn main() {
         } else {
             Color::Black
         };
-        if firsts_checks(&mut board, &color) {
+        if mat_or_pat(&mut board, &color) {
             break;
         }
         println!("Turn {i}");
@@ -59,7 +59,7 @@ fn main() {
     }
 }
 
-fn firsts_checks(board: &mut Board, color: &Color) -> bool {
+fn mat_or_pat(board: &mut Board, color: &Color) -> bool {
     board.promote_pawn(&Color::White);
     board.promote_pawn(&Color::Black);
     update_threatens_cells(board, &color);
