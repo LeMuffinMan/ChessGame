@@ -9,6 +9,8 @@ use board::Board;
 mod get_inputs;
 use get_inputs::Coord;
 mod validate_move;
+mod gui;
+use gui::run_gui;
 
 //TO DO
 //- fmt + clippy puis merge sur main et bloquer les pushs
@@ -25,7 +27,17 @@ mod validate_move;
 //++ implementer draw rules
 //++ roque : checker la verif de la menace sur les cases separant roi et tour
 
+
 fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    if args.contains(&"--gui".to_string()) {
+        run_gui();
+    } else {
+        run_cli();
+    }
+}
+
+fn run_cli() {
     let mut board = Board::init_board();
 
     let mut i = 1;

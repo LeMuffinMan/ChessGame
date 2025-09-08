@@ -23,13 +23,12 @@ impl Board {
         for x in 0..8 {
             // fill the base line
             self.grid[color_idx][x] = match x {
-                //pour la ligne tout en bas
                 0 | 7 => Cell::Occupied(Rook, color),
                 1 | 6 => Cell::Occupied(Knight, color),
                 2 | 5 => Cell::Occupied(Bishop, color),
                 3 => Cell::Occupied(Queen, color),
                 4 => Cell::Occupied(King, color),
-                _ => unreachable!(), //cas a couvrir par defaut mais impossible car board 8x8
+                _ => unreachable!(),
             };
             // fill the pawns
             match color_idx {

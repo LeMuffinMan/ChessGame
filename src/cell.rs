@@ -29,12 +29,13 @@ impl Cell {
             Cell::Free => None,
         }
     }
-    // pub fn get_color(&self) -> &Color {
-    //     match self {
-    //         Cell::Occupied(_, color) => Some(color),
-    //         Cell::Free => None,
-    //     }
-    // }
+    pub fn get_color(&self) -> Option<&Color> {
+        match self {
+            Cell::Occupied(_, color) => Some(color),
+            Cell::Free => None,
+        }
+    }
+
     pub fn is_color(&self, color: &Color) -> bool {
         match self {
             Cell::Occupied(_, cell_color) => cell_color == color,
