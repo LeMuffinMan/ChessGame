@@ -205,6 +205,10 @@ impl Board {
         println!();
     }
 
+    pub fn get(&self, coord: &Coord) -> Cell {
+        self.grid[coord.row as usize][coord.col as usize]
+    }
+
     pub fn is_legal_move(&self, from: &Coord, to: &Coord, color: &Color) -> bool {
         validate_move::is_legal_move(from, to, color, self)
     }
@@ -222,7 +226,6 @@ impl Board {
     }
 
     pub fn update_board(&mut self, from: &Coord, to: &Coord, color: &Color) {
-
         self.en_passant = None;
         //prise en passant
         match self.grid[from.row as usize][from.col as usize].get_piece() { 
@@ -242,11 +245,35 @@ impl Board {
                         self.en_passant = Some(*to);
                         // println!("En passant flag at {:?}", to);
                     }
-                    //promotion
-                    //si pion arrive en 0 ou en 7 :
-                        //demander un input en plus pour la promo
-                        //vider la case from
-                        //remplir la case to avec la piece choisie
+                    //update avec promotion en parametre 
+                    //
+                    // let promot_row = if *color == Color::White { 7 } else { 0 };
+                    // if to.row == promot_row {
+                    //     println!("Pawn promote : R/N/B/Q");
+                    //     line.clear();
+                    //     loop {
+                    //         if stdin.lock().read_line(&mut line).unwrap() == 0 {
+                    //             println!("EOF");
+                    //             break;
+                    //         }
+                    //         let input = line.trim();
+                    //         if input.len() != 1 {
+                    //             println!("Incorrect input.\nAllowed inputs : R = Rook | N = Knight | B = Bishop | Q = Queen");
+                    //             continue;
+                    //         }
+                    //         self.grid[to.row as usize][to.col as usize] = match input {
+                    //             "R" => { Cell::Occupied(Piece::Rook, *color) }
+                    //             "N" => { Cell::Occupied(Piece::Knight, *color) }
+                    //             "B" => { Cell::Occupied(Piece::Bishop, *color) }
+                    //             "Q" => { Cell::Occupied(Piece::Queen, *color) }
+                    //             _ => {
+                    //                 println!("Incorrect input.\nAllowed inputs : R = Rook | N = Knight | B = Bishop | Q = Queen");
+                    //                 continue;
+                    //             }
+                    //         };
+                    //         self.grid[from.row as usize][from.col as usize] = Cell::Free;
+                    //     }
+                    // }
                 }
                 Rook => {
                     //si une des tour bouge : on passe a false le castle_bool qui correspond
@@ -348,6 +375,11 @@ impl Board {
                                 }
                                 //2 straight forward
                                 if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8) {
+                                    //Si to.row = promote row
+                                    //  tester R 
+                                    //  Tester N
+                                    //  Tester B
+                                    //  Tester Q
                                     self.test_and_push(&from, &to, color);
                                 }
                                 if let Some(to) = Board::checked_coord(from.row as i8 + dir + dir, from.col as i8) {
@@ -482,8 +514,44 @@ impl Board {
         //     println!("from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
         // }
     }
+    pub fn promote_pawn(&mut self, color: &Color) {
+        use std::io::{self, BufRead}; // en haut ou dans la fonction ?
 
-    pub fn get(&self, coord: &Coord) -> Cell {
-        self.grid[coord.row as usize][coord.col as usize]
+        let stdin = io::stdin();
+        let mut line = String::new();
+
+        let promote_row = if *color == Color::White { 7 } else { 0 };
+        for y in 0 ..8 {
+            if self.grid[promote_row][y].is_color(color) {
+                if let Some(piece) = self.grid[7][y].get_piece() && *piece == Piece::Pawn {
+                    println!("Pawn promote : R/N/B/Q");
+                    line.clear();
+                    loop {
+                        if stdin.lock().read_line(&mut line).unwrap() == 0 {
+                            println!("EOF");
+                            break;
+                        }
+                        let input = line.trim();
+                        if input.len() != 1 {
+                            println!("Incorrect input.\nAllowed inputs : R = Rook | N = Knight | B = Bishop | Q = Queen");
+                            continue;
+                        }
+                        self.grid[promote_row as usize][y as usize] = match input {
+                            "R" => { Cell::Occupied(Piece::Rook, *color) }
+                            "N" => { Cell::Occupied(Piece::Knight, *color) }
+                            "B" => { Cell::Occupied(Piece::Bishop, *color) }
+                            "Q" => { Cell::Occupied(Piece::Queen, *color) }
+                            _ => {
+                                println!("Incorrect input.\nAllowed inputs : R = Rook | N = Knight | B = Bishop | Q = Queen");
+                                continue;
+                            }
+                        };
+                        let from_row = if *color == Color::White { 6 } else { 1 };
+                        self.grid[from_row][y] = Cell::Free;
+                        break;
+                    }
+                }
+            }
+        }
     }
 }

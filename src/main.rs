@@ -10,9 +10,6 @@ mod get_inputs;
 use get_inputs::Coord;
 mod validate_move;
 
-
-
-
 fn main() {
     let mut board = Board::init_board();
 
@@ -23,6 +20,8 @@ fn main() {
         } else {
             Color::Black
         };
+        board.promote_pawn(&Color::White);
+        board.promote_pawn(&Color::Black);
         update_threatens_cells(&mut board, &color);
         board.update_legals_moves(&color);
         // for coord in &board.threaten_cells {
@@ -33,7 +32,8 @@ fn main() {
             let king_cell = board.get_king(&color);
             if let Some(coord) = king_cell {
                 if board.threaten_cells.contains(&coord) {
-                    println!("Checkmate ! {:?} loose", color);
+                    let winner = if color == Color::White { Color::Black } else { Color::White };
+                    println!("Checkmate ! {:?} win", winner);
                 } else {
                     println!("Pat");
                 }

@@ -220,9 +220,9 @@ fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
         else { false; }
     }
     let cells: [(i8, i8); 8] = [
-        (-1, 1),
-        (0, 1),
-        (1, 1),
+        (-1, -1),
+        (0, -1),
+        (1, -1),
         (-1, 0),
         (1, 0),
         (-1, 1),
