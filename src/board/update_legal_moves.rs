@@ -28,6 +28,33 @@ impl Board {
         }
     }
 
+    pub fn update_legals_moves(&mut self, color: &Color) {
+        self.legals_moves.clear();
+        for x in 0..8 {
+            for y in 0..8 {
+                if self.grid[x][y].is_color(color) {
+                    let from = Coord {
+                        row: x as u8,
+                        col: y as u8,
+                    };
+                    if let Some(piece) = self.get(&from).get_piece() {
+                        match piece {
+                            Piece::Pawn => self.update_pawn_legals_moves(&from, color),
+                            Piece::Rook => self.update_rook_legals_moves(&from, color),
+                            Piece::Knight => self.update_knight_legals_moves(&from, color),
+                            Piece::Bishop => self.update_bishop_legals_moves(&from, color),
+                            Piece::Queen => self.update_queen_legals_moves(&from, color),
+                            Piece::King => self.update_king_legals_moves(&from, color),
+                        }
+                    }
+                }
+            }
+        }
+        // for (from, to) in &self.legals_moves {
+        //     println!("from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
+        // }
+    }
+
     fn update_pawn_legals_moves(&mut self, from: &Coord, color: &Color) {
         let dir: i8 = if *color == White { 1 } else { -1 };
         //2 diagonales
@@ -172,32 +199,5 @@ impl Board {
                 self.test_and_push(&from, &to, color);
             }
         }
-    }
-
-    pub fn update_legals_moves(&mut self, color: &Color) {
-        self.legals_moves.clear();
-        for x in 0..8 {
-            for y in 0..8 {
-                if self.grid[x][y].is_color(color) {
-                    let from = Coord {
-                        row: x as u8,
-                        col: y as u8,
-                    };
-                    if let Some(piece) = self.get(&from).get_piece() {
-                        match piece {
-                            Piece::Pawn => self.update_pawn_legals_moves(&from, color),
-                            Piece::Rook => self.update_rook_legals_moves(&from, color),
-                            Piece::Knight => self.update_knight_legals_moves(&from, color),
-                            Piece::Bishop => self.update_bishop_legals_moves(&from, color),
-                            Piece::Queen => self.update_queen_legals_moves(&from, color),
-                            Piece::King => self.update_king_legals_moves(&from, color),
-                        }
-                    }
-                }
-            }
-        }
-        // for (from, to) in &self.legals_moves {
-        //     println!("from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
-        // }
     }
 }
