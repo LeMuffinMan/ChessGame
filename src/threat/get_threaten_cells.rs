@@ -43,8 +43,6 @@ pub fn get_threaten_cells_in_diag(from: &Coord, row: u8, col: u8, board: &mut Bo
     }
 }
 
-
-
 pub fn get_threaten_cells_in_line(from: &Coord, row: u8, col: u8, board: &mut Board) {
     if row > 7 || col > 7 {
         return;
@@ -57,10 +55,7 @@ pub fn get_threaten_cells_in_line(from: &Coord, row: u8, col: u8, board: &mut Bo
         return;
     }
 
-    match (
-        row.cmp(&from.row),
-        col.cmp(&from.col),
-    ) {
+    match (row.cmp(&from.row), col.cmp(&from.col)) {
         (std::cmp::Ordering::Greater, _) => {
             if row < 7 {
                 get_threaten_cells_in_line(from, row + 1, col, board);
@@ -84,4 +79,3 @@ pub fn get_threaten_cells_in_line(from: &Coord, row: u8, col: u8, board: &mut Bo
         _ => {}
     }
 }
-

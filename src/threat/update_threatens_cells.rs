@@ -1,8 +1,8 @@
 // use crate::Color::*; //This import the enum Color and all its element
 // use crate::Color; //Need to import the enum alone to resolve amiguous NONE (Pieces / Color)
 use crate::Board;
-use crate::Coord;
 use crate::Color;
+use crate::Coord;
 use crate::board::Cell;
 // use crate::Piece::*;
 use crate::board::Color::*;
@@ -74,7 +74,7 @@ fn rook_threats(coord: &Coord, row: usize, col: usize, board: &mut Board) {
 }
 
 //Est-ce plus coherent d'en faire une impl de Board ?
-///for each piece 
+///for each piece
 pub fn update_threatens_cells(board: &mut Board, color: &Color) {
     board.threaten_cells.clear();
     // println!("call here");
@@ -85,7 +85,9 @@ pub fn update_threatens_cells(board: &mut Board, color: &Color) {
                 col: col as u8,
             };
             let cell = board.get(&coord);
-            if let Some(piece) = cell.get_piece() && !cell.is_color(color) {
+            if let Some(piece) = cell.get_piece()
+                && !cell.is_color(color)
+            {
                 //For each piece, we collect the cells it threatens, and we push it in the
                 //opponenent threats cell vector
                 //if a threaten cell has an ally piece, we still want to collect it, but we stop to
@@ -160,10 +162,10 @@ pub fn update_threatens_cells(board: &mut Board, color: &Color) {
                         if row > 0 {
                             get_threaten_cells_in_line(&coord, row as u8 - 1, col as u8, board);
                             // if let Some(last) = board.threaten_cells.last() {
-                                // println!("pushed ({}, {})", last.row, last.col);
-                                // println!("1 6 = {:?}", board.grid[1][6]);
+                            // println!("pushed ({}, {})", last.row, last.col);
+                            // println!("1 6 = {:?}", board.grid[1][6]);
                             // } else {
-                                // println!("Le vecteur est vide");
+                            // println!("Le vecteur est vide");
                             // }
                         }
                         if col < 7 {
@@ -210,11 +212,11 @@ pub fn update_threatens_cells(board: &mut Board, color: &Color) {
                             }
                         }
                     }
-                }   
+                }
             } else {
                 // println!("Skipping cell ({}, {}) -> {:?}", row, col, cell.get_piece());
                 continue;
-            } 
+            }
         }
     }
 }
