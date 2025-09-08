@@ -1,6 +1,7 @@
 use crate::Board;
 use crate::Color;
-
+use std::io::{self, BufRead}; // en haut ou dans la fonction ?
+//
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Coord {
     pub col: u8, //declarer de base des u8 ?
@@ -8,8 +9,6 @@ pub struct Coord {
 }
 
 pub fn get_move_from_stdin(color: Color, board: &Board) -> (Coord, Coord) {
-    use std::io::{self, BufRead}; // en haut ou dans la fonction ?
-
     let stdin = io::stdin();
     let mut line = String::new();
 
