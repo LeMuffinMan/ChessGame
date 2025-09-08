@@ -2,11 +2,10 @@ use crate::Board;
 use crate::Color;
 use crate::cell::Cell;
 use crate::cell::Piece;
+use std::io::{self, BufRead}; // en haut ou dans la fonction ?
 
 impl Board {
     pub fn promote_pawn(&mut self, color: &Color) {
-        use std::io::{self, BufRead}; // en haut ou dans la fonction ?
-
         let stdin = io::stdin();
         let mut line = String::new();
 
