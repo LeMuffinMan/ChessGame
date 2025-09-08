@@ -219,6 +219,26 @@ fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
         } 
         else { false; }
     }
+    let cells: [(i8, i8); 8] = [
+        (-1, 1),
+        (0, 1),
+        (1, 1),
+        (-1, 0),
+        (1, 0),
+        (-1, 1),
+        (0, 1),
+        (1, 1),
+    ];
+
+    for (dx, dy) in cells.iter() {
+        if to.row as i8 == from.row as i8 + *dx as i8
+        && to.col as i8 == from.col as i8 + *dy as i8 {
+            if !board.get(to).is_color(color) {
+                return true;
+            }
+        }
+    }
+    false
     //Si il bouge de deux : castle
         //gauche : big 
         //droite : little
@@ -231,7 +251,7 @@ fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
         //si pas occupee par piece alliee
         //si pas menacee 
         //a update board : on vire les deux bool de castle
-    true
+    // true
 }
 
 
