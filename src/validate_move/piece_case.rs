@@ -5,6 +5,7 @@ use crate::Coord;
 use crate::cell::Cell;
 use crate::validate_move::is_legal_move::find_obstacle;
 
+//diagonal check to fix
 pub fn queen_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
     if !board.get(to).is_color(color) {
         if from.row != to.row && from.col != to.col {
@@ -107,6 +108,9 @@ pub fn pawn_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
     false
 }
 
+//si le roi est en echec : refuser le rock
+//revoir le check des menaces sur le path
+//les cases sur le chemin doivent etre vides 
 pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
     let dif_col = to.col as i8 - from.col as i8;
     if dif_col.abs() == 2 {
