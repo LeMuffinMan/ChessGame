@@ -1,6 +1,7 @@
 use crate::Coord;
 use crate::Color;
 use crate::Board;
+use crate::mat_or_pat;
 use crate::validate_move;
 use crate::cell::Piece;
 use eframe::{egui, App};
@@ -11,6 +12,7 @@ struct ChessApp {
     from_cell: Option<Coord>,
     color: Color,
     flip: bool,
+    checkmate: bool,
 }
 
 impl Default for ChessApp {
@@ -21,6 +23,7 @@ impl Default for ChessApp {
             from_cell: None,
             color: Color::White,
             flip: true,
+            checkmate: false,
         }
     }
 }
@@ -92,15 +95,16 @@ impl App for ChessApp {
             }
 
             // 6) Gestion des clics
-            if response.clicked() {
+            if response.clicked() && self.checkmate == false {
                 if let Some(pointer_pos) = response.interact_pointer_pos() {
                     if inner_rect.contains(pointer_pos) {
                         let local = pointer_pos - inner_rect.min;
                         let col_ui = (local.x / square_size).floor() as i32;
                         let row_ui = (local.y / square_size).floor() as i32;
                         if (0..=7).contains(&col_ui) && (0..=7).contains(&row_ui) {
-                            // convertir ligne UI -> ligne Board
+
                             let row_board = if self.flip { 7 - row_ui } else { row_ui };
+                            
                             let clicked = Coord { row: row_board as u8, col: col_ui as u8 };
 
                             match self.from_cell {
@@ -119,6 +123,16 @@ impl App for ChessApp {
                                                     self.color = Color::Black;
                                                 } else {
                                                     self.color = Color::White
+                                                }
+                                                if mat_or_pat(&mut self.board, &self.color) {
+                                                    self.checkmate = true;
+                                                    return;
+                                                }
+                                                println!("{:?} to move", self.color);
+                                                if let Some(coord) = self.board.get_king(&self.color) {
+                                                    if self.board.threaten_cells.contains(&coord) {
+                                                        println!("Check !");
+                                                    }
                                                 }
                                             } else {
                                                 println!("King is exposed : illegal move");
@@ -183,3 +197,16 @@ pub fn run_gui() {
     };
     eframe::run_native("ChessGame", options, Box::new(|_cc| Ok(Box::new(app)))).unwrap();
 }
+
+
+//TO DO
+//
+//Drag and drop
+//show legal moves on click
+//red king if check
+//side pannel with info 
+//   - color to play
+//   - moves history 
+//   - pieces took
+//button rotate
+//button new game
