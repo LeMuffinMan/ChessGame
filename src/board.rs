@@ -274,7 +274,7 @@ impl Board {
                         let col = to.col as usize;
                         if col > 0 {
                             self.grid[row][0] = Cell::Free;
-                            self.grid[row][col - 1] = Cell::Occupied(Piece::Rook, *color);
+                            self.grid[row][col + 1] = Cell::Occupied(Piece::Rook, *color);
                         }
                     }
                     //si le roi fait un castle a droite : tour a gauche
@@ -478,9 +478,9 @@ impl Board {
                 }
             }
         }
-        for (from, to) in &self.legals_moves {
-            println!("from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
-        }
+        // for (from, to) in &self.legals_moves {
+        //     println!("from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
+        // }
     }
 
     pub fn get(&self, coord: &Coord) -> Cell {

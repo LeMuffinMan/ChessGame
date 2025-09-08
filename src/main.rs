@@ -19,36 +19,35 @@ fn main() {
     let mut i = 1;
     loop {
         let color = if i % 2 != 0 {
-            println!("White to move");
             Color::White
         } else {
-            println!("Black to move");
             Color::Black
         };
         update_threatens_cells(&mut board, &color);
-        if let Some(coord) = board.get_king(&color) {
-            if board.threaten_cells.contains(&coord) {
-                println!("Check !");
-            }
-        }
         board.update_legals_moves(&color);
         // for coord in &board.threaten_cells {
         //     println!("Cell threaten : ({}, {})", coord.row, coord.col);
         // }
         if board.legals_moves.is_empty() {
+            board.print();
             let king_cell = board.get_king(&color);
             if let Some(coord) = king_cell {
                 if board.threaten_cells.contains(&coord) {
                     println!("Checkmate ! {:?} loose", color);
+                } else {
+                    println!("Pat");
                 }
-            } else {
-                println!("Pat");
             }
             break; 
         }
         board.print();
         println!("Turn {i}");
-
+        println!("{:?} to move", color);
+        if let Some(coord) = board.get_king(&color) {
+            if board.threaten_cells.contains(&coord) {
+                println!("Check !");
+            }
+        }
         let (from_coord, to_coord) = get_inputs::get_move_from_stdin(color, &board);
         println!("From {from_coord:?} to {to_coord:?}");
         // if board.is_legal_move(&from_coord, &to_coord, &color) {
