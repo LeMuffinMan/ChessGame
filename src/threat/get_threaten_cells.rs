@@ -1,10 +1,5 @@
 use crate::Board;
 use crate::Coord;
-// use crate::board::Cell;
-// use crate::board::Color::*;
-
-//refacto : makes these recursive return a Vec<Coord> of all cells threaten : on the path, and once
-//found an obstacle
 
 pub fn get_threaten_cells_in_diag(from: &Coord, row: u8, col: u8, board: &mut Board) {
     if row > 7 || col > 7 {
