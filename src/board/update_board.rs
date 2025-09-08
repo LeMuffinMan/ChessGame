@@ -35,10 +35,9 @@ impl Board {
         //Si la piece au depart est un pion, et que sa case d'arrivee est vide et en diag
         //c'est une prise en passant : clean from cell, et le pion mange
         if self.grid[to.row as usize][to.col as usize].is_empty() && from.col != to.col {
-            self.grid[from.row as usize][to.col as usize] = Cell::Free;
             self.grid[to.row as usize][to.col as usize] =
                 self.grid[from.row as usize][from.col as usize];
-            self.grid[from.row as usize][from.col as usize] = Cell::Free;
+            self.grid[from.row as usize][to.col as usize] = Cell::Free;
             return;
         }
         //si le pion bouge de deux cases : c'est un double pas : flag en passant
