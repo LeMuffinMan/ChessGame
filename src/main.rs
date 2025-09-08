@@ -62,14 +62,14 @@ fn main() {
 fn mat_or_pat(board: &mut Board, color: &Color) -> bool {
     board.promote_pawn(&Color::White);
     board.promote_pawn(&Color::Black);
-    update_threatens_cells(board, &color);
-    board.update_legals_moves(&color);
+    update_threatens_cells(board, color);
+    board.update_legals_moves(color);
     // for coord in &board.threaten_cells {
     //     println!("Cell threaten : ({}, {})", coord.row, coord.col);
     // }
     if board.legals_moves.is_empty() {
         board.print();
-        let king_cell = board.get_king(&color);
+        let king_cell = board.get_king(color);
         if let Some(coord) = king_cell {
             if board.threaten_cells.contains(&coord) {
                 let winner = if *color == Color::White {
@@ -84,13 +84,13 @@ fn mat_or_pat(board: &mut Board, color: &Color) -> bool {
         }
         return true;
     }
-    return false;
+    false
 }
 
 fn turn_begin(board: &Board, color: &Color) {
     board.print();
     println!("{:?} to move", color);
-    if let Some(coord) = board.get_king(&color) {
+    if let Some(coord) = board.get_king(color) {
         if board.threaten_cells.contains(&coord) {
             println!("Check !");
         }

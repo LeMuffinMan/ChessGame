@@ -3,7 +3,7 @@ use crate::Color;
 use crate::Color::*;
 use crate::Coord;
 use crate::cell::Piece;
-use crate::validate_move::validate_move::is_king_exposed;
+use crate::validate_move::is_legal_move::is_king_exposed;
 
 impl Board {
     fn test_and_push(&mut self, from: &Coord, to: &Coord, color: &Color) {
@@ -59,22 +59,17 @@ impl Board {
         let dir: i8 = if *color == White { 1 } else { -1 };
         //2 diagonales
         if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8 + 1) {
-            self.test_and_push(&from, &to, color);
+            self.test_and_push(from, &to, color);
         }
         if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8 - 1) {
-            self.test_and_push(&from, &to, color);
+            self.test_and_push(from, &to, color);
         }
         //2 straight forward
         if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8) {
-            //Si to.row = promote row
-            //  tester R
-            //  Tester N
-            //  Tester B
-            //  Tester Q
-            self.test_and_push(&from, &to, color);
+            self.test_and_push(from, &to, color);
         }
         if let Some(to) = Board::checked_coord(from.row as i8 + dir + dir, from.col as i8) {
-            self.test_and_push(&from, &to, color);
+            self.test_and_push(from, &to, color);
         }
     }
 
@@ -91,7 +86,7 @@ impl Board {
                 if target.is_color(color) {
                     break;
                 }
-                self.test_and_push(&from, &to, color);
+                self.test_and_push(from, &to, color);
 
                 r += dr;
                 c += dc;
@@ -115,7 +110,7 @@ impl Board {
             let new_row = from.row as i8 + dr;
             let new_col = from.col as i8 + dc;
             if let Some(to) = Board::checked_coord(new_row, new_col) {
-                self.test_and_push(&from, &to, color);
+                self.test_and_push(from, &to, color);
             }
         }
     }
@@ -133,7 +128,7 @@ impl Board {
                 if target.is_color(color) {
                     break;
                 }
-                self.test_and_push(&from, &to, color);
+                self.test_and_push(from, &to, color);
 
                 r += dr;
                 c += dc;
@@ -154,7 +149,7 @@ impl Board {
                 if target.is_color(color) {
                     break;
                 }
-                self.test_and_push(&from, &to, color);
+                self.test_and_push(from, &to, color);
 
                 r += dr;
                 c += dc;
@@ -172,7 +167,7 @@ impl Board {
                 if target.is_color(color) {
                     break;
                 }
-                self.test_and_push(&from, &to, color);
+                self.test_and_push(from, &to, color);
 
                 r += dr;
                 c += dc;
@@ -196,7 +191,7 @@ impl Board {
             let new_row = from.row as i8 + dr;
             let new_col = from.col as i8 + dc;
             if let Some(to) = Board::checked_coord(new_row, new_col) {
-                self.test_and_push(&from, &to, color);
+                self.test_and_push(from, &to, color);
             }
         }
     }

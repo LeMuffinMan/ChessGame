@@ -35,10 +35,10 @@ pub fn update_threatens_cells(board: &mut Board, color: &Color) {
                     Piece::Rook => rook_threats(&coord, row, col, board),
                     Piece::Knight => knight_threats(&coord, color, &cell, board),
                     Piece::Bishop => bishop_threats(&coord, row, col, board),
-                    Piece::Queen => { 
+                    Piece::Queen => {
                         rook_threats(&coord, row, col, board);
                         bishop_threats(&coord, row, col, board);
-                    },
+                    }
                     Piece::King => king_threats(&coord, board),
                 }
             } else {
@@ -51,7 +51,7 @@ pub fn update_threatens_cells(board: &mut Board, color: &Color) {
 
 fn pawn_threats(cell: &Cell, coord: &Coord, color: &Color, board: &mut Board) {
     let cells: [(i8, i8); 2] = if cell.is_color(&White) {
-        [(1, -1), (1, 1)] 
+        [(1, -1), (1, 1)]
     } else {
         [(-1, -1), (-1, 1)]
     };
@@ -109,7 +109,6 @@ fn knight_threats(coord: &Coord, color: &Color, cell: &Cell, board: &mut Board) 
         if (0..8).contains(&new_row) && (0..8).contains(&new_col) {
             // println!("Pushing Coord  col: {} , row: {} in vec", new_row, new_col);
             if !cell.is_color(color) {
-
                 board.threaten_cells.push(Coord {
                     row: new_row as u8,
                     col: new_col as u8,
@@ -121,16 +120,16 @@ fn knight_threats(coord: &Coord, color: &Color, cell: &Cell, board: &mut Board) 
 
 fn bishop_threats(coord: &Coord, row: usize, col: usize, board: &mut Board) {
     if row < 7 && col < 7 {
-        get_threaten_cells_in_diag(&coord, row as u8 + 1, col as u8 + 1, board);
+        get_threaten_cells_in_diag(coord, row as u8 + 1, col as u8 + 1, board);
     }
     if row < 7 && col > 0 {
-        get_threaten_cells_in_diag(&coord, row as u8 + 1, col as u8 - 1, board);
+        get_threaten_cells_in_diag(coord, row as u8 + 1, col as u8 - 1, board);
     }
     if row > 0 && col < 7 {
-        get_threaten_cells_in_diag(&coord, row as u8 - 1, col as u8 + 1, board);
+        get_threaten_cells_in_diag(coord, row as u8 - 1, col as u8 + 1, board);
     }
     if row > 0 && col > 0 {
-        get_threaten_cells_in_diag(&coord, row as u8 - 1, col as u8 - 1, board);
+        get_threaten_cells_in_diag(coord, row as u8 - 1, col as u8 - 1, board);
     }
 }
 
@@ -159,4 +158,3 @@ fn king_threats(coord: &Coord, board: &mut Board) {
         }
     }
 }
-

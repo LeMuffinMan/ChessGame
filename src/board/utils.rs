@@ -4,7 +4,7 @@ use crate::Color::*;
 use crate::Coord;
 use crate::cell::Cell;
 use crate::cell::Piece;
-use crate::validate_move::validate_move::is_legal_move;
+use crate::validate_move::is_legal_move::is_legal_move;
 
 impl Board {
     pub fn init_board() -> Board {

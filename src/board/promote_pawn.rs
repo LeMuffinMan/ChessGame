@@ -29,7 +29,7 @@ impl Board {
                             );
                             continue;
                         }
-                        self.grid[promote_row as usize][y as usize] = match input {
+                        self.grid[promote_row][y] = match input {
                             "R" => Cell::Occupied(Piece::Rook, *color),
                             "N" => Cell::Occupied(Piece::Knight, *color),
                             "B" => Cell::Occupied(Piece::Bishop, *color),
