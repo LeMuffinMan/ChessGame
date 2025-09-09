@@ -5,7 +5,7 @@ use crate::validate_move;
 use crate::mat_or_pat;
 
 pub struct MoveOutcome {
-    applied: bool,
+    pub applied: bool,
     pub mate: bool,
     check: bool,
     pub messages: Vec<String>,
