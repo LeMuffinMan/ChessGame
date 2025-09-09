@@ -8,8 +8,8 @@ mod board;
 use board::Board;
 mod get_inputs;
 use get_inputs::Coord;
-mod validate_move;
 mod gui;
+mod validate_move;
 use gui::run_gui;
 
 //TO DO
@@ -26,7 +26,6 @@ use gui::run_gui;
 //
 //++ implementer draw rules
 //++ roque : checker la verif de la menace sur les cases separant roi et tour
-
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
