@@ -5,10 +5,12 @@ use crate::Coord;
 use crate::cell::Cell;
 use crate::validate_move::is_legal_move::find_obstacle;
 
-//diagonal check to fix
 pub fn queen_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
     if !board.get(to).is_color(color) {
-        if from.row != to.row && from.col != to.col {
+        let row_diff = to.row as i32 - from.row as i32;
+        let col_diff = to.col as i32 - from.col as i32;
+        if row_diff.abs() == col_diff.abs() {
+
             return !find_obstacle(from, to, board);
         }
         if from.row == to.row || from.col == to.col {
@@ -20,7 +22,10 @@ pub fn queen_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> boo
 
 pub fn bishop_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
     if !board.get(to).is_color(color) {
-        if from.row != to.row && from.col != to.col {
+        let row_diff = to.row as i32 - from.row as i32;
+        let col_diff = to.col as i32 - from.col as i32;
+        println!("row_diff = {row_diff} | col_diff = {col_diff}");
+        if row_diff.abs() == col_diff.abs() {
             return !find_obstacle(from, to, board);
         }
     }
@@ -121,11 +126,18 @@ pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
         };
         //si il bouge de deux a gauche : grand roque
         if dif_col < 0 && castle_bools.0 {
-            //si le roi et aucune des deux cases qu'il traverse n'est en echec
-            //Si toutes les cases entre K et R sont vides
             let mut to_dir = *to;
             to_dir.col += 1;
-            return !find_obstacle(from, &to_dir, board);
+            let cell_1 = Coord { row: from.row, col: from.col - 1};
+            let cell_2 = Coord { row: from.row, col: from.col - 2};
+            //si le roi et aucune des deux cases qu'il traverse n'est en echec
+            //Si toutes les cases entre K et R sont vides
+            if board.get(&cell_1).is_empty() && board.get(&cell_2).is_empty()
+                && !board.threaten_cells.contains(&cell_1)
+                && !board.threaten_cells.contains(&cell_2)
+                && !board.check {
+                return true;
+            }
         }
         //si deux a droite : petit roque
         else if dif_col > 0 && castle_bools.1 {
@@ -133,11 +145,20 @@ pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
             //Si toutes les cases entre K et R sont vides
             let mut to_dir = *to; // *to instead of to.clone() because Coord implement Copy
             to_dir.col -= 1;
-            return !find_obstacle(from, &to_dir, board);
-        } else {
-            return false;
-        }
+            let cell_1 = Coord { row: from.row, col: from.col + 1};
+            let cell_2 = Coord { row: from.row, col: from.col + 2};
+            //si le roi et aucune des deux cases qu'il traverse n'est en echec
+            //Si toutes les cases entre K et R sont vides
+            if board.get(&cell_1).is_empty() && board.get(&cell_2).is_empty()
+                && !board.threaten_cells.contains(&cell_1)
+                && !board.threaten_cells.contains(&cell_2)
+                && !board.check {
+                return true;
+            }
+        } 
+        return false;
     }
+
     let cells: [(i8, i8); 8] = [
         (-1, -1),
         (0, -1),

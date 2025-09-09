@@ -10,6 +10,7 @@ impl Board {
     pub fn update_board(&mut self, from: &Coord, to: &Coord, color: &Color) {
         //we reset the en passant flag each time the board change
         self.en_passant = None;
+        self.check = false;
         match self.grid[from.row as usize][from.col as usize].get_piece() {
             Some(piece) => match piece {
                 Pawn => self.update_en_passant(from, to),

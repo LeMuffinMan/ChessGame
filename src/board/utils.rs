@@ -1,27 +1,12 @@
 use crate::Board;
 use crate::Color;
-use crate::Color::*;
 use crate::Coord;
 use crate::cell::Cell;
 use crate::cell::Piece;
 use crate::validate_move::is_legal_move::is_legal_move;
 
 impl Board {
-    pub fn init_board() -> Board {
-        let mut board = Board {
-            grid: [[Cell::Free; 8]; 8],
-            en_passant: None,
-            white_castle: (true, true),
-            black_castle: (true, true),
-            threaten_cells: Vec::new(),
-            legals_moves: Vec::new(),
-        };
 
-        board.fill_side(White);
-        board.fill_side(Black);
-
-        board
-    }
 
     pub fn get(&self, coord: &Coord) -> Cell {
         self.grid[coord.row as usize][coord.col as usize]

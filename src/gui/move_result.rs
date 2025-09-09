@@ -27,14 +27,13 @@ pub fn try_apply_move(
         msgs.push("King is exposed : illegal move".into());
         return Some(MoveOutcome { applied: false, mate: false, check: false, messages: msgs });
     }
-
     board.update_board(&from, &to, color);
     *turn += 1;
     *color = match *color { Color::White => Color::Black, Color::Black => Color::White };
 
     let mate = mat_or_pat(board, color);
     if mate {
-        msgs.push("Checkmate or stalemate".into());
+        // msgs.push("Checkmate or stalemate".into());
         return Some(MoveOutcome { applied: true, mate: true, check: false, messages: msgs });
     }
 
@@ -42,6 +41,7 @@ pub fn try_apply_move(
     let mut in_check = false;
     if let Some(k) = board.get_king(color) {
         if board.threaten_cells.contains(&k) {
+            board.check = true;
             msgs.push("Check !".into());
             in_check = true;
         }
