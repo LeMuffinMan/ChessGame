@@ -18,6 +18,10 @@ pub fn draw_board(p: &egui::Painter, inner: egui::Rect, sq: f32, highlight: &Vec
         egui::Color32::from_rgb(240, 217, 181),
         egui::Color32::from_rgb(181, 136, 99),
     ];
+    let green_cells = [
+        egui::Color32::from_rgb(240, 240, 181),
+        egui::Color32::from_rgb(181, 160, 99),
+    ];
     for row in 0..8 {
         for col in 0..8 {
             let min = inner.min + egui::vec2(col as f32 * sq, row as f32 * sq);
@@ -25,10 +29,10 @@ pub fn draw_board(p: &egui::Painter, inner: egui::Rect, sq: f32, highlight: &Vec
 
             let board_row = if flip { 7 - row } else { row };
             let coord = Coord { row: board_row, col: col };
+            let idx = (row + col) % 2;
             if highlight.contains(&coord) {
-                p.rect_filled(cell, 0.0, egui::Color32::from_rgb(0, 200, 0));
+                p.rect_filled(cell, 0.0, green_cells[idx as usize]);
             } else {
-                let idx = (row + col) % 2;
                 p.rect_filled(cell, 0.0, colors[idx as usize]);
             }
         }
