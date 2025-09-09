@@ -7,6 +7,7 @@ use crate::mat_or_pat;
 pub struct MoveOutcome {
     pub applied: bool,
     pub mate: bool,
+    pub pat: bool,
     check: bool,
     pub messages: Vec<String>,
 }
@@ -21,20 +22,23 @@ pub fn try_apply_move(
     let mut msgs = vec![];
     if !board.is_legal_move(&from, &to, color) {
         msgs.push(format!("Illegal move : {from:?} -> {to:?}"));
-        return Some(MoveOutcome { applied: false, mate: false, check: false, messages: msgs });
+        return Some(MoveOutcome { applied: false, mate: false, pat: false, check: false, messages: msgs });
     }
     if validate_move::is_king_exposed(&from, &to, color, board) {
         msgs.push("King is exposed : illegal move".into());
-        return Some(MoveOutcome { applied: false, mate: false, check: false, messages: msgs });
+        return Some(MoveOutcome { applied: false, mate: false, pat:false, check: false, messages: msgs });
     }
     board.update_board(&from, &to, color);
     *turn += 1;
     *color = match *color { Color::White => Color::Black, Color::Black => Color::White };
 
-    let mate = mat_or_pat(board, color);
-    if mate {
-        // msgs.push("Checkmate or stalemate".into());
-        return Some(MoveOutcome { applied: true, mate: true, check: false, messages: msgs });
+    let (end, mate) = mat_or_pat(board, color);
+    if end {
+        if mate {
+            return Some(MoveOutcome { applied: true, mate: true, pat: false, check: false, messages: msgs});
+        } else {
+            return Some(MoveOutcome { applied: true, mate: false, pat: true, check: false, messages: msgs});
+        }
     }
 
     msgs.push(format!("{color:?} to move"));
@@ -46,6 +50,6 @@ pub fn try_apply_move(
             in_check = true;
         }
     }
-    Some(MoveOutcome { applied: true, mate: false, check: in_check, messages: msgs })
+    Some(MoveOutcome { applied: true, mate: false, pat: false, check: in_check, messages: msgs })
 }
 
