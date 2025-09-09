@@ -110,7 +110,7 @@ pub fn pawn_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
 
 //si le roi est en echec : refuser le rock
 //revoir le check des menaces sur le path
-//les cases sur le chemin doivent etre vides 
+//les cases sur le chemin doivent etre vides
 pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
     let dif_col = to.col as i8 - from.col as i8;
     if dif_col.abs() == 2 {
