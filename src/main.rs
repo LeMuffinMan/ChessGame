@@ -61,9 +61,8 @@ fn run_cli() {
         } else {
             Color::Black
         };
-        if mat_or_pat(&mut board, &color) {
-            break;
-        }
+        let (end, mate) = mat_or_pat(&mut board, &color);
+        if end { break; }
         println!("Turn {turn}");
         turn_begin(&board, &color);
         let (from_coord, to_coord) = get_inputs::get_move_from_stdin(color, &board);
@@ -86,7 +85,7 @@ fn run_cli() {
     }
 }
 
-pub fn mat_or_pat(board: &mut Board, color: &Color) -> bool {
+pub fn mat_or_pat(board: &mut Board, color: &Color) -> (bool, bool) {
     if *color == Color::White {
         board.promote_pawn(&Color::Black);
     } else {
@@ -108,13 +107,14 @@ pub fn mat_or_pat(board: &mut Board, color: &Color) -> bool {
                     Color::White
                 };
                 println!("Checkmate ! {:?} win", winner);
+                return (true, true);
             } else {
                 println!("Pat");
+                return (true, false);
             }
         }
-        return true;
     }
-    false
+    (false, false)
 }
 
 fn turn_begin(board: &Board, color: &Color) {

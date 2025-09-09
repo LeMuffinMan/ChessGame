@@ -31,6 +31,7 @@ impl Board {
     }
 
     pub fn update_legals_moves(&mut self, color: &Color) {
+        self.legals_moves.clear();
         for x in 0..8 {
             for y in 0..8 {
                 if self.grid[x][y].is_color(color) {
