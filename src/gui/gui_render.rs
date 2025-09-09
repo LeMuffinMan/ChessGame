@@ -13,15 +13,23 @@ pub fn draw_border(p: &egui::Painter, rect: egui::Rect) {
     p.rect_filled(rect, 0.0, border_color);
 }
 
-pub fn draw_board(p: &egui::Painter, inner: egui::Rect, sq: f32, highlight: &Vec<Coord>, flip: bool) {
+pub fn draw_board(p: &egui::Painter, inner: egui::Rect, sq: f32, green_cells: &Vec<Coord>, blue_cells: &Option<(Coord, Coord)>, from_cell: Option<Coord>, flip: bool) {
     let colors = [
         egui::Color32::from_rgb(240, 217, 181),
         egui::Color32::from_rgb(181, 136, 99),
     ];
-    let green_cells = [
+    let green = [
         egui::Color32::from_rgb(240, 240, 181),
         egui::Color32::from_rgb(181, 160, 99),
     ];
+    let blue = [
+        egui::Color32::from_rgb(200, 200, 230),
+        egui::Color32::from_rgb(120, 150, 180),
+    ];
+
+    let dot_fill = egui::Color32::from_gray(200);
+    let dot_radius = sq * 0.10; 
+
     for row in 0..8 {
         for col in 0..8 {
             let min = inner.min + egui::vec2(col as f32 * sq, row as f32 * sq);
@@ -30,10 +38,17 @@ pub fn draw_board(p: &egui::Painter, inner: egui::Rect, sq: f32, highlight: &Vec
             let board_row = if flip { 7 - row } else { row };
             let coord = Coord { row: board_row, col: col };
             let idx = (row + col) % 2;
-            if highlight.contains(&coord) {
-                p.rect_filled(cell, 0.0, green_cells[idx as usize]);
+            if let Some((from, to)) = blue_cells && (coord == *from || coord == *to) {
+                p.rect_filled(cell, 0.0, blue[idx as usize]);
+            } else if let Some(from) = from_cell && coord == from {
+                p.rect_filled(cell, 0.0, blue[idx as usize]);
             } else {
                 p.rect_filled(cell, 0.0, colors[idx as usize]);
+            }
+            if green_cells.contains(&coord) {
+                let center = cell.center();
+                // rempli
+                p.circle_filled(center, dot_radius, dot_fill);
             }
         }
     }
@@ -55,28 +70,6 @@ pub fn draw_dragged_piece(
 
         painter.text(pos, egui::Align2::CENTER_CENTER, ch, font, egui_color);
         }
-    }
-}
-
-
-pub fn draw_selection(
-    p: &egui::Painter,
-    inner: egui::Rect,
-    sq: f32,
-    flip: bool,
-    from_cell: Option<Coord>,
-) {
-    if let Some(sel) = from_cell {
-        let (row, col) = board_to_ui_row_col(sel.row as usize, sel.col as usize, flip);
-        let min = inner.min + egui::vec2(col as f32 * sq, row as f32 * sq);
-        let cell = egui::Rect::from_min_size(min, egui::vec2(sq, sq));
-        p.rect(
-            cell,
-            0.0,
-            egui::Color32::TRANSPARENT,
-            egui::Stroke::new(3.0, egui::Color32::YELLOW),
-            egui::StrokeKind::Inside,
-        );
     }
 }
 
