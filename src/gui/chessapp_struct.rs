@@ -2,13 +2,16 @@ use crate::Board;
 use crate::Color;
 use crate::Coord;
 use eframe::{App, egui};
+use egui::Pos2;
 use crate::gui::gui_render::centered_square;
 use crate::gui::gui_render::draw_border;
 use crate::gui::gui_render::draw_board;
 use crate::gui::gui_render::draw_selection;
 use crate::gui::gui_render::draw_pieces;
 use crate::gui::gui_render::ui_to_board;
+use crate::gui::gui_render::draw_dragged_piece;
 use crate::gui::move_result::try_apply_move;
+
 
 pub struct ChessApp {
     board: Board,
@@ -17,6 +20,9 @@ pub struct ChessApp {
     color: Color,
     flip: bool,
     checkmate: bool,
+    drag_from: Option<Coord>,
+    drag_pos: Option<Pos2>,
+    piece_selected_legals_move: Vec<Coord>,
 }
 
 impl Default for ChessApp {
@@ -28,18 +34,25 @@ impl Default for ChessApp {
             color: Color::White,
             flip: true,
             checkmate: false,
+            drag_from: None,
+            drag_pos: None,
+            piece_selected_legals_move: Vec::new(),
         }
     }
 }
 
+
 impl App for ChessApp {
+
+
+
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("ChessGame");
 
             // 1) Layout & painter
             let size = ui.available_size();
-            let (response, painter) = ui.allocate_painter(size, egui::Sense::click());
+            let (response, painter) = ui.allocate_painter(size, egui::Sense::click_and_drag());
             let rect = response.rect;
 
             let board_rect = centered_square(rect);              // cadre externe
@@ -51,8 +64,8 @@ impl App for ChessApp {
             // 2) Rendu
             draw_board(&painter, inner, sq);                     // damier
             draw_selection(&painter, inner, sq, self.flip, self.from_cell); // surlignage
-            draw_pieces(&painter, inner, sq, &self.board, self.flip);       // pièces
-
+            draw_pieces(&painter, inner, sq, &self.board, self.flip, self.drag_from);       // pièces
+            draw_dragged_piece(&painter, inner, self.drag_from, self.drag_pos, &self.board);
             // 3) Input gauche: sélection / déplacement
             if response.clicked() && !self.checkmate {
                 if let Some(pos) = response.interact_pointer_pos() {
@@ -86,6 +99,39 @@ impl App for ChessApp {
             if response.clicked_by(egui::PointerButton::Secondary) {
                 self.from_cell = None;
             }
+
+            if response.drag_started() {
+                if let Some(pos) = response.interact_pointer_pos() {
+                    if let Some(c) = ui_to_board(inner, sq, self.flip, pos){
+                        if self.board.get(&c).is_color(&self.color) { 
+                            self.drag_from=Some(c); 
+                            self.from_cell=Some(c); 
+                            self.drag_pos=Some(pos); 
+                        } 
+                    } 
+                } 
+            }
+            if response.dragged() {
+                self.drag_pos = response.interact_pointer_pos(); 
+            }
+
+            if response.drag_stopped() { 
+                if let (Some(from), Some(pos)) = (self.drag_from.take(), self.drag_pos.take()) {
+                    if let Some(dst)=ui_to_board(inner,sq,self.flip,pos) {
+                        if from!=dst {
+                            if let Some(outcome)=try_apply_move(&mut self.board,&mut self.color,&mut self.turn,from,dst) {
+                                if outcome.mate { 
+                                    self.checkmate=true; 
+                                }
+                                for m in outcome.messages {
+                                    println!("{m}"); 
+                                } 
+                            } 
+                        } 
+                    } 
+                } 
+                self.from_cell=None; 
+            }
         });
     }
 }
@@ -93,7 +139,6 @@ impl App for ChessApp {
 
 //TO DO
 //
-//Drag and drop
 //show legal moves on click
 //red king if check
 //side pannel with info

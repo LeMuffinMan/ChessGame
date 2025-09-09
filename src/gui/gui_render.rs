@@ -28,6 +28,26 @@ pub fn draw_board(p: &egui::Painter, inner: egui::Rect, sq: f32) {
     }
 }
 
+pub fn draw_dragged_piece(
+    painter: &egui::Painter, 
+    inner: egui::Rect, 
+    drag_from: Option<Coord>, 
+    drag_pos: Option<egui::Pos2>, 
+    board: &Board) {
+    if let (Some(from), Some(pos)) = (drag_from, drag_pos) {
+        if let (Some(piece), Some(color)) = (board.get(&from).get_piece(), board.get(&from).get_color()) {
+        let ch: char = piece_char(*color, &piece);
+
+        let font_px = (inner.width() / 8.0) * 0.8;
+        let font = egui::FontId::proportional(font_px);
+        let egui_color = if *color == Color::Black { egui::Color32::BLACK } else { egui::Color32::WHITE };
+
+        painter.text(pos, egui::Align2::CENTER_CENTER, ch, font, egui_color);
+        }
+    }
+}
+
+
 pub fn draw_selection(
     p: &egui::Painter,
     inner: egui::Rect,
@@ -55,11 +75,17 @@ pub fn draw_pieces(
     sq: f32,
     board: &Board,
     flip: bool,
+    drag_from: Option<Coord>,
 ) {
     for row in 0..8 {
         for col in 0..8 {
             let board_row = if flip { 7 - row } else { row };
             let coord = Coord { row: board_row as u8, col: col as u8 };
+            if let Some(coord_dragged) = drag_from {
+                if coord == coord_dragged {
+                    continue;
+                }
+            }
             if let Some(color) = board.get(&coord).get_color() {
                 if let Some(piece) = board.get(&coord).get_piece() {
                     let ch = piece_char(*color, piece);
@@ -71,6 +97,7 @@ pub fn draw_pieces(
         }
     }
 }
+
 
 fn piece_char(color: Color, piece: &Piece) -> char {
     match (color, piece) {
@@ -109,7 +136,7 @@ pub fn board_to_ui_row_col(row: usize, col: usize, flip: bool) -> (usize, usize)
     (ui_row, col)
 }
 
-fn draw_piece_unicode(painter: &egui::Painter, cell_rect: egui::Rect, ch: char, color: &Color) {
+pub fn draw_piece_unicode(painter: &egui::Painter, cell_rect: egui::Rect, ch: char, color: &Color) {
     let font_px = cell_rect.height() * 0.8;
     let font = egui::FontId::proportional(font_px);
     let color = if *color == Color::Black {
