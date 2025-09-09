@@ -227,6 +227,7 @@ pub fn update_queen_legals_moves(from: &Coord, color: &Color, board: &mut Board)
     return ret;
 }
 
+//tester les roques
 pub fn update_king_legals_moves(from: &Coord, color: &Color, board: &mut Board) -> Vec<(Coord, Coord)>{
     let cells: [(i8, i8); 8] = [
         (-1, 1),

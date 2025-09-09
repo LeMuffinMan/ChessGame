@@ -23,7 +23,7 @@ pub struct ChessApp {
     checkmate: bool,
     drag_from: Option<Coord>,
     drag_pos: Option<Pos2>,
-    piece_selected_legals_moves: Vec<(Coord, Coord)>,
+    selected_piece_legals_moves: Vec<Coord>,
 }
 
 impl Default for ChessApp {
@@ -37,7 +37,7 @@ impl Default for ChessApp {
             checkmate: false,
             drag_from: None,
             drag_pos: None,
-            piece_selected_legals_moves: Vec::new(),
+            selected_piece_legals_moves: Vec::new(),
         }
     }
 }
@@ -60,16 +60,8 @@ impl App for ChessApp {
 
             // 2) Rendu
 
-            let mut piece_legal_moves: Vec<Coord> = Vec::new();
-            if let Some(coord) = self.drag_from {
-                for (from, to) in self.board.legals_moves.iter() {
-                    if from.row == coord.row && from.col == coord.col {
-                        println!("pushing {:?}", coord);
-                        piece_legal_moves.push(*to);
-                    }
-                }
-            }
-            draw_board(&painter, inner, sq, &piece_legal_moves, self.flip);                     // damier
+
+            draw_board(&painter, inner, sq, &self.selected_piece_legals_moves, self.flip);                     // damier
             draw_selection(&painter, inner, sq, self.flip, self.from_cell); // surlignage
             draw_pieces(&painter, inner, sq, &self.board, self.flip, self.drag_from);       // pièces
             draw_dragged_piece(&painter, inner, self.drag_from, self.drag_pos, &self.board);
@@ -78,8 +70,18 @@ impl App for ChessApp {
                 if let Some(pos) = response.interact_pointer_pos() {
                     if let Some(clicked) = ui_to_board(inner, sq, self.flip, pos) {
                         match self.from_cell {
-                            None => self.from_cell = Some(clicked),
+                            None => {
+                                self.selected_piece_legals_moves.clear();
+                                for (from, to) in self.board.legals_moves.iter() {
+                                    if from.row == clicked.row && from.col == clicked.col {
+                                        println!("pushing {:?}", clicked);
+                                        self.selected_piece_legals_moves.push(*to);
+                                    }
+                                }
+                                self.from_cell = Some(clicked);
+                            }
                             Some(from) => {
+                                self.selected_piece_legals_moves.clear();
                                 if from != clicked {
                                     if let Some(outcome) = try_apply_move(
                                         &mut self.board,
@@ -114,6 +116,16 @@ impl App for ChessApp {
                             self.drag_from = Some(c); 
                             self.from_cell = Some(c); 
                             self.drag_pos = Some(pos); 
+                            if let Some(coord) = self.drag_from {
+                                if self.selected_piece_legals_moves.is_empty() {
+                                    for (from, to) in self.board.legals_moves.iter() {
+                                        if from.row == coord.row && from.col == coord.col {
+                                            println!("pushing {:?}", coord);
+                                            self.selected_piece_legals_moves.push(*to);
+                                        }
+                                    }
+                                }
+                            }
                         } 
                     } 
                 } 
@@ -137,6 +149,7 @@ impl App for ChessApp {
                         } 
                     } 
                 } 
+                self.selected_piece_legals_moves.clear();
                 self.from_cell=None; 
             }
         });
