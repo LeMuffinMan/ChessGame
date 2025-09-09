@@ -13,7 +13,7 @@ pub fn draw_border(p: &egui::Painter, rect: egui::Rect) {
     p.rect_filled(rect, 0.0, border_color);
 }
 
-pub fn draw_board(p: &egui::Painter, inner: egui::Rect, sq: f32) {
+pub fn draw_board(p: &egui::Painter, inner: egui::Rect, sq: f32, highlight: &Vec<Coord>, flip: bool) {
     let colors = [
         egui::Color32::from_rgb(240, 217, 181),
         egui::Color32::from_rgb(181, 136, 99),
@@ -22,8 +22,15 @@ pub fn draw_board(p: &egui::Painter, inner: egui::Rect, sq: f32) {
         for col in 0..8 {
             let min = inner.min + egui::vec2(col as f32 * sq, row as f32 * sq);
             let cell = egui::Rect::from_min_size(min, egui::vec2(sq, sq));
-            let idx = (row + col) % 2;
-            p.rect_filled(cell, 0.0, colors[idx]);
+
+            let board_row = if flip { 7 - row } else { row };
+            let coord = Coord { row: board_row, col: col };
+            if highlight.contains(&coord) {
+                p.rect_filled(cell, 0.0, egui::Color32::from_rgb(0, 200, 0));
+            } else {
+                let idx = (row + col) % 2;
+                p.rect_filled(cell, 0.0, colors[idx as usize]);
+            }
         }
     }
 }
