@@ -25,7 +25,7 @@ use crate::gui::chessapp_struct::ChessApp;
 //          - is legal comme wrapper ou comme impl ?
 //
 //++ implementer draw rules
-//++ roque : checker la verif de la menace sur les cases separant roi et tour
+//++ roque : bool ignores 
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();

@@ -1,13 +1,11 @@
 use crate::Board;
 use crate::Color;
 use crate::Coord;
-use crate::cell::Piece;
 use eframe::{App, egui};
 use egui::Pos2;
 use crate::gui::gui_render::centered_square;
 use crate::gui::gui_render::draw_border;
 use crate::gui::gui_render::draw_board;
-use crate::gui::gui_render::draw_selection;
 use crate::gui::gui_render::draw_pieces;
 use crate::gui::gui_render::ui_to_board;
 use crate::gui::gui_render::draw_dragged_piece;
@@ -24,6 +22,7 @@ pub struct ChessApp {
     drag_from: Option<Coord>,
     drag_pos: Option<Pos2>,
     selected_piece_legals_moves: Vec<Coord>,
+    last_move: Option<(Coord, Coord)>,
 }
 
 impl Default for ChessApp {
@@ -38,6 +37,7 @@ impl Default for ChessApp {
             drag_from: None,
             drag_pos: None,
             selected_piece_legals_moves: Vec::new(),
+            last_move: None,
         }
     }
 }
@@ -61,41 +61,44 @@ impl App for ChessApp {
             // 2) Rendu
 
 
-            draw_board(&painter, inner, sq, &self.selected_piece_legals_moves, self.flip);                     // damier
-            draw_selection(&painter, inner, sq, self.flip, self.from_cell); // surlignage
+            draw_board(&painter, inner, sq, &self.selected_piece_legals_moves, &self.last_move, self.from_cell, self.flip);                     // damier
             draw_pieces(&painter, inner, sq, &self.board, self.flip, self.drag_from);       // pièces
             draw_dragged_piece(&painter, inner, self.drag_from, self.drag_pos, &self.board);
             // 3) Input gauche: sélection / déplacement
             if response.clicked() && !self.checkmate {
                 if let Some(pos) = response.interact_pointer_pos() {
-                    if let Some(clicked) = ui_to_board(inner, sq, self.flip, pos) {
-                        match self.from_cell {
-                            None => {
-                                self.selected_piece_legals_moves.clear();
-                                for (from, to) in self.board.legals_moves.iter() {
-                                    if from.row == clicked.row && from.col == clicked.col {
-                                        println!("pushing {:?}", clicked);
-                                        self.selected_piece_legals_moves.push(*to);
+                    if let Some(clicked) = ui_to_board(inner, sq, self.flip, pos) { 
+                        if self.board.get(&clicked).is_color(&self.color) {
+                            match self.from_cell {
+                                None => {
+                                    self.selected_piece_legals_moves.clear();
+                                    for (from, to) in self.board.legals_moves.iter() {
+                                        if from.row == clicked.row && from.col == clicked.col {
+                                            println!("pushing {:?}", clicked);
+                                            self.selected_piece_legals_moves.push(*to);
+                                        }
                                     }
+                                    self.from_cell = Some(clicked);
                                 }
-                                self.from_cell = Some(clicked);
-                            }
-                            Some(from) => {
-                                self.selected_piece_legals_moves.clear();
-                                if from != clicked {
-                                    if let Some(outcome) = try_apply_move(
-                                        &mut self.board,
-                                        &mut self.color,
-                                        &mut self.turn,
-                                        from,
-                                        clicked,
-                                    ) {
-                                        if outcome.mate { self.checkmate = true; }
-                                        // logs optionnels
-                                        for m in outcome.messages { println!("{m}"); }
+                                Some(from) => {
+                                    self.selected_piece_legals_moves.clear();
+                                    if from != clicked {
+                                        if let Some(outcome) = try_apply_move(
+                                            &mut self.board,
+                                            &mut self.color,
+                                            &mut self.turn,
+                                            from,
+                                            clicked,
+                                        ) {
+                                            self.last_move = Some((from, clicked));
+                                            //revoir pat
+                                            if outcome.mate { self.checkmate = true; }
+                                            // logs optionnels
+                                            for m in outcome.messages { println!("{m}"); }
+                                        }
                                     }
+                                    self.from_cell = None;
                                 }
-                                self.from_cell = None;
                             }
                         }
                     } else {
@@ -139,6 +142,8 @@ impl App for ChessApp {
                     if let Some(dst) = ui_to_board(inner, sq, self.flip, pos) {
                         if from != dst {
                             if let Some(outcome) = try_apply_move(&mut self.board, &mut self.color, &mut self.turn, from, dst) {
+                                self.last_move = Some((from, dst));
+                                //pat a revoir
                                 if outcome.mate { 
                                     self.checkmate = true; 
                                 }
@@ -159,7 +164,6 @@ impl App for ChessApp {
 
 //TO DO
 //
-//show legal moves on click
 //red king if check
 //side pannel with info
 //   - color to play
