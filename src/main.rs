@@ -8,9 +8,9 @@ mod board;
 use board::Board;
 mod get_inputs;
 use get_inputs::Coord;
-mod gui;
 mod validate_move;
-use gui::run_gui;
+mod gui;
+use crate::gui::chessapp_struct::ChessApp;
 
 //TO DO
 //- fmt + clippy puis merge sur main et bloquer les pushs
@@ -34,6 +34,17 @@ fn main() {
     } else {
         run_cli();
     }
+}
+
+fn run_gui() {
+    let app = ChessApp::default();
+    let options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default()
+            .with_inner_size([1000.0, 1000.0]) // fenêtre plus grande
+            .with_min_inner_size([700.0, 700.0]),
+        ..Default::default()
+    };
+    eframe::run_native("ChessGame", options, Box::new(|_cc| Ok(Box::new(app)))).unwrap();
 }
 
 fn run_cli() {
@@ -75,7 +86,7 @@ fn run_cli() {
     }
 }
 
-fn mat_or_pat(board: &mut Board, color: &Color) -> bool {
+pub fn mat_or_pat(board: &mut Board, color: &Color) -> bool {
     if *color == Color::White {
         board.promote_pawn(&Color::Black);
     } else {
