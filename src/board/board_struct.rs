@@ -12,9 +12,26 @@ pub struct Board {
     pub threaten_cells: Vec<Coord>,
     pub legals_moves: Vec<(Coord, Coord)>,
     pub en_passant: Option<Coord>,
+    pub check: bool,
 }
 
 impl Board {
+    pub fn init_board() -> Board {
+        let mut board = Board {
+            grid: [[Cell::Free; 8]; 8],
+            en_passant: None,
+            white_castle: (true, true),
+            black_castle: (true, true),
+            threaten_cells: Vec::new(),
+            legals_moves: Vec::new(),
+            check: false,
+        };
+
+        board.fill_side(White);
+        board.fill_side(Black);
+
+        board
+    }
     pub fn fill_side(&mut self, color: Color) {
         let color_idx = match color {
             White => 0,
