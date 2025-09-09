@@ -142,7 +142,9 @@ impl App for ChessApp {
                     if let Some(dst) = ui_to_board(inner, sq, self.flip, pos) {
                         if from != dst {
                             if let Some(outcome) = try_apply_move(&mut self.board, &mut self.color, &mut self.turn, from, dst) {
-                                self.last_move = Some((from, dst));
+                                if outcome.applied == true {
+                                    self.last_move = Some((from, dst));
+                                }
                                 //pat a revoir
                                 if outcome.mate { 
                                     self.checkmate = true; 
