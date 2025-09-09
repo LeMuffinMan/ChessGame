@@ -14,6 +14,7 @@ use crate::validate_move::piece_case::{
 //on check is_king_exposed sur ce board et on return true ou false
 pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
     let cell = board.get(from);
+    let legals_moves: Vec<Coord>;
     match cell {
         Cell::Free => false,
         //ici soit je vire color soit je change de nom de variable
