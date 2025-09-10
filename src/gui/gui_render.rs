@@ -38,18 +38,19 @@ pub fn draw_board(p: &egui::Painter, inner: egui::Rect, sq: f32, green_cells: &V
             let board_row = if flip { 7 - row } else { row };
             let coord = Coord { row: board_row, col: col };
             let idx = (row + col) % 2;
-            if let Some((from, to)) = blue_cells && (coord == *from || coord == *to) {
+            if green_cells.contains(&coord) {
+                p.rect_filled(cell, 0.0, green[idx as usize]);
+            } else if let Some((from, to)) = blue_cells && (coord == *from || coord == *to) {
                 p.rect_filled(cell, 0.0, blue[idx as usize]);
             } else if let Some(from) = from_cell && coord == from {
                 p.rect_filled(cell, 0.0, blue[idx as usize]);
             } else {
                 p.rect_filled(cell, 0.0, colors[idx as usize]);
             }
-            if green_cells.contains(&coord) {
-                let center = cell.center();
-                // rempli
-                p.circle_filled(center, dot_radius, dot_fill);
-            }
+            // if green_cells.contains(&coord) {
+            //     let center = cell.center();
+            //     p.circle_filled(center, dot_radius, dot_fill);
+            // }
         }
     }
 }
