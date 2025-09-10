@@ -18,7 +18,6 @@ pub struct GameState {
     from_cell: Option<Coord>,
     active_player: Color,
     flip: bool,
-    autoflip: bool,
     checkmate: bool,
     drag_from: Option<Coord>,
     drag_pos: Option<Pos2>,
@@ -30,6 +29,8 @@ pub struct ChessApp {
     current: GameState,
     undo: Vec<GameState>,
     redo: Vec<GameState>,
+    autoflip: bool,
+    show_coordinates: bool,
 }
 
 impl Default for ChessApp {
@@ -41,7 +42,6 @@ impl Default for ChessApp {
                 from_cell: None,
                 active_player: Color::White,
                 flip: true,
-                autoflip: false,
                 checkmate: false,
                 drag_from: None,
                 drag_pos: None,
@@ -50,6 +50,8 @@ impl Default for ChessApp {
             },
             undo: Vec::new(),
             redo: Vec::new(),
+            autoflip: false,
+            show_coordinates: false,
         }
     }
 }
@@ -71,27 +73,39 @@ impl App for ChessApp {
                 if ui.button("New game").clicked() {
                     *self = ChessApp::default();
                 }
+
+                ui.separator();
+
                 if ui.button("Flip board").clicked() {
                     self.current.flip = !self.current.flip;
                 }
-                if ui.toggle_value(&mut self.current.autoflip, "Autoflip").changed() {
+                if ui.toggle_value(&mut self.autoflip, "Autoflip").changed() {
                 }
 
                 ui.separator();
 
-                if ui.button("Undo").clicked() {
-                    if let Some(prev) = self.undo.pop() {
-                        self.redo.push(self.current.clone());
-                        self.current = prev;
-                        self.current.selected_piece_legals_moves.clear();
-                    }
+                if ui.checkbox(&mut self.show_coordinates, "Coordinates").changed() {
+
                 }
-                if ui.button("Redo").clicked() {
-                    if let Some(next) = self.redo.pop() {
-                        self.undo.push(self.current.clone());
-                        self.current = next;
-                    }
-                }
+
+                ui.separator();
+                ui.horizontal(|ui| {
+                    let can_undo = !self.undo.is_empty();
+                    let can_redo = !self.redo.is_empty();
+                        if ui.add_enabled(can_undo, egui::Button::new("Undo")).clicked() {
+                            if let Some(prev) = self.undo.pop() {
+                                self.redo.push(self.current.clone());
+                                self.current = prev;
+                                self.current.selected_piece_legals_moves.clear();
+                            }
+                        }
+                        if ui.add_enabled(can_redo, egui::Button::new("Redo")).clicked() {
+                            if let Some(next) = self.redo.pop() {
+                                self.undo.push(self.current.clone());
+                                self.current = next;
+                            }
+                        }
+                });
                 //
                 ui.separator();
                 ui.label("last move:");
@@ -108,65 +122,68 @@ impl App for ChessApp {
             let rect = response.rect;
 
             let board_rect = centered_square(rect);              // cadre externe
-            draw_border(&painter, board_rect);                   // bordure
+            let inner = if self.show_coordinates {
+                draw_border(&painter, board_rect);                   // bordure
+                board_rect.shrink(16.0)
+            } else { board_rect };
 
-            let inner = board_rect.shrink(12.0);
             let sq = inner.width() / 8.0;
 
-            // --- Repères de lignes (A..H) à gauche du damier ---
-            {
-                let font = egui::FontId::monospace(14.0);
-                let color = egui::Color32::from_gray(200);
+            if self.show_coordinates {
+                // --- Repères de lignes (A..H) à gauche du damier ---
+                {
+                    let font = egui::FontId::monospace(14.0);
+                    let color = egui::Color32::from_gray(200);
 
-                // Décalage latéral gauche pour laisser la place aux lettres
-                let left_margin = 10.0;
+                    // Décalage latéral gauche pour laisser la place aux lettres
+                    let left_margin = 10.0;
 
-                for r in 0..8 {
-                    let idx = if self.current.flip { 7 - r + 1 } else { r + 1 };
-                    let text = idx.to_string();
-                    let galley = painter.layout_no_wrap(text, font.clone(), color); // fabrique la galée [1][3]
-                    // Centre verticalement sur la case
-                    let cy = inner.top() + r as f32 * sq + sq * 0.5;
-                    let x = inner.left() - left_margin;
+                    for r in 0..8 {
+                        let idx = if self.current.flip { 7 - r + 1 } else { r + 1 };
+                        let text = idx.to_string();
+                        let galley = painter.layout_no_wrap(text, font.clone(), color); // fabrique la galée [1][3]
+                        // Centre verticalement sur la case
+                        let cy = inner.top() + r as f32 * sq + sq * 0.5;
+                        let x = inner.left() - left_margin;
 
-                    // Ancrer par la droite-centre pour coller au bord gauche du damier
-                    let pos = egui::Align2::RIGHT_CENTER.align_size_within_rect(
-                        galley.size(),
-                        egui::Rect::from_center_size(egui::pos2(x, cy), galley.size()),
-                    ).min; // calcule une position alignée [11][14]
+                        // Ancrer par la droite-centre pour coller au bord gauche du damier
+                        let pos = egui::Align2::RIGHT_CENTER.align_size_within_rect(
+                            galley.size(),
+                            egui::Rect::from_center_size(egui::pos2(x, cy), galley.size()),
+                        ).min; // calcule une position alignée [11][14]
 
-                    painter.galley(pos, galley, color); // dessine la galée [1]
+                        painter.galley(pos, galley, color); // dessine la galée [1]
+                    }
+                }
+
+                // --- Repères de colonnes (0..9) en haut du damier ---
+                {
+                    let font = egui::FontId::monospace(14.0);
+                    let color = egui::Color32::from_gray(200);
+
+                    // Hauteur de bande au-dessus du damier pour les chiffres
+                    let top_margin = 8.0;
+
+                    for c in 0..8 {
+                        let label_idx = if self.current.flip { c } else { 7 - c };
+                        let ch = (b'A' + label_idx as u8) as char;
+                        let text = ch.to_string();
+                        let galley = painter.layout_no_wrap(text, font.clone(), color); // [1][3]
+
+                        // Centre horizontalement sur la colonne
+                        let cx = inner.left() + c as f32 * sq + sq * 0.5;
+                        let y = inner.top() - top_margin;
+
+                        // Ancrer bas-centre pour coller au bord supérieur du damier
+                        let pos = egui::Align2::CENTER_BOTTOM.align_size_within_rect(
+                            galley.size(),
+                            egui::Rect::from_center_size(egui::pos2(cx, y), galley.size()),
+                        ).min; // [11][14]
+
+                        painter.galley(pos, galley, color); // [1]
+                    }
                 }
             }
-
-            // --- Repères de colonnes (0..9) en haut du damier ---
-            {
-                let font = egui::FontId::monospace(14.0);
-                let color = egui::Color32::from_gray(200);
-
-                // Hauteur de bande au-dessus du damier pour les chiffres
-                let top_margin = 8.0;
-
-                for c in 0..8 {
-                    let label_idx = if self.current.flip { c } else { 7 - c };
-                    let ch = (b'A' + label_idx as u8) as char;
-                    let text = ch.to_string();
-                    let galley = painter.layout_no_wrap(text, font.clone(), color); // [1][3]
-
-                    // Centre horizontalement sur la colonne
-                    let cx = inner.left() + c as f32 * sq + sq * 0.5;
-                    let y = inner.top() - top_margin;
-
-                    // Ancrer bas-centre pour coller au bord supérieur du damier
-                    let pos = egui::Align2::CENTER_BOTTOM.align_size_within_rect(
-                        galley.size(),
-                        egui::Rect::from_center_size(egui::pos2(cx, y), galley.size()),
-                    ).min; // [11][14]
-
-                    painter.galley(pos, galley, color); // [1]
-                }
-            }
-
             // 2) Rendu
             draw_board(&painter, inner, sq, &self.current.selected_piece_legals_moves, &self.current.last_move, self.current.from_cell, self.current.flip);                     // damier
             draw_pieces(&painter, inner, sq, &self.current.board, self.current.flip, self.current.drag_from);   
@@ -204,7 +221,7 @@ impl App for ChessApp {
                                         if outcome.applied == true {
                                             self.redo.clear();
                                             self.current.last_move = Some((from, clicked));
-                                            if self.current.autoflip {
+                                            if self.autoflip {
                                                 self.current.flip = !self.current.flip;
                                             }
                                         }
@@ -263,7 +280,7 @@ impl App for ChessApp {
                                 if outcome.applied == true {
                                     self.redo.clear();
                                     self.current.last_move = Some((from, dst));
-                                    if self.current.autoflip {
+                                    if self.autoflip {
                                         self.current.flip = !self.current.flip;
                                     }
                                 }
