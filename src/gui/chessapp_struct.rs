@@ -86,11 +86,9 @@ impl ChessApp {
                 if let Some(next) = self.redo.pop() {
                     self.undo.push(self.current.clone());
                     self.current = next;
-                    // planifier le prochain coup dans 1 seconde
                     self.next_replay_time = Some(Instant::now() + Duration::from_millis(self.replay_speed));
-                    ctx.request_repaint(); // redessiner
+                    ctx.request_repaint(); 
                 } else {
-                    // fin du replay
                     self.next_replay_time = None;
                 }
             } else {
@@ -142,7 +140,14 @@ impl ChessApp {
         ui.heading("ChessGame");
         ui.separator();
         ui.label(format!("Turn #{}", self.current.turn));
-        ui.label(format!("{:?} to move", self.current.active_player));
+        if self.current.checkmate {
+            let color = if self.current.active_player == Color::White { Color::Black } else { Color::White };
+            ui.label(format!("Checkmate ! {:?} win", color));
+        } else if self.current.pat {
+            ui.label(format!("Pat !"));
+        } else {
+            ui.label(format!("{:?} to move", self.current.active_player));
+        }
         ui.separator();
         if ui.button("New game").clicked() {
             *self = ChessApp::default();
@@ -192,6 +197,7 @@ impl ChessApp {
             ui.add(
                 egui::Slider::new(&mut self.replay_speed, 100..=2000)
                     .text("Speed (ms)")
+                    .logarithmic(true)
             );
         }
         ui.separator();
@@ -235,5 +241,6 @@ impl ChessApp {
 //      pieces took
 //      button export pgn
 //      import pgn
+//      replay + flip to fix
 //
 //  validate_move : castle to fix

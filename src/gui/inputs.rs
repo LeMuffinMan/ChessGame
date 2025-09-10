@@ -6,7 +6,7 @@ impl ChessApp {
         if response.drag_started() {
             if let Some(pos) = response.interact_pointer_pos() {
                 if let Some(c) = ui_to_board(inner, sq, self.flip, pos){
-                    if self.current.board.get(&c).is_color(&self.current.active_player) { 
+                    if self.current.board.get(&c).is_color(&self.current.active_player) && !self.current.checkmate && !self.current.pat{ 
                         self.drag_from = Some(c); 
                         self.from_cell = Some(c); 
                         self.drag_pos = Some(pos); 
@@ -49,7 +49,7 @@ impl ChessApp {
 
     pub fn left_click(&mut self, inner: egui::Rect, sq: f32, response: &egui::Response)
     {
-        if response.clicked() && !self.current.checkmate {
+        if response.clicked() && !self.current.checkmate && !self.current.pat {
             if let Some(pos) = response.interact_pointer_pos() {
                 if let Some(clicked) = ui_to_board(inner, sq, self.flip, pos) { 
                     match self.from_cell {
