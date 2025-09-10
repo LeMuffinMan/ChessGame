@@ -24,7 +24,7 @@ pub fn draw_board(p: &egui::Painter, inner: egui::Rect, sq: f32, green_cells: &V
     ];
     let blue = [
         egui::Color32::from_rgb(200, 200, 230),
-        egui::Color32::from_rgb(120, 150, 180),
+        egui::Color32::from_rgb(150, 170, 200),
     ];
 
     let dot_fill = egui::Color32::from_gray(200);
