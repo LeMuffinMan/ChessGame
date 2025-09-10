@@ -11,7 +11,7 @@ use crate::gui::gui_render::ui_to_board;
 use crate::gui::gui_render::draw_dragged_piece;
 use crate::gui::move_result::try_apply_move;
 
-
+#[derive(Clone)]
 pub struct ChessApp {
     board: Board,
     turn: u32,
@@ -23,6 +23,8 @@ pub struct ChessApp {
     drag_pos: Option<Pos2>,
     selected_piece_legals_moves: Vec<Coord>,
     last_move: Option<(Coord, Coord)>,
+    undo: Vec<ChessApp>,
+    // redo: Vec<ChessApp>,
 }
 
 impl Default for ChessApp {
@@ -38,6 +40,8 @@ impl Default for ChessApp {
             drag_pos: None,
             selected_piece_legals_moves: Vec::new(),
             last_move: None,
+            undo: Vec::new(),
+            // redo: Vec::new(),
         }
     }
 }
@@ -48,10 +52,14 @@ impl App for ChessApp {
             .default_width(150.0)
             .show(ctx, |ui| {
                 ui.heading("ChessGame");
+                
                 ui.separator();
 
                 ui.label(format!("Turn #{}", self.turn));
                 ui.label(format!("{:?} to move", self.color));
+                
+                ui.separator();
+
                 if ui.button("New game").clicked() {
                     *self = ChessApp::default();
                 }
@@ -59,6 +67,25 @@ impl App for ChessApp {
                     self.flip = !self.flip;
                 }
 
+                ui.separator();
+
+                if ui.button("Undo").clicked() {
+                    if let Some(prev) = self.undo.pop() {
+                        // self.redo.push(self.clone());
+                        // let redo_list = &self.redo;
+                        *self = prev;
+                        self.selected_piece_legals_moves.clear();
+                        // self.redo.clear();
+                        // self.redo = *redo_list.clone;
+                    }
+                }
+                // if ui.button("Redo").clicked() {
+                //     if let Some(next) = self.redo.pop() {
+                //         self.undo.push(self.clone());
+                //         *self = next;
+                //     }
+                // }
+                //
                 ui.separator();
                 ui.label("last move:");
                 if let Some((from, to)) = self.last_move {
@@ -142,9 +169,9 @@ impl App for ChessApp {
             if response.clicked() && !self.checkmate {
                 if let Some(pos) = response.interact_pointer_pos() {
                     if let Some(clicked) = ui_to_board(inner, sq, self.flip, pos) { 
-                        if self.board.get(&clicked).is_color(&self.color) {
-                            match self.from_cell {
-                                None => {
+                        match self.from_cell {
+                            None => {
+                                if self.board.get(&clicked).is_color(&self.color) {
                                     self.selected_piece_legals_moves.clear();
                                     for (from, to) in self.board.legals_moves.iter() {
                                         if from.row == clicked.row && from.col == clicked.col {
@@ -154,27 +181,33 @@ impl App for ChessApp {
                                     }
                                     self.from_cell = Some(clicked);
                                 }
-                                Some(from) => {
-                                    self.selected_piece_legals_moves.clear();
-                                    if from != clicked {
-                                        if let Some(outcome) = try_apply_move(
-                                            &mut self.board,
-                                            &mut self.color,
-                                            &mut self.turn,
-                                            from,
-                                            clicked,
-                                        ) {
+                            }
+                            Some(from) => {
+                                self.selected_piece_legals_moves.clear();
+                                if from != clicked {
+                                    // self.redo.clear();
+                                    self.undo.push(self.clone());
+                                    if let Some(outcome) = try_apply_move(
+                                        &mut self.board,
+                                        &mut self.color,
+                                        &mut self.turn,
+                                        from,
+                                        clicked,
+                                    ) {
+                                        if outcome.applied == true {
+                                            // self.redo.clear();
                                             self.last_move = Some((from, clicked));
-                                            //revoir pat
-                                            if outcome.mate { self.checkmate = true; }
-                                            // logs optionnels
-                                            for m in outcome.messages { println!("{m}"); }
                                         }
+                                        //revoir pat
+                                        if outcome.mate { self.checkmate = true; }
+                                        // logs optionnels
+                                        for m in outcome.messages { println!("{m}"); }
                                     }
-                                    self.from_cell = None;
                                 }
+                                self.from_cell = None;
                             }
                         }
+                        
                     } else {
                         self.from_cell = None;
                     }
@@ -215,8 +248,10 @@ impl App for ChessApp {
                 if let (Some(from), Some(pos)) = (self.drag_from.take(), self.drag_pos.take()) {
                     if let Some(dst) = ui_to_board(inner, sq, self.flip, pos) {
                         if from != dst {
+                            self.undo.push(self.clone());
                             if let Some(outcome) = try_apply_move(&mut self.board, &mut self.color, &mut self.turn, from, dst) {
                                 if outcome.applied == true {
+                                    // self.redo.clear();
                                     self.last_move = Some((from, dst));
                                 }
                                 //pat a revoir
