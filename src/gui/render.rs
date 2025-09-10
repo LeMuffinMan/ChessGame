@@ -45,10 +45,6 @@ pub fn draw_board(p: &egui::Painter, inner: egui::Rect, sq: f32, green_cells: &V
             } else {
                 p.rect_filled(cell, 0.0, colors[idx as usize]);
             }
-            // if green_cells.contains(&coord) {
-            //     let center = cell.center();
-            //     p.circle_filled(center, dot_radius, dot_fill);
-            // }
         }
     }
 }
