@@ -50,7 +50,7 @@ impl App for ChessApp {
                 ui.heading("ChessGame");
                 ui.separator();
 
-                ui.label(format!("Tour #{}", self.turn));
+                ui.label(format!("Turn #{}", self.turn));
                 ui.label(format!("{:?} to move", self.color));
                 if ui.button("New game").clicked() {
                     *self = ChessApp::default();
@@ -240,11 +240,8 @@ impl App for ChessApp {
 
 //TO DO
 //
-//red king if check
 //side pannel with info
 //   - color to play
 //   - moves history
 //   - pieces took
 //Coords on sides
-//button rotate
-//button new game
