@@ -48,8 +48,8 @@ impl ChessApp {
         if self.current.active_player == Color::Black {
             self.current.turn += 1;
         }
+        self.current.board.promote_pawn(&self.current.active_player);
         self.current.active_player = match self.current.active_player { Color::White => Color::Black, Color::Black => Color::White };
-
         let (end, mate) = mat_or_pat(&mut self.current.board, &self.current.active_player);
         if end {
             if mate {
