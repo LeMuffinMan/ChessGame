@@ -131,11 +131,6 @@ pub fn ui_to_board(
     Some(Coord { row: row_board as u8, col: col_ui as u8 })
 }
 
-// pub fn board_to_ui_row_col(row: usize, col: usize, flip: bool) -> (usize, usize) {
-//     let ui_row = if flip { 7 - row } else { row };
-//     (ui_row, col)
-// }
-
 pub fn draw_piece_unicode(painter: &egui::Painter, cell_rect: egui::Rect, ch: char, color: &Color) {
     let font_px = cell_rect.height() * 0.8;
     let font = egui::FontId::proportional(font_px);
@@ -155,57 +150,47 @@ pub fn draw_piece_unicode(painter: &egui::Painter, cell_rect: egui::Rect, ch: ch
 
 impl ChessApp {
     pub fn show_coordinates(&mut self, painter: &egui::Painter, inner: egui::Rect, sq: f32) {
-        // --- Repères de lignes (A..H) à gauche du damier ---
         {
             let font = egui::FontId::monospace(14.0);
             let color = egui::Color32::from_gray(200);
 
-            // Décalage latéral gauche pour laisser la place aux lettres
             let left_margin = 10.0;
 
             for r in 0..8 {
                 let idx = if self.flip { 7 - r + 1 } else { r + 1 };
                 let text = idx.to_string();
-                let galley = painter.layout_no_wrap(text, font.clone(), color); // fabrique la galée [1][3]
-                // Centre verticalement sur la case
+                let galley = painter.layout_no_wrap(text, font.clone(), color); 
                 let cy = inner.top() + r as f32 * sq + sq * 0.5;
                 let x = inner.left() - left_margin;
 
-                // Ancrer par la droite-centre pour coller au bord gauche du damier
                 let pos = egui::Align2::RIGHT_CENTER.align_size_within_rect(
                     galley.size(),
                     egui::Rect::from_center_size(egui::pos2(x, cy), galley.size()),
-                ).min; // calcule une position alignée [11][14]
+                ).min;
 
-                painter.galley(pos, galley, color); // dessine la galée [1]
+                painter.galley(pos, galley, color);
             }
         }
-
-        // --- Repères de colonnes (0..9) en haut du damier ---
         {
             let font = egui::FontId::monospace(14.0);
             let color = egui::Color32::from_gray(200);
 
-            // Hauteur de bande au-dessus du damier pour les chiffres
             let top_margin = 8.0;
 
             for c in 0..8 {
                 let label_idx = if self.flip { c } else { 7 - c };
                 let ch = (b'A' + label_idx as u8) as char;
                 let text = ch.to_string();
-                let galley = painter.layout_no_wrap(text, font.clone(), color); // [1][3]
+                let galley = painter.layout_no_wrap(text, font.clone(), color); 
 
-                // Centre horizontalement sur la colonne
                 let cx = inner.left() + c as f32 * sq + sq * 0.5;
                 let y = inner.top() - top_margin;
 
-                // Ancrer bas-centre pour coller au bord supérieur du damier
                 let pos = egui::Align2::CENTER_BOTTOM.align_size_within_rect(
                     galley.size(),
                     egui::Rect::from_center_size(egui::pos2(cx, y), galley.size()),
-                ).min; // [11][14]
-
-                painter.galley(pos, galley, color); // [1]
+                ).min; 
+                painter.galley(pos, galley, color); 
             }
         }
     } 
