@@ -34,7 +34,7 @@ impl ChessApp {
             if let (Some(from), Some(pos)) = (self.drag_from.take(), self.drag_pos.take()) {
                 if let Some(dst) = ui_to_board(inner, sq, self.flip, pos) {
                     if from != dst {
-                        self.try_apply_move(from, dst);
+                        self.try_move(from, dst);
                     } 
                 } 
             } 
@@ -70,7 +70,7 @@ impl ChessApp {
                         Some(from) => {
                             self.piece_legals_moves.clear();
                             if from != clicked {
-                                self.try_apply_move(from, clicked);
+                                self.try_move(from, clicked);
                             }
                         }
                     }

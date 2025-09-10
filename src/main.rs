@@ -29,11 +29,11 @@ use crate::gui::chessapp_struct::ChessApp;
 //gui 
 //  side panel
 //      finir encoder pgn
-//      moves history : pgn
 //      pieces took
-//      button export pgn
 //      replay + flip to fix
 //
+//      Avec serde ?
+//      button export pgn
 //      import pgn
 //          decoder pgn
 //

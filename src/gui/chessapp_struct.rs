@@ -17,6 +17,7 @@ pub struct GameState {
     pub pat: bool,
     pub last_move: Option<(Coord, Coord)>,
     pub last_move_pgn: String,
+    pub history_pgn: String,
     pub turn: u32,
 }
 
@@ -48,6 +49,7 @@ impl Default for ChessApp {
                 pat: false,
                 last_move: None,
                 last_move_pgn: String::new(),
+                history_pgn: String::new(),
                 turn: 1,
             },
             undo: Vec::new(),
@@ -93,49 +95,55 @@ impl ChessApp {
                     self.next_replay_time = None;
                 }
             } else {
-                ctx.request_repaint();            }
+                ctx.request_repaint();          
+            }
         }
     }
 
 
 
-    pub fn from_move_to_pgn(&mut self, move_to_encode: (Coord, Coord)) {
-        let (from, to) = move_to_encode;
-        let piece_char = match self.current.board.get(&from).get_piece() {
-            Some(Pawn)  => None,
-            Some(Rook)  => Some('R'),
-            Some(Knight)=> Some('N'),
-            Some(Bishop)=> Some('B'),
-            Some(Queen) => Some('Q'),
-            Some(King)  => Some('K'),
-            None        => Some('?'),
-        };
-
-        let is_capture = !self.current.board.get(&to).is_empty();
-
-        let dest_col = (b'a' + to.col as u8) as char; 
-        let dest_row = char::from_digit((to.row + 1) as u32, 10).unwrap(); 
-
-        self.current.last_move_pgn = String::new();
-        if let Some(pc) = piece_char {
-            self.current.last_move_pgn.push(pc);
-        } else if is_capture {
-            let src_col = (b'a' + from.col as u8) as char;
-            self.current.last_move_pgn.push(src_col);
+    fn side_panel_ui(&mut self, ui: &mut egui::Ui) {
+        ui.heading("ChessGame");
+        if let None = self.current.board.pawn_to_promote {
+            self.side_panel_top(ui);
+            ui.separator();
+            self.side_panel_flip(ui);
+            ui.separator();
+            ui.checkbox(&mut self.show_coordinates, "Coordinates").changed();
+            self.side_panel_undo_redo_replay(ui);
+            ui.separator();
+            ui.label("last move:");
+            ui.monospace(&self.current.last_move_pgn);
+            if !self.current.history_pgn.is_empty() {
+                ui.separator();
+                ui.monospace(&self.current.history_pgn);
+            }
         }
+        self.side_panel_promote(ui);      
+    }
 
-        if is_capture {
-            self.current.last_move_pgn.push('x');
-        }
+    fn central_panel_ui(&mut self, ui: &mut egui::Ui) {
+        let size = ui.available_size();
+        let (response, painter) = ui.allocate_painter(size, egui::Sense::click_and_drag());
+        let rect = response.rect;
 
-        self.current.last_move_pgn.push(dest_col);
-        self.current.last_move_pgn.push(dest_row);
-        //ajouter le check
-        //ajouter le mat / pat
-        //ajouter la promotion
-        //ajouter ambiguite
-        //ajouter les roques
-    } 
+        let board_rect = centered_square(rect);              
+        let inner = if self.show_coordinates {
+            draw_border(&painter, board_rect);                   
+            board_rect.shrink(16.0)
+        } else { board_rect };
+
+        let sq = inner.width() / 8.0;
+
+        if self.show_coordinates { self.show_coordinates(&painter, inner, sq); }
+        draw_board(&painter, inner, sq, &self.piece_legals_moves, &self.current.last_move, self.from_cell, self.flip);  
+        draw_pieces(&painter, inner, sq, &self.current.board, self.flip, self.drag_from);   
+        draw_dragged_piece(&painter, inner, self.drag_from, self.drag_pos, &self.current.board);
+
+        self.left_click(inner, sq, &response);
+        self.right_click(&response);
+        self.drag_and_drop(inner, sq, &response);
+    }
 
     fn side_panel_top(&mut self, ui: &mut egui::Ui) {
         ui.separator();
@@ -225,44 +233,6 @@ impl ChessApp {
 
     }
 
-    fn side_panel_ui(&mut self, ui: &mut egui::Ui) {
-        ui.heading("ChessGame");
-        if let None = self.current.board.pawn_to_promote {
-            self.side_panel_top(ui);
-            ui.separator();
-            self.side_panel_flip(ui);
-            ui.separator();
-            ui.checkbox(&mut self.show_coordinates, "Coordinates").changed();
-            self.side_panel_undo_redo_replay(ui);
-            ui.separator();
-            ui.label("last move:");
-            ui.monospace(&self.current.last_move_pgn);
-        }
-        self.side_panel_promote(ui);      
-    }
-
-    fn central_panel_ui(&mut self, ui: &mut egui::Ui) {
-        let size = ui.available_size();
-        let (response, painter) = ui.allocate_painter(size, egui::Sense::click_and_drag());
-        let rect = response.rect;
-
-        let board_rect = centered_square(rect);              
-        let inner = if self.show_coordinates {
-            draw_border(&painter, board_rect);                   
-            board_rect.shrink(16.0)
-        } else { board_rect };
-
-        let sq = inner.width() / 8.0;
-
-        if self.show_coordinates { self.show_coordinates(&painter, inner, sq); }
-        draw_board(&painter, inner, sq, &self.piece_legals_moves, &self.current.last_move, self.from_cell, self.flip);  
-        draw_pieces(&painter, inner, sq, &self.current.board, self.flip, self.drag_from);   
-        draw_dragged_piece(&painter, inner, self.drag_from, self.drag_pos, &self.current.board);
-
-        self.left_click(inner, sq, &response);
-        self.right_click(&response);
-        self.drag_and_drop(inner, sq, &response);
-    }
 }
 
 
