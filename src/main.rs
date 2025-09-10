@@ -40,8 +40,8 @@ fn run_gui() {
     let app = ChessApp::default();
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([1000.0, 1000.0]) // fenêtre plus grande
-            .with_min_inner_size([700.0, 700.0]),
+            .with_inner_size([1000.0, 800.0]) // fenêtre plus grande
+            .with_min_inner_size([500.0, 400.0]),
         ..Default::default()
     };
     eframe::run_native("ChessGame", options, Box::new(|_cc| Ok(Box::new(app)))).unwrap();
