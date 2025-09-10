@@ -35,8 +35,11 @@ impl ChessApp {
             self.side_panel_flip(ui);
             ui.separator();
             ui.checkbox(&mut self.show_coordinates, "Coordinates").changed();
-            self.side_panel_undo_redo_replay(ui);
+            ui.label("Highlight :");
+            ui.checkbox(&mut self.show_legals_moves, "Legals moves").changed();
+            ui.checkbox(&mut self.show_last_move, "Last move").changed();
             ui.separator();
+            self.side_panel_undo_redo_replay(ui);
             ui.label("last move:");
             ui.monospace(&self.current.last_move_pgn);
             if !self.current.history_pgn.is_empty() {
@@ -61,7 +64,7 @@ impl ChessApp {
         let sq = inner.width() / 8.0;
 
         if self.show_coordinates { self.show_coordinates(&painter, inner, sq); }
-        draw_board(&painter, inner, sq, &self.piece_legals_moves, &self.current.last_move, self.from_cell, self.flip);  
+        draw_board(&painter, inner, sq, &self.piece_legals_moves, &self.current.last_move, self.from_cell, self.flip, self.show_legals_moves, self.show_last_move);  
         draw_pieces(&painter, inner, sq, &self.current.board, self.flip, self.drag_from);   
         draw_dragged_piece(&painter, inner, self.drag_from, self.drag_pos, &self.current.board);
 

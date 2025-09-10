@@ -29,6 +29,8 @@ pub struct ChessApp {
     pub autoflip: bool,
     pub replay_speed: u64,
     pub show_coordinates: bool,
+    pub show_legals_moves: bool,
+    pub show_last_move: bool,
     //gui cell to highlight
     pub from_cell: Option<Coord>,
     pub drag_from: Option<Coord>,
@@ -56,6 +58,8 @@ impl Default for ChessApp {
             flip: true,
             autoflip: false,
             show_coordinates: false,
+            show_legals_moves: true,
+            show_last_move: true,
             from_cell: None,
             drag_from: None,
             drag_pos: None,
