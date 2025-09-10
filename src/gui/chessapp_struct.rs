@@ -114,15 +114,13 @@ impl ChessApp {
 
         let is_capture = !self.current.board.get(&to).is_empty();
 
-        let dest_col = (b'a' + to.col as u8) as char; // col ∈ 0..7
-        let dest_row = char::from_digit((to.row + 1) as u32, 10).unwrap(); // row ∈ 0..7 => '1'..'8'
+        let dest_col = (b'a' + to.col as u8) as char; 
+        let dest_row = char::from_digit((to.row + 1) as u32, 10).unwrap(); 
 
-        // 4) Désambiguïsation simple pour pion en capture: on met le fichier source (ex: exd5)
         self.current.last_move_pgn = String::new();
         if let Some(pc) = piece_char {
             self.current.last_move_pgn.push(pc);
         } else if is_capture {
-            // pion qui capture: inclure le fichier source
             let src_col = (b'a' + from.col as u8) as char;
             self.current.last_move_pgn.push(src_col);
         }
@@ -234,8 +232,13 @@ impl ChessApp {
 
 
 //TO DO
-//interface promotion
-//moves history
-//   - pgn ?
-//   - moves history
-//   - pieces took
+//gui 
+//  board 
+//      interface promotion
+//  side panel
+//      moves history : pgn
+//      pieces took
+//      button export pgn
+//      import pgn
+//
+//  validate_move : castle to fix
