@@ -15,7 +15,7 @@ impl ChessApp {
                             if self.piece_legals_moves.is_empty() {
                                 for (from, to) in self.current.board.legals_moves.iter() {
                                     if from.row == coord.row && from.col == coord.col {
-                                        println!("pushing {:?}", coord);
+                                        // println!("pushing {:?}", coord);
                                         self.piece_legals_moves.push(*to);
                                     }
                                 }
@@ -34,10 +34,10 @@ impl ChessApp {
                 if let Some(dst) = ui_to_board(inner, sq, self.flip, pos) {
                     if from != dst {
                         self.undo.push(self.current.clone());
-                        if let Some(outcome) = try_apply_move(&mut self.current.board, &mut self.current.active_player, &mut self.turn, from, dst) {
+                        if let Some(outcome) = try_apply_move(&mut self.current.board, &mut self.current.active_player, &mut self.current.turn, from, dst) {
                             if outcome.applied == true {
                                 self.redo.clear();
-                                self.last_move = Some((from, dst));
+                                self.current.last_move = Some((from, dst));
                                 if self.autoflip {
                                     self.flip = !self.flip;
                                 }
@@ -75,7 +75,7 @@ impl ChessApp {
                                 self.piece_legals_moves.clear();
                                 for (from, to) in self.current.board.legals_moves.iter() {
                                     if from.row == clicked.row && from.col == clicked.col {
-                                        println!("pushing {:?}", clicked);
+                                        // println!("pushing {:?}", clicked);
                                         self.piece_legals_moves.push(*to);
                                     }
                                 }
@@ -87,27 +87,32 @@ impl ChessApp {
                             if from != clicked {
                                 self.redo.clear();
                                 self.undo.push(self.current.clone());
+
+                                let new_pgn = self.from_last_move_to_pgn(); 
+
                                 if let Some(outcome) = try_apply_move(
                                     &mut self.current.board,
                                     &mut self.current.active_player,
-                                    &mut self.turn,
+                                    &mut self.current.turn,
                                     from,
                                     clicked,
                                 ) {
                                     if outcome.applied == true {
                                         self.redo.clear();
-                                        self.last_move = Some((from, clicked));
+                                        self.current.last_move = Some((from, clicked));
+                                        self.current.last_move_pgn = new_pgn;
                                         if self.autoflip {
                                             self.flip = !self.flip;
                                         }
                                     }
-                                    //revoir pat
-                                    if outcome.mate { self.current.checkmate = true; }
-                                    // logs optionnels
-                                    for m in outcome.messages { println!("{m}"); }
-                                }
+                                    if outcome.mate {
+                                        self.current.checkmate = true;
+                                    }
+                                    for m in outcome.messages {
+                                        println!("{m}");
+                                    }
+                                } 
                             }
-                            self.from_cell = None;
                         }
                     }
                     
