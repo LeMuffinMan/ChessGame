@@ -24,7 +24,7 @@ pub fn bishop_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bo
     if !board.get(to).is_color(color) {
         let row_diff = to.row as i32 - from.row as i32;
         let col_diff = to.col as i32 - from.col as i32;
-        println!("row_diff = {row_diff} | col_diff = {col_diff}");
+        // println!("row_diff = {row_diff} | col_diff = {col_diff}");
         if row_diff.abs() == col_diff.abs() {
             return !find_obstacle(from, to, board);
         }
@@ -124,8 +124,7 @@ pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
         } else {
             board.black_castle
         };
-        //si il bouge de deux a gauche : grand roque
-        if dif_col < 0 && castle_bools.0 {
+        if dif_col < 0 && castle_bools.1 {
             let mut to_dir = *to;
             to_dir.col += 1;
             let cell_1 = Coord { row: from.row, col: from.col - 1};
@@ -139,8 +138,7 @@ pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
                 return true;
             }
         }
-        //si deux a droite : petit roque
-        else if dif_col > 0 && castle_bools.1 {
+        else if dif_col > 0 && castle_bools.0 {
             //si le roi et aucune des deux cases qu'il traverse n'est en echec
             //Si toutes les cases entre K et R sont vides
             let mut to_dir = *to; // *to instead of to.clone() because Coord implement Copy
