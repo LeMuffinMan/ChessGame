@@ -15,9 +15,7 @@ impl Board {
             Some(piece) => match piece {
                 Pawn => self.update_en_passant(from, to),
                 Rook => {}
-                King => {}
-                // Rook => self.update_rook_castle(from, color),
-                // King => self.update_king_castle(from, to, color),
+                King => self.update_king_castle(from, to, color),
                 Knight => {}
                 Queen => {}
                 Bishop => {}
@@ -51,39 +49,35 @@ impl Board {
         }
     }
 
-    // pub fn update_king_castle(&mut self, from: &Coord, to: &Coord, color: &Color) {
-    //     //si le roi bouge : on invalide les deux castles
-    //     let mut castle_bools = if *color == White {
-    //         self.white_castle
-    //     } else {
-    //         self.black_castle
-    //     };
-    //     if castle_bools.0 || castle_bools.1 {
-    //         castle_bools.0 = false;
-    //         castle_bools.1 = false;
-    //     }
-    //     //Roque
-    //     let dif_col = to.col as i8 - from.col as i8;
-    //     let row = match color {
-    //         White => 0,
-    //         Black => 7,
-    //     };
-    //     //si le roi fait un castle a gauche : tour a droite
-    //     if dif_col == -2 {
-    //         let col = to.col as usize;
-    //         if col > 0 {
-    //             self.grid[row][0] = Cell::Free;
-    //             self.grid[row][col + 1] = Cell::Occupied(Piece::Rook, *color);
-    //         }
-    //     }
-    //     //si le roi fait un castle a droite : tour a gauche
-    //     else if dif_col == 2 {
-    //         let col = to.col as usize;
-    //         if col > 0 {
-    //             self.grid[row][7] = Cell::Free;
-    //             self.grid[row][col - 1] = Cell::Occupied(Rook, *color);
-    //         }
-    //     }
-    //     //regular moves : checker la threat
-    // }
+    pub fn update_king_castle(&mut self, from: &Coord, to: &Coord, color: &Color) {
+        //si le roi bouge : on invalide les deux castles
+        let mut castle_bools = if *color == White {
+            self.white_castle
+        } else {
+            self.black_castle
+        };
+        //Roque
+        let dif_col = to.col as i8 - from.col as i8;
+        let row = match color {
+            White => 0,
+            Black => 7,
+        };
+        //si le roi fait un castle a gauche : tour a droite
+        if dif_col == -2 {
+            let col = to.col as usize;
+            if col > 0 {
+                self.grid[row][0] = Cell::Free;
+                self.grid[row][col + 1] = Cell::Occupied(Piece::Rook, *color);
+            }
+        }
+        //si le roi fait un castle a droite : tour a gauche
+        else if dif_col == 2 {
+            let col = to.col as usize;
+            if col > 0 {
+                self.grid[row][7] = Cell::Free;
+                self.grid[row][col - 1] = Cell::Occupied(Rook, *color);
+            }
+        }
+        //regular moves : checker la threat
+    }
 }

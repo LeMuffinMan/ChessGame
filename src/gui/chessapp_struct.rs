@@ -243,4 +243,3 @@ impl ChessApp {
 //      import pgn
 //      replay + flip to fix
 //
-//  validate_move : castle to fix
