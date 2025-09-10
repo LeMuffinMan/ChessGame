@@ -18,6 +18,7 @@ pub struct GameState {
     from_cell: Option<Coord>,
     active_player: Color,
     flip: bool,
+    autoflip: bool,
     checkmate: bool,
     drag_from: Option<Coord>,
     drag_pos: Option<Pos2>,
@@ -40,6 +41,7 @@ impl Default for ChessApp {
                 from_cell: None,
                 active_player: Color::White,
                 flip: true,
+                autoflip: false,
                 checkmate: false,
                 drag_from: None,
                 drag_pos: None,
@@ -71,6 +73,8 @@ impl App for ChessApp {
                 }
                 if ui.button("Flip board").clicked() {
                     self.current.flip = !self.current.flip;
+                }
+                if ui.toggle_value(&mut self.current.autoflip, "Autoflip").changed() {
                 }
 
                 ui.separator();
@@ -200,6 +204,9 @@ impl App for ChessApp {
                                         if outcome.applied == true {
                                             self.redo.clear();
                                             self.current.last_move = Some((from, clicked));
+                                            if self.current.autoflip {
+                                                self.current.flip = !self.current.flip;
+                                            }
                                         }
                                         //revoir pat
                                         if outcome.mate { self.current.checkmate = true; }
@@ -256,6 +263,9 @@ impl App for ChessApp {
                                 if outcome.applied == true {
                                     self.redo.clear();
                                     self.current.last_move = Some((from, dst));
+                                    if self.current.autoflip {
+                                        self.current.flip = !self.current.flip;
+                                    }
                                 }
                                 //pat a revoir
                                 if outcome.mate { 
@@ -277,9 +287,9 @@ impl App for ChessApp {
 
 
 //TO DO
-//
-//side pannel with info
-//   - color to play
+//interface promotion
+//moves history
+//   - pgn ?
 //   - moves history
 //   - pieces took
-//Coords on sides
+//Replay : rejoue depuis le debut chaque snapshot
