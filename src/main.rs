@@ -25,7 +25,18 @@ use crate::gui::chessapp_struct::ChessApp;
 //          - is legal comme wrapper ou comme impl ?
 //
 //++ implementer draw rules
-//++ roque : bool ignores 
+//
+//gui 
+//  board 
+//      interface promotion
+//  side panel
+//      finir encoder pgn
+//      moves history : pgn
+//      pieces took
+//      button export pgn
+//      import pgn
+//      replay + flip to fix
+//
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
