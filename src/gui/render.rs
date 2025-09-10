@@ -14,7 +14,7 @@ pub fn draw_border(p: &egui::Painter, rect: egui::Rect) {
     p.rect_filled(rect, 0.0, border_color);
 }
 
-pub fn draw_board(p: &egui::Painter, inner: egui::Rect, sq: f32, green_cells: &Vec<Coord>, blue_cells: &Option<(Coord, Coord)>, from_cell: Option<Coord>, flip: bool) {
+pub fn draw_board(p: &egui::Painter, inner: egui::Rect, sq: f32, green_cells: &Vec<Coord>, blue_cells: &Option<(Coord, Coord)>, from_cell: Option<Coord>, flip: bool, show_legals_moves: bool, show_last_move: bool) {
     let colors = [
         egui::Color32::from_rgb(240, 217, 181),
         egui::Color32::from_rgb(181, 136, 99),
@@ -36,9 +36,9 @@ pub fn draw_board(p: &egui::Painter, inner: egui::Rect, sq: f32, green_cells: &V
             let board_row = if flip { 7 - row } else { row };
             let coord = Coord { row: board_row, col: col };
             let idx = (row + col) % 2;
-            if green_cells.contains(&coord) {
+            if green_cells.contains(&coord) && show_legals_moves {
                 p.rect_filled(cell, 0.0, green[idx as usize]);
-            } else if let Some((from, to)) = blue_cells && (coord == *from || coord == *to) {
+            } else if let Some((from, to)) = blue_cells && (coord == *from || coord == *to) && show_last_move {
                 p.rect_filled(cell, 0.0, blue[idx as usize]);
             } else if let Some(from) = from_cell && coord == from {
                 p.rect_filled(cell, 0.0, blue[idx as usize]);
