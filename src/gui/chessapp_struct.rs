@@ -14,13 +14,6 @@ pub struct GameState {
     pub board: Board,
     pub active_player: Color,
     pub checkmate: bool,
-    //a deplacer ?
-    pub turn: u32,
-    pub from_cell: Option<Coord>,
-    pub drag_from: Option<Coord>,
-    pub drag_pos: Option<Pos2>,
-    pub piece_legals_moves: Vec<Coord>,
-    pub last_move: Option<(Coord, Coord)>,
 }
 
 pub struct ChessApp {
@@ -30,6 +23,12 @@ pub struct ChessApp {
     pub flip: bool,
     pub autoflip: bool,
     show_coordinates: bool,
+    pub turn: u32,
+    pub from_cell: Option<Coord>,
+    pub drag_from: Option<Coord>,
+    pub drag_pos: Option<Pos2>,
+    pub piece_legals_moves: Vec<Coord>,
+    pub last_move: Option<(Coord, Coord)>,
 }
 
 impl Default for ChessApp {
@@ -37,20 +36,20 @@ impl Default for ChessApp {
         Self {
             current: GameState {
                 board: Board::init_board(),
-                turn: 1,
-                from_cell: None,
                 active_player: Color::White,
                 checkmate: false,
-                drag_from: None,
-                drag_pos: None,
-                piece_legals_moves: Vec::new(),
-                last_move: None,
             },
             undo: Vec::new(),
             redo: Vec::new(),
             flip: true,
             autoflip: false,
             show_coordinates: false,
+            turn: 1,
+            from_cell: None,
+            drag_from: None,
+            drag_pos: None,
+            piece_legals_moves: Vec::new(),
+            last_move: None,
         }
     }
 }
@@ -72,32 +71,23 @@ impl App for ChessApp {
 impl ChessApp {
     fn side_panel_ui(&mut self, ui: &mut egui::Ui) {
         ui.heading("ChessGame");
-        
         ui.separator();
-
-        ui.label(format!("Turn #{}", self.current.turn));
+        ui.label(format!("Turn #{}", self.turn));
         ui.label(format!("{:?} to move", self.current.active_player));
-        
         ui.separator();
-
         if ui.button("New game").clicked() {
             *self = ChessApp::default();
         }
-
         ui.separator();
-
         if ui.button("Flip board").clicked() {
             self.flip = !self.flip;
         }
         if ui.toggle_value(&mut self.autoflip, "Autoflip").changed() {
         }
-
         ui.separator();
-
         if ui.checkbox(&mut self.show_coordinates, "Coordinates").changed() {
 
         }
-
         ui.separator();
         ui.horizontal(|ui| {
             let can_undo = !self.undo.is_empty();
@@ -106,7 +96,7 @@ impl ChessApp {
                     if let Some(prev) = self.undo.pop() {
                         self.redo.push(self.current.clone());
                         self.current = prev;
-                        self.current.piece_legals_moves.clear();
+                        self.piece_legals_moves.clear();
                     }
                 }
                 if ui.add_enabled(can_redo, egui::Button::new("Redo")).clicked() {
@@ -116,10 +106,9 @@ impl ChessApp {
                     }
                 }
         });
-        //
         ui.separator();
         ui.label("last move:");
-        if let Some((from, to)) = self.current.last_move {
+        if let Some((from, to)) = self.last_move {
             ui.monospace(format!("{:?} -> {:?}", from, to));
         } else {
             ui.monospace("—");
@@ -141,9 +130,9 @@ impl ChessApp {
         let sq = inner.width() / 8.0;
 
         if self.show_coordinates { self.show_coordinates(&painter, inner, sq); }
-        draw_board(&painter, inner, sq, &self.current.piece_legals_moves, &self.current.last_move, self.current.from_cell, self.flip);                     // damier
-        draw_pieces(&painter, inner, sq, &self.current.board, self.flip, self.current.drag_from);   
-        draw_dragged_piece(&painter, inner, self.current.drag_from, self.current.drag_pos, &self.current.board);
+        draw_board(&painter, inner, sq, &self.piece_legals_moves, &self.last_move, self.from_cell, self.flip);                     // damier
+        draw_pieces(&painter, inner, sq, &self.current.board, self.flip, self.drag_from);   
+        draw_dragged_piece(&painter, inner, self.drag_from, self.drag_pos, &self.current.board);
 
         self.left_click(inner, sq, &response);
         self.right_click(&response);

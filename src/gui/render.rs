@@ -79,7 +79,8 @@ pub fn draw_pieces(
     for row in 0..8 {
         for col in 0..8 {
             let board_row = if flip { 7 - row } else { row };
-            let coord = Coord { row: board_row as u8, col: col as u8 };
+            let board_col = if flip { col } else { 7 - col };
+            let coord = Coord { row: board_row as u8, col: board_col as u8 };
             if let Some(coord_dragged) = drag_from {
                 if coord == coord_dragged {
                     continue;
