@@ -197,11 +197,6 @@ impl ChessApp {
         ui.separator();
         ui.label("last move:");
         ui.monospace(&self.current.last_move_pgn);
-        // let pgn_last_move = if let Some(pgn) = &self.current.last_move_pgn {
-            // ui.monospace(pgn);
-        // } else {
-            // ui.monospace("—");
-        // };
     }
 
     fn central_panel_ui(&mut self, ui: &mut egui::Ui) {

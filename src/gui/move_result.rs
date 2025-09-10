@@ -9,12 +9,11 @@ impl ChessApp {
     pub fn try_apply_move(&mut self, from: Coord, to: Coord) {
         if !self.current.board.is_legal_move(&from, &to, &self.current.active_player) {
             println!("Illegal move: {from:?} -> {to:?}");
-            // msgs.push(format!("Illegal move : {from:?} -> {to:?}"));
+            return ;
         }
         if validate_move::is_king_exposed(&from, &to, &self.current.active_player, &self.current.board) {
             println!("King is exposed: illegal move");
-            // msgs.push("King is exposed : illegal move".into());
-            // return Some(MoveOutcome { applied: false, mate: false, pat:false, check: false, messages: msgs });
+            return ;
         }
         self.from_move_to_pgn((from, to));
         self.undo.push(self.current.clone());
