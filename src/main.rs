@@ -97,11 +97,7 @@ fn run_cli() {
 }
 
 pub fn mat_or_pat(board: &mut Board, color: &Color) -> (bool, bool) {
-    if *color == Color::White {
-        board.promote_pawn(&Color::Black);
-    } else {
-        board.promote_pawn(&Color::White);
-    }
+
     update_threatens_cells(board, color);
     board.update_legals_moves(color);
     // for coord in &board.threaten_cells {

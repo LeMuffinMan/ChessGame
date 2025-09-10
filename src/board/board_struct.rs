@@ -2,6 +2,7 @@ use crate::Color;
 use crate::Color::*;
 use crate::Coord;
 use crate::cell::Cell;
+use crate::cell::Piece;
 use crate::cell::Piece::*;
 
 #[derive(Clone)]
@@ -13,6 +14,8 @@ pub struct Board {
     pub legals_moves: Vec<(Coord, Coord)>,
     pub en_passant: Option<Coord>,
     pub check: Option<Coord>,
+    pub pawn_to_promote: Option<Coord>,
+    pub promote: Option<Piece>,
 }
 
 impl Board {
@@ -25,6 +28,8 @@ impl Board {
             threaten_cells: Vec::new(),
             legals_moves: Vec::new(),
             check: None,
+            pawn_to_promote: None,
+            promote: None,
         };
 
         board.fill_side(White);
