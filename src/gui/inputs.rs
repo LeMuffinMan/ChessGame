@@ -1,6 +1,5 @@
 use crate::ChessApp;
 use crate::gui::render::ui_to_board;
-use crate::gui::move_result::try_apply_move;
 
 impl ChessApp {
     pub fn drag_and_drop(&mut self, inner: egui::Rect, sq: f32, response: &egui::Response) {
@@ -33,23 +32,7 @@ impl ChessApp {
             if let (Some(from), Some(pos)) = (self.drag_from.take(), self.drag_pos.take()) {
                 if let Some(dst) = ui_to_board(inner, sq, self.flip, pos) {
                     if from != dst {
-                        self.undo.push(self.current.clone());
-                        if let Some(outcome) = try_apply_move(&mut self.current.board, &mut self.current.active_player, &mut self.current.turn, from, dst) {
-                            if outcome.applied == true {
-                                self.redo.clear();
-                                self.current.last_move = Some((from, dst));
-                                if self.autoflip {
-                                    self.flip = !self.flip;
-                                }
-                            }
-                            //pat a revoir
-                            if outcome.mate { 
-                                self.current.checkmate = true; 
-                            }
-                            for m in outcome.messages {
-                                println!("{m}"); 
-                            } 
-                        } 
+                        self.try_apply_move(from, dst);
                     } 
                 } 
             } 
@@ -85,33 +68,7 @@ impl ChessApp {
                         Some(from) => {
                             self.piece_legals_moves.clear();
                             if from != clicked {
-                                self.redo.clear();
-                                self.undo.push(self.current.clone());
-
-                                let new_pgn = self.from_last_move_to_pgn(); 
-
-                                if let Some(outcome) = try_apply_move(
-                                    &mut self.current.board,
-                                    &mut self.current.active_player,
-                                    &mut self.current.turn,
-                                    from,
-                                    clicked,
-                                ) {
-                                    if outcome.applied == true {
-                                        self.redo.clear();
-                                        self.current.last_move = Some((from, clicked));
-                                        self.current.last_move_pgn = new_pgn;
-                                        if self.autoflip {
-                                            self.flip = !self.flip;
-                                        }
-                                    }
-                                    if outcome.mate {
-                                        self.current.checkmate = true;
-                                    }
-                                    for m in outcome.messages {
-                                        println!("{m}");
-                                    }
-                                } 
+                                self.try_apply_move(from, clicked);
                             }
                         }
                     }

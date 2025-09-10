@@ -1,57 +1,51 @@
 use crate::Coord;
 use crate::Color;
-use crate::Board;
+use crate::ChessApp;
 use crate::validate_move;
 use crate::mat_or_pat;
 
-pub struct MoveOutcome {
-    pub applied: bool,
-    pub mate: bool,
-    pub pat: bool,
-    check: bool,
-    pub messages: Vec<String>,
-}
+impl ChessApp {
 
-pub fn try_apply_move(
-    board: &mut Board,
-    color: &mut Color,
-    turn: &mut u32,
-    from: Coord,
-    to: Coord,
-) -> Option<MoveOutcome> {
-    let mut msgs = vec![];
-    if !board.is_legal_move(&from, &to, color) {
-        msgs.push(format!("Illegal move : {from:?} -> {to:?}"));
-        return Some(MoveOutcome { applied: false, mate: false, pat: false, check: false, messages: msgs });
-    }
-    if validate_move::is_king_exposed(&from, &to, color, board) {
-        msgs.push("King is exposed : illegal move".into());
-        return Some(MoveOutcome { applied: false, mate: false, pat:false, check: false, messages: msgs });
-    }
-    board.update_board(&from, &to, color);
-    if *color == Color::Black {
-        *turn += 1;
-    }
-    *color = match *color { Color::White => Color::Black, Color::Black => Color::White };
+    pub fn try_apply_move(&mut self, from: Coord, to: Coord) {
+        if !self.current.board.is_legal_move(&from, &to, &self.current.active_player) {
+            println!("Illegal move: {from:?} -> {to:?}");
+            // msgs.push(format!("Illegal move : {from:?} -> {to:?}"));
+        }
+        if validate_move::is_king_exposed(&from, &to, &self.current.active_player, &self.current.board) {
+            println!("King is exposed: illegal move");
+            // msgs.push("King is exposed : illegal move".into());
+            // return Some(MoveOutcome { applied: false, mate: false, pat:false, check: false, messages: msgs });
+        }
+        self.from_move_to_pgn((from, to));
+        self.undo.push(self.current.clone());
+        self.current.board.update_board(&from, &to, &self.current.active_player);
 
-    let (end, mate) = mat_or_pat(board, color);
-    if end {
-        if mate {
-            return Some(MoveOutcome { applied: true, mate: true, pat: false, check: false, messages: msgs});
-        } else {
-            return Some(MoveOutcome { applied: true, mate: false, pat: true, check: false, messages: msgs});
+        self.redo.clear();
+        self.current.last_move = Some((from, to));
+        if self.autoflip {
+            self.flip = !self.flip;
+        }
+        if self.current.active_player == Color::Black {
+            self.current.turn += 1;
+        }
+        self.current.active_player = match self.current.active_player { Color::White => Color::Black, Color::Black => Color::White };
+
+        let (end, mate) = mat_or_pat(&mut self.current.board, &self.current.active_player);
+        if end {
+            if mate {
+                self.current.checkmate = true;
+            } else {
+                self.current.pat = true;
+            }
+        }
+
+        println!("{:?} to move", self.current.active_player);
+        if let Some(k) = self.current.board.get_king(&self.current.active_player) {
+            if self.current.board.threaten_cells.contains(&k) {
+                self.current.board.check = true;
+                println!("Check !");
+            }
         }
     }
 
-    msgs.push(format!("{color:?} to move"));
-    let mut in_check = false;
-    if let Some(k) = board.get_king(color) {
-        if board.threaten_cells.contains(&k) {
-            board.check = true;
-            msgs.push("Check !".into());
-            in_check = true;
-        }
-    }
-    Some(MoveOutcome { applied: true, mate: false, pat: false, check: in_check, messages: msgs })
 }
-
