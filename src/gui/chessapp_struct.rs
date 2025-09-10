@@ -132,9 +132,9 @@ impl ChessApp {
         let (response, painter) = ui.allocate_painter(size, egui::Sense::click_and_drag());
         let rect = response.rect;
 
-        let board_rect = centered_square(rect);              // cadre externe
+        let board_rect = centered_square(rect);              
         let inner = if self.show_coordinates {
-            draw_border(&painter, board_rect);                   // bordure
+            draw_border(&painter, board_rect);                   
             board_rect.shrink(16.0)
         } else { board_rect };
 
