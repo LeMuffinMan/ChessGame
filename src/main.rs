@@ -8,8 +8,8 @@ mod board;
 use board::Board;
 mod get_inputs;
 use get_inputs::Coord;
-mod validate_move;
 mod gui;
+mod validate_move;
 use crate::gui::chessapp_struct::ChessApp;
 
 //TO DO
@@ -26,7 +26,7 @@ use crate::gui::chessapp_struct::ChessApp;
 //
 //++ implementer draw rules
 //
-//gui 
+//gui
 //  side panel
 //      finir encoder pgn
 //      pieces took
@@ -40,10 +40,10 @@ use crate::gui::chessapp_struct::ChessApp;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    if args.contains(&"--gui".to_string()) {
-        run_gui();
-    } else {
+    if args.contains(&"--cli".to_string()) {
         run_cli();
+    } else {
+        run_gui();
     }
 }
 
@@ -73,7 +73,9 @@ fn run_cli() {
             Color::Black
         };
         let (end, _mate) = mat_or_pat(&mut board, &color);
-        if end { break; }
+        if end {
+            break;
+        }
         println!("Turn {turn}");
         turn_begin(&board, &color);
         let (from_coord, to_coord) = get_inputs::get_move_from_stdin(color, &board);
@@ -97,7 +99,6 @@ fn run_cli() {
 }
 
 pub fn mat_or_pat(board: &mut Board, color: &Color) -> (bool, bool) {
-
     update_threatens_cells(board, color);
     board.update_legals_moves(color);
     // for coord in &board.threaten_cells {

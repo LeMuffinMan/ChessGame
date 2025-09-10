@@ -3,11 +3,12 @@ use crate::ChessApp;
 use crate::Color;
 use crate::cell::Cell;
 use crate::cell::Piece::*;
-use crate::gui::render::{centered_square, draw_border, draw_board, draw_pieces, draw_dragged_piece};
+use crate::gui::render::{
+    centered_square, draw_board, draw_border, draw_dragged_piece, draw_pieces,
+};
 
 use eframe::egui;
 use std::time::{Duration, Instant};
-
 
 impl ChessApp {
     fn replay_step(&mut self, ctx: &egui::Context) {
@@ -16,13 +17,14 @@ impl ChessApp {
                 if let Some(next) = self.redo.pop() {
                     self.undo.push(self.current.clone());
                     self.current = next;
-                    self.next_replay_time = Some(Instant::now() + Duration::from_millis(self.replay_speed));
-                    ctx.request_repaint(); 
+                    self.next_replay_time =
+                        Some(Instant::now() + Duration::from_millis(self.replay_speed));
+                    ctx.request_repaint();
                 } else {
                     self.next_replay_time = None;
                 }
             } else {
-                ctx.request_repaint();          
+                ctx.request_repaint();
             }
         }
     }
@@ -34,9 +36,11 @@ impl ChessApp {
             ui.separator();
             self.side_panel_flip(ui);
             ui.separator();
-            ui.checkbox(&mut self.show_coordinates, "Coordinates").changed();
+            ui.checkbox(&mut self.show_coordinates, "Coordinates")
+                .changed();
             ui.label("Highlight :");
-            ui.checkbox(&mut self.show_legals_moves, "Legals moves").changed();
+            ui.checkbox(&mut self.show_legals_moves, "Legals moves")
+                .changed();
             ui.checkbox(&mut self.show_last_move, "Last move").changed();
             ui.separator();
             self.side_panel_undo_redo_replay(ui);
@@ -47,7 +51,7 @@ impl ChessApp {
                 ui.monospace(&self.current.history_pgn);
             }
         }
-        self.side_panel_promote(ui);      
+        self.side_panel_promote(ui);
     }
 
     pub fn central_panel_ui(&mut self, ui: &mut egui::Ui) {
@@ -55,18 +59,45 @@ impl ChessApp {
         let (response, painter) = ui.allocate_painter(size, egui::Sense::click_and_drag());
         let rect = response.rect;
 
-        let board_rect = centered_square(rect);              
+        let board_rect = centered_square(rect);
         let inner = if self.show_coordinates {
-            draw_border(&painter, board_rect);                   
+            draw_border(&painter, board_rect);
             board_rect.shrink(16.0)
-        } else { board_rect };
+        } else {
+            board_rect
+        };
 
         let sq = inner.width() / 8.0;
 
-        if self.show_coordinates { self.show_coordinates(&painter, inner, sq); }
-        draw_board(&painter, inner, sq, &self.piece_legals_moves, &self.current.last_move, self.from_cell, self.flip, self.show_legals_moves, self.show_last_move);  
-        draw_pieces(&painter, inner, sq, &self.current.board, self.flip, self.drag_from);   
-        draw_dragged_piece(&painter, inner, self.drag_from, self.drag_pos, &self.current.board);
+        if self.show_coordinates {
+            self.show_coordinates(&painter, inner, sq);
+        }
+        draw_board(
+            &painter,
+            inner,
+            sq,
+            &self.piece_legals_moves,
+            &self.current.last_move,
+            self.from_cell,
+            self.flip,
+            self.show_legals_moves,
+            self.show_last_move,
+        );
+        draw_pieces(
+            &painter,
+            inner,
+            sq,
+            &self.current.board,
+            self.flip,
+            self.drag_from,
+        );
+        draw_dragged_piece(
+            &painter,
+            inner,
+            self.drag_from,
+            self.drag_pos,
+            &self.current.board,
+        );
 
         self.left_click(inner, sq, &response);
         self.right_click(&response);
@@ -77,7 +108,11 @@ impl ChessApp {
         ui.separator();
         ui.label(format!("Turn #{}", self.current.turn));
         if self.current.checkmate {
-            let color = if self.current.active_player == Color::White { Color::Black } else { Color::White };
+            let color = if self.current.active_player == Color::White {
+                Color::Black
+            } else {
+                Color::White
+            };
             ui.label(format!("Checkmate ! {:?} win", color));
         } else if self.current.pat {
             ui.label(format!("Pat !"));
@@ -93,8 +128,13 @@ impl ChessApp {
     pub fn side_panel_promote(&mut self, ui: &mut egui::Ui) {
         if let Some(coord) = self.current.board.pawn_to_promote {
             if let Some(piece) = self.current.board.promote {
-                let color = if self.current.active_player == Color::White { Color::Black } else { Color::White };
-                self.current.board.grid[coord.row as usize][coord.col as usize] = Cell::Occupied(piece, color);
+                let color = if self.current.active_player == Color::White {
+                    Color::Black
+                } else {
+                    Color::White
+                };
+                self.current.board.grid[coord.row as usize][coord.col as usize] =
+                    Cell::Occupied(piece, color);
                 self.current.board.pawn_to_promote = None;
                 self.current.board.promote = None;
             } else {
@@ -115,51 +155,56 @@ impl ChessApp {
         if ui.button("Flip board").clicked() {
             self.flip = !self.flip;
         }
-        if ui.toggle_value(&mut self.autoflip, "Autoflip").changed() {
-        }
+        if ui.toggle_value(&mut self.autoflip, "Autoflip").changed() {}
     }
 
     pub fn side_panel_undo_redo_replay(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
-                let can_undo = !self.undo.is_empty();
-                let can_redo = !self.redo.is_empty();
-                if ui.add_enabled(can_undo, egui::Button::new("Undo")).clicked() {
-                    if let Some(prev) = self.undo.pop() {
-                        self.redo.push(self.current.clone());
-                        self.current = prev;
-                        self.piece_legals_moves.clear();
-                    }
-                }
-                if ui.add_enabled(can_redo, egui::Button::new("Redo")).clicked() {
-                    if let Some(next) = self.redo.pop() {
-                        self.undo.push(self.current.clone());
-                        self.current = next;
-                    }
-                }
-                if ui.add_enabled(!self.undo.is_empty(), egui::Button::new("Replay")).clicked() {
-                    self.redo.clear();
+            let can_undo = !self.undo.is_empty();
+            let can_redo = !self.redo.is_empty();
+            if ui
+                .add_enabled(can_undo, egui::Button::new("Undo"))
+                .clicked()
+            {
+                if let Some(prev) = self.undo.pop() {
                     self.redo.push(self.current.clone());
-                    while let Some(prev) = self.undo.pop() {
-                        self.redo.push(prev.clone());
-                        if self.undo.is_empty() {
-                            self.current = prev;
-                        }
-                    }
-                    self.next_replay_time = Some(Instant::now() + Duration::from_millis(self.replay_speed));
+                    self.current = prev;
+                    self.piece_legals_moves.clear();
                 }
-                self.replay_step(ui.ctx());
-
-            });
-            ui.separator();
-            if let Some(_) = self.next_replay_time {
-                ui.add(
-                    egui::Slider::new(&mut self.replay_speed, 100..=2000)
-                        .text("Time per move (ms)")
-                        .logarithmic(true)
-                );
             }
-
+            if ui
+                .add_enabled(can_redo, egui::Button::new("Redo"))
+                .clicked()
+            {
+                if let Some(next) = self.redo.pop() {
+                    self.undo.push(self.current.clone());
+                    self.current = next;
+                }
+            }
+            if ui
+                .add_enabled(!self.undo.is_empty(), egui::Button::new("Replay"))
+                .clicked()
+            {
+                self.redo.clear();
+                self.redo.push(self.current.clone());
+                while let Some(prev) = self.undo.pop() {
+                    self.redo.push(prev.clone());
+                    if self.undo.is_empty() {
+                        self.current = prev;
+                    }
+                }
+                self.next_replay_time =
+                    Some(Instant::now() + Duration::from_millis(self.replay_speed));
+            }
+            self.replay_step(ui.ctx());
+        });
+        ui.separator();
+        if let Some(_) = self.next_replay_time {
+            ui.add(
+                egui::Slider::new(&mut self.replay_speed, 100..=2000)
+                    .text("Time per move (ms)")
+                    .logarithmic(true),
+            );
+        }
     }
-
 }
-

@@ -68,7 +68,6 @@ impl Default for ChessApp {
     }
 }
 
-
 //This App trait runs the eframe : fn update is the main loop, run for each frame
 impl App for ChessApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
@@ -79,8 +78,6 @@ impl App for ChessApp {
             });
         egui::CentralPanel::default().show(ctx, |ui| {
             self.central_panel_ui(ui);
-            });
+        });
     }
 }
-
-

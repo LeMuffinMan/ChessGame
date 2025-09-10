@@ -10,7 +10,6 @@ pub fn queen_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> boo
         let row_diff = to.row as i32 - from.row as i32;
         let col_diff = to.col as i32 - from.col as i32;
         if row_diff.abs() == col_diff.abs() {
-
             return !find_obstacle(from, to, board);
         }
         if from.row == to.row || from.col == to.col {
@@ -127,33 +126,48 @@ pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
         if dif_col < 0 && castle_bools.1 {
             let mut to_dir = *to;
             to_dir.col += 1;
-            let cell_1 = Coord { row: from.row, col: from.col - 1};
-            let cell_2 = Coord { row: from.row, col: from.col - 2};
+            let cell_1 = Coord {
+                row: from.row,
+                col: from.col - 1,
+            };
+            let cell_2 = Coord {
+                row: from.row,
+                col: from.col - 2,
+            };
             //si le roi et aucune des deux cases qu'il traverse n'est en echec
             //Si toutes les cases entre K et R sont vides
-            if board.get(&cell_1).is_empty() && board.get(&cell_2).is_empty()
+            if board.get(&cell_1).is_empty()
+                && board.get(&cell_2).is_empty()
                 && !board.threaten_cells.contains(&cell_1)
                 && !board.threaten_cells.contains(&cell_2)
-                && None == board.check {
+                && None == board.check
+            {
                 return true;
             }
-        }
-        else if dif_col > 0 && castle_bools.0 {
+        } else if dif_col > 0 && castle_bools.0 {
             //si le roi et aucune des deux cases qu'il traverse n'est en echec
             //Si toutes les cases entre K et R sont vides
             let mut to_dir = *to; // *to instead of to.clone() because Coord implement Copy
             to_dir.col -= 1;
-            let cell_1 = Coord { row: from.row, col: from.col + 1};
-            let cell_2 = Coord { row: from.row, col: from.col + 2};
+            let cell_1 = Coord {
+                row: from.row,
+                col: from.col + 1,
+            };
+            let cell_2 = Coord {
+                row: from.row,
+                col: from.col + 2,
+            };
             //si le roi et aucune des deux cases qu'il traverse n'est en echec
             //Si toutes les cases entre K et R sont vides
-            if board.get(&cell_1).is_empty() && board.get(&cell_2).is_empty()
+            if board.get(&cell_1).is_empty()
+                && board.get(&cell_2).is_empty()
                 && !board.threaten_cells.contains(&cell_1)
                 && !board.threaten_cells.contains(&cell_2)
-                && None == board.check {
+                && None == board.check
+            {
                 return true;
             }
-        } 
+        }
         return false;
     }
 
