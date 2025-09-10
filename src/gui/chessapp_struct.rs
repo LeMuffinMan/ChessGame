@@ -133,6 +133,7 @@ impl ChessApp {
         //ajouter le mat / pat
         //ajouter la promotion
         //ajouter ambiguite
+        //ajouter les roques
     } 
 
 
@@ -206,7 +207,6 @@ impl ChessApp {
     }
 
     fn central_panel_ui(&mut self, ui: &mut egui::Ui) {
-        // 1) Layout & painter
         let size = ui.available_size();
         let (response, painter) = ui.allocate_painter(size, egui::Sense::click_and_drag());
         let rect = response.rect;
@@ -237,6 +237,7 @@ impl ChessApp {
 //  board 
 //      interface promotion
 //  side panel
+//      finir encoder pgn
 //      moves history : pgn
 //      pieces took
 //      button export pgn

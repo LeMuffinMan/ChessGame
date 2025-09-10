@@ -230,7 +230,7 @@ pub fn update_queen_legals_moves(from: &Coord, color: &Color, board: &mut Board)
 
 //tester les roques
 pub fn update_king_legals_moves(from: &Coord, color: &Color, board: &mut Board) -> Vec<(Coord, Coord)>{
-    let cells: [(i8, i8); 10] = [
+    let cells: [(i8, i8); 8] = [
         (-1, 1),
         (0, 1),
         (1, 1),
@@ -239,8 +239,6 @@ pub fn update_king_legals_moves(from: &Coord, color: &Color, board: &mut Board) 
         (-1, -1),
         (0, -1),
         (1, -1),
-        (0, 2),
-        (0, -2),
     ];
     let mut ret = Vec::new();
 
@@ -249,6 +247,21 @@ pub fn update_king_legals_moves(from: &Coord, color: &Color, board: &mut Board) 
         let new_col = from.col as i8 + dc;
         if let Some(to) = Board::checked_coord(new_row, new_col) {
             if let Some ((_, _)) = board.test_and_push(from, &to, color) {
+                ret.push((*from, to));
+            }
+        }
+    }
+    //castle
+    if let None = board.check {
+        let little_castle = from.col as i8 + 2;
+        let long_castle = from.col as i8 - 2;
+        if let Some(to) = Board::checked_coord(from.row as i8, little_castle) {
+            if let Some((_, _)) = board.test_and_push(from, &to, color) {
+                ret.push((*from, to));
+            }
+        }
+        if let Some(to) = Board::checked_coord(from.row as i8, long_castle) {
+            if let Some((_, _)) = board.test_and_push(from, &to, color) {
                 ret.push((*from, to));
             }
         }

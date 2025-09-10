@@ -134,7 +134,7 @@ pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
             if board.get(&cell_1).is_empty() && board.get(&cell_2).is_empty()
                 && !board.threaten_cells.contains(&cell_1)
                 && !board.threaten_cells.contains(&cell_2)
-                && !board.check {
+                && None == board.check {
                 return true;
             }
         }
@@ -150,7 +150,7 @@ pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
             if board.get(&cell_1).is_empty() && board.get(&cell_2).is_empty()
                 && !board.threaten_cells.contains(&cell_1)
                 && !board.threaten_cells.contains(&cell_2)
-                && !board.check {
+                && None == board.check {
                 return true;
             }
         } 
