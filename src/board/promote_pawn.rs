@@ -1,6 +1,6 @@
 use crate::Board;
-use crate::Coord;
 use crate::Color;
+use crate::Coord;
 use crate::cell::Piece;
 // use std::io::{self, BufRead}; // en haut ou dans la fonction ?
 
@@ -15,8 +15,11 @@ impl Board {
                 if let Some(piece) = self.grid[promote_row][y].get_piece()
                     && *piece == Piece::Pawn
                 {
-                    let coord = Coord { row: promote_row as u8, col: y as u8 };
-                    self.pawn_to_promote = Some(coord); 
+                    let coord = Coord {
+                        row: promote_row as u8,
+                        col: y as u8,
+                    };
+                    self.pawn_to_promote = Some(coord);
                     // println!("Pawn promote : R/N/B/Q");
                     // line.clear();
                     // loop {

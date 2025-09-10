@@ -6,8 +6,6 @@ use crate::cell::Piece;
 use crate::validate_move::is_legal_move::is_legal_move;
 
 impl Board {
-
-
     pub fn get(&self, coord: &Coord) -> Cell {
         self.grid[coord.row as usize][coord.col as usize]
     }
