@@ -56,66 +56,72 @@ impl Default for ChessApp {
     }
 }
 
+impl ChessApp {
+    fn side_panel_ui(&mut self, ui: &mut egui::Ui) {
+        ui.heading("ChessGame");
+        
+        ui.separator();
+
+        ui.label(format!("Turn #{}", self.current.turn));
+        ui.label(format!("{:?} to move", self.current.active_player));
+        
+        ui.separator();
+
+        if ui.button("New game").clicked() {
+            *self = ChessApp::default();
+        }
+
+        ui.separator();
+
+        if ui.button("Flip board").clicked() {
+            self.current.flip = !self.current.flip;
+        }
+        if ui.toggle_value(&mut self.autoflip, "Autoflip").changed() {
+        }
+
+        ui.separator();
+
+        if ui.checkbox(&mut self.show_coordinates, "Coordinates").changed() {
+
+        }
+
+        ui.separator();
+        ui.horizontal(|ui| {
+            let can_undo = !self.undo.is_empty();
+            let can_redo = !self.redo.is_empty();
+                if ui.add_enabled(can_undo, egui::Button::new("Undo")).clicked() {
+                    if let Some(prev) = self.undo.pop() {
+                        self.redo.push(self.current.clone());
+                        self.current = prev;
+                        self.current.selected_piece_legals_moves.clear();
+                    }
+                }
+                if ui.add_enabled(can_redo, egui::Button::new("Redo")).clicked() {
+                    if let Some(next) = self.redo.pop() {
+                        self.undo.push(self.current.clone());
+                        self.current = next;
+                    }
+                }
+        });
+        //
+        ui.separator();
+        ui.label("last move:");
+        if let Some((from, to)) = self.current.last_move {
+            ui.monospace(format!("{:?} -> {:?}", from, to));
+        } else {
+            ui.monospace("—");
+        }
+    }
+}
+
 impl App for ChessApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::SidePanel::left("left_panel")
             .default_width(150.0)
             .show(ctx, |ui| {
-                ui.heading("ChessGame");
-                
-                ui.separator();
-
-                ui.label(format!("Turn #{}", self.current.turn));
-                ui.label(format!("{:?} to move", self.current.active_player));
-                
-                ui.separator();
-
-                if ui.button("New game").clicked() {
-                    *self = ChessApp::default();
-                }
-
-                ui.separator();
-
-                if ui.button("Flip board").clicked() {
-                    self.current.flip = !self.current.flip;
-                }
-                if ui.toggle_value(&mut self.autoflip, "Autoflip").changed() {
-                }
-
-                ui.separator();
-
-                if ui.checkbox(&mut self.show_coordinates, "Coordinates").changed() {
-
-                }
-
-                ui.separator();
-                ui.horizontal(|ui| {
-                    let can_undo = !self.undo.is_empty();
-                    let can_redo = !self.redo.is_empty();
-                        if ui.add_enabled(can_undo, egui::Button::new("Undo")).clicked() {
-                            if let Some(prev) = self.undo.pop() {
-                                self.redo.push(self.current.clone());
-                                self.current = prev;
-                                self.current.selected_piece_legals_moves.clear();
-                            }
-                        }
-                        if ui.add_enabled(can_redo, egui::Button::new("Redo")).clicked() {
-                            if let Some(next) = self.redo.pop() {
-                                self.undo.push(self.current.clone());
-                                self.current = next;
-                            }
-                        }
-                });
-                //
-                ui.separator();
-                ui.label("last move:");
-                if let Some((from, to)) = self.current.last_move {
-                    ui.monospace(format!("{:?} -> {:?}", from, to));
-                } else {
-                    ui.monospace("—");
-                }
+                self.side_panel_ui(ui);
             });
-        egui::CentralPanel::default().show(ctx, |ui| {
+            egui::CentralPanel::default().show(ctx, |ui| {
             // 1) Layout & painter
             let size = ui.available_size();
             let (response, painter) = ui.allocate_painter(size, egui::Sense::click_and_drag());
