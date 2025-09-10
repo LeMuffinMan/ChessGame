@@ -137,36 +137,54 @@ impl ChessApp {
         //ajouter les roques
     } 
 
+    fn side_panel_top(&mut self, ui: &mut egui::Ui) {
+        ui.separator();
+        ui.label(format!("Turn #{}", self.current.turn));
+        if self.current.checkmate {
+            let color = if self.current.active_player == Color::White { Color::Black } else { Color::White };
+            ui.label(format!("Checkmate ! {:?} win", color));
+        } else if self.current.pat {
+            ui.label(format!("Pat !"));
+        } else {
+            ui.label(format!("{:?} to move", self.current.active_player));
+        }
+        ui.separator();
+        if ui.button("New game").clicked() {
+            *self = ChessApp::default();
+        }
+    }
 
-    fn side_panel_ui(&mut self, ui: &mut egui::Ui) {
-        ui.heading("ChessGame");
-        if let None = self.current.board.pawn_to_promote {
-            ui.separator();
-            ui.label(format!("Turn #{}", self.current.turn));
-            if self.current.checkmate {
+    fn side_panel_promote(&mut self, ui: &mut egui::Ui) {
+        if let Some(coord) = self.current.board.pawn_to_promote {
+            if let Some(piece) = self.current.board.promote {
                 let color = if self.current.active_player == Color::White { Color::Black } else { Color::White };
-                ui.label(format!("Checkmate ! {:?} win", color));
-            } else if self.current.pat {
-                ui.label(format!("Pat !"));
+                self.current.board.grid[coord.row as usize][coord.col as usize] = Cell::Occupied(piece, color);
+                self.current.board.pawn_to_promote = None;
+                self.current.board.promote = None;
             } else {
-                ui.label(format!("{:?} to move", self.current.active_player));
+                ui.separator();
+                ui.label("Promote pawn to : ");
+                ui.vertical(|ui| {
+                    ui.radio_value(&mut self.current.board.promote, Some(Queen), "Queen");
+                    ui.radio_value(&mut self.current.board.promote, Some(Bishop), "Bishop");
+                    ui.radio_value(&mut self.current.board.promote, Some(Knight), "Knight");
+                    ui.radio_value(&mut self.current.board.promote, Some(Rook), "Rook");
+                });
+                ui.separator();
             }
-            ui.separator();
-            if ui.button("New game").clicked() {
-                *self = ChessApp::default();
-            }
-            ui.separator();
-            if ui.button("Flip board").clicked() {
-                self.flip = !self.flip;
-            }
-            if ui.toggle_value(&mut self.autoflip, "Autoflip").changed() {
-            }
-            ui.separator();
-            if ui.checkbox(&mut self.show_coordinates, "Coordinates").changed() {
+        }
+    }
 
-            }
-            ui.separator();
-            ui.horizontal(|ui| {
+    fn side_panel_flip(&mut self, ui: &mut egui::Ui) {
+        if ui.button("Flip board").clicked() {
+            self.flip = !self.flip;
+        }
+        if ui.toggle_value(&mut self.autoflip, "Autoflip").changed() {
+        }
+    }
+
+    fn side_panel_undo_redo_replay(&mut self, ui: &mut egui::Ui) {
+        ui.horizontal(|ui| {
                 let can_undo = !self.undo.is_empty();
                 let can_redo = !self.redo.is_empty();
                 if ui.add_enabled(can_undo, egui::Button::new("Undo")).clicked() {
@@ -196,35 +214,31 @@ impl ChessApp {
                 self.replay_step(ui.ctx());
 
             });
+            ui.separator();
             if let Some(_) = self.next_replay_time {
                 ui.add(
                     egui::Slider::new(&mut self.replay_speed, 100..=2000)
-                        .text("Speed (ms)")
+                        .text("Time per move (ms)")
                         .logarithmic(true)
                 );
             }
+
+    }
+
+    fn side_panel_ui(&mut self, ui: &mut egui::Ui) {
+        ui.heading("ChessGame");
+        if let None = self.current.board.pawn_to_promote {
+            self.side_panel_top(ui);
+            ui.separator();
+            self.side_panel_flip(ui);
+            ui.separator();
+            ui.checkbox(&mut self.show_coordinates, "Coordinates").changed();
+            self.side_panel_undo_redo_replay(ui);
             ui.separator();
             ui.label("last move:");
             ui.monospace(&self.current.last_move_pgn);
         }
-        if let Some(coord) = self.current.board.pawn_to_promote {
-            if let Some(piece) = self.current.board.promote {
-                let color = if self.current.active_player == Color::White { Color::Black } else { Color::White };
-                self.current.board.grid[coord.row as usize][coord.col as usize] = Cell::Occupied(piece, color);
-                self.current.board.pawn_to_promote = None;
-                self.current.board.promote = None;
-            } else {
-                ui.separator();
-                ui.label("Promote pawn to : ");
-                ui.vertical(|ui| {
-                    ui.radio_value(&mut self.current.board.promote, Some(Queen), "Queen");
-                    ui.radio_value(&mut self.current.board.promote, Some(Bishop), "Bishop");
-                    ui.radio_value(&mut self.current.board.promote, Some(Knight), "Knight");
-                    ui.radio_value(&mut self.current.board.promote, Some(Rook), "Rook");
-                });
-                ui.separator();
-            }
-        }
+        self.side_panel_promote(ui);      
     }
 
     fn central_panel_ui(&mut self, ui: &mut egui::Ui) {
