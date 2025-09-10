@@ -6,6 +6,22 @@ use crate::mat_or_pat;
 use crate::validate_move;
 
 impl ChessApp {
+    // fn update_last_move_pgn(&mut self) {
+    //     if self.current.checkmate {
+    //         self.current.last_move_pgn.push_str("# ");
+    //     } else if self.current.board.check.is_some() {
+    //         self.current.last_move_pgn.push_str("+ ");
+    //         if self.current.active_player == Color::White {
+    //             self.current.last_move_pgn.push_str("1-0");
+    //         } else {
+    //             self.current.last_move_pgn.push_str("0-1");
+    //         }
+    //     } else if self.current.pat {
+    //         self.current.last_move_pgn.push_str("1/2 - 1/2");
+    //     } else {
+    //         self.current.last_move_pgn.push_str(" ");
+    //     }
+    // }
     pub fn try_move(&mut self, from: Coord, to: Coord) {
         if !self
             .current
@@ -42,6 +58,7 @@ impl ChessApp {
         }
         self.incremente_turn();
         self.events_check();
+        // self.update_last_move_pgn();
     }
 
     fn incremente_turn(&mut self) {

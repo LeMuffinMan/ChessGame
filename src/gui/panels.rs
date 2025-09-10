@@ -44,8 +44,7 @@ impl ChessApp {
             ui.checkbox(&mut self.show_last_move, "Last move").changed();
             ui.separator();
             self.side_panel_undo_redo_replay(ui);
-            ui.label("last move:");
-            ui.monospace(&self.current.last_move_pgn);
+            // ui.monospace(&self.current.last_move_pgn);
             if !self.current.history_pgn.is_empty() {
                 ui.separator();
                 ui.monospace(&self.current.history_pgn);
@@ -93,13 +92,25 @@ impl ChessApp {
             ui.label(format!("Checkmate ! {:?} win", color));
         } else if self.current.pat {
             ui.label(format!("Pat !"));
+        } else if self.current.board.check.is_some() {
+            ui.label("Check !");
         } else {
             ui.label(format!("{:?} to move", self.current.active_player));
         }
-        ui.separator();
-        if ui.button("New game").clicked() {
-            *self = ChessApp::default();
+        if self.current.last_move.is_some() {
+            ui.label(format!("last move: {}", self.current.last_move_pgn));
         }
+        ui.separator();
+        ui.horizontal(|ui| {
+            if ui.button("New game").clicked() {
+                *self = ChessApp::default();
+            }
+            if ui.add_enabled(false, egui::Button::new("Save game")).clicked() {
+            }
+            if ui.button("Quit").clicked() {
+                ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
+            }
+        });
     }
 
     pub fn side_panel_promote(&mut self, ui: &mut egui::Ui) {
@@ -129,10 +140,12 @@ impl ChessApp {
     }
 
     pub fn side_panel_flip(&mut self, ui: &mut egui::Ui) {
-        if ui.button("Flip board").clicked() {
-            self.flip = !self.flip;
-        }
-        if ui.toggle_value(&mut self.autoflip, "Autoflip").changed() {}
+        ui.horizontal(|ui| {
+            if ui.button("Flip board").clicked() {
+                self.flip = !self.flip;
+            }
+            if ui.toggle_value(&mut self.autoflip, "Autoflip").changed() {}
+        });
     }
 
     pub fn side_panel_undo_redo_replay(&mut self, ui: &mut egui::Ui) {
@@ -179,7 +192,7 @@ impl ChessApp {
         if let Some(_) = self.next_replay_time {
             ui.add(
                 egui::Slider::new(&mut self.replay_speed, 100..=2000)
-                    .text("Time per move (ms)")
+                    .text("ms/move")
                     .logarithmic(true),
             );
         }

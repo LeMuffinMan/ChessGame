@@ -72,7 +72,7 @@ impl Default for ChessApp {
 impl App for ChessApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::SidePanel::left("left_panel")
-            .default_width(150.0)
+            .default_width(180.0)
             .show(ctx, |ui| {
                 self.side_panel_ui(ui);
             });
