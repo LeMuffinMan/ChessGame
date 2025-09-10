@@ -61,7 +61,7 @@ fn run_cli() {
         } else {
             Color::Black
         };
-        let (end, mate) = mat_or_pat(&mut board, &color);
+        let (end, _mate) = mat_or_pat(&mut board, &color);
         if end { break; }
         println!("Turn {turn}");
         turn_begin(&board, &color);

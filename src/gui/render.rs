@@ -28,9 +28,6 @@ pub fn draw_board(p: &egui::Painter, inner: egui::Rect, sq: f32, green_cells: &V
         egui::Color32::from_rgb(150, 170, 200),
     ];
 
-    let dot_fill = egui::Color32::from_gray(200);
-    let dot_radius = sq * 0.10; 
-
     for row in 0..8 {
         for col in 0..8 {
             let min = inner.min + egui::vec2(col as f32 * sq, row as f32 * sq);
@@ -137,10 +134,10 @@ pub fn ui_to_board(
     Some(Coord { row: row_board as u8, col: col_ui as u8 })
 }
 
-pub fn board_to_ui_row_col(row: usize, col: usize, flip: bool) -> (usize, usize) {
-    let ui_row = if flip { 7 - row } else { row };
-    (ui_row, col)
-}
+// pub fn board_to_ui_row_col(row: usize, col: usize, flip: bool) -> (usize, usize) {
+//     let ui_row = if flip { 7 - row } else { row };
+//     (ui_row, col)
+// }
 
 pub fn draw_piece_unicode(painter: &egui::Painter, cell_rect: egui::Rect, ch: char, color: &Color) {
     let font_px = cell_rect.height() * 0.8;
