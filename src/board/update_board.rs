@@ -50,13 +50,6 @@ impl Board {
     }
 
     pub fn update_king_castle(&mut self, from: &Coord, to: &Coord, color: &Color) {
-        //si le roi bouge : on invalide les deux castles
-        let mut castle_bools = if *color == White {
-            self.white_castle
-        } else {
-            self.black_castle
-        };
-        //Roque
         let dif_col = to.col as i8 - from.col as i8;
         let row = match color {
             White => 0,
@@ -78,6 +71,5 @@ impl Board {
                 self.grid[row][col - 1] = Cell::Occupied(Rook, *color);
             }
         }
-        //regular moves : checker la threat
     }
 }
