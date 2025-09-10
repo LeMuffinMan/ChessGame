@@ -17,6 +17,7 @@ impl ChessApp {
             return ;
         }
         self.from_move_to_pgn((from, to));
+        println!("{:?} : {:?}", self.current.active_player, self.current.last_move_pgn);
         self.undo.push(self.current.clone());
         self.current.board.update_board(&from, &to, &self.current.active_player);
         let mut castle_tuple = if self.current.active_player == Color::White {
@@ -59,11 +60,11 @@ impl ChessApp {
             }
         }
 
-        println!("{:?} to move", self.current.active_player);
+        // println!("{:?} to move", self.current.active_player);
         if let Some(k) = self.current.board.get_king(&self.current.active_player) {
             if self.current.board.threaten_cells.contains(&k) {
                 self.current.board.check = Some(k);
-                println!("Check !");
+                // println!("Check !");
             }
         }
     }

@@ -27,15 +27,15 @@ use crate::gui::chessapp_struct::ChessApp;
 //++ implementer draw rules
 //
 //gui 
-//  board 
-//      interface promotion
 //  side panel
 //      finir encoder pgn
 //      moves history : pgn
 //      pieces took
 //      button export pgn
-//      import pgn
 //      replay + flip to fix
+//
+//      import pgn
+//          decoder pgn
 //
 
 fn main() {
