@@ -13,8 +13,9 @@ pub struct GameState {
     pub board: Board,
     pub active_player: Color,
     pub checkmate: bool,
+    pub pat: bool,
     pub last_move: Option<(Coord, Coord)>,
-    pub last_move_pgn: Option<String>,
+    pub last_move_pgn: String,
     pub turn: u32,
 }
 
@@ -27,7 +28,6 @@ pub struct ChessApp {
     //gui options
     pub flip: bool,
     pub autoflip: bool,
-    pub replay: bool,
     replay_speed: u64,
     show_coordinates: bool,
     //gui cell colors
@@ -44,14 +44,14 @@ impl Default for ChessApp {
                 board: Board::init_board(),
                 active_player: Color::White,
                 checkmate: false,
+                pat: false,
                 last_move: None,
-                last_move_pgn: None,
+                last_move_pgn: String::new(),
                 turn: 1,
             },
             undo: Vec::new(),
             redo: Vec::new(),
             next_replay_time: None,
-            replay: false,
             replay_speed: 1000,
             flip: true,
             autoflip: false,
@@ -100,45 +100,44 @@ impl ChessApp {
 
 
 
-    pub fn from_last_move_to_pgn(&self)-> Option<String> {
-        if let Some((from, to)) = self.current.last_move {
-            let piece_char = match self.current.board.get(&from).get_piece() {
-                Some(Pawn)  => None,
-                Some(Rook)  => Some('R'),
-                Some(Knight)=> Some('N'),
-                Some(Bishop)=> Some('B'),
-                Some(Queen) => Some('Q'),
-                Some(King)  => Some('K'),
-                None        => Some('?'),
-            };
+    pub fn from_move_to_pgn(&mut self, move_to_encode: (Coord, Coord)) {
+        let (from, to) = move_to_encode;
+        let piece_char = match self.current.board.get(&from).get_piece() {
+            Some(Pawn)  => None,
+            Some(Rook)  => Some('R'),
+            Some(Knight)=> Some('N'),
+            Some(Bishop)=> Some('B'),
+            Some(Queen) => Some('Q'),
+            Some(King)  => Some('K'),
+            None        => Some('?'),
+        };
 
-            let is_capture = !self.current.board.get(&to).is_empty();
+        let is_capture = !self.current.board.get(&to).is_empty();
 
-            let dest_col = (b'a' + to.col as u8) as char; // col ∈ 0..7
-            let dest_row = char::from_digit((to.row + 1) as u32, 10).unwrap(); // row ∈ 0..7 => '1'..'8'
+        let dest_col = (b'a' + to.col as u8) as char; // col ∈ 0..7
+        let dest_row = char::from_digit((to.row + 1) as u32, 10).unwrap(); // row ∈ 0..7 => '1'..'8'
 
-            // 4) Désambiguïsation simple pour pion en capture: on met le fichier source (ex: exd5)
-            let mut out = String::new();
-            if let Some(pc) = piece_char {
-                out.push(pc);
-            } else if is_capture {
-                // pion qui capture: inclure le fichier source
-                let src_col = (b'a' + from.col as u8) as char;
-                out.push(src_col);
-            }
-
-            if is_capture {
-                out.push('x');
-            }
-
-            out.push(dest_col);
-            out.push(dest_row);
-
-            Some(out)
-        } else {
-            None
+        // 4) Désambiguïsation simple pour pion en capture: on met le fichier source (ex: exd5)
+        self.current.last_move_pgn = String::new();
+        if let Some(pc) = piece_char {
+            self.current.last_move_pgn.push(pc);
+        } else if is_capture {
+            // pion qui capture: inclure le fichier source
+            let src_col = (b'a' + from.col as u8) as char;
+            self.current.last_move_pgn.push(src_col);
         }
-    }
+
+        if is_capture {
+            self.current.last_move_pgn.push('x');
+        }
+
+        self.current.last_move_pgn.push(dest_col);
+        self.current.last_move_pgn.push(dest_row);
+        //ajouter le check
+        //ajouter le mat / pat
+        //ajouter la promotion
+        //ajouter ambiguite
+    } 
 
 
     fn side_panel_ui(&mut self, ui: &mut egui::Ui) {
@@ -199,11 +198,12 @@ impl ChessApp {
         }
         ui.separator();
         ui.label("last move:");
-        let pgn_last_move = if let Some(pgn) = &self.current.last_move_pgn {
-            ui.monospace(pgn);
-        } else {
-            ui.monospace("—");
-        };
+        ui.monospace(&self.current.last_move_pgn);
+        // let pgn_last_move = if let Some(pgn) = &self.current.last_move_pgn {
+            // ui.monospace(pgn);
+        // } else {
+            // ui.monospace("—");
+        // };
     }
 
     fn central_panel_ui(&mut self, ui: &mut egui::Ui) {
