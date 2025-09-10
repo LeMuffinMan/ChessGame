@@ -51,7 +51,7 @@ fn run_gui() {
     let app = ChessApp::default();
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([750.0, 600.0]) // window size
+            .with_inner_size([800.0, 600.0]) // window size
             .with_min_inner_size([500.0, 400.0]),
         ..Default::default()
     };
