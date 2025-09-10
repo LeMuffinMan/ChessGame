@@ -29,7 +29,9 @@ pub fn try_apply_move(
         return Some(MoveOutcome { applied: false, mate: false, pat:false, check: false, messages: msgs });
     }
     board.update_board(&from, &to, color);
-    *turn += 1;
+    if *color == Color::Black {
+        *turn += 1;
+    }
     *color = match *color { Color::White => Color::Black, Color::Black => Color::White };
 
     let (end, mate) = mat_or_pat(board, color);
