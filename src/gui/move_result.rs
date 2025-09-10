@@ -1,6 +1,7 @@
 use crate::Coord;
 use crate::Color;
 use crate::ChessApp;
+use crate::cell::Piece::*;
 use crate::validate_move;
 use crate::mat_or_pat;
 
@@ -18,7 +19,38 @@ impl ChessApp {
         self.from_move_to_pgn((from, to));
         self.undo.push(self.current.clone());
         self.current.board.update_board(&from, &to, &self.current.active_player);
-
+        if let Some(piece) = self.current.board.get(&to).get_piece() {
+            match piece {
+                Rook =>  {
+                    if to.col == 7 {
+                        if self.current.active_player == Color::White {
+                            // println!("switching little white castle to false");
+                            self.current.board.white_castle.0 = false;
+                        } else {
+                            // println!("switching little black castle to false");
+                            self.current.board.black_castle.0 = false;
+                        }
+                    } else if to.col == 0 {
+                        if self.current.active_player == Color::White {
+                            // println!("switching long white castle to false");
+                            self.current.board.white_castle.1 = false;
+                        } else {
+                            self.current.board.black_castle.1 = false;
+                        }
+                    }
+                },
+                King => {
+                    if self.current.active_player == Color::White {
+                        self.current.board.white_castle.0 = false;
+                        self.current.board.white_castle.1 = false;
+                    } else {
+                        self.current.board.black_castle.0 = false;
+                        self.current.board.black_castle.1 = false;
+                    }
+                }
+                _ => { }
+            }
+        }; 
         self.redo.clear();
         self.current.last_move = Some((from, to));
         if self.autoflip {

@@ -70,13 +70,13 @@ impl Board {
                 }
             }
         }
-        println!("Legals moves : ");
-        for (from, to) in &self.legals_moves {
-            println!(
-                "from: ({}, {}), to: ({}, {})",
-                from.row, from.col, to.row, to.col
-            );
-        }
+        // println!("Legals moves : ");
+        // for (from, to) in &self.legals_moves {
+        //     println!(
+        //         "from: ({}, {}), to: ({}, {})",
+        //         from.row, from.col, to.row, to.col
+        //     );
+        // }
     }
 }
 
