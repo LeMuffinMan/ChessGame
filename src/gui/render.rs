@@ -1,4 +1,3 @@
-use crate::Board;
 use crate::ChessApp;
 use crate::Color;
 use crate::Coord;
@@ -14,112 +13,106 @@ pub fn draw_border(p: &egui::Painter, rect: egui::Rect) {
     p.rect_filled(rect, 0.0, border_color);
 }
 
-pub fn draw_board(
-    p: &egui::Painter,
-    inner: egui::Rect,
-    sq: f32,
-    green_cells: &Vec<Coord>,
-    blue_cells: &Option<(Coord, Coord)>,
-    from_cell: Option<Coord>,
-    flip: bool,
-    show_legals_moves: bool,
-    show_last_move: bool,
-) {
-    let colors = [
-        egui::Color32::from_rgb(240, 217, 181),
-        egui::Color32::from_rgb(181, 136, 99),
-    ];
-    let green = [
-        egui::Color32::from_rgb(240, 240, 181),
-        egui::Color32::from_rgb(181, 160, 99),
-    ];
-    let blue = [
-        egui::Color32::from_rgb(200, 200, 230),
-        egui::Color32::from_rgb(150, 170, 200),
-    ];
+impl ChessApp {
 
-    for row in 0..8 {
-        for col in 0..8 {
-            let min = inner.min + egui::vec2(col as f32 * sq, row as f32 * sq);
-            let cell = egui::Rect::from_min_size(min, egui::vec2(sq, sq));
+    pub fn draw_board(
+        &self,
+        p: &egui::Painter,
+        inner: egui::Rect,
+        sq: f32,
+    ) {
+        let colors = [
+            egui::Color32::from_rgb(240, 217, 181),
+            egui::Color32::from_rgb(181, 136, 99),
+        ];
+        let green = [
+            egui::Color32::from_rgb(240, 240, 181),
+            egui::Color32::from_rgb(181, 160, 99),
+        ];
+        let blue = [
+            egui::Color32::from_rgb(200, 200, 230),
+            egui::Color32::from_rgb(150, 170, 200),
+        ];
 
-            let board_row = if flip { 7 - row } else { row };
-            let coord = Coord {
-                row: board_row,
-                col: col,
-            };
-            let idx = (row + col) % 2;
-            if green_cells.contains(&coord) && show_legals_moves {
-                p.rect_filled(cell, 0.0, green[idx as usize]);
-            } else if let Some((from, to)) = blue_cells
-                && (coord == *from || coord == *to)
-                && show_last_move
-            {
-                p.rect_filled(cell, 0.0, blue[idx as usize]);
-            } else if let Some(from) = from_cell
-                && coord == from
-            {
-                p.rect_filled(cell, 0.0, blue[idx as usize]);
-            } else {
-                p.rect_filled(cell, 0.0, colors[idx as usize]);
-            }
-        }
-    }
-}
+        for row in 0..8 {
+            for col in 0..8 {
+                let min = inner.min + egui::vec2(col as f32 * sq, row as f32 * sq);
+                let cell = egui::Rect::from_min_size(min, egui::vec2(sq, sq));
 
-pub fn draw_dragged_piece(
-    painter: &egui::Painter,
-    inner: egui::Rect,
-    drag_from: Option<Coord>,
-    drag_pos: Option<egui::Pos2>,
-    board: &Board,
-) {
-    if let (Some(from), Some(pos)) = (drag_from, drag_pos) {
-        if let (Some(piece), Some(color)) =
-            (board.get(&from).get_piece(), board.get(&from).get_color())
-        {
-            let ch: char = piece_char(*color, &piece);
-
-            let font_px = (inner.width() / 8.0) * 0.8;
-            let font = egui::FontId::proportional(font_px);
-            let egui_color = if *color == Color::Black {
-                egui::Color32::BLACK
-            } else {
-                egui::Color32::WHITE
-            };
-
-            painter.text(pos, egui::Align2::CENTER_CENTER, ch, font, egui_color);
-        }
-    }
-}
-
-pub fn draw_pieces(
-    p: &egui::Painter,
-    inner: egui::Rect,
-    sq: f32,
-    board: &Board,
-    flip: bool,
-    drag_from: Option<Coord>,
-) {
-    for row in 0..8 {
-        for col in 0..8 {
-            let board_row = if flip { 7 - row } else { row };
-            let board_col = if flip { col } else { 7 - col };
-            let coord = Coord {
-                row: board_row as u8,
-                col: board_col as u8,
-            };
-            if let Some(coord_dragged) = drag_from {
-                if coord == coord_dragged {
-                    continue;
+                let board_row = if self.flip { 7 - row } else { row };
+                let coord = Coord {
+                    row: board_row,
+                    col: col,
+                };
+                let idx = (row + col) % 2;
+                if self.piece_legals_moves.contains(&coord) && self.show_legals_moves {
+                    p.rect_filled(cell, 0.0, green[idx as usize]);
+                } else if let Some((from, to)) = self.current.last_move
+                    && (coord == from || coord == to)
+                    && self.show_last_move
+                {
+                    p.rect_filled(cell, 0.0, blue[idx as usize]);
+                } else if let Some(from) = self.from_cell
+                    && coord == from
+                {
+                    p.rect_filled(cell, 0.0, blue[idx as usize]);
+                } else {
+                    p.rect_filled(cell, 0.0, colors[idx as usize]);
                 }
             }
-            if let Some(color) = board.get(&coord).get_color() {
-                if let Some(piece) = board.get(&coord).get_piece() {
-                    let ch = piece_char(*color, piece);
-                    let min = inner.min + egui::vec2(col as f32 * sq, row as f32 * sq);
-                    let cell = egui::Rect::from_min_size(min, egui::vec2(sq, sq));
-                    draw_piece_unicode(p, cell, ch, &color);
+        }
+    }
+
+    pub fn draw_dragged_piece(
+        &self,
+        painter: &egui::Painter,
+        inner: egui::Rect,
+    ) {
+        if let (Some(from), Some(pos)) = (self.drag_from, self.drag_pos) {
+            if let (Some(piece), Some(color)) =
+                (self.current.board.get(&from).get_piece(), self.current.board.get(&from).get_color())
+            {
+                let ch: char = piece_char(*color, &piece);
+
+                let font_px = (inner.width() / 8.0) * 0.8;
+                let font = egui::FontId::proportional(font_px);
+                let egui_color = if *color == Color::Black {
+                    egui::Color32::BLACK
+                } else {
+                    egui::Color32::WHITE
+                };
+
+                painter.text(pos, egui::Align2::CENTER_CENTER, ch, font, egui_color);
+            }
+        }
+    }
+
+    pub fn draw_pieces(
+        &self,
+        p: &egui::Painter,
+        inner: egui::Rect,
+        sq: f32,
+    ) {
+        for row in 0..8 {
+            for col in 0..8 {
+                let board_row = if self.flip { 7 - row } else { row };
+                let board_col = if self.flip { col } else { 7 - col };
+                let coord = Coord {
+                    row: board_row as u8,
+                    col: board_col as u8,
+                };
+                if let Some(coord_dragged) = self.drag_from {
+                    if coord == coord_dragged {
+                        continue;
+                    }
+                }
+                if let Some(color) = self.current.board.get(&coord).get_color() {
+                    if let Some(piece) = self.current.board.get(&coord).get_piece() {
+                        let ch = piece_char(*color, piece);
+                        let min = inner.min + egui::vec2(col as f32 * sq, row as f32 * sq);
+                        let cell = egui::Rect::from_min_size(min, egui::vec2(sq, sq));
+                        draw_piece_unicode(p, cell, ch, &color);
+                    }
                 }
             }
         }

@@ -3,9 +3,9 @@ use crate::ChessApp;
 use crate::Color;
 use crate::cell::Cell;
 use crate::cell::Piece::*;
-use crate::gui::render::{
-    centered_square, draw_board, draw_border, draw_dragged_piece, draw_pieces,
-};
+use crate::gui::render::{centered_square, draw_border};
+    // centered_square, draw_board, draw_border, draw_dragged_piece, draw_pieces,
+// };
 
 use eframe::egui;
 use std::time::{Duration, Instant};
@@ -72,32 +72,9 @@ impl ChessApp {
         if self.show_coordinates {
             self.show_coordinates(&painter, inner, sq);
         }
-        draw_board(
-            &painter,
-            inner,
-            sq,
-            &self.piece_legals_moves,
-            &self.current.last_move,
-            self.from_cell,
-            self.flip,
-            self.show_legals_moves,
-            self.show_last_move,
-        );
-        draw_pieces(
-            &painter,
-            inner,
-            sq,
-            &self.current.board,
-            self.flip,
-            self.drag_from,
-        );
-        draw_dragged_piece(
-            &painter,
-            inner,
-            self.drag_from,
-            self.drag_pos,
-            &self.current.board,
-        );
+        self.draw_board(&painter, inner, sq);
+        self.draw_pieces(&painter, inner, sq);
+        self.draw_dragged_piece(&painter, inner,);
 
         self.left_click(inner, sq, &response);
         self.right_click(&response);

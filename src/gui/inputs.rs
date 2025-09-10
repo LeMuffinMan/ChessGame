@@ -85,7 +85,8 @@ impl ChessApp {
                             self.piece_legals_moves.clear();
                             if from != clicked {
                                 self.try_move(from, clicked);
-                            }
+                            } 
+                            self.from_cell = None;
                         }
                     }
                 } else {
