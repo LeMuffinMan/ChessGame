@@ -1,3 +1,4 @@
 pub mod chessapp_struct;
-pub mod gui_render;
+pub mod render;
 pub mod move_result;
+pub mod inputs;

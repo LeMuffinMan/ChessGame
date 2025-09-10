@@ -3,33 +3,32 @@ use crate::Color;
 use crate::Coord;
 use eframe::{App, egui};
 use egui::Pos2;
-use crate::gui::gui_render::centered_square;
-use crate::gui::gui_render::draw_border;
-use crate::gui::gui_render::draw_board;
-use crate::gui::gui_render::draw_pieces;
-use crate::gui::gui_render::ui_to_board;
-use crate::gui::gui_render::draw_dragged_piece;
-use crate::gui::move_result::try_apply_move;
+use crate::gui::render::centered_square;
+use crate::gui::render::draw_border;
+use crate::gui::render::draw_board;
+use crate::gui::render::draw_pieces;
+use crate::gui::render::draw_dragged_piece;
 
 #[derive(Clone)]
 pub struct GameState {
-    board: Board,
-    turn: u32,
-    from_cell: Option<Coord>,
-    active_player: Color,
-    checkmate: bool,
-    drag_from: Option<Coord>,
-    drag_pos: Option<Pos2>,
-    selected_piece_legals_moves: Vec<Coord>,
-    last_move: Option<(Coord, Coord)>,
+    pub board: Board,
+    pub active_player: Color,
+    pub checkmate: bool,
+    //a deplacer ?
+    pub turn: u32,
+    pub from_cell: Option<Coord>,
+    pub drag_from: Option<Coord>,
+    pub drag_pos: Option<Pos2>,
+    pub piece_legals_moves: Vec<Coord>,
+    pub last_move: Option<(Coord, Coord)>,
 }
 
 pub struct ChessApp {
     pub current: GameState,
-    undo: Vec<GameState>,
-    redo: Vec<GameState>,
+    pub undo: Vec<GameState>,
+    pub redo: Vec<GameState>,
     pub flip: bool,
-    autoflip: bool,
+    pub autoflip: bool,
     show_coordinates: bool,
 }
 
@@ -44,7 +43,7 @@ impl Default for ChessApp {
                 checkmate: false,
                 drag_from: None,
                 drag_pos: None,
-                selected_piece_legals_moves: Vec::new(),
+                piece_legals_moves: Vec::new(),
                 last_move: None,
             },
             undo: Vec::new(),
@@ -56,6 +55,7 @@ impl Default for ChessApp {
     }
 }
 
+//This App trait runs the egui : update is the main loop
 impl App for ChessApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::SidePanel::left("left_panel")
@@ -106,7 +106,7 @@ impl ChessApp {
                     if let Some(prev) = self.undo.pop() {
                         self.redo.push(self.current.clone());
                         self.current = prev;
-                        self.current.selected_piece_legals_moves.clear();
+                        self.current.piece_legals_moves.clear();
                     }
                 }
                 if ui.add_enabled(can_redo, egui::Button::new("Redo")).clicked() {
@@ -126,121 +126,6 @@ impl ChessApp {
         }
     }
 
-    fn drag_and_drop(&mut self, inner: egui::Rect, sq: f32, response: &egui::Response) {
-        if response.drag_started() {
-            if let Some(pos) = response.interact_pointer_pos() {
-                if let Some(c) = ui_to_board(inner, sq, self.flip, pos){
-                    if self.current.board.get(&c).is_color(&self.current.active_player) { 
-                        self.current.drag_from = Some(c); 
-                        self.current.from_cell = Some(c); 
-                        self.current.drag_pos = Some(pos); 
-                        if let Some(coord) = self.current.drag_from {
-                            if self.current.selected_piece_legals_moves.is_empty() {
-                                for (from, to) in self.current.board.legals_moves.iter() {
-                                    if from.row == coord.row && from.col == coord.col {
-                                        println!("pushing {:?}", coord);
-                                        self.current.selected_piece_legals_moves.push(*to);
-                                    }
-                                }
-                            }
-                        }
-                    } 
-                } 
-            } 
-        }
-        if response.dragged() {
-            self.current.drag_pos = response.interact_pointer_pos(); 
-        }
-
-        if response.drag_stopped() { 
-            if let (Some(from), Some(pos)) = (self.current.drag_from.take(), self.current.drag_pos.take()) {
-                if let Some(dst) = ui_to_board(inner, sq, self.flip, pos) {
-                    if from != dst {
-                        self.undo.push(self.current.clone());
-                        if let Some(outcome) = try_apply_move(&mut self.current.board, &mut self.current.active_player, &mut self.current.turn, from, dst) {
-                            if outcome.applied == true {
-                                self.redo.clear();
-                                self.current.last_move = Some((from, dst));
-                                if self.autoflip {
-                                    self.flip = !self.flip;
-                                }
-                            }
-                            //pat a revoir
-                            if outcome.mate { 
-                                self.current.checkmate = true; 
-                            }
-                            for m in outcome.messages {
-                                println!("{m}"); 
-                            } 
-                        } 
-                    } 
-                } 
-            } 
-            self.current.selected_piece_legals_moves.clear();
-            self.current.from_cell=None; 
-        }
-    }
-
-    fn right_click(&mut self, response: &egui::Response) {
-        if response.clicked_by(egui::PointerButton::Secondary) {
-            self.current.from_cell = None;
-        }
-    }
-
-    fn left_click(&mut self, inner: egui::Rect, sq: f32, response: &egui::Response)
-    {
-        if response.clicked() && !self.current.checkmate {
-            if let Some(pos) = response.interact_pointer_pos() {
-                if let Some(clicked) = ui_to_board(inner, sq, self.flip, pos) { 
-                    match self.current.from_cell {
-                        None => {
-                            if self.current.board.get(&clicked).is_color(&self.current.active_player) {
-                                self.current.selected_piece_legals_moves.clear();
-                                for (from, to) in self.current.board.legals_moves.iter() {
-                                    if from.row == clicked.row && from.col == clicked.col {
-                                        println!("pushing {:?}", clicked);
-                                        self.current.selected_piece_legals_moves.push(*to);
-                                    }
-                                }
-                                self.current.from_cell = Some(clicked);
-                            }
-                        }
-                        Some(from) => {
-                            self.current.selected_piece_legals_moves.clear();
-                            if from != clicked {
-                                self.redo.clear();
-                                self.undo.push(self.current.clone());
-                                if let Some(outcome) = try_apply_move(
-                                    &mut self.current.board,
-                                    &mut self.current.active_player,
-                                    &mut self.current.turn,
-                                    from,
-                                    clicked,
-                                ) {
-                                    if outcome.applied == true {
-                                        self.redo.clear();
-                                        self.current.last_move = Some((from, clicked));
-                                        if self.autoflip {
-                                            self.flip = !self.flip;
-                                        }
-                                    }
-                                    //revoir pat
-                                    if outcome.mate { self.current.checkmate = true; }
-                                    // logs optionnels
-                                    for m in outcome.messages { println!("{m}"); }
-                                }
-                            }
-                            self.current.from_cell = None;
-                        }
-                    }
-                    
-                } else {
-                    self.current.from_cell = None;
-                }
-            }
-        }
-    }
-
     fn central_panel_ui(&mut self, ui: &mut egui::Ui) {
         // 1) Layout & painter
         let size = ui.available_size();
@@ -256,7 +141,7 @@ impl ChessApp {
         let sq = inner.width() / 8.0;
 
         if self.show_coordinates { self.show_coordinates(&painter, inner, sq); }
-        draw_board(&painter, inner, sq, &self.current.selected_piece_legals_moves, &self.current.last_move, self.current.from_cell, self.flip);                     // damier
+        draw_board(&painter, inner, sq, &self.current.piece_legals_moves, &self.current.last_move, self.current.from_cell, self.flip);                     // damier
         draw_pieces(&painter, inner, sq, &self.current.board, self.flip, self.current.drag_from);   
         draw_dragged_piece(&painter, inner, self.current.drag_from, self.current.drag_pos, &self.current.board);
 
