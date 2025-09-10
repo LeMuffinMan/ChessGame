@@ -12,7 +12,7 @@ pub struct Board {
     pub threaten_cells: Vec<Coord>,
     pub legals_moves: Vec<(Coord, Coord)>,
     pub en_passant: Option<Coord>,
-    pub check: bool,
+    pub check: Option<Coord>,
 }
 
 impl Board {
@@ -24,7 +24,7 @@ impl Board {
             black_castle: (true, true),
             threaten_cells: Vec::new(),
             legals_moves: Vec::new(),
-            check: false,
+            check: None,
         };
 
         board.fill_side(White);
