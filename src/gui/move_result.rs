@@ -19,7 +19,6 @@ impl ChessApp {
         self.from_move_to_pgn((from, to));
         self.undo.push(self.current.clone());
         self.current.board.update_board(&from, &to, &self.current.active_player);
-        self.current.board.check = None;
         let mut castle_tuple = if self.current.active_player == Color::White {
             self.current.board.white_castle
         } else {

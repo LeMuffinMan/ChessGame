@@ -231,16 +231,3 @@ impl ChessApp {
 }
 
 
-
-//TO DO
-//gui 
-//  board 
-//      interface promotion
-//  side panel
-//      finir encoder pgn
-//      moves history : pgn
-//      pieces took
-//      button export pgn
-//      import pgn
-//      replay + flip to fix
-//

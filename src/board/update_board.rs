@@ -8,7 +8,6 @@ use crate::cell::Piece::*;
 
 impl Board {
     pub fn update_board(&mut self, from: &Coord, to: &Coord, color: &Color) {
-        //we reset the en passant flag each time the board change
         self.en_passant = None;
         self.check = None;
         match self.get(from).get_piece() {
