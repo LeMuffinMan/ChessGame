@@ -3,6 +3,7 @@ use crate::Color;
 use crate::Board;
 use crate::Coord;
 use crate::cell::Piece::*;
+use crate::cell::Piece;
 use crate::mat_or_pat;
 use crate::validate_move;
 use crate::gui::chessapp_struct::PromoteInfo;
@@ -182,6 +183,30 @@ impl ChessApp {
         }
     }
 
+    pub fn is_ambiguous_move(&mut self, piece: &Piece, from: &Coord, to: &Coord) {
+        if !self.undo.is_empty() {
+            if let Some(prev_state) = self.undo.last() {
+                let prev_legal_moves = prev_state.board.legals_moves.clone();
+                for (f, t) in prev_legal_moves.iter() {
+                    if t == to && let Some(p) = self.current.board.get(f).get_piece() && p == piece{
+                        println!("ici");
+                        if from.col != f.col {
+                            println!("la");
+                            self.current.history_pgn.push((b'a' + from.col) as char);
+                        } else if from.row != f.row {
+                            println!("la");
+                            self.current.history_pgn.push((b'0' + from.row + 1) as char);
+                        } else {
+                            println!("la");
+                            self.current.history_pgn.push((b'a' + from.col) as char);
+                            self.current.history_pgn.push((b'0' + from.row + 1) as char);
+                        }
+                    }
+                }    
+            }
+        }
+    }
+
     pub fn from_move_to_pgn(&mut self, from: &Coord, to: &Coord, prev_board: &Board) {
 
         //on ecrit le dernier coup une fois les checks du tour suivant faits
@@ -211,8 +236,13 @@ impl ChessApp {
             }
         } else {
             self.current.history_pgn.push(piece);
-
-            //ambiguite ici
+            if let Some(piece) = prev_board.get(from).get_piece() {
+                match piece {
+                    Pawn => { },
+                    King => { }, 
+                    _ => { self.is_ambiguous_move(&piece, &from, &to) },
+                };
+            }
             
             if !self.current.board.get(&to).is_empty() {
                 self.current.history_pgn.push('x');
