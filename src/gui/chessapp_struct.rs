@@ -13,7 +13,7 @@ pub struct GameState {
     pub checkmate: bool,
     pub pat: bool,
     pub last_move: Option<(Coord, Coord)>,
-    pub last_move_pgn: String,
+    // pub last_move_pgn: String,
     pub history_pgn: String,
     pub turn: u32,
 }
@@ -47,7 +47,7 @@ impl Default for ChessApp {
                 checkmate: false,
                 pat: false,
                 last_move: None,
-                last_move_pgn: String::new(),
+                // last_move_pgn: String::new(),
                 history_pgn: String::new(),
                 turn: 1,
             },

@@ -97,9 +97,9 @@ impl ChessApp {
         } else {
             ui.label(format!("{:?} to move", self.current.active_player));
         }
-        if self.current.last_move.is_some() {
-            ui.label(format!("last move: {}", self.current.last_move_pgn));
-        }
+        // if self.current.last_move.is_some() {
+        //     ui.label(format!("last move: {}", self.current.last_move_pgn));
+        // }
         ui.separator();
         ui.horizontal(|ui| {
             if ui.button("New game").clicked() {
