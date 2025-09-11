@@ -4,7 +4,7 @@ use crate::Color;
 use crate::cell::Cell;
 use crate::cell::Piece::*;
 use crate::gui::render::{centered_square, draw_border};
-use crate::gui::chessapp_struct::PromoteInfo;
+use crate::mat_or_pat;
 
 use eframe::egui;
 use std::time::{Duration, Instant};
@@ -123,12 +123,29 @@ impl ChessApp {
                 self.current.board.grid[coord.row as usize][coord.col as usize] =
                     Cell::Occupied(piece, color);
 
+                // println!("{:?} to move", self.current.active_player);
+                if let Some(k) = self.current.board.get_king(&self.current.active_player) {
+                    if self.current.board.threaten_cells.contains(&k) {
+                        self.current.board.check = Some(k);
+                        // println!("Check !");
+                    }
+                }
+                let (end, mate) = mat_or_pat(&mut self.current.board, &self.current.active_player);
+                if end {
+                    if mate {
+                        self.current.checkmate = true;
+                    } else {
+                        self.current.pat = true;
+                    }
+                }
                 if let Some(promoteinfo) = &self.promoteinfo {
                     let from = promoteinfo.from;
                     let to = promoteinfo.to;
-                    let prev_board = promoteinfo.prev_board.clone(); // clone si nécessaire
+                    let prev_board = promoteinfo.prev_board.clone();
                     self.from_move_to_pgn(&from, &to, &prev_board);
+
                 }
+
 
                 self.current.board.pawn_to_promote = None;
                 self.current.board.promote = None;
