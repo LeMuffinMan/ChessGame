@@ -7,14 +7,17 @@ use crate::gui::render::{centered_square, draw_border};
 use crate::mat_or_pat;
 
 use eframe::egui;
+use egui::Context;
 use std::time::{Duration, Instant};
 use chrono::Utc;
+use std::fs;
+use std::path::Path;
 
-fn export_pgn(san: &String) {
+fn export_pgn(san: &String, path: &Path) {
     let mut pgn = String::new();
     pgn.push_str("[Event \"ChessGame\"]\n[Site \"ChessGame\"]\n[Date \"");
     pgn.push_str(Utc::now().to_string().as_str());
-    pgn.push_str("\"]\n[Round \"ChessGame\"]\n[White \"White_player\"]\n[Black \"Black_player\"]\n");
+    pgn.push_str("\"]\n[White \"White_player\"]\n[Black \"Black_player\"]\n");
     if let Some(result) = san.split_whitespace().last() {
         pgn.push_str("[Result : \"");
         if result == "0-1" || result == "1-0" || result == "1/2 - 1/2" {
@@ -24,6 +27,11 @@ fn export_pgn(san: &String) {
         }
         pgn.push_str("\"]\n\n");
         pgn.push_str(san);
+        pgn.push('\n');
+        match fs::write(path, &pgn) {
+            Ok(_) => println!("File saved with success"),
+            Err(e) => eprintln!("Error saving file : {}", e),
+        }
         println!("{}", pgn);
     }
 }
@@ -47,10 +55,10 @@ impl ChessApp {
         }
     }
 
-    pub fn side_panel_ui(&mut self, ui: &mut egui::Ui) {
+    pub fn side_panel_ui(&mut self, ui: &mut egui::Ui, ctx: &Context) {
         ui.heading("ChessGame");
         if let None = self.current.board.pawn_to_promote {
-            self.side_panel_top(ui);
+            self.side_panel_top(ui, ctx);
             ui.separator();
             self.side_panel_flip(ui);
             ui.separator();
@@ -98,7 +106,7 @@ impl ChessApp {
         self.drag_and_drop(inner, sq, &response);
     }
 
-    pub fn side_panel_top(&mut self, ui: &mut egui::Ui) {
+    pub fn side_panel_top(&mut self, ui: &mut egui::Ui, ctx: &Context) {
         ui.separator();
         ui.label(format!("Turn #{}", self.current.turn));
         if self.current.checkmate {
@@ -124,8 +132,19 @@ impl ChessApp {
                 *self = ChessApp::default();
             }
             if ui.add_enabled(!(self.undo.is_empty()), egui::Button::new("Save game")).clicked() {
-                export_pgn(&self.current.history_san);
+                self.file_dialog.save_file();
+
+                ui.label(format!("save file: {:?}", self.file_path));
+
+
                 // println!("{}", self.current.history_san);
+            }
+            if let Some(path) = self.file_dialog.update(ctx).picked() {
+                if let Some(path) = Some(path.to_path_buf()) {
+
+                    println!("{:?}", path);
+                }
+                export_pgn(&self.current.history_san, path);
             }
             if ui.button("Quit").clicked() {
                 ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
