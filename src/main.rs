@@ -1,6 +1,4 @@
 mod threat;
-use crate::threat::update_threatens_cells;
-use crate::update_threatens_cells::update_threatens_cells;
 use threat::get_threaten_cells;
 mod cell;
 use cell::Color;
@@ -33,6 +31,11 @@ use crate::gui::chessapp_struct::ChessApp;
 //
 //      import pgn
 //          decoder pgn
+//
+//      versus
+//          deux joueurs
+//          serie de parties
+//
 //
 
 fn main() {
@@ -96,7 +99,7 @@ fn run_cli() {
 }
 
 pub fn mat_or_pat(board: &mut Board, color: &Color) -> (bool, bool) {
-    update_threatens_cells(board, color);
+    board.update_threatens_cells(color);
     board.update_legals_moves(color);
     // for coord in &board.threaten_cells {
     //     println!("Cell threaten : ({}, {})", coord.row, coord.col);

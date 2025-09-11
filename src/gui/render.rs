@@ -33,7 +33,11 @@ impl ChessApp {
             egui::Color32::from_rgb(200, 200, 230),
             egui::Color32::from_rgb(150, 170, 200),
         ];
-
+        let red = [
+            egui::Color32::from_rgb(240, 200, 200),
+            egui::Color32::from_rgb(200, 150, 150),
+            
+        ];
         for row in 0..8 {
             for col in 0..8 {
                 let min = inner.min + egui::vec2(col as f32 * sq, row as f32 * sq);
@@ -45,7 +49,10 @@ impl ChessApp {
                     col: col,
                 };
                 let idx = (row + col) % 2;
-                if self.piece_legals_moves.contains(&coord) && self.show_legals_moves {
+                if self.show_threaten_cells
+                    && self.current.board.threaten_cells.contains(&coord) {
+                        p.rect_filled(cell, 0.0, red[idx as usize]);
+                } else if self.piece_legals_moves.contains(&coord) && self.show_legals_moves {
                     p.rect_filled(cell, 0.0, green[idx as usize]);
                 } else if let Some((from, to)) = self.current.last_move
                     && (coord == from || coord == to)

@@ -17,33 +17,35 @@ use crate::get_threaten_cells::*;
 // println!("Checking cell ({}, {}) -> {:?}", row, col, cell.get_piece());
 //
 //Est-ce plus coherent d'en faire une impl de Board ?
-pub fn update_threatens_cells(board: &mut Board, color: &Color) {
-    board.threaten_cells.clear();
-    // println!("call here");
-    for row in 0..8 {
-        for col in 0..8 {
-            let coord = Coord {
-                row: row as u8,
-                col: col as u8,
-            };
-            let cell = board.get(&coord);
-            if let Some(piece) = cell.get_piece()
-                && !cell.is_color(color)
-            {
-                match piece {
-                    Piece::Pawn => pawn_threats(&cell, &coord, color, board),
-                    Piece::Rook => rook_threats(&coord, row, col, board),
-                    Piece::Knight => knight_threats(&coord, color, &cell, board),
-                    Piece::Bishop => bishop_threats(&coord, row, col, board),
-                    Piece::Queen => {
-                        rook_threats(&coord, row, col, board);
-                        bishop_threats(&coord, row, col, board);
+impl Board {
+    pub fn update_threatens_cells(&mut self, color: &Color) {
+        self.threaten_cells.clear();
+        // println!("call here");
+        for row in 0..8 {
+            for col in 0..8 {
+                let coord = Coord {
+                    row: row as u8,
+                    col: col as u8,
+                };
+                let cell = self.get(&coord);
+                if let Some(piece) = cell.get_piece()
+                    && !cell.is_color(color)
+                {
+                    match piece {
+                        Piece::Pawn => pawn_threats(&cell, &coord, color, self),
+                        Piece::Rook => rook_threats(&coord, row, col, self),
+                        Piece::Knight => knight_threats(&coord, color, &cell, self),
+                        Piece::Bishop => bishop_threats(&coord, row, col, self),
+                        Piece::Queen => {
+                            rook_threats(&coord, row, col, self);
+                            bishop_threats(&coord, row, col, self);
+                        }
+                        Piece::King => king_threats(&coord, self),
                     }
-                    Piece::King => king_threats(&coord, board),
+                } else {
+                    // println!("Skipping cell ({}, {}) -> {:?}", row, col, cell.get_piece());
+                    continue;
                 }
-            } else {
-                // println!("Skipping cell ({}, {}) -> {:?}", row, col, cell.get_piece());
-                continue;
             }
         }
     }
