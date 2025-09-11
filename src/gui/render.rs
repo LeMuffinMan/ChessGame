@@ -49,6 +49,12 @@ impl ChessApp {
                     col: col,
                 };
                 let idx = (row + col) % 2;
+                if let Some(coord) = &self.current.board.check 
+                    && (coord.row == row && coord.col == col)
+                    && self.current.board.threaten_cells.contains(&coord) { 
+                    p.rect_filled(cell, 0.0, red[idx as usize]);
+                    continue ;
+                }
                 if self.show_threaten_cells
                     && self.current.board.threaten_cells.contains(&coord) {
                         p.rect_filled(cell, 0.0, red[idx as usize]);

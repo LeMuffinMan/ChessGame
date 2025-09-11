@@ -184,9 +184,14 @@ impl ChessApp {
         }
 
         // println!("{:?} to move", self.current.active_player);
-        if let Some(k) = self.current.board.get_king(&self.current.active_player) {
+        let active_player = if self.current.active_player == Color::White { Color::White } else { Color::Black };
+        let opponent = if self.current.active_player != Color::White { Color::White } else { Color::Black };
+
+        if let Some(k) = self.current.board.get_king(&active_player) {
             if self.current.board.threaten_cells.contains(&k) {
-                self.current.board.check = Some(k);
+                if let Some(k) = self.current.board.get_king(&opponent) {
+                    self.current.board.check = Some(k);
+                }
                 // println!("Check !");
             }
         }
