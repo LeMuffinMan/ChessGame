@@ -35,6 +35,8 @@ impl Board {
         board.fill_side(White);
         board.fill_side(Black);
         board.update_legals_moves(&Color::White);
+        board.update_threatens_cells(&Color::White);
+
         board
     }
     pub fn fill_side(&mut self, color: Color) {

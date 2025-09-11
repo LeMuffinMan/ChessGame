@@ -40,6 +40,7 @@ pub struct ChessApp {
     pub show_coordinates: bool,
     pub show_legals_moves: bool,
     pub show_last_move: bool,
+    pub show_threaten_cells: bool,
     pub promoteinfo: Option<PromoteInfo>,
     //gui cell to highlight
     pub from_cell: Option<Coord>,
@@ -72,6 +73,7 @@ impl Default for ChessApp {
             show_coordinates: false,
             show_legals_moves: true,
             show_last_move: true,
+            show_threaten_cells: false,
             promoteinfo: None,
             from_cell: None,
             drag_from: None,
