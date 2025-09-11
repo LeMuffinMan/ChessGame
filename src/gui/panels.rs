@@ -8,6 +8,25 @@ use crate::mat_or_pat;
 
 use eframe::egui;
 use std::time::{Duration, Instant};
+use chrono::Utc;
+
+fn export_pgn(san: &String) {
+    let mut pgn = String::new();
+    pgn.push_str("[Event \"ChessGame\"]\n[Site \"ChessGame\"]\n[Date \"");
+    pgn.push_str(Utc::now().to_string().as_str());
+    pgn.push_str("\"]\n[Round \"ChessGame\"]\n[White \"White_player\"]\n[Black \"Black_player\"]\n");
+    if let Some(result) = san.split_whitespace().last() {
+        pgn.push_str("[Result : \"");
+        if result == "0-1" || result == "1-0" || result == "1/2 - 1/2" {
+            pgn.push_str(result);
+        } else {
+            pgn.push('*');
+        }
+        pgn.push_str("\"]\n\n");
+        pgn.push_str(san);
+        println!("{}", pgn);
+    }
+}
 
 impl ChessApp {
     fn replay_step(&mut self, ctx: &egui::Context) {
@@ -104,7 +123,9 @@ impl ChessApp {
             if ui.button("New game").clicked() {
                 *self = ChessApp::default();
             }
-            if ui.add_enabled(false, egui::Button::new("Save game")).clicked() {
+            if ui.add_enabled(!(self.undo.is_empty()), egui::Button::new("Save game")).clicked() {
+                export_pgn(&self.current.history_san);
+                // println!("{}", self.current.history_san);
             }
             if ui.button("Quit").clicked() {
                 ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
