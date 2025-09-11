@@ -5,6 +5,7 @@ use crate::Coord;
 use crate::cell::Piece::*;
 use crate::mat_or_pat;
 use crate::validate_move;
+use crate::gui::chessapp_struct::PromoteInfo;
 
 impl ChessApp {
     // fn update_last_move_pgn(&mut self) {
@@ -63,7 +64,11 @@ impl ChessApp {
         self.events_check();
         if let Some(prev_state) = self.undo.last() {
             let prev_board = &prev_state.board.clone();
-            self.from_move_to_pgn(&from, &to, &prev_board);
+            if self.current.board.pawn_to_promote.is_some() {
+                self.promoteinfo = Some(PromoteInfo { from: from, to: to, prev_board: prev_board.clone() });
+            } else {
+                self.from_move_to_pgn(&from, &to, &prev_board);
+            }
         }
     }
 
@@ -225,20 +230,6 @@ impl ChessApp {
             self.current.history_pgn.push_str("+ ");
         } else {
             self.current.history_pgn.push(' ');
-        }
-
-
-
-
-
-        if piece.is_lowercase() {
-
-        }
-        
-
-
-        if !self.current.board.get(&to).is_empty() {
-
         }
     }
 

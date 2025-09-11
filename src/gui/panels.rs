@@ -4,8 +4,7 @@ use crate::Color;
 use crate::cell::Cell;
 use crate::cell::Piece::*;
 use crate::gui::render::{centered_square, draw_border};
-    // centered_square, draw_board, draw_border, draw_dragged_piece, draw_pieces,
-// };
+use crate::gui::chessapp_struct::PromoteInfo;
 
 use eframe::egui;
 use std::time::{Duration, Instant};
@@ -123,6 +122,14 @@ impl ChessApp {
                 };
                 self.current.board.grid[coord.row as usize][coord.col as usize] =
                     Cell::Occupied(piece, color);
+
+                if let Some(promoteinfo) = &self.promoteinfo {
+                    let from = promoteinfo.from;
+                    let to = promoteinfo.to;
+                    let prev_board = promoteinfo.prev_board.clone(); // clone si nécessaire
+                    self.from_move_to_pgn(&from, &to, &prev_board);
+                }
+
                 self.current.board.pawn_to_promote = None;
                 self.current.board.promote = None;
             } else {
