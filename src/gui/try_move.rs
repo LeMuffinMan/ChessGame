@@ -207,7 +207,7 @@ impl ChessApp {
                 self.current.history_pgn.push('x');
             }
             self.current.history_pgn.push((b'a' + to.col) as char);
-            self.current.history_pgn.push((to.row + 1) as char);
+            self.current.history_pgn.push((b'0' + to.row + 1) as char);
         }
 
         //endgame and checks
