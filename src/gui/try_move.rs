@@ -189,15 +189,11 @@ impl ChessApp {
                 let prev_legal_moves = prev_state.board.legals_moves.clone();
                 for (f, t) in prev_legal_moves.iter() {
                     if t == to && let Some(p) = self.current.board.get(f).get_piece() && p == piece{
-                        println!("ici");
                         if from.col != f.col {
-                            println!("la");
                             self.current.history_san.push((b'a' + from.col) as char);
                         } else if from.row != f.row {
-                            println!("la");
                             self.current.history_san.push((b'0' + from.row + 1) as char);
                         } else {
-                            println!("la");
                             self.current.history_san.push((b'a' + from.col) as char);
                             self.current.history_san.push((b'0' + from.row + 1) as char);
                         }
