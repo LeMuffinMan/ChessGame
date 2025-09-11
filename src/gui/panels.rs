@@ -43,10 +43,10 @@ impl ChessApp {
             ui.checkbox(&mut self.show_last_move, "Last move").changed();
             ui.separator();
             self.side_panel_undo_redo_replay(ui);
-            // ui.monospace(&self.current.last_move_pgn);
-            if !self.current.history_pgn.is_empty() {
+            // ui.monospace(&self.current.last_move_san);
+            if !self.current.history_san.is_empty() {
                 ui.separator();
-                ui.monospace(&self.current.history_pgn);
+                ui.monospace(&self.current.history_san);
             }
         }
         self.side_panel_promote(ui);
@@ -97,7 +97,7 @@ impl ChessApp {
             ui.label(format!("{:?} to move", self.current.active_player));
         }
         // if self.current.last_move.is_some() {
-        //     ui.label(format!("last move: {}", self.current.last_move_pgn));
+        //     ui.label(format!("last move: {}", self.current.last_move_san));
         // }
         ui.separator();
         ui.horizontal(|ui| {
@@ -142,7 +142,7 @@ impl ChessApp {
                     let from = promoteinfo.from;
                     let to = promoteinfo.to;
                     let prev_board = promoteinfo.prev_board.clone();
-                    self.from_move_to_pgn(&from, &to, &prev_board);
+                    self.from_move_to_san(&from, &to, &prev_board);
 
                 }
 
