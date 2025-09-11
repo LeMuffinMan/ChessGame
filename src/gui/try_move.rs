@@ -8,6 +8,7 @@ use crate::mat_or_pat;
 use crate::validate_move;
 use crate::gui::chessapp_struct::PromoteInfo;
 
+
 impl ChessApp {
     // fn update_last_move_san(&mut self) {
     //     if self.current.checkmate {
@@ -18,8 +19,7 @@ impl ChessApp {
     //             self.current.last_move_san.push_str("1-0");
     //         } else {
     //             self.current.last_move_san.push_str("0-1");
-    //         }
-    //     } else if self.current.pat {
+    //             //     } else if self.current.pat {
     //         self.current.last_move_san.push_str("1/2 - 1/2");
     //     } else {
     //         self.current.last_move_san.push_str(" ");
@@ -240,7 +240,7 @@ impl ChessApp {
                 };
             }
             
-            if !self.current.board.get(&to).is_empty() {
+            if !prev_board.get(&to).is_empty() {
                 self.current.history_san.push('x');
             }
             self.current.history_san.push((b'a' + to.col) as char);

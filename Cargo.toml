@@ -4,5 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+chrono = "0.4.42"
 eframe = "0.32.2"
 egui = "0.32.2"
+egui-file-dialog = "0.11.0"

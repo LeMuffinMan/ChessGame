@@ -5,7 +5,8 @@ use crate::Coord;
 use eframe::{App, egui};
 use egui::Pos2;
 use std::time::Instant;
-
+use egui_file_dialog::FileDialog;
+use std::path::PathBuf;
 
 #[derive(Clone)]
 pub struct PromoteInfo {
@@ -45,6 +46,8 @@ pub struct ChessApp {
     pub drag_from: Option<Coord>,
     pub drag_pos: Option<Pos2>,
     pub piece_legals_moves: Vec<Coord>,
+    pub file_dialog: FileDialog,
+    pub file_path: Option<PathBuf>,
 }
 
 impl Default for ChessApp {
@@ -74,6 +77,8 @@ impl Default for ChessApp {
             drag_from: None,
             drag_pos: None,
             piece_legals_moves: Vec::new(),
+            file_dialog: FileDialog::new(),
+            file_path: None,
         }
     }
 }
@@ -84,7 +89,7 @@ impl App for ChessApp {
         egui::SidePanel::left("left_panel")
             .default_width(180.0)
             .show(ctx, |ui| {
-                self.side_panel_ui(ui);
+                self.side_panel_ui(ui, ctx);
             });
         egui::CentralPanel::default().show(ctx, |ui| {
             self.central_panel_ui(ui);
