@@ -203,6 +203,12 @@ impl ChessApp {
 
         if piece == 'p' {
             self.pawn_pgn(from, to, prev_board);
+        } else if piece == 'K' && (to.col as i8 - from.col as i8).abs() > 1 {
+            if (to.col as i8 - from.col as i8) < 0 {
+                self.current.history_pgn.push_str("O-O-O");
+            } else {
+                self.current.history_pgn.push_str("O-O");
+            }
         } else {
             self.current.history_pgn.push(piece);
 
