@@ -72,8 +72,11 @@ impl ChessApp {
             self.side_panel_undo_redo_replay(ui);
             // ui.monospace(&self.current.last_move_san);
             if !self.current.history_san.is_empty() {
-                ui.separator();
                 ui.monospace(&self.current.history_san);
+            }
+            ui.separator();
+            if ui.button("Quit").clicked() {
+                ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
             }
         }
         self.side_panel_promote(ui);
@@ -131,13 +134,10 @@ impl ChessApp {
             if ui.button("New game").clicked() {
                 *self = ChessApp::default();
             }
-            if ui.add_enabled(!(self.undo.is_empty()), egui::Button::new("Save game")).clicked() {
+
+            if ui.add_enabled(!(self.undo.is_empty()), egui::Button::new("Save")).clicked() {
                 self.file_dialog.save_file();
-
                 ui.label(format!("save file: {:?}", self.file_path));
-
-
-                // println!("{}", self.current.history_san);
             }
             if let Some(path) = self.file_dialog.update(ctx).picked() {
                 if let Some(path) = Some(path.to_path_buf()) {
@@ -146,8 +146,8 @@ impl ChessApp {
                 }
                 export_pgn(&self.current.history_san, path);
             }
-            if ui.button("Quit").clicked() {
-                ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
+            if ui.add_enabled(false, egui::Button::new("Load")).clicked() {
+                println!("Load game");
             }
         });
     }

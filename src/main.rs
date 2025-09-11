@@ -31,8 +31,6 @@ use crate::gui::chessapp_struct::ChessApp;
 //      pieces took
 //      replay + flip to fix
 //
-//      button export pgn
-//          - dans un fichier choisi 
 //      import pgn
 //          decoder pgn
 //
