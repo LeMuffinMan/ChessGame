@@ -2,15 +2,23 @@ use crate::ChessApp;
 use crate::gui::render::ui_to_board;
 
 impl ChessApp {
+
+    pub fn get_piece_legal_moves(&mut self) {
+        if let Some(coord) = self.drag_from {
+            for (from, to) in self.current.board.legals_moves.iter() {
+                if from.row == coord.row && from.col == coord.col {
+                    // println!("pushing {:?}", coord);
+                    self.piece_legals_moves.push(*to);
+                }
+            }
+        }
+    }
+
     pub fn drag_and_drop(&mut self, inner: egui::Rect, sq: f32, response: &egui::Response) {
         if response.drag_started() {
             if let Some(pos) = response.interact_pointer_pos() {
                 if let Some(c) = ui_to_board(inner, sq, self.flip, pos) {
-                    if self
-                        .current
-                        .board
-                        .get(&c)
-                        .is_color(&self.current.active_player)
+                    if self.is_active_player_piece(&c)
                         && !self.current.checkmate
                         && !self.current.pat
                         && let None = self.current.board.pawn_to_promote
@@ -18,15 +26,8 @@ impl ChessApp {
                         self.drag_from = Some(c);
                         self.from_cell = Some(c);
                         self.drag_pos = Some(pos);
-                        if let Some(coord) = self.drag_from {
-                            if self.piece_legals_moves.is_empty() {
-                                for (from, to) in self.current.board.legals_moves.iter() {
-                                    if from.row == coord.row && from.col == coord.col {
-                                        // println!("pushing {:?}", coord);
-                                        self.piece_legals_moves.push(*to);
-                                    }
-                                }
-                            }
+                        if self.piece_legals_moves.is_empty() {
+                            self.get_piece_legal_moves();
                         }
                     }
                 }
