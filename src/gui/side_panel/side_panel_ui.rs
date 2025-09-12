@@ -49,10 +49,10 @@ impl ChessApp {
         ui.horizontal(|ui| {
             if ui.button("Accept").clicked() {
                 self.current.end = Some(Draw);
-                self.draw_option = Some(Unavailable);
+                self.draw_option = None;
             }
             if ui.button("Reject").clicked() {
-                self.draw_option = Some(Unavailable);
+                self.draw_option = None;
             }
         });
     }

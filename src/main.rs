@@ -19,11 +19,14 @@ mod validate_move;
 //- Pipeline de tests end to end ?
 //
 //++ implementer draw rules
+//      - triple repetition
+//      - 50 moves sans prise ou pion move
+//      - configuration de fin spec
 //
 //gui
 //  side panel
 //      pieces took
-//      replay + flip to fix
+//      flip + replay / + play to fix
 //
 //      import pgn
 //          decoder pgn

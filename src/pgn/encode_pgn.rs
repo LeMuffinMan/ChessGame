@@ -103,7 +103,7 @@ impl ChessApp {
                 Draw => self.current.history_san.push_str(" 1/2 - 1/2"),
             };      
         }
-        if self.current.board.check.is_some() {
+        if self.current.board.check.is_some() && self.current.end.is_none(){
             self.current.history_san.push('+');
         } 
         self.current.history_san.push(' ');
