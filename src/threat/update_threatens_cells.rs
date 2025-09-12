@@ -5,7 +5,7 @@ use crate::Color;
 use crate::Coord;
 use crate::board::cell::Cell;
 use crate::board::cell::Color::*;
-use crate::board::cell::Piece;
+use crate::board::cell::Piece::*;
 use crate::get_threaten_cells::*;
 
 //For each piece, we collect the cells it threatens, and we push it in the
@@ -32,15 +32,15 @@ impl Board {
                     && !cell.is_color(color)
                 {
                     match piece {
-                        Piece::Pawn => pawn_threats(&cell, &coord, color, self),
-                        Piece::Rook => rook_threats(&coord, row, col, self),
-                        Piece::Knight => knight_threats(&coord, color, &cell, self),
-                        Piece::Bishop => bishop_threats(&coord, row, col, self),
-                        Piece::Queen => {
+                        Pawn => pawn_threats(&cell, &coord, color, self),
+                        Rook => rook_threats(&coord, row, col, self),
+                        Knight => knight_threats(&coord, color, &cell, self),
+                        Bishop => bishop_threats(&coord, row, col, self),
+                        Queen => {
                             rook_threats(&coord, row, col, self);
                             bishop_threats(&coord, row, col, self);
                         }
-                        Piece::King => king_threats(&coord, self),
+                        King => king_threats(&coord, self),
                     }
                 } else {
                     // println!("Skipping cell ({}, {}) -> {:?}", row, col, cell.get_piece());

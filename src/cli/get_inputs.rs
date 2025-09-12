@@ -1,5 +1,6 @@
 use crate::Board;
 use crate::Color;
+use crate::Color::*;
 use std::io::{self, BufRead};
 use crate::validate_move::try_move::mat_or_pat;
 use crate::validate_move;
@@ -16,9 +17,9 @@ pub fn run_cli() {
             if i != 1 {
                 turn += 1;
             }
-            Color::White
+            White
         } else {
-            Color::Black
+            Black
         };
         let (end, _mate) = mat_or_pat(&mut board, &color);
         if end {

@@ -1,7 +1,7 @@
 use crate::Board;
 use crate::Color;
 use crate::Coord;
-use crate::board::cell::Piece;
+use crate::board::cell::Piece::*;
 use crate::validate_move::is_legal_move::is_king_exposed;
 use crate::board::legals_moves::piece_case::update_rook_legals_moves;
 use crate::board::legals_moves::piece_case::update_knight_legals_moves;
@@ -23,27 +23,27 @@ impl Board {
                     };
                     if let Some(piece) = self.get(&from).get_piece() {
                         match piece {
-                            Piece::Pawn => {
+                            Pawn => {
                                 let vec = update_pawn_legals_moves(&from, color, self);
                                 self.legals_moves.extend(vec);
                             }
-                            Piece::Rook => {
+                            Rook => {
                                 let vec = update_rook_legals_moves(&from, color, self);
                                 self.legals_moves.extend(vec);
                             }
-                            Piece::Knight => {
+                            Knight => {
                                 let vec = update_knight_legals_moves(&from, color, self);
                                 self.legals_moves.extend(vec);
                             }
-                            Piece::Bishop => {
+                            Bishop => {
                                 let vec = update_bishop_legals_moves(&from, color, self);
                                 self.legals_moves.extend(vec);
                             }
-                            Piece::Queen => {
+                            Queen => {
                                 let vec = update_queen_legals_moves(&from, color, self);
                                 self.legals_moves.extend(vec);
                             }
-                            Piece::King => {
+                            King => {
                                 let vec = update_king_legals_moves(&from, color, self);
                                 self.legals_moves.extend(vec);
                             }

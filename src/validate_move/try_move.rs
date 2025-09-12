@@ -1,5 +1,6 @@
 use crate::ChessApp;
 use crate::Color;
+use crate::Color::*;
 use crate::Board;
 use crate::Coord;
 use crate::board::cell::Piece::*;
@@ -56,13 +57,13 @@ impl ChessApp {
     }
 
     fn incremente_turn(&mut self) {
-        if self.current.active_player == Color::Black {
+        if self.current.active_player == Black {
             self.current.turn += 1;
         }
     }
 
     // fn add_history(&mut self) {
-    //     if self.current.active_player == Color::White {
+    //     if self.current.active_player == White {
     //         let turn_str = self.current.turn.to_string();
     //         if self.current.history_san.is_empty() {
     //         } else {
@@ -107,8 +108,8 @@ impl ChessApp {
     fn events_check(&mut self) {
         self.current.board.promote_pawn(&self.current.active_player);
         self.current.active_player = match self.current.active_player {
-            Color::White => Color::Black,
-            Color::Black => Color::White,
+            White => Black,
+            Black => White,
         };
         let (end, mate) = mat_or_pat(&mut self.current.board, &self.current.active_player);
         if end {
@@ -120,8 +121,8 @@ impl ChessApp {
         }
 
         // println!("{:?} to move", self.current.active_player);
-        let active_player = if self.current.active_player == Color::White { Color::White } else { Color::Black };
-        let opponent = if self.current.active_player != Color::White { Color::White } else { Color::Black };
+        let active_player = if self.current.active_player == White { White } else { Black };
+        let opponent = if self.current.active_player != White { White } else { Black };
 
         if let Some(k) = self.current.board.get_king(&active_player) {
             if self.current.board.threaten_cells.contains(&k) {
@@ -134,8 +135,8 @@ impl ChessApp {
     }
     
     fn is_en_passant_take(&mut self, from: &Coord, to: &Coord, prev_board: &Board) -> bool {
-        let row_en_passant = if self.current.active_player == Color::White { 5 } else { 4 };
-        let diff: i8 = if self.current.active_player == Color::White { -1 } else { 1 };
+        let row_en_passant = if self.current.active_player == White { 5 } else { 4 };
+        let diff: i8 = if self.current.active_player == White { -1 } else { 1 };
         if from.row == row_en_passant {
             let new_row = from.row as i8 + diff;
             let coord = Coord { row: new_row as u8, col: to.col };
@@ -193,7 +194,7 @@ impl ChessApp {
     pub fn from_move_to_san(&mut self, from: &Coord, to: &Coord, prev_board: &Board) {
 
         //on ecrit le dernier coup une fois les checks du tour suivant faits
-        if self.current.active_player == Color::Black {
+        if self.current.active_player == Black {
             self.current.history_san.push_str(self.current.turn.to_string().as_str());
             self.current.history_san.push_str(". ");
         } 
@@ -237,7 +238,7 @@ impl ChessApp {
         //endgame and checks
         if self.current.checkmate {
             self.current.history_san.push_str("# ");
-            if self.current.active_player == Color::White {
+            if self.current.active_player == White {
                 self.current.history_san.push_str("0-1");
             } else {
                 self.current.history_san.push_str("1-0");
@@ -302,10 +303,10 @@ pub fn mat_or_pat(board: &mut Board, color: &Color) -> (bool, bool) {
         let king_cell = board.get_king(color);
         if let Some(coord) = king_cell {
             if board.threaten_cells.contains(&coord) {
-                let winner = if *color == Color::White {
-                    Color::Black
+                let winner = if *color == White {
+                    Black
                 } else {
-                    Color::White
+                    White
                 };
                 println!("Checkmate ! {:?} win", winner);
                 return (true, true);
