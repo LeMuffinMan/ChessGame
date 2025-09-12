@@ -22,7 +22,7 @@ pub enum DrawOption {
     Available(DrawRule),
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum End {
     Checkmate,
     Pat,
@@ -48,32 +48,42 @@ pub struct GameState {
     pub turn: u32,
 }
 
+pub struct Draw {
+    pub board_hashs: HashMap<u64, usize>,
+    pub draw_option: Option<DrawOption>,
+    pub draw_moves_count: u32,
+    pub draw_hash: Option<u64>,
+}
+
+pub struct Highlight {
+    pub from_cell: Option<Coord>,
+    pub drag_from: Option<Coord>,
+    pub drag_pos: Option<Pos2>,
+    pub piece_legals_moves: Vec<Coord>,
+}
+
+pub struct Widgets {
+    pub show_coordinates: bool,
+    pub show_legals_moves: bool,
+    pub show_last_move: bool,
+    pub show_threaten_cells: bool,
+    pub next_replay_time: Option<Instant>,
+    pub flip: bool,
+    pub autoflip: bool,
+    pub replay_speed: u64,
+}
+
 pub struct ChessApp {
     //history undo / redo
     pub current: GameState,
     pub undo: Vec<GameState>,
     pub redo: Vec<GameState>,
-    pub next_replay_time: Option<Instant>,
-    //gui options
-    pub flip: bool,
-    pub autoflip: bool,
-    pub replay_speed: u64,
-    pub show_coordinates: bool,
-    pub show_legals_moves: bool,
-    pub show_last_move: bool,
-    pub show_threaten_cells: bool,
+    pub widgets: Widgets,
+    pub highlight: Highlight,
+    pub draw: Draw,
     pub promoteinfo: Option<PromoteInfo>,
-    //gui cell to highlight
-    pub from_cell: Option<Coord>,
-    pub drag_from: Option<Coord>,
-    pub drag_pos: Option<Pos2>,
-    pub piece_legals_moves: Vec<Coord>,
     pub file_dialog: FileDialog,
     pub file_path: Option<PathBuf>,
-    pub board_hashs: HashMap<u64, usize>,
-    pub draw_option: Option<DrawOption>,
-    pub draw_moves_count: u32,
-    pub draw_hash: Option<u64>,
 }
 
 impl Default for ChessApp {
@@ -90,25 +100,31 @@ impl Default for ChessApp {
             },
             undo: Vec::new(),
             redo: Vec::new(),
-            next_replay_time: None,
-            replay_speed: 1000,
-            flip: true,
-            autoflip: false,
-            show_coordinates: false,
-            show_legals_moves: true,
-            show_last_move: true,
-            show_threaten_cells: false,
+            widgets: Widgets {
+                show_coordinates: false,
+                show_legals_moves: true,
+                show_last_move: true,
+                show_threaten_cells: false,
+                next_replay_time: None,
+                flip: true,
+                autoflip: false,
+                replay_speed: 1000,
+            },
+            highlight: Highlight {
+                from_cell: None,
+                drag_from: None,
+                drag_pos: None,
+                piece_legals_moves: Vec::new(),
+            },
+            draw: Draw {
+                board_hashs: HashMap::new(),
+                draw_option: None,
+                draw_moves_count: 0,
+                draw_hash: None,
+            },
             promoteinfo: None,
-            from_cell: None,
-            drag_from: None,
-            drag_pos: None,
-            piece_legals_moves: Vec::new(),
             file_dialog: FileDialog::new(),
             file_path: None,
-            board_hashs: HashMap::new(),
-            draw_option: None,
-            draw_moves_count: 0,
-            draw_hash: None,
         }
     }
 }
