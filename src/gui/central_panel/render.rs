@@ -5,18 +5,8 @@ use crate::Coord;
 use crate::board::cell::Piece;
 use crate::gui::chessapp_struct::End::*;
 
-pub fn centered_square(rect: egui::Rect) -> egui::Rect {
-    let side = rect.width().min(rect.height());
-    egui::Rect::from_center_size(rect.center(), egui::vec2(side, side))
-}
-
-pub fn draw_border(p: &egui::Painter, rect: egui::Rect) {
-    let border_color = egui::Color32::from_rgb(50, 50, 50);
-    p.rect_filled(rect, 0.0, border_color);
-}
-
 impl ChessApp {
-    pub fn draw_board(&self, p: &egui::Painter, inner: egui::Rect, sq: f32) {
+    pub fn render_board(&self, p: &egui::Painter, inner: egui::Rect, sq: f32) {
         let colors = [
             egui::Color32::from_rgb(240, 217, 181),
             egui::Color32::from_rgb(181, 136, 99),
@@ -50,18 +40,22 @@ impl ChessApp {
                     && k.col == col
                     && self.current.board.threaten_cells.contains(&k)
                 {
-                    if let Some(end) = &self.current.end && *end == Checkmate {
+                    if let Some(end) = &self.current.end
+                        && *end == Checkmate
+                    {
                         p.rect_filled(cell, 0.0, egui::Color32::from_rgb(255, 100, 100));
-                    } else { 
+                    } else {
                         p.rect_filled(cell, 0.0, red[idx as usize]);
                     }
                     continue;
                 }
-                if self.widgets.show_threaten_cells && self.current.board.threaten_cells.contains(&coord) {
-                    if let Some(end) = &self.current.end && *end == Checkmate {
-                        p.rect_filled(cell, 0.0, red[idx as usize]);
-                    }
-                } else if self.highlight.piece_legals_moves.contains(&coord) && self.widgets.show_legals_moves {
+                if self.widgets.show_threaten_cells
+                    && self.current.board.threaten_cells.contains(&coord)
+                {
+                    p.rect_filled(cell, 0.0, red[idx as usize]);
+                } else if self.highlight.piece_legals_moves.contains(&coord)
+                    && self.widgets.show_legals_moves
+                {
                     p.rect_filled(cell, 0.0, green[idx as usize]);
                 } else if let Some((from, to)) = self.current.last_move
                     && (coord == from || coord == to)
@@ -79,7 +73,7 @@ impl ChessApp {
         }
     }
 
-    pub fn draw_dragged_piece(&self, painter: &egui::Painter, inner: egui::Rect) {
+    pub fn render_dragged_piece(&self, painter: &egui::Painter, inner: egui::Rect) {
         if let (Some(from), Some(pos)) = (self.highlight.drag_from, self.highlight.drag_pos)
             && let (Some(piece), Some(color)) = (
                 self.current.board.get(&from).get_piece(),
@@ -100,7 +94,7 @@ impl ChessApp {
         }
     }
 
-    pub fn draw_pieces(&self, p: &egui::Painter, inner: egui::Rect, sq: f32) {
+    pub fn render_pieces(&self, p: &egui::Painter, inner: egui::Rect, sq: f32) {
         for row in 0..8 {
             for col in 0..8 {
                 let board_row = if self.widgets.flip { 7 - row } else { row };
@@ -120,7 +114,7 @@ impl ChessApp {
                     let ch = piece_char(*color, piece);
                     let min = inner.min + egui::vec2(col as f32 * sq, row as f32 * sq);
                     let cell = egui::Rect::from_min_size(min, egui::vec2(sq, sq));
-                    draw_piece_unicode(p, cell, ch, color);
+                    render_piece_unicode(p, cell, ch, color);
                 }
             }
         }
@@ -161,7 +155,12 @@ pub fn ui_to_board(inner: egui::Rect, sq: f32, flip: bool, pos: egui::Pos2) -> O
     })
 }
 
-pub fn draw_piece_unicode(painter: &egui::Painter, cell_rect: egui::Rect, ch: char, color: &Color) {
+pub fn render_piece_unicode(
+    painter: &egui::Painter,
+    cell_rect: egui::Rect,
+    ch: char,
+    color: &Color,
+) {
     let font_px = cell_rect.height() * 0.8;
     let font = egui::FontId::proportional(font_px);
     let color = if *color == Black {

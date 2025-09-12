@@ -32,7 +32,8 @@ impl ChessApp {
             ui.checkbox(&mut self.widgets.show_legals_moves, "Legals moves")
                 .changed();
             ui.checkbox(&mut self.widgets.show_threaten_cells, "Threaten cells");
-            ui.checkbox(&mut self.widgets.show_last_move, "Last move").changed();
+            ui.checkbox(&mut self.widgets.show_last_move, "Last move")
+                .changed();
             ui.separator();
             self.side_panel_undo_redo_replay(ui);
             if !self.current.history_san.is_empty() {

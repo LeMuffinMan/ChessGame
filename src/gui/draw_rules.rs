@@ -115,5 +115,4 @@ impl ChessApp {
             _ => false,
         }
     }
-
 }

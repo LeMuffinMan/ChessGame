@@ -33,7 +33,10 @@ impl ChessApp {
         }
 
         if response.drag_stopped()
-            && let (Some(from), Some(pos)) = (self.highlight.drag_from.take(), self.highlight.drag_pos.take())
+            && let (Some(from), Some(pos)) = (
+                self.highlight.drag_from.take(),
+                self.highlight.drag_pos.take(),
+            )
             && let Some(dst) = ui_to_board(inner, sq, self.widgets.flip, pos)
             && from != dst
         {

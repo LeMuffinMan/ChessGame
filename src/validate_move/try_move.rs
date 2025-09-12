@@ -7,9 +7,7 @@ use crate::gui::chessapp_struct::GameState;
 use crate::gui::chessapp_struct::PromoteInfo;
 use crate::validate_move;
 
-
 impl ChessApp {
-
     pub fn try_move(&mut self, from: Coord, to: Coord) {
         if !self
             .current
