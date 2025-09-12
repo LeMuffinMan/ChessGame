@@ -86,6 +86,12 @@ impl ChessApp {
         //
         if let Some(end) = &self.current.end {
             match end {
+                Resign => {
+                    match self.current.opponent  {
+                        White => self.current.history_san.push_str("0-1"),
+                        Black => self.current.history_san.push_str("1-0"),
+                    };
+                },
                 Checkmate => {
                     self.current.history_san.push_str("# ");
                     match self.current.active_player  {

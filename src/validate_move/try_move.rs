@@ -12,7 +12,18 @@ use crate::gui::chessapp_struct::End::*;
 
 impl ChessApp {
     pub fn add_hash(&mut self) {
+        //Si on a deux situation identiques en stock
+        //que le joueur peut la reproduire
+        //      Ajouter un bouton Draw
+        //          Si il clique : Draw
+        //Si a add hash on a le flag draw leve :
+        //      si le hash apparait deja deux fois : On ecrase les 3 hashs
+        //      sinon on l'ajoute
+        //
+        //
+        //si oui on propose la nulle au joueur qui va produire la repetition 
         let mut hasher = DefaultHasher::new();
+        //il faut recuperer aussi l'etat des roques et des en passant et tous les coups legaux !!
         self.current.board.grid.hash(&mut hasher);
         let hash_value = hasher.finish();
         let count = self.board_hashs.entry(hash_value).or_insert(0);

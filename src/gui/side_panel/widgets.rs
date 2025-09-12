@@ -12,6 +12,7 @@ impl ChessApp {
                 Checkmate => ui.label(format!("Checkmate ! {:?} win", self.current.opponent)),
                 Pat => ui.label(format!("Pat !")),
                 Draw => ui.label(format!("Draw")),
+                Resign => ui.label(format!("{:?} resigned : {:?} win", self.current.active_player, self.current.opponent)),
             };
         } else {
             if self.current.board.check.is_some() {
@@ -19,6 +20,17 @@ impl ChessApp {
             }
             ui.label(format!("{:?} to move", self.current.active_player));
         }
+    }
+    pub fn draw_resign(&mut self, ui: &mut egui::Ui) {
+        ui.horizontal(|ui| {
+            if ui.button("Draw").clicked() {
+                self.current.end = Some(Draw);
+            }
+            if ui.button("Resign").clicked() {
+                self.current.end = Some(Checkmate);
+            }
+
+        });
     }
 
     pub fn new_save_load(&mut self, ui: &mut egui::Ui, ctx: &Context) {
