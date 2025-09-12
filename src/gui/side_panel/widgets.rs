@@ -3,6 +3,7 @@ use crate::pgn::encode_pgn::export_pgn;
 use egui::Context;
 use std::time::{Duration, Instant};
 use crate::gui::chessapp_struct::End::*;
+use crate::gui::chessapp_struct::DrawOption::*;
 
 impl ChessApp {
     pub fn turn_infos(&mut self, ui: &mut egui::Ui) {
@@ -23,13 +24,22 @@ impl ChessApp {
     }
     pub fn draw_resign(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
-            if ui.button("Draw").clicked() {
-                self.current.end = Some(Draw);
+            if let Some(draw) = &self.draw_option && *draw == Available {
+                if *draw == Available {
+                    ui.label("Triple repetition :");
+                    if ui.button("Claim draw").clicked() {
+                        self.current.end = Some(Draw);
+                        self.draw_option = Some(Request);
+                    }
+                }
+            } else {
+                if ui.add_enabled(!(self.current.end.is_some()), egui::Button::new("Draw")).clicked() {
+                    self.draw_option = Some(Request);
+                }
             }
-            if ui.button("Resign").clicked() {
-                self.current.end = Some(Checkmate);
+            if ui.add_enabled(!(self.current.end.is_some()), egui::Button::new("Resign")).clicked() {
+                self.current.end = Some(Resign);
             }
-
         });
     }
 
