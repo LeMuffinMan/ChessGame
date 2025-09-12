@@ -49,10 +49,17 @@ impl ChessApp {
                 self.current.board.grid[coord.row as usize][coord.col as usize] =
                     Cell::Occupied(piece, color);
 
-                // println!("{:?} to move", self.current.active_player);
-                if let Some(k) = self.current.board.get_king(&self.current.active_player) {
+
+                let opponent = if self.current.active_player != White {
+                    White
+                } else {
+                    Black
+                };
+                if let Some(k) = self.current.board.get_king(&opponent) {
                     if self.current.board.threaten_cells.contains(&k) {
-                        self.current.board.check = Some(k);
+                        if let Some(k) = self.current.board.get_king(&opponent) {
+                            self.current.board.check = Some(k);
+                        }
                         // println!("Check !");
                     }
                 }
