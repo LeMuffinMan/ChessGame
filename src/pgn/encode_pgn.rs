@@ -80,6 +80,7 @@ impl ChessApp {
             self.current.history_san.push((b'0' + to.row + 1) as char);
         }
 
+
         //endgame and checks
         if self.current.checkmate {
             self.current.history_san.push_str("# ");
