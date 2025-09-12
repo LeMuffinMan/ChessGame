@@ -13,15 +13,8 @@ mod pgn;
 
 //TO DO
 //- fmt + clippy puis merge sur main et bloquer les pushs
-//- refacto TOUT
-//  - Comment organiser board.rs avec les enormes methodes ?
-//  - TOUT en methodes ?
 //- Unit tests ?
 //- Pipeline de tests end to end ?
-//- commenter les doutes etc
-//      - Casts ? declarer un i32 le board / les coords ?
-//      - Quelles fonctions doivent etre des impl ?
-//          - is legal comme wrapper ou comme impl ?
 //
 //++ implementer draw rules
 //
