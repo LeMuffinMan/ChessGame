@@ -29,13 +29,6 @@ impl Board {
         None
     }
 
-    pub fn get_castle_tuple(&self, color: &Color) -> (bool, bool) {
-        match color {
-            Color::White => self.white_castle,
-            Color::Black => self.black_castle,
-        }
-    }
-
     pub fn print(&self) {
         print!(" ");
         for x in 0..8 {

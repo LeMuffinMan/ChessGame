@@ -21,7 +21,14 @@ impl ChessApp {
         let mut hasher = DefaultHasher::new();
         //il faut recuperer aussi l'etat des roques et des en passant et tous les coups legaux !!
         // ((bool, bool), (bool, bool), grid, trait, en_passant)
-        self.current.board.grid.hash(&mut hasher);
+        let state = (
+            (self.current.board.white_castle, self.current.board.black_castle),
+            self.current.board.en_passant,
+            self.current.active_player,
+            self.current.board.grid
+        );
+        println!("To be hashed : {:?}", state);
+        state.hash(&mut hasher);
         let hash_value = hasher.finish();
         if self.board_hashs.contains_key(&hash_value) {
             println!("Hash found as double : {:?}", hash_value);
@@ -139,8 +146,8 @@ impl ChessApp {
         if self.impossible_mate_check() {
             self.current.end = Some(Draw);
         }
-        self.add_hash();
         self.update_castles(&to);
+        self.add_hash();
         self.redo.clear();
         self.current.last_move = Some((from, to));
         if self.autoflip {
@@ -169,26 +176,24 @@ impl ChessApp {
     }
 
     fn update_castles(&mut self, to: &Coord) {
-        let mut castle_tuple = self
-            .current
-            .board
-            .get_castle_tuple(&self.current.active_player);
         if let Some(piece) = self.current.board.get(&to).get_piece() {
             match piece {
                 Rook => {
                     match to.col {
-                        7 => castle_tuple.0 = false,
-                        0 => castle_tuple.1 = false,
+                        7 => self.current.switch_castle(false, true),
+                        0 => self.current.switch_castle(true, false),
                         _ => {}
                     };
                 }
                 King => {
-                    castle_tuple.0 = false;
-                    castle_tuple.1 = false;
+                    println!("WHYYYYY");
+                    self.current.switch_castle(false, false);
                 }
                 _ => {}
             }
         };
+        println!("White castle_tuple : {:?}, {:?}", self.current.board.white_castle.0, self.current.board.white_castle.1);
+        println!("Black castle_tuple : {:?}, {:?}", self.current.board.black_castle.0, self.current.board.black_castle.1);
     }
 
     fn events_check(&mut self) {
@@ -228,6 +233,12 @@ impl GameState {
             White => Black,
             Black => White,
         };
+    }
+
+    pub fn switch_castle(&mut self, long: bool, short: bool) {
+        let castle_tuple = if self.active_player == White { &mut self.board.white_castle } else { &mut self.board.black_castle }; 
+        castle_tuple.0 = long;
+        castle_tuple.1 = short;
     }
 }
 
