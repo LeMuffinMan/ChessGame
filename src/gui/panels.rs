@@ -4,7 +4,7 @@ use crate::Color;
 use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
 use crate::gui::render::{centered_square, draw_border};
-use crate::mat_or_pat;
+use crate::validate_move::try_move::mat_or_pat;
 
 use eframe::egui;
 use egui::Context;

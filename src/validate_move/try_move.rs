@@ -4,9 +4,8 @@ use crate::Board;
 use crate::Coord;
 use crate::board::cell::Piece::*;
 use crate::board::cell::Piece;
-use crate::mat_or_pat;
-use crate::validate_move;
 use crate::gui::chessapp_struct::PromoteInfo;
+use crate::validate_move;
 
 
 impl ChessApp {
@@ -353,4 +352,31 @@ impl ChessApp {
         //ajouter ambiguite
         //ajouter les roques
     // }
+}
+
+pub fn mat_or_pat(board: &mut Board, color: &Color) -> (bool, bool) {
+    board.update_threatens_cells(color);
+    board.update_legals_moves(color);
+    // for coord in &board.threaten_cells {
+    //     println!("Cell threaten : ({}, {})", coord.row, coord.col);
+    // }
+    if board.legals_moves.is_empty() {
+        board.print();
+        let king_cell = board.get_king(color);
+        if let Some(coord) = king_cell {
+            if board.threaten_cells.contains(&coord) {
+                let winner = if *color == Color::White {
+                    Color::Black
+                } else {
+                    Color::White
+                };
+                println!("Checkmate ! {:?} win", winner);
+                return (true, true);
+            } else {
+                println!("Pat");
+                return (true, false);
+            }
+        }
+    }
+    (false, false)
 }
