@@ -5,7 +5,7 @@ mod board;
 use board::Board;
 mod cli;
 use crate::cli::get_inputs::Coord;
-use crate::cli::get_inputs;
+use crate::cli::get_inputs::run_cli;
 mod gui;
 mod validate_move;
 use crate::gui::chessapp_struct::ChessApp;
@@ -58,79 +58,4 @@ fn run_gui() {
     eframe::run_native("ChessGame", options, Box::new(|_cc| Ok(Box::new(app)))).unwrap();
 }
 
-fn run_cli() {
-    let mut board = Board::init_board();
 
-    let mut i = 1;
-    let mut turn = 1;
-    loop {
-        let color = if i % 2 != 0 {
-            if i != 1 {
-                turn += 1;
-            }
-            Color::White
-        } else {
-            Color::Black
-        };
-        let (end, _mate) = mat_or_pat(&mut board, &color);
-        if end {
-            break;
-        }
-        println!("Turn {turn}");
-        turn_begin(&board, &color);
-        let (from_coord, to_coord) = get_inputs::get_move_from_stdin(color, &board);
-        // println!("From {from_coord:?} to {to_coord:?}");
-        // comparer avec la liste des coups legaux
-        if board.is_legal_move(&from_coord, &to_coord, &color) {
-            if !validate_move::is_king_exposed(&from_coord, &to_coord, &color, &board) {
-                println!("Move validated");
-                board.update_board(&from_coord, &to_coord, &color);
-            } else {
-                println!("King is exposed : illegal move");
-                continue;
-            }
-        } else {
-            println!("Illegal move : {from_coord:?} -> {to_coord:?}");
-            continue;
-        }
-        i += 1;
-        println!("---------------------------------");
-    }
-}
-
-pub fn mat_or_pat(board: &mut Board, color: &Color) -> (bool, bool) {
-    board.update_threatens_cells(color);
-    board.update_legals_moves(color);
-    // for coord in &board.threaten_cells {
-    //     println!("Cell threaten : ({}, {})", coord.row, coord.col);
-    // }
-    if board.legals_moves.is_empty() {
-        board.print();
-        let king_cell = board.get_king(color);
-        if let Some(coord) = king_cell {
-            if board.threaten_cells.contains(&coord) {
-                let winner = if *color == Color::White {
-                    Color::Black
-                } else {
-                    Color::White
-                };
-                println!("Checkmate ! {:?} win", winner);
-                return (true, true);
-            } else {
-                println!("Pat");
-                return (true, false);
-            }
-        }
-    }
-    (false, false)
-}
-
-fn turn_begin(board: &Board, color: &Color) {
-    board.print();
-    println!("{:?} to move", color);
-    if let Some(coord) = board.get_king(color) {
-        if board.threaten_cells.contains(&coord) {
-            println!("Check !");
-        }
-    }
-}

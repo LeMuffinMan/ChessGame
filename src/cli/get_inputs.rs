@@ -1,11 +1,64 @@
 use crate::Board;
 use crate::Color;
-use std::io::{self, BufRead}; // en haut ou dans la fonction ?
-//
+use std::io::{self, BufRead};
+use crate::validate_move::try_move::mat_or_pat;
+use crate::validate_move;
+
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Coord {
     pub col: u8, //declarer de base des u8 ?
     pub row: u8,
+}
+
+pub fn run_cli() {
+    let mut board = Board::init_board();
+
+    let mut i = 1;
+    let mut turn = 1;
+    loop {
+        let color = if i % 2 != 0 {
+            if i != 1 {
+                turn += 1;
+            }
+            Color::White
+        } else {
+            Color::Black
+        };
+        let (end, _mate) = mat_or_pat(&mut board, &color);
+        if end {
+            break;
+        }
+        println!("Turn {turn}");
+        turn_begin(&board, &color);
+        let (from_coord, to_coord) = get_move_from_stdin(color, &board);
+        // println!("From {from_coord:?} to {to_coord:?}");
+        if board.is_legal_move(&from_coord, &to_coord, &color) {
+            if !validate_move::is_king_exposed(&from_coord, &to_coord, &color, &board) {
+                println!("Move validated");
+                board.update_board(&from_coord, &to_coord, &color);
+            } else {
+                println!("King is exposed : illegal move");
+                continue;
+            }
+        } else {
+            println!("Illegal move : {from_coord:?} -> {to_coord:?}");
+            continue;
+        }
+        i += 1;
+        println!("---------------------------------");
+    }
+}
+
+
+
+fn turn_begin(board: &Board, color: &Color) {
+    board.print();
+    println!("{:?} to move", color);
+    if let Some(coord) = board.get_king(color) {
+        if board.threaten_cells.contains(&coord) {
+            println!("Check !");
+        }
+    }
 }
 
 pub fn get_move_from_stdin(color: Color, board: &Board) -> (Coord, Coord) {
