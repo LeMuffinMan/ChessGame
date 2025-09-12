@@ -42,7 +42,7 @@ impl ChessApp {
                 };
                 if ui.button("Claim draw").clicked() {
                     self.current.end = Some(Draw);
-                    self.draw.draw_option = Some(Request);
+                    self.draw.draw_option = None;
                 }
             } else if ui
                 .add_enabled(self.current.end.is_none(), egui::Button::new("Draw"))
