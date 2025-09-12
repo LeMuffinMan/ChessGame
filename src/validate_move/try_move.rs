@@ -1,13 +1,27 @@
-use crate::Board;
 use crate::ChessApp;
-use crate::Color;
 use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Piece::*;
 use crate::gui::chessapp_struct::PromoteInfo;
 use crate::validate_move;
+use crate::gui::chessapp_struct::GameState;
+
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+use crate::gui::chessapp_struct::End::*;
 
 impl ChessApp {
+    pub fn add_hash(&mut self) {
+        let mut hasher = DefaultHasher::new();
+        self.current.board.grid.hash(&mut hasher);
+        let hash_value = hasher.finish();
+        let count = self.board_hashs.entry(hash_value).or_insert(0);
+        *count += 1;
+        if *count >= 3 {
+            self.current.end = Some(Draw);
+        }
+    }
+
     pub fn try_move(&mut self, from: Coord, to: Coord) {
         if !self
             .current
@@ -30,6 +44,7 @@ impl ChessApp {
         self.current
             .board
             .update_board(&from, &to, &self.current.active_player);
+        self.add_hash();
         self.update_castles(&to);
         self.redo.clear();
         self.current.last_move = Some((from, to));
@@ -83,19 +98,8 @@ impl ChessApp {
 
     fn events_check(&mut self) {
         self.current.board.promote_pawn(&self.current.active_player);
-        self.current.active_player = match self.current.active_player {
-            White => Black,
-            Black => White,
-        };
-        let (end, mate) = mat_or_pat(&mut self.current.board, &self.current.active_player);
-        if end {
-            if mate {
-                self.current.checkmate = true;
-            } else {
-                self.current.pat = true;
-            }
-        }
-
+        self.current.switch_players_color();
+        self.check_endgame();
         // println!("{:?} to move", self.current.active_player);
         let active_player = if self.current.active_player == White {
             White
@@ -119,25 +123,17 @@ impl ChessApp {
     }
 }
 
-pub fn mat_or_pat(board: &mut Board, color: &Color) -> (bool, bool) {
-    board.update_threatens_cells(color);
-    board.update_legals_moves(color);
-    // for coord in &board.threaten_cells {
-    //     println!("Cell threaten : ({}, {})", coord.row, coord.col);
-    // }
-    if board.legals_moves.is_empty() {
-        board.print();
-        let king_cell = board.get_king(color);
-        if let Some(coord) = king_cell {
-            if board.threaten_cells.contains(&coord) {
-                let winner = if *color == White { Black } else { White };
-                println!("Checkmate ! {:?} win", winner);
-                return (true, true);
-            } else {
-                println!("Pat");
-                return (true, false);
-            }
-        }
+impl GameState {
+    pub fn switch_players_color(&mut self) {
+        self.active_player = match self.active_player {
+            White => Black,
+            Black => White,
+        };
+        self.opponent = match self.opponent {
+            White => Black,
+            Black => White,
+        };
     }
-    (false, false)
 }
+
+

@@ -6,9 +6,6 @@ use crate::board::cell::Color;
 use crate::board::cell::Coord;
 use board::Board;
 
-mod cli;
-use crate::cli::get_inputs::run_cli;
-
 mod gui;
 use crate::gui::chessapp_struct::ChessApp;
 
@@ -38,15 +35,6 @@ mod validate_move;
 //
 
 fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    if args.contains(&"--cli".to_string()) {
-        run_cli();
-    } else {
-        run_gui();
-    }
-}
-
-fn run_gui() {
     let app = ChessApp::default();
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()

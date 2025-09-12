@@ -8,6 +8,7 @@ use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
+use crate::gui::chessapp_struct::End::*;
 
 pub fn export_pgn(san: &String, path: &Path) {
     let mut pgn = String::new();
@@ -82,20 +83,24 @@ impl ChessApp {
 
 
         //endgame and checks
-        if self.current.checkmate {
-            self.current.history_san.push_str("# ");
-            if self.current.active_player == White {
-                self.current.history_san.push_str("0-1");
-            } else {
-                self.current.history_san.push_str("1-0");
-            }
-        } else if self.current.pat {
-            self.current.history_san.push_str(" 1/2 - 1/2");
-        } else if self.current.board.check.is_some() {
-            self.current.history_san.push_str("+ ");
-        } else {
-            self.current.history_san.push(' ');
+        //
+        if let Some(end) = &self.current.end {
+            match end {
+                Checkmate => {
+                    self.current.history_san.push_str("# ");
+                    match self.current.active_player  {
+                        White => self.current.history_san.push_str("0-1"),
+                        Black => self.current.history_san.push_str("1-0"),
+                    };
+                },
+                Pat => self.current.history_san.push_str(" 1/2 - 1/2"),
+                Draw => self.current.history_san.push_str(" 1/2 - 1/2"),
+            };      
         }
+        if self.current.board.check.is_some() {
+            self.current.history_san.push('+');
+        } 
+        self.current.history_san.push(' ');
     }
 
     fn is_en_passant_take(&mut self, from: &Coord, to: &Coord, prev_board: &Board) -> bool {
