@@ -1,7 +1,7 @@
-use crate::Coord;
 use crate::Board;
 use crate::Color;
 use crate::Color::*;
+use crate::Coord;
 
 pub fn update_pawn_legals_moves(
     from: &Coord,

@@ -1,15 +1,13 @@
+use crate::Board;
 use crate::ChessApp;
 use crate::Color;
 use crate::Color::*;
-use crate::Board;
 use crate::Coord;
 use crate::board::cell::Piece::*;
 use crate::gui::chessapp_struct::PromoteInfo;
 use crate::validate_move;
 
-
 impl ChessApp {
-
     pub fn try_move(&mut self, from: Coord, to: Coord) {
         if !self
             .current
@@ -43,7 +41,11 @@ impl ChessApp {
         if let Some(prev_state) = self.undo.last() {
             let prev_board = &prev_state.board.clone();
             if self.current.board.pawn_to_promote.is_some() {
-                self.promoteinfo = Some(PromoteInfo { from: from, to: to, prev_board: prev_board.clone() });
+                self.promoteinfo = Some(PromoteInfo {
+                    from: from,
+                    to: to,
+                    prev_board: prev_board.clone(),
+                });
             } else {
                 self.from_move_to_san(&from, &to, &prev_board);
             }
@@ -95,8 +97,16 @@ impl ChessApp {
         }
 
         // println!("{:?} to move", self.current.active_player);
-        let active_player = if self.current.active_player == White { White } else { Black };
-        let opponent = if self.current.active_player != White { White } else { Black };
+        let active_player = if self.current.active_player == White {
+            White
+        } else {
+            Black
+        };
+        let opponent = if self.current.active_player != White {
+            White
+        } else {
+            Black
+        };
 
         if let Some(k) = self.current.board.get_king(&active_player) {
             if self.current.board.threaten_cells.contains(&k) {
@@ -107,7 +117,6 @@ impl ChessApp {
             }
         }
     }
-
 }
 
 pub fn mat_or_pat(board: &mut Board, color: &Color) -> (bool, bool) {
@@ -121,11 +130,7 @@ pub fn mat_or_pat(board: &mut Board, color: &Color) -> (bool, bool) {
         let king_cell = board.get_king(color);
         if let Some(coord) = king_cell {
             if board.threaten_cells.contains(&coord) {
-                let winner = if *color == White {
-                    Black
-                } else {
-                    White
-                };
+                let winner = if *color == White { Black } else { White };
                 println!("Checkmate ! {:?} win", winner);
                 return (true, true);
             } else {

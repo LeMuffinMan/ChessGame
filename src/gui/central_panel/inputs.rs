@@ -2,7 +2,6 @@ use crate::ChessApp;
 use crate::gui::central_panel::render::ui_to_board;
 
 impl ChessApp {
-
     pub fn get_piece_legal_moves(&mut self) {
         if let Some(coord) = self.drag_from {
             for (from, to) in self.current.board.legals_moves.iter() {
@@ -86,7 +85,7 @@ impl ChessApp {
                             self.piece_legals_moves.clear();
                             if from != clicked {
                                 self.try_move(from, clicked);
-                            } 
+                            }
                             self.from_cell = None;
                         }
                     }

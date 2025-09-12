@@ -1,18 +1,23 @@
 mod threat;
 use threat::get_threaten_cells;
-use crate::board::cell::Color;
+
 mod board;
-use board::Board;
-mod cli;
+use crate::board::cell::Color;
 use crate::board::cell::Coord;
+use board::Board;
+
+mod cli;
 use crate::cli::get_inputs::run_cli;
+
 mod gui;
-mod validate_move;
 use crate::gui::chessapp_struct::ChessApp;
+
 mod pgn;
 
+mod validate_move;
+
 //TO DO
-//- fmt + clippy puis merge sur main et bloquer les pushs
+//- fmt + clippy
 //- Unit tests ?
 //- Pipeline de tests end to end ?
 //
@@ -51,5 +56,3 @@ fn run_gui() {
     };
     eframe::run_native("ChessGame", options, Box::new(|_cc| Ok(Box::new(app)))).unwrap();
 }
-
-
