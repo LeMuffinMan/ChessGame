@@ -2,7 +2,7 @@ use crate::Board;
 use crate::Color;
 use crate::Coord;
 use crate::board::cell::Cell;
-use crate::board::cell::Piece;
+use crate::board::cell::Piece::*;
 use crate::validate_move::piece_case::{
     bishop_case, king_case, knight_case, pawn_case, queen_case, rook_case,
 };
@@ -21,12 +21,12 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
                 return false;
             }
             match piece {
-                Piece::Pawn => pawn_case(from, to, color, board),
-                Piece::Rook => rook_case(from, to, color, board),
-                Piece::Knight => knight_case(from, to, color, board),
-                Piece::Bishop => bishop_case(from, to, color, board),
-                Piece::Queen => queen_case(from, to, color, board),
-                Piece::King => king_case(from, to, color, board),
+                Pawn => pawn_case(from, to, color, board),
+                Rook => rook_case(from, to, color, board),
+                Knight => knight_case(from, to, color, board),
+                Bishop => bishop_case(from, to, color, board),
+                Queen => queen_case(from, to, color, board),
+                King => king_case(from, to, color, board),
             }
         }
     }

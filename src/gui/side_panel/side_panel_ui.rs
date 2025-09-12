@@ -1,5 +1,6 @@
 use crate::ChessApp;
 use crate::Color;
+use crate::Color::*;
 use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
 use crate::validate_move::try_move::mat_or_pat;
@@ -41,9 +42,9 @@ impl ChessApp {
         if let Some(coord) = self.current.board.pawn_to_promote {
             if let Some(piece) = self.current.board.promote {
                 let color = if self.current.active_player == Color::White {
-                    Color::Black
+                    Black
                 } else {
-                    Color::White
+                    White
                 };
                 self.current.board.grid[coord.row as usize][coord.col as usize] =
                     Cell::Occupied(piece, color);

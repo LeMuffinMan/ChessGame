@@ -1,5 +1,6 @@
 use crate::ChessApp;
 use crate::Color;
+use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Piece;
 
@@ -89,7 +90,7 @@ impl ChessApp {
 
                 let font_px = (inner.width() / 8.0) * 0.8;
                 let font = egui::FontId::proportional(font_px);
-                let egui_color = if *color == Color::Black {
+                let egui_color = if *color == Black {
                     egui::Color32::BLACK
                 } else {
                     egui::Color32::WHITE
@@ -134,18 +135,18 @@ impl ChessApp {
 
 fn piece_char(color: Color, piece: &Piece) -> char {
     match (color, piece) {
-        (Color::Black, Piece::King) => '♔',
-        (Color::Black, Piece::Queen) => '♕',
-        (Color::Black, Piece::Rook) => '♖',
-        (Color::Black, Piece::Bishop) => '♗',
-        (Color::Black, Piece::Knight) => '♘',
-        (Color::Black, Piece::Pawn) => '♙',
-        (Color::White, Piece::King) => '♚',
-        (Color::White, Piece::Queen) => '♛',
-        (Color::White, Piece::Rook) => '♜',
-        (Color::White, Piece::Bishop) => '♝',
-        (Color::White, Piece::Knight) => '♞',
-        (Color::White, Piece::Pawn) => '♟',
+        (Black, Piece::King) => '♔',
+        (Black, Piece::Queen) => '♕',
+        (Black, Piece::Rook) => '♖',
+        (Black, Piece::Bishop) => '♗',
+        (Black, Piece::Knight) => '♘',
+        (Black, Piece::Pawn) => '♙',
+        (White, Piece::King) => '♚',
+        (White, Piece::Queen) => '♛',
+        (White, Piece::Rook) => '♜',
+        (White, Piece::Bishop) => '♝',
+        (White, Piece::Knight) => '♞',
+        (White, Piece::Pawn) => '♟',
     }
 }
 
@@ -169,7 +170,7 @@ pub fn ui_to_board(inner: egui::Rect, sq: f32, flip: bool, pos: egui::Pos2) -> O
 pub fn draw_piece_unicode(painter: &egui::Painter, cell_rect: egui::Rect, ch: char, color: &Color) {
     let font_px = cell_rect.height() * 0.8;
     let font = egui::FontId::proportional(font_px);
-    let color = if *color == Color::Black {
+    let color = if *color == Black {
         egui::Color32::BLACK
     } else {
         egui::Color32::WHITE
