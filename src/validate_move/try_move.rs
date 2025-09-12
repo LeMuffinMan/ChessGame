@@ -30,18 +30,18 @@ impl ChessApp {
         state.hash(&mut hasher);
         let hash_value = hasher.finish();
 
-        match self.board_hashs.entry(hash_value) {
+        match self.draw.board_hashs.entry(hash_value) {
             Entry::Vacant(e) => {
                 e.insert(1);
             }
             Entry::Occupied(_) => {
-                self.draw_option = Some(Available(TripleRepetition));
-                self.draw_hash = Some(hash_value);
+                self.draw.draw_option = Some(Available(TripleRepetition));
+                self.draw.draw_hash = Some(hash_value);
             }
         }
 
-        if let Some(h) = self.draw_hash {
-            self.board_hashs.remove(&h);
+        if let Some(h) = self.draw.draw_hash {
+            self.draw.board_hashs.remove(&h);
         }
     }
 
@@ -49,19 +49,19 @@ impl ChessApp {
         if let Some(p) = self.current.board.get(from).get_piece()
             && p == &Pawn
         {
-            self.draw_moves_count = 0;
+            self.draw.draw_moves_count = 0;
             return;
         }
         if !self.current.board.get(to).is_empty() {
-            self.draw_moves_count = 0;
+            self.draw.draw_moves_count = 0;
             return;
         }
-        self.draw_moves_count += 1;
-        // println!("{:?}", self.draw_moves_count);
-        if self.draw_moves_count >= 50 {
-            self.draw_option = Some(Available(FiftyMoves));
+        self.draw.draw_moves_count += 1;
+        // println!("{:?}", self.draw.draw_moves_count);
+        if self.draw.draw_moves_count >= 50 {
+            self.draw.draw_option = Some(Available(FiftyMoves));
         } else {
-            self.draw_option = None;
+            self.draw.draw_option = None;
         }
     }
 
@@ -150,8 +150,8 @@ impl ChessApp {
         self.add_hash();
         self.redo.clear();
         self.current.last_move = Some((from, to));
-        if self.autoflip {
-            self.flip = !self.flip;
+        if self.widgets.autoflip {
+            self.widgets.flip = !self.widgets.flip;
         }
         self.incremente_turn();
         self.events_check();

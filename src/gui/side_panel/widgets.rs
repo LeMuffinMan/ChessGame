@@ -30,7 +30,7 @@ impl ChessApp {
     }
     pub fn draw_resign(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
-            if let Some(draw) = &self.draw_option {
+            if let Some(draw) = &self.draw.draw_option {
                 match draw {
                     Available(TripleRepetition) => {
                         ui.label("Triple repetition :");
@@ -42,13 +42,13 @@ impl ChessApp {
                 };
                 if ui.button("Claim draw").clicked() {
                     self.current.end = Some(Draw);
-                    self.draw_option = Some(Request);
+                    self.draw.draw_option = Some(Request);
                 }
             } else if ui
                 .add_enabled(self.current.end.is_none(), egui::Button::new("Draw"))
                 .clicked()
             {
-                self.draw_option = Some(Request);
+                self.draw.draw_option = Some(Request);
             }
             if ui
                 .add_enabled(self.current.end.is_none(), egui::Button::new("Resign"))
@@ -87,9 +87,9 @@ impl ChessApp {
     pub fn side_panel_flip(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             if ui.button("Flip board").clicked() {
-                self.flip = !self.flip;
+                self.widgets.flip = !self.widgets.flip;
             }
-            if ui.toggle_value(&mut self.autoflip, "Autoflip").changed() {}
+            if ui.toggle_value(&mut self.widgets.autoflip, "Autoflip").changed() {}
         });
     }
 
@@ -104,7 +104,7 @@ impl ChessApp {
             {
                 self.redo.push(self.current.clone());
                 self.current = prev;
-                self.piece_legals_moves.clear();
+                self.highlight.piece_legals_moves.clear();
             }
             if ui
                 .add_enabled(can_redo, egui::Button::new("Redo"))
@@ -115,7 +115,7 @@ impl ChessApp {
                 self.current = next;
             }
             if ui
-                .add_enabled(!self.undo.is_empty(), egui::Button::new("Replay"))
+                .add_enabled(!self.undo.is_empty(), egui::Button::new("widgets.Replay"))
                 .clicked()
             {
                 self.redo.clear();
@@ -126,31 +126,31 @@ impl ChessApp {
                         self.current = prev;
                     }
                 }
-                self.next_replay_time =
-                    Some(Instant::now() + Duration::from_millis(self.replay_speed));
+                self.widgets.next_replay_time =
+                    Some(Instant::now() + Duration::from_millis(self.widgets.replay_speed));
             }
             self.replay_step(ui.ctx());
         });
         ui.separator();
-        if self.next_replay_time.is_some() {
+        if self.widgets.next_replay_time.is_some() {
             ui.add(
-                egui::Slider::new(&mut self.replay_speed, 100..=2000)
+                egui::Slider::new(&mut self.widgets.replay_speed, 100..=2000)
                     .text("ms/move")
                     .logarithmic(true),
             );
         }
     }
     fn replay_step(&mut self, ctx: &egui::Context) {
-        if let Some(next_time) = self.next_replay_time {
+        if let Some(next_time) = self.widgets.next_replay_time {
             if Instant::now() >= next_time {
                 if let Some(next) = self.redo.pop() {
                     self.undo.push(self.current.clone());
                     self.current = next;
-                    self.next_replay_time =
-                        Some(Instant::now() + Duration::from_millis(self.replay_speed));
+                    self.widgets.next_replay_time =
+                        Some(Instant::now() + Duration::from_millis(self.widgets.replay_speed));
                     ctx.request_repaint();
                 } else {
-                    self.next_replay_time = None;
+                    self.widgets.next_replay_time = None;
                 }
             } else {
                 ctx.request_repaint();

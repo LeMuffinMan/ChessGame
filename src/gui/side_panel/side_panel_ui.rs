@@ -12,7 +12,7 @@ impl ChessApp {
         ui.heading("ChessGame");
         if self.current.board.pawn_to_promote.is_some() {
             self.side_panel_promote(ui);
-        } else if let Some(draw) = &self.draw_option
+        } else if let Some(draw) = &self.draw.draw_option
             && *draw == Request
         {
             self.side_panel_draw_request(ui);
@@ -26,13 +26,13 @@ impl ChessApp {
             ui.separator();
             self.side_panel_flip(ui);
             ui.separator();
-            ui.checkbox(&mut self.show_coordinates, "Coordinates")
+            ui.checkbox(&mut self.widgets.show_coordinates, "Coordinates")
                 .changed();
             ui.label("Highlight :");
-            ui.checkbox(&mut self.show_legals_moves, "Legals moves")
+            ui.checkbox(&mut self.widgets.show_legals_moves, "Legals moves")
                 .changed();
-            ui.checkbox(&mut self.show_threaten_cells, "Threaten cells");
-            ui.checkbox(&mut self.show_last_move, "Last move").changed();
+            ui.checkbox(&mut self.widgets.show_threaten_cells, "Threaten cells");
+            ui.checkbox(&mut self.widgets.show_last_move, "Last move").changed();
             ui.separator();
             self.side_panel_undo_redo_replay(ui);
             if !self.current.history_san.is_empty() {
@@ -50,10 +50,10 @@ impl ChessApp {
         ui.horizontal(|ui| {
             if ui.button("Accept").clicked() {
                 self.current.end = Some(Draw);
-                self.draw_option = None;
+                self.draw.draw_option = None;
             }
             if ui.button("Reject").clicked() {
-                self.draw_option = None;
+                self.draw.draw_option = None;
             }
         });
     }

@@ -10,7 +10,7 @@ impl ChessApp {
         let rect = response.rect;
 
         let board_rect = centered_square(rect);
-        let inner = if self.show_coordinates {
+        let inner = if self.widgets.show_coordinates {
             draw_border(&painter, board_rect);
             board_rect.shrink(16.0)
         } else {
@@ -19,8 +19,8 @@ impl ChessApp {
 
         let sq = inner.width() / 8.0;
 
-        if self.show_coordinates {
-            self.show_coordinates(&painter, inner, sq);
+        if self.widgets.show_coordinates {
+            self.display_coordinates(&painter, inner, sq);
         }
         self.draw_board(&painter, inner, sq);
         self.draw_pieces(&painter, inner, sq);

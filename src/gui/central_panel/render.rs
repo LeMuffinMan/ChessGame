@@ -3,6 +3,7 @@ use crate::Color;
 use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Piece;
+use crate::gui::chessapp_struct::End::*;
 
 pub fn centered_square(rect: egui::Rect) -> egui::Rect {
     let side = rect.width().min(rect.height());
@@ -37,7 +38,7 @@ impl ChessApp {
                 let min = inner.min + egui::vec2(col as f32 * sq, row as f32 * sq);
                 let cell = egui::Rect::from_min_size(min, egui::vec2(sq, sq));
 
-                let board_row = if self.flip { 7 - row } else { row };
+                let board_row = if self.widgets.flip { 7 - row } else { row };
                 let coord = Coord {
                     row: board_row,
                     col,
@@ -49,19 +50,25 @@ impl ChessApp {
                     && k.col == col
                     && self.current.board.threaten_cells.contains(&k)
                 {
-                    p.rect_filled(cell, 0.0, red[idx as usize]);
+                    if let Some(end) = &self.current.end && *end == Checkmate {
+                        p.rect_filled(cell, 0.0, egui::Color32::from_rgb(255, 100, 100));
+                    } else { 
+                        p.rect_filled(cell, 0.0, red[idx as usize]);
+                    }
                     continue;
                 }
-                if self.show_threaten_cells && self.current.board.threaten_cells.contains(&coord) {
-                    p.rect_filled(cell, 0.0, red[idx as usize]);
-                } else if self.piece_legals_moves.contains(&coord) && self.show_legals_moves {
+                if self.widgets.show_threaten_cells && self.current.board.threaten_cells.contains(&coord) {
+                    if let Some(end) = &self.current.end && *end == Checkmate {
+                        p.rect_filled(cell, 0.0, red[idx as usize]);
+                    }
+                } else if self.highlight.piece_legals_moves.contains(&coord) && self.widgets.show_legals_moves {
                     p.rect_filled(cell, 0.0, green[idx as usize]);
                 } else if let Some((from, to)) = self.current.last_move
                     && (coord == from || coord == to)
-                    && self.show_last_move
+                    && self.widgets.show_last_move
                 {
                     p.rect_filled(cell, 0.0, blue[idx as usize]);
-                } else if let Some(from) = self.from_cell
+                } else if let Some(from) = self.highlight.from_cell
                     && coord == from
                 {
                     p.rect_filled(cell, 0.0, blue[idx as usize]);
@@ -73,7 +80,7 @@ impl ChessApp {
     }
 
     pub fn draw_dragged_piece(&self, painter: &egui::Painter, inner: egui::Rect) {
-        if let (Some(from), Some(pos)) = (self.drag_from, self.drag_pos)
+        if let (Some(from), Some(pos)) = (self.highlight.drag_from, self.highlight.drag_pos)
             && let (Some(piece), Some(color)) = (
                 self.current.board.get(&from).get_piece(),
                 self.current.board.get(&from).get_color(),
@@ -96,13 +103,13 @@ impl ChessApp {
     pub fn draw_pieces(&self, p: &egui::Painter, inner: egui::Rect, sq: f32) {
         for row in 0..8 {
             for col in 0..8 {
-                let board_row = if self.flip { 7 - row } else { row };
-                let board_col = if self.flip { col } else { 7 - col };
+                let board_row = if self.widgets.flip { 7 - row } else { row };
+                let board_col = if self.widgets.flip { col } else { 7 - col };
                 let coord = Coord {
                     row: board_row as u8,
                     col: board_col as u8,
                 };
-                if let Some(coord_dragged) = self.drag_from
+                if let Some(coord_dragged) = self.highlight.drag_from
                     && coord == coord_dragged
                 {
                     continue;
@@ -172,7 +179,7 @@ pub fn draw_piece_unicode(painter: &egui::Painter, cell_rect: egui::Rect, ch: ch
 }
 
 impl ChessApp {
-    pub fn show_coordinates(&mut self, painter: &egui::Painter, inner: egui::Rect, sq: f32) {
+    pub fn display_coordinates(&mut self, painter: &egui::Painter, inner: egui::Rect, sq: f32) {
         {
             let font = egui::FontId::monospace(14.0);
             let color = egui::Color32::from_gray(200);
@@ -180,7 +187,7 @@ impl ChessApp {
             let left_margin = 10.0;
 
             for r in 0..8 {
-                let idx = if self.flip { 7 - r + 1 } else { r + 1 };
+                let idx = if self.widgets.flip { 7 - r + 1 } else { r + 1 };
                 let text = idx.to_string();
                 let galley = painter.layout_no_wrap(text, font.clone(), color);
                 let cy = inner.top() + r as f32 * sq + sq * 0.5;
@@ -203,7 +210,7 @@ impl ChessApp {
             let top_margin = 8.0;
 
             for c in 0..8 {
-                let label_idx = if self.flip { c } else { 7 - c };
+                let label_idx = if self.widgets.flip { c } else { 7 - c };
                 let ch = (b'A' + label_idx as u8) as char;
                 let text = ch.to_string();
                 let galley = painter.layout_no_wrap(text, font.clone(), color);
