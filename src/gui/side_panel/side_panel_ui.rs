@@ -9,7 +9,10 @@ impl ChessApp {
     pub fn side_panel_ui(&mut self, ui: &mut egui::Ui, ctx: &Context) {
         ui.heading("ChessGame");
         if let None = self.current.board.pawn_to_promote {
-            self.side_panel_top(ui, ctx);
+            ui.separator();
+            self.turn_infos(ui);
+            ui.separator();
+            self.new_save_load(ui, ctx);
             ui.separator();
             self.side_panel_flip(ui);
             ui.separator();
@@ -67,8 +70,6 @@ impl ChessApp {
                     self.from_move_to_san(&from, &to, &prev_board);
 
                 }
-
-
                 self.current.board.pawn_to_promote = None;
                 self.current.board.promote = None;
             } else {
