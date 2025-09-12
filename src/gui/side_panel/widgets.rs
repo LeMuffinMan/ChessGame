@@ -1,10 +1,10 @@
 use crate::ChessApp;
+use crate::gui::chessapp_struct::DrawOption::*;
+use crate::gui::chessapp_struct::DrawRule::*;
+use crate::gui::chessapp_struct::End::*;
 use crate::pgn::encode_pgn::export_pgn;
 use egui::Context;
 use std::time::{Duration, Instant};
-use crate::gui::chessapp_struct::End::*;
-use crate::gui::chessapp_struct::DrawOption::*;
-use crate::gui::chessapp_struct::DrawRule::*;
 
 impl ChessApp {
     pub fn turn_infos(&mut self, ui: &mut egui::Ui) {
@@ -12,9 +12,12 @@ impl ChessApp {
         if let Some(end) = &self.current.end {
             match end {
                 Checkmate => ui.label(format!("Checkmate ! {:?} win", self.current.opponent)),
-                Pat => ui.label(format!("Pat !")),
-                Draw => ui.label(format!("Draw")),
-                Resign => ui.label(format!("{:?} resigned : {:?} win", self.current.active_player, self.current.opponent)),
+                Pat => ui.label("Pat !"),
+                Draw => ui.label("Draw"),
+                Resign => ui.label(format!(
+                    "{:?} resigned : {:?} win",
+                    self.current.active_player, self.current.opponent
+                )),
             };
         } else {
             ui.horizontal(|ui| {
@@ -35,18 +38,22 @@ impl ChessApp {
                     Available(FiftyMoves) => {
                         ui.label("%50 moves : ");
                     }
-                    _ => { },
+                    _ => {}
                 };
                 if ui.button("Claim draw").clicked() {
                     self.current.end = Some(Draw);
                     self.draw_option = Some(Request);
                 }
-            } else {
-                if ui.add_enabled(!(self.current.end.is_some()), egui::Button::new("Draw")).clicked() {
-                    self.draw_option = Some(Request);
-                }
+            } else if ui
+                .add_enabled(self.current.end.is_none(), egui::Button::new("Draw"))
+                .clicked()
+            {
+                self.draw_option = Some(Request);
             }
-            if ui.add_enabled(!(self.current.end.is_some()), egui::Button::new("Resign")).clicked() {
+            if ui
+                .add_enabled(self.current.end.is_none(), egui::Button::new("Resign"))
+                .clicked()
+            {
                 self.current.end = Some(Resign);
             }
         });
@@ -93,21 +100,19 @@ impl ChessApp {
             if ui
                 .add_enabled(can_undo, egui::Button::new("Undo"))
                 .clicked()
+                && let Some(prev) = self.undo.pop()
             {
-                if let Some(prev) = self.undo.pop() {
-                    self.redo.push(self.current.clone());
-                    self.current = prev;
-                    self.piece_legals_moves.clear();
-                }
+                self.redo.push(self.current.clone());
+                self.current = prev;
+                self.piece_legals_moves.clear();
             }
             if ui
                 .add_enabled(can_redo, egui::Button::new("Redo"))
                 .clicked()
+                && let Some(next) = self.redo.pop()
             {
-                if let Some(next) = self.redo.pop() {
-                    self.undo.push(self.current.clone());
-                    self.current = next;
-                }
+                self.undo.push(self.current.clone());
+                self.current = next;
             }
             if ui
                 .add_enabled(!self.undo.is_empty(), egui::Button::new("Replay"))
@@ -127,7 +132,7 @@ impl ChessApp {
             self.replay_step(ui.ctx());
         });
         ui.separator();
-        if let Some(_) = self.next_replay_time {
+        if self.next_replay_time.is_some() {
             ui.add(
                 egui::Slider::new(&mut self.replay_speed, 100..=2000)
                     .text("ms/move")

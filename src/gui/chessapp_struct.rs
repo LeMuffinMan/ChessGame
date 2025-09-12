@@ -6,9 +6,9 @@ use crate::gui::chessapp_struct::End::*;
 use eframe::{App, egui};
 use egui::Pos2;
 use egui_file_dialog::FileDialog;
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Instant;
-use std::collections::HashMap;
 
 #[derive(Clone, PartialEq)]
 pub enum DrawRule {
@@ -76,7 +76,6 @@ pub struct ChessApp {
     pub draw_hash: Option<u64>,
 }
 
-
 impl Default for ChessApp {
     fn default() -> Self {
         Self {
@@ -130,8 +129,12 @@ impl App for ChessApp {
 
 impl ChessApp {
     pub fn check_endgame(&mut self) {
-        self.current.board.update_threatens_cells(&self.current.active_player);
-        self.current.board.update_legals_moves(&self.current.active_player);
+        self.current
+            .board
+            .update_threatens_cells(&self.current.active_player);
+        self.current
+            .board
+            .update_legals_moves(&self.current.active_player);
         // for coord in &self.current.board.threaten_cells {
         //     println!("Cell threaten : ({}, {})", coord.row, coord.col);
         // }

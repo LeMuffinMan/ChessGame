@@ -11,28 +11,28 @@ pub fn update_pawn_legals_moves(
     let dir: i8 = if *color == White { 1 } else { -1 };
     let mut ret = Vec::new();
     //2 diagonales
-    if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8 + 1) {
-        if let Some((_, _)) = board.test_and_push(from, &to, color) {
-            ret.push((*from, to));
-        }
+    if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8 + 1)
+        && let Some((_, _)) = board.test_and_push(from, &to, color)
+    {
+        ret.push((*from, to));
     }
-    if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8 - 1) {
-        if let Some((_, _)) = board.test_and_push(from, &to, color) {
-            ret.push((*from, to));
-        }
+    if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8 - 1)
+        && let Some((_, _)) = board.test_and_push(from, &to, color)
+    {
+        ret.push((*from, to));
     }
     //2 straight forward
-    if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8) {
-        if let Some((_, _)) = board.test_and_push(from, &to, color) {
-            ret.push((*from, to));
-        }
+    if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8)
+        && let Some((_, _)) = board.test_and_push(from, &to, color)
+    {
+        ret.push((*from, to));
     }
-    if let Some(to) = Board::checked_coord(from.row as i8 + dir + dir, from.col as i8) {
-        if let Some((_, _)) = board.test_and_push(from, &to, color) {
-            ret.push((*from, to));
-        }
+    if let Some(to) = Board::checked_coord(from.row as i8 + dir + dir, from.col as i8)
+        && let Some((_, _)) = board.test_and_push(from, &to, color)
+    {
+        ret.push((*from, to));
     }
-    return ret;
+    ret
 }
 
 pub fn update_rook_legals_moves(
@@ -61,7 +61,7 @@ pub fn update_rook_legals_moves(
             c += dc;
         }
     }
-    return ret;
+    ret
 }
 
 pub fn update_knight_legals_moves(
@@ -84,13 +84,13 @@ pub fn update_knight_legals_moves(
     for (dr, dc) in cells {
         let new_row = from.row as i8 + dr;
         let new_col = from.col as i8 + dc;
-        if let Some(to) = Board::checked_coord(new_row, new_col) {
-            if let Some((_, _)) = board.test_and_push(from, &to, color) {
-                ret.push((*from, to));
-            }
+        if let Some(to) = Board::checked_coord(new_row, new_col)
+            && let Some((_, _)) = board.test_and_push(from, &to, color)
+        {
+            ret.push((*from, to));
         }
     }
-    return ret;
+    ret
 }
 
 pub fn update_bishop_legals_moves(
@@ -119,7 +119,7 @@ pub fn update_bishop_legals_moves(
             c += dc;
         }
     }
-    return ret;
+    ret
 }
 
 pub fn update_queen_legals_moves(
@@ -168,7 +168,7 @@ pub fn update_queen_legals_moves(
             c += dc;
         }
     }
-    return ret;
+    ret
 }
 
 //tester les roques
@@ -192,26 +192,26 @@ pub fn update_king_legals_moves(
     for (dr, dc) in cells {
         let new_row = from.row as i8 + dr;
         let new_col = from.col as i8 + dc;
-        if let Some(to) = Board::checked_coord(new_row, new_col) {
-            if let Some((_, _)) = board.test_and_push(from, &to, color) {
-                ret.push((*from, to));
-            }
+        if let Some(to) = Board::checked_coord(new_row, new_col)
+            && let Some((_, _)) = board.test_and_push(from, &to, color)
+        {
+            ret.push((*from, to));
         }
     }
     //castle
-    if let None = board.check {
+    if board.check.is_none() {
         let little_castle = from.col as i8 + 2;
         let long_castle = from.col as i8 - 2;
-        if let Some(to) = Board::checked_coord(from.row as i8, little_castle) {
-            if let Some((_, _)) = board.test_and_push(from, &to, color) {
-                ret.push((*from, to));
-            }
+        if let Some(to) = Board::checked_coord(from.row as i8, little_castle)
+            && let Some((_, _)) = board.test_and_push(from, &to, color)
+        {
+            ret.push((*from, to));
         }
-        if let Some(to) = Board::checked_coord(from.row as i8, long_castle) {
-            if let Some((_, _)) = board.test_and_push(from, &to, color) {
-                ret.push((*from, to));
-            }
+        if let Some(to) = Board::checked_coord(from.row as i8, long_castle)
+            && let Some((_, _)) = board.test_and_push(from, &to, color)
+        {
+            ret.push((*from, to));
         }
     }
-    return ret;
+    ret
 }

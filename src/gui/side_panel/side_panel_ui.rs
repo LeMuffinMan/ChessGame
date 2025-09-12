@@ -3,8 +3,8 @@ use crate::Color;
 use crate::Color::*;
 use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
-use crate::gui::chessapp_struct::End::*;
 use crate::gui::chessapp_struct::DrawOption::*;
+use crate::gui::chessapp_struct::End::*;
 use egui::Context;
 
 impl ChessApp {
@@ -12,7 +12,9 @@ impl ChessApp {
         ui.heading("ChessGame");
         if self.current.board.pawn_to_promote.is_some() {
             self.side_panel_promote(ui);
-        } else if let Some(draw) = &self.draw_option && *draw == Request {
+        } else if let Some(draw) = &self.draw_option
+            && *draw == Request
+        {
             self.side_panel_draw_request(ui);
         } else {
             ui.separator();
@@ -42,7 +44,7 @@ impl ChessApp {
             }
         }
     }
-    
+
     fn side_panel_draw_request(&mut self, ui: &mut egui::Ui) {
         ui.label("Accept draw offer ?");
         ui.horizontal(|ui| {
@@ -67,26 +69,24 @@ impl ChessApp {
                 self.current.board.grid[coord.row as usize][coord.col as usize] =
                     Cell::Occupied(piece, color);
 
-
                 let opponent = if self.current.active_player != White {
                     White
                 } else {
                     Black
                 };
-                if let Some(k) = self.current.board.get_king(&opponent) {
-                    if self.current.board.threaten_cells.contains(&k) {
-                        if let Some(k) = self.current.board.get_king(&opponent) {
-                            self.current.board.check = Some(k);
-                        }
-                        // println!("Check !");
-                    }
+                if let Some(k) = self.current.board.get_king(&opponent)
+                    && self.current.board.threaten_cells.contains(&k)
+                    && let Some(k) = self.current.board.get_king(&opponent)
+                {
+                    self.current.board.check = Some(k);
+                    // println!("Check !");
                 }
                 self.check_endgame();
                 if let Some(promoteinfo) = &self.promoteinfo {
                     let from = promoteinfo.from;
                     let to = promoteinfo.to;
                     let prev_board = promoteinfo.prev_board.clone();
-                    self.from_move_to_san(&from, &to, &prev_board);
+                    self.encode_move_to_san(&from, &to, &prev_board);
                 }
                 self.current.board.pawn_to_promote = None;
                 self.current.board.promote = None;

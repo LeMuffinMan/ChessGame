@@ -44,20 +44,19 @@ pub fn knight_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bo
     ];
 
     for (dx, dy) in cells.iter() {
-        if to.row as i8 == from.row as i8 + *dx && to.col as i8 == from.col as i8 + *dy {
-            if !board.get(to).is_color(color) {
-                return true;
-            }
+        if to.row as i8 == from.row as i8 + *dx
+            && to.col as i8 == from.col as i8 + *dy
+            && !board.get(to).is_color(color)
+        {
+            return true;
         }
     }
     false
 }
 
 pub fn rook_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
-    if !board.get(to).is_color(color) {
-        if from.row == to.row || from.col == to.col {
-            return !find_obstacle(from, to, board);
-        }
+    if !board.get(to).is_color(color) && from.row == to.row || from.col == to.col {
+        return !find_obstacle(from, to, board);
     }
     false
 }
@@ -140,7 +139,7 @@ pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
                 && board.get(&cell_2).is_empty()
                 && !board.threaten_cells.contains(&cell_1)
                 && !board.threaten_cells.contains(&cell_2)
-                && None == board.check
+                && board.check.is_none()
             {
                 return true;
             }
@@ -163,7 +162,7 @@ pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
                 && board.get(&cell_2).is_empty()
                 && !board.threaten_cells.contains(&cell_1)
                 && !board.threaten_cells.contains(&cell_2)
-                && None == board.check
+                && board.check.is_none()
             {
                 return true;
             }
@@ -183,10 +182,11 @@ pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
     ];
 
     for (dx, dy) in cells.iter() {
-        if to.row as i8 == from.row as i8 + *dx && to.col as i8 == from.col as i8 + *dy {
-            if !board.get(to).is_color(color) {
-                return true;
-            }
+        if to.row as i8 == from.row as i8 + *dx
+            && to.col as i8 == from.col as i8 + *dy
+            && !board.get(to).is_color(color)
+        {
+            return true;
         }
     }
     false

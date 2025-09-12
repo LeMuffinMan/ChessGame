@@ -16,13 +16,13 @@ impl Board {
     pub fn get_king(&self, color: &Color) -> Option<Coord> {
         for x in 0..8 {
             for y in 0..8 {
-                if self.grid[x][y].is_color(color) {
-                    if let Some(Piece::King) = self.grid[x][y].get_piece() {
-                        return Some(Coord {
-                            row: x as u8,
-                            col: y as u8,
-                        });
-                    }
+                if self.grid[x][y].is_color(color)
+                    && let Some(Piece::King) = self.grid[x][y].get_piece()
+                {
+                    return Some(Coord {
+                        row: x as u8,
+                        col: y as u8,
+                    });
                 }
             }
         }
