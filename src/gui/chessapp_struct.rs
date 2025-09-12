@@ -1,6 +1,7 @@
 use crate::Board;
 use crate::Color;
 use crate::Coord;
+use crate::gui::chessapp_struct::End::*;
 
 use eframe::{App, egui};
 use egui::Pos2;
@@ -8,7 +9,6 @@ use egui_file_dialog::FileDialog;
 use std::path::PathBuf;
 use std::time::Instant;
 use std::collections::HashMap;
-use crate::gui::chessapp_struct::End::*;
 
 #[derive(Clone, PartialEq)]
 pub enum DrawRule {
@@ -73,6 +73,7 @@ pub struct ChessApp {
     pub board_hashs: HashMap<u64, usize>,
     pub draw_option: Option<DrawOption>,
     pub draw_moves_count: u32,
+    pub draw_hash: Option<u64>,
 }
 
 
@@ -108,6 +109,7 @@ impl Default for ChessApp {
             board_hashs: HashMap::new(),
             draw_option: None,
             draw_moves_count: 0,
+            draw_hash: None,
         }
     }
 }

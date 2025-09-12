@@ -33,7 +33,6 @@ impl ChessApp {
             ui.checkbox(&mut self.show_last_move, "Last move").changed();
             ui.separator();
             self.side_panel_undo_redo_replay(ui);
-            // ui.monospace(&self.current.last_move_san);
             if !self.current.history_san.is_empty() {
                 ui.monospace(&self.current.history_san);
             }

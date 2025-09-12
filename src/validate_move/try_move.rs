@@ -17,26 +17,23 @@ use crate::gui::chessapp_struct::DrawRule::*;
 
 impl ChessApp {
     pub fn add_hash(&mut self) {
-        //Si on a deux situation identiques en stock
-        //que le joueur peut la reproduire
-        //      Ajouter un bouton Draw
-        //          Si il clique : Draw
-        //Si a add hash on a le flag draw leve :
-        //      si le hash apparait deja deux fois : On ecrase les 3 hashs
-        //      sinon on l'ajoute
-        //
-        //
         //si oui on propose la nulle au joueur qui va produire la repetition 
         let mut hasher = DefaultHasher::new();
         //il faut recuperer aussi l'etat des roques et des en passant et tous les coups legaux !!
         // ((bool, bool), (bool, bool), grid, trait, en_passant)
         self.current.board.grid.hash(&mut hasher);
         let hash_value = hasher.finish();
-        let count = self.board_hashs.entry(hash_value).or_insert(0);
-        *count += 1;
-        if *count >= 3 {
+        if self.board_hashs.contains_key(&hash_value) {
+            println!("Hash found as double : {:?}", hash_value);
             self.draw_option = Some(Available(TripleRepetition));
+            self.draw_hash = Some(hash_value);
+        } else { 
+            self.board_hashs.insert(hash_value, 1);
         }
+        if let Some(h) = self.draw_hash {
+            self.board_hashs.remove(&h);    
+        }
+
     }
 
     fn fifty_moves_draw_check(&mut self, from: &Coord, to: &Coord) {
@@ -78,7 +75,7 @@ impl ChessApp {
 
     fn impossible_mate_check(&mut self) -> bool {
         let pieces = self.get_pieces_on_board();
-        println!("pieces on board : {:?}", pieces);
+        // println!("pieces on board : {:?}", pieces);
         match pieces.len() {
             2 => return true,
             3 => {

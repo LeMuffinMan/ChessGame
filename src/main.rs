@@ -20,8 +20,6 @@ mod validate_move;
 //
 //++ implementer draw rules
 //      - triple repetition
-//      - 50 moves sans prise ou pion move
-//      - configuration de fin spec
 //
 //gui
 //  side panel
