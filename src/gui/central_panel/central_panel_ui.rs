@@ -1,5 +1,5 @@
 use crate::ChessApp;
-use crate::gui::render::{centered_square, draw_border};
+use crate::gui::central_panel::render::{centered_square, draw_border};
 
 use eframe::egui;
 

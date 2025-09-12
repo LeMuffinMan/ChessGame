@@ -1,5 +1,5 @@
 use crate::ChessApp;
-use crate::gui::render::ui_to_board;
+use crate::gui::central_panel::render::ui_to_board;
 
 impl ChessApp {
 
