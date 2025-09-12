@@ -16,6 +16,12 @@ pub enum Color {
 }
 use Color::*;
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub struct Coord {
+    pub col: u8, //declarer de base des u8 ?
+    pub row: u8,
+}
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Cell {
     Occupied(Piece, Color),
@@ -78,3 +84,4 @@ impl std::fmt::Display for Cell {
         write!(f, "{display_str}")
     }
 }
+

@@ -4,7 +4,7 @@ use crate::board::cell::Color;
 mod board;
 use board::Board;
 mod cli;
-use crate::cli::get_inputs::Coord;
+use crate::board::cell::Coord;
 use crate::cli::get_inputs::run_cli;
 mod gui;
 mod validate_move;

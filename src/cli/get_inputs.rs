@@ -3,12 +3,8 @@ use crate::Color;
 use std::io::{self, BufRead};
 use crate::validate_move::try_move::mat_or_pat;
 use crate::validate_move;
+use crate::Coord;
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub struct Coord {
-    pub col: u8, //declarer de base des u8 ?
-    pub row: u8,
-}
 
 pub fn run_cli() {
     let mut board = Board::init_board();
