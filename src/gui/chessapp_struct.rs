@@ -10,11 +10,12 @@ use std::time::Instant;
 use std::collections::HashMap;
 use crate::gui::chessapp_struct::End::*;
 
-#[derive(Clone/* , Debug, Eq, PartialEq, Hash */)]
+#[derive(Clone)]
 pub enum End {
     Checkmate,
     Pat,
     Draw,
+    Resign,
 }
 
 #[derive(Clone)]
