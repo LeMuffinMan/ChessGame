@@ -9,6 +9,7 @@ use crate::gui::chessapp_struct::GameState;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use crate::gui::chessapp_struct::DrawOption::*;
+use crate::gui::chessapp_struct::DrawRule::*;
 
 impl ChessApp {
     pub fn add_hash(&mut self) {
@@ -29,7 +30,30 @@ impl ChessApp {
         let count = self.board_hashs.entry(hash_value).or_insert(0);
         *count += 1;
         if *count >= 3 {
-            self.draw_option = Some(Available);
+            self.draw_option = Some(Available(TripleRepetition));
+        }
+    }
+
+    fn fifty_moves_draw_check(&mut self, from: &Coord, to: &Coord) {
+        if let Some(p) = self.current.board.get(from).get_piece() {
+            match p {
+                Pawn => {
+                    self.draw_moves_count = 0; 
+                    return
+                },
+                _ => { },
+            };
+        }
+        if !self.current.board.get(to).is_empty() {
+            self.draw_moves_count = 0;
+            return ;
+        }
+        self.draw_moves_count += 1;
+        println!("{:?}", self.draw_moves_count);
+        if self.draw_moves_count >= 50 {
+            self.draw_option = Some(Available(FiftyMoves));
+        } else {
+            self.draw_option = None;
         }
     }
 
@@ -52,6 +76,7 @@ impl ChessApp {
             return;
         }
         self.undo.push(self.current.clone());
+        self.fifty_moves_draw_check(&from, &to);
         self.current
             .board
             .update_board(&from, &to, &self.current.active_player);

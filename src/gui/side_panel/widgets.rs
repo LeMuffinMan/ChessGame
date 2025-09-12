@@ -4,6 +4,7 @@ use egui::Context;
 use std::time::{Duration, Instant};
 use crate::gui::chessapp_struct::End::*;
 use crate::gui::chessapp_struct::DrawOption::*;
+use crate::gui::chessapp_struct::DrawRule::*;
 
 impl ChessApp {
     pub fn turn_infos(&mut self, ui: &mut egui::Ui) {
@@ -24,13 +25,19 @@ impl ChessApp {
     }
     pub fn draw_resign(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
-            if let Some(draw) = &self.draw_option && *draw == Available {
-                if *draw == Available {
-                    ui.label("Triple repetition :");
-                    if ui.button("Claim draw").clicked() {
-                        self.current.end = Some(Draw);
-                        self.draw_option = Some(Request);
+            if let Some(draw) = &self.draw_option {
+                match draw {
+                    Available(TripleRepetition) => {
+                        ui.label("Triple repetition :");
                     }
+                    Available(FiftyMoves) => {
+                        ui.label("%50 moves : ");
+                    }
+                    _ => { },
+                };
+                if ui.button("Claim draw").clicked() {
+                    self.current.end = Some(Draw);
+                    self.draw_option = Some(Request);
                 }
             } else {
                 if ui.add_enabled(!(self.current.end.is_some()), egui::Button::new("Draw")).clicked() {

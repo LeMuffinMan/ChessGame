@@ -11,10 +11,15 @@ use std::collections::HashMap;
 use crate::gui::chessapp_struct::End::*;
 
 #[derive(Clone, PartialEq)]
+pub enum DrawRule {
+    TripleRepetition,
+    FiftyMoves,
+}
+
+#[derive(Clone, PartialEq)]
 pub enum DrawOption {
     Request,
-    Available,
-    Unavailable,
+    Available(DrawRule),
 }
 
 #[derive(Clone)]
@@ -67,6 +72,7 @@ pub struct ChessApp {
     pub file_path: Option<PathBuf>,
     pub board_hashs: HashMap<u64, usize>,
     pub draw_option: Option<DrawOption>,
+    pub draw_moves_count: u32,
 }
 
 
@@ -100,7 +106,8 @@ impl Default for ChessApp {
             file_dialog: FileDialog::new(),
             file_path: None,
             board_hashs: HashMap::new(),
-            draw_option: Some(DrawOption::Unavailable),
+            draw_option: None,
+            draw_moves_count: 0,
         }
     }
 }
