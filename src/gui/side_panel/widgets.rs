@@ -5,8 +5,7 @@ use egui::Context;
 use crate::Color;
 
 impl ChessApp {
-    pub fn side_panel_top(&mut self, ui: &mut egui::Ui, ctx: &Context) {
-        ui.separator();
+    pub fn turn_infos(&mut self, ui: &mut egui::Ui) {
         ui.label(format!("Turn #{}", self.current.turn));
         if self.current.checkmate {
             let color = if self.current.active_player == Color::White {
@@ -22,10 +21,9 @@ impl ChessApp {
         } else {
             ui.label(format!("{:?} to move", self.current.active_player));
         }
-        // if self.current.last_move.is_some() {
-        //     ui.label(format!("last move: {}", self.current.last_move_san));
-        // }
-        ui.separator();
+    }
+
+    pub fn new_save_load(&mut self, ui: &mut egui::Ui, ctx: &Context) {
         ui.horizontal(|ui| {
             if ui.button("New game").clicked() {
                 *self = ChessApp::default();
