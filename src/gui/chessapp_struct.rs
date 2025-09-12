@@ -4,9 +4,9 @@ use crate::Coord;
 
 use eframe::{App, egui};
 use egui::Pos2;
-use std::time::Instant;
 use egui_file_dialog::FileDialog;
 use std::path::PathBuf;
+use std::time::Instant;
 
 #[derive(Clone)]
 pub struct PromoteInfo {
@@ -100,10 +100,8 @@ impl App for ChessApp {
 }
 
 impl ChessApp {
-
     pub fn is_active_player_piece(&mut self, coord: &Coord) -> bool {
         let cell = self.current.board.get(coord);
         cell.is_color(&self.current.active_player)
     }
-
 }

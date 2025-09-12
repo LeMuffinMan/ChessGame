@@ -68,7 +68,6 @@ impl Board {
         }
     }
     pub fn promote_pawn(&mut self, color: &Color) {
-
         let promote_row = if *color == White { 7 } else { 0 };
         for y in 0..8 {
             if self.grid[promote_row][y].is_color(color) {
@@ -84,5 +83,4 @@ impl Board {
             }
         }
     }
-
 }

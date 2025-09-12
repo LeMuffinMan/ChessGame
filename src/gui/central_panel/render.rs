@@ -15,13 +15,7 @@ pub fn draw_border(p: &egui::Painter, rect: egui::Rect) {
 }
 
 impl ChessApp {
-
-    pub fn draw_board(
-        &self,
-        p: &egui::Painter,
-        inner: egui::Rect,
-        sq: f32,
-    ) {
+    pub fn draw_board(&self, p: &egui::Painter, inner: egui::Rect, sq: f32) {
         let colors = [
             egui::Color32::from_rgb(240, 217, 181),
             egui::Color32::from_rgb(181, 136, 99),
@@ -37,7 +31,6 @@ impl ChessApp {
         let red = [
             egui::Color32::from_rgb(240, 200, 200),
             egui::Color32::from_rgb(200, 150, 150),
-            
         ];
         for row in 0..8 {
             for col in 0..8 {
@@ -50,15 +43,15 @@ impl ChessApp {
                     col: col,
                 };
                 let idx = (row + col) % 2;
-                if let Some(coord) = &self.current.board.check 
+                if let Some(coord) = &self.current.board.check
                     && (coord.row == row && coord.col == col)
-                    && self.current.board.threaten_cells.contains(&coord) { 
+                    && self.current.board.threaten_cells.contains(&coord)
+                {
                     p.rect_filled(cell, 0.0, red[idx as usize]);
-                    continue ;
+                    continue;
                 }
-                if self.show_threaten_cells
-                    && self.current.board.threaten_cells.contains(&coord) {
-                        p.rect_filled(cell, 0.0, red[idx as usize]);
+                if self.show_threaten_cells && self.current.board.threaten_cells.contains(&coord) {
+                    p.rect_filled(cell, 0.0, red[idx as usize]);
                 } else if self.piece_legals_moves.contains(&coord) && self.show_legals_moves {
                     p.rect_filled(cell, 0.0, green[idx as usize]);
                 } else if let Some((from, to)) = self.current.last_move
@@ -77,15 +70,12 @@ impl ChessApp {
         }
     }
 
-    pub fn draw_dragged_piece(
-        &self,
-        painter: &egui::Painter,
-        inner: egui::Rect,
-    ) {
+    pub fn draw_dragged_piece(&self, painter: &egui::Painter, inner: egui::Rect) {
         if let (Some(from), Some(pos)) = (self.drag_from, self.drag_pos) {
-            if let (Some(piece), Some(color)) =
-                (self.current.board.get(&from).get_piece(), self.current.board.get(&from).get_color())
-            {
+            if let (Some(piece), Some(color)) = (
+                self.current.board.get(&from).get_piece(),
+                self.current.board.get(&from).get_color(),
+            ) {
                 let ch: char = piece_char(*color, &piece);
 
                 let font_px = (inner.width() / 8.0) * 0.8;
@@ -101,12 +91,7 @@ impl ChessApp {
         }
     }
 
-    pub fn draw_pieces(
-        &self,
-        p: &egui::Painter,
-        inner: egui::Rect,
-        sq: f32,
-    ) {
+    pub fn draw_pieces(&self, p: &egui::Painter, inner: egui::Rect, sq: f32) {
         for row in 0..8 {
             for col in 0..8 {
                 let board_row = if self.flip { 7 - row } else { row };

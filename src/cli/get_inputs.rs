@@ -1,11 +1,10 @@
 use crate::Board;
 use crate::Color;
 use crate::Color::*;
-use std::io::{self, BufRead};
-use crate::validate_move::try_move::mat_or_pat;
-use crate::validate_move;
 use crate::Coord;
-
+use crate::validate_move;
+use crate::validate_move::try_move::mat_or_pat;
+use std::io::{self, BufRead};
 
 pub fn run_cli() {
     let mut board = Board::init_board();
@@ -45,8 +44,6 @@ pub fn run_cli() {
         println!("---------------------------------");
     }
 }
-
-
 
 fn turn_begin(board: &Board, color: &Color) {
     board.print();

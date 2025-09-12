@@ -69,7 +69,6 @@ impl ChessApp {
                     let to = promoteinfo.to;
                     let prev_board = promoteinfo.prev_board.clone();
                     self.from_move_to_san(&from, &to, &prev_board);
-
                 }
                 self.current.board.pawn_to_promote = None;
                 self.current.board.promote = None;
@@ -86,5 +85,4 @@ impl ChessApp {
             }
         }
     }
-
 }

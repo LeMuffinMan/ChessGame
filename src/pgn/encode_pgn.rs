@@ -1,14 +1,13 @@
-
 use chrono::Utc;
-use std::path::Path;
 use std::fs;
+use std::path::Path;
 
+use crate::Board;
 use crate::ChessApp;
-use crate::Coord;
 use crate::Color::*;
+use crate::Coord;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
-use crate::Board;
 
 pub fn export_pgn(san: &String, path: &Path) {
     let mut pgn = String::new();
@@ -34,14 +33,14 @@ pub fn export_pgn(san: &String, path: &Path) {
 }
 
 impl ChessApp {
-
     pub fn from_move_to_san(&mut self, from: &Coord, to: &Coord, prev_board: &Board) {
-
         //on ecrit le dernier coup une fois les checks du tour suivant faits
         if self.current.active_player == Black {
-            self.current.history_san.push_str(self.current.turn.to_string().as_str());
+            self.current
+                .history_san
+                .push_str(self.current.turn.to_string().as_str());
             self.current.history_san.push_str(". ");
-        } 
+        }
 
         let piece: char = if let Some(p) = prev_board.get(from).get_piece() {
             match p {
@@ -52,7 +51,9 @@ impl ChessApp {
                 Queen => 'Q',
                 King => 'K',
             }
-        } else { '?' };
+        } else {
+            '?'
+        };
 
         if piece == 'p' {
             self.pawn_san(from, to, prev_board);
@@ -66,12 +67,12 @@ impl ChessApp {
             self.current.history_san.push(piece);
             if let Some(piece) = prev_board.get(from).get_piece() {
                 match piece {
-                    Pawn => { },
-                    King => { }, 
-                    _ => { self.is_ambiguous_move(&piece, &from, &to) },
+                    Pawn => {}
+                    King => {}
+                    _ => self.is_ambiguous_move(&piece, &from, &to),
                 };
             }
-            
+
             if !prev_board.get(&to).is_empty() {
                 self.current.history_san.push('x');
             }
@@ -89,7 +90,6 @@ impl ChessApp {
             }
         } else if self.current.pat {
             self.current.history_san.push_str(" 1/2 - 1/2");
-
         } else if self.current.board.check.is_some() {
             self.current.history_san.push_str("+ ");
         } else {
@@ -97,13 +97,23 @@ impl ChessApp {
         }
     }
 
-    
     fn is_en_passant_take(&mut self, from: &Coord, to: &Coord, prev_board: &Board) -> bool {
-        let row_en_passant = if self.current.active_player == White { 5 } else { 4 };
-        let diff: i8 = if self.current.active_player == White { -1 } else { 1 };
+        let row_en_passant = if self.current.active_player == White {
+            5
+        } else {
+            4
+        };
+        let diff: i8 = if self.current.active_player == White {
+            -1
+        } else {
+            1
+        };
         if from.row == row_en_passant {
             let new_row = from.row as i8 + diff;
-            let coord = Coord { row: new_row as u8, col: to.col };
+            let coord = Coord {
+                row: new_row as u8,
+                col: to.col,
+            };
             if self.current.board.get(&coord).get_piece() != prev_board.get(&coord).get_piece() {
                 return true;
             }
@@ -112,11 +122,12 @@ impl ChessApp {
     }
 
     fn pawn_san(&mut self, from: &Coord, to: &Coord, prev_board: &Board) {
-        if  !prev_board.get(&to).is_empty() 
-            || self.is_en_passant_take(from, to, prev_board) {
-            self.current.history_san.push((b'a' + from.col as u8) as char);
+        if !prev_board.get(&to).is_empty() || self.is_en_passant_take(from, to, prev_board) {
+            self.current
+                .history_san
+                .push((b'a' + from.col as u8) as char);
             self.current.history_san.push('x');
-        } 
+        }
         self.current.history_san.push((b'a' + to.col as u8) as char);
         self.current.history_san.push((b'0' + to.row + 1) as char);
 
@@ -140,7 +151,10 @@ impl ChessApp {
             if let Some(prev_state) = self.undo.last() {
                 let prev_legal_moves = prev_state.board.legals_moves.clone();
                 for (f, t) in prev_legal_moves.iter() {
-                    if t == to && let Some(p) = self.current.board.get(f).get_piece() && p == piece{
+                    if t == to
+                        && let Some(p) = self.current.board.get(f).get_piece()
+                        && p == piece
+                    {
                         if from.col != f.col {
                             self.current.history_san.push((b'a' + from.col) as char);
                         } else if from.row != f.row {
@@ -150,11 +164,11 @@ impl ChessApp {
                             self.current.history_san.push((b'0' + from.row + 1) as char);
                         }
                     }
-                }    
+                }
             }
         }
     }
-//as IMPL CHESSAPP
+    //as IMPL CHESSAPP
     // fn update_last_move_san(&mut self) {
     //     if self.current.checkmate {
     //         self.current.last_move_san.push_str("# ");
@@ -176,8 +190,8 @@ impl ChessApp {
     //     let piece = match san_move[0] {
     //         'R' => Rook,
     //         'N' => Knight,
-    //         'B' => Bishop, 
-    //         'Q' => Queen, 
+    //         'B' => Bishop,
+    //         'Q' => Queen,
     //         'K' => King,
     //     };
     //     let mut hint_col = None;
@@ -196,7 +210,7 @@ impl ChessApp {
     //     if san_move.len() == 2 {
     //         let coord = Coord { row: san_move[1] - b'0' - 1, col: san_move[0] - b'a' };
     //     } else {
-    //        let coord = Coord { row: san_move[3] - b'0' - 1, col: san_move[2] - b'a' }; 
+    //        let coord = Coord { row: san_move[3] - b'0' - 1, col: san_move[2] - b'a' };
     //     }
     //     moves_list.push((Pawn, Coord, None));
     // }
@@ -210,7 +224,7 @@ impl ChessApp {
     //             } else if san_move[0].is_uppercase() {
     //                 pieces_move(san_move, moves_list);
     //             } else if san_move[0] == 'O' {
-    //                 
+    //
     //             } else if san_move == "1-0" || san_move == "0-1" || san_move == "1/2 - 1/2" {
     //                 break;
     //             } else { println!("Incorrect first char in move {}", san_move); }

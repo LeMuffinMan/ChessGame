@@ -1,8 +1,8 @@
 use crate::ChessApp;
-use crate::pgn::encode_pgn::export_pgn;
-use std::time::{Duration, Instant};
-use egui::Context;
 use crate::Color;
+use crate::pgn::encode_pgn::export_pgn;
+use egui::Context;
+use std::time::{Duration, Instant};
 
 impl ChessApp {
     pub fn turn_infos(&mut self, ui: &mut egui::Ui) {
@@ -29,13 +29,15 @@ impl ChessApp {
                 *self = ChessApp::default();
             }
 
-            if ui.add_enabled(!(self.undo.is_empty()), egui::Button::new("Save")).clicked() {
+            if ui
+                .add_enabled(!(self.undo.is_empty()), egui::Button::new("Save"))
+                .clicked()
+            {
                 self.file_dialog.save_file();
                 ui.label(format!("save file: {:?}", self.file_path));
             }
             if let Some(path) = self.file_dialog.update(ctx).picked() {
                 if let Some(path) = Some(path.to_path_buf()) {
-
                     println!("{:?}", path);
                 }
                 export_pgn(&self.current.history_san, path);

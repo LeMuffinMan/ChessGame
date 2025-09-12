@@ -24,12 +24,10 @@ impl ChessApp {
         }
         self.draw_board(&painter, inner, sq);
         self.draw_pieces(&painter, inner, sq);
-        self.draw_dragged_piece(&painter, inner,);
+        self.draw_dragged_piece(&painter, inner);
 
         self.left_click(inner, sq, &response);
         self.right_click(&response);
         self.drag_and_drop(inner, sq, &response);
     }
-
-
 }

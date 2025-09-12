@@ -84,4 +84,3 @@ impl std::fmt::Display for Cell {
         write!(f, "{display_str}")
     }
 }
-
