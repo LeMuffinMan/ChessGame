@@ -66,16 +66,14 @@ impl Board {
         to: &Coord,
         color: &Color,
     ) -> Option<(Coord, Coord)> {
-        if self.is_legal_move(from, to, color) {
-            if !is_king_exposed(from, to, color, self) {
-                // println!("pushing from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
-                return Some((*from, *to));
-                // self.legals_moves.push((*from, *to));
-            }
+        if self.is_legal_move(from, to, color) && !is_king_exposed(from, to, color, self) {
+            // println!("pushing from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
+            return Some((*from, *to));
+            // self.legals_moves.push((*from, *to));
             // println!("king exposed: from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
         }
         // println!("illegal move: from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
-        return None;
+        None
     }
 
     pub fn checked_coord(row: i8, col: i8) -> Option<Coord> {

@@ -40,12 +40,13 @@ impl ChessApp {
                 let board_row = if self.flip { 7 - row } else { row };
                 let coord = Coord {
                     row: board_row,
-                    col: col,
+                    col,
                 };
                 let idx = (row + col) % 2;
                 if let Some(_) = &self.current.board.check
                     && let Some(k) = self.current.board.get_king(&self.current.active_player)
-                    && k.row == board_row && k.col == col
+                    && k.row == board_row
+                    && k.col == col
                     && self.current.board.threaten_cells.contains(&k)
                 {
                     p.rect_filled(cell, 0.0, red[idx as usize]);
@@ -72,23 +73,23 @@ impl ChessApp {
     }
 
     pub fn draw_dragged_piece(&self, painter: &egui::Painter, inner: egui::Rect) {
-        if let (Some(from), Some(pos)) = (self.drag_from, self.drag_pos) {
-            if let (Some(piece), Some(color)) = (
+        if let (Some(from), Some(pos)) = (self.drag_from, self.drag_pos)
+            && let (Some(piece), Some(color)) = (
                 self.current.board.get(&from).get_piece(),
                 self.current.board.get(&from).get_color(),
-            ) {
-                let ch: char = piece_char(*color, &piece);
+            )
+        {
+            let ch: char = piece_char(*color, piece);
 
-                let font_px = (inner.width() / 8.0) * 0.8;
-                let font = egui::FontId::proportional(font_px);
-                let egui_color = if *color == Black {
-                    egui::Color32::BLACK
-                } else {
-                    egui::Color32::WHITE
-                };
+            let font_px = (inner.width() / 8.0) * 0.8;
+            let font = egui::FontId::proportional(font_px);
+            let egui_color = if *color == Black {
+                egui::Color32::BLACK
+            } else {
+                egui::Color32::WHITE
+            };
 
-                painter.text(pos, egui::Align2::CENTER_CENTER, ch, font, egui_color);
-            }
+            painter.text(pos, egui::Align2::CENTER_CENTER, ch, font, egui_color);
         }
     }
 
@@ -101,18 +102,18 @@ impl ChessApp {
                     row: board_row as u8,
                     col: board_col as u8,
                 };
-                if let Some(coord_dragged) = self.drag_from {
-                    if coord == coord_dragged {
-                        continue;
-                    }
+                if let Some(coord_dragged) = self.drag_from
+                    && coord == coord_dragged
+                {
+                    continue;
                 }
-                if let Some(color) = self.current.board.get(&coord).get_color() {
-                    if let Some(piece) = self.current.board.get(&coord).get_piece() {
-                        let ch = piece_char(*color, piece);
-                        let min = inner.min + egui::vec2(col as f32 * sq, row as f32 * sq);
-                        let cell = egui::Rect::from_min_size(min, egui::vec2(sq, sq));
-                        draw_piece_unicode(p, cell, ch, &color);
-                    }
+                if let Some(color) = self.current.board.get(&coord).get_color()
+                    && let Some(piece) = self.current.board.get(&coord).get_piece()
+                {
+                    let ch = piece_char(*color, piece);
+                    let min = inner.min + egui::vec2(col as f32 * sq, row as f32 * sq);
+                    let cell = egui::Rect::from_min_size(min, egui::vec2(sq, sq));
+                    draw_piece_unicode(p, cell, ch, color);
                 }
             }
         }
