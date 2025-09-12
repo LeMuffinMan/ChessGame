@@ -18,8 +18,7 @@ impl ChessApp {
             if let Some(pos) = response.interact_pointer_pos() {
                 if let Some(c) = ui_to_board(inner, sq, self.flip, pos) {
                     if self.is_active_player_piece(&c)
-                        && !self.current.checkmate
-                        && !self.current.pat
+                        && !self.current.end.is_some()
                         && let None = self.current.board.pawn_to_promote
                     {
                         self.drag_from = Some(c);
@@ -57,8 +56,7 @@ impl ChessApp {
 
     pub fn left_click(&mut self, inner: egui::Rect, sq: f32, response: &egui::Response) {
         if response.clicked()
-            && !self.current.checkmate
-            && !self.current.pat
+            && !self.current.end.is_some()
             && let None = self.current.board.pawn_to_promote
         {
             if let Some(pos) = response.interact_pointer_pos() {

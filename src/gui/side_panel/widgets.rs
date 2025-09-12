@@ -1,24 +1,22 @@
 use crate::ChessApp;
-use crate::Color;
 use crate::pgn::encode_pgn::export_pgn;
 use egui::Context;
 use std::time::{Duration, Instant};
+use crate::gui::chessapp_struct::End::*;
 
 impl ChessApp {
     pub fn turn_infos(&mut self, ui: &mut egui::Ui) {
         ui.label(format!("Turn #{}", self.current.turn));
-        if self.current.checkmate {
-            let color = if self.current.active_player == Color::White {
-                Color::Black
-            } else {
-                Color::White
+        if let Some(end) = &self.current.end {
+            match end {
+                Checkmate => ui.label(format!("Checkmate ! {:?} win", self.current.opponent)),
+                Pat => ui.label(format!("Pat !")),
+                Draw => ui.label(format!("Draw")),
             };
-            ui.label(format!("Checkmate ! {:?} win", color));
-        } else if self.current.pat {
-            ui.label(format!("Pat !"));
-        } else if self.current.board.check.is_some() {
-            ui.label("Check !");
         } else {
+            if self.current.board.check.is_some() {
+                ui.label("Check !");
+            }
             ui.label(format!("{:?} to move", self.current.active_player));
         }
     }

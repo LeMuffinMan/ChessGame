@@ -43,7 +43,7 @@ impl ChessApp {
                     col: col,
                 };
                 let idx = (row + col) % 2;
-                if let Some(coord) = &self.current.board.check
+                if let Some(_) = &self.current.board.check
                     && let Some(k) = self.current.board.get_king(&self.current.active_player)
                     && k.row == board_row && k.col == col
                     && self.current.board.threaten_cells.contains(&k)

@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
 pub enum Piece {
     Pawn,
     Rook,
@@ -9,20 +9,20 @@ pub enum Piece {
 }
 use Piece::*;
 
-#[derive(Copy, Clone, PartialEq, Debug, Eq)]
+#[derive(Copy, Clone, PartialEq, Debug, Eq, Hash)]
 pub enum Color {
     Black,
     White,
 }
 use Color::*;
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub struct Coord {
     pub col: u8, //declarer de base des u8 ?
     pub row: u8,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum Cell {
     Occupied(Piece, Color),
     Free,

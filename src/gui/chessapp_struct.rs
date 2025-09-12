@@ -7,6 +7,15 @@ use egui::Pos2;
 use egui_file_dialog::FileDialog;
 use std::path::PathBuf;
 use std::time::Instant;
+use std::collections::HashMap;
+use crate::gui::chessapp_struct::End::*;
+
+#[derive(Clone/* , Debug, Eq, PartialEq, Hash */)]
+pub enum End {
+    Checkmate,
+    Pat,
+    Draw,
+}
 
 #[derive(Clone)]
 pub struct PromoteInfo {
@@ -19,10 +28,9 @@ pub struct PromoteInfo {
 pub struct GameState {
     pub board: Board,
     pub active_player: Color,
-    pub checkmate: bool,
-    pub pat: bool,
+    pub opponent: Color,
+    pub end: Option<End>,
     pub last_move: Option<(Coord, Coord)>,
-    // pub last_move_san: String,
     pub history_san: String,
     pub turn: u32,
 }
@@ -49,7 +57,9 @@ pub struct ChessApp {
     pub piece_legals_moves: Vec<Coord>,
     pub file_dialog: FileDialog,
     pub file_path: Option<PathBuf>,
+    pub board_hashs: HashMap<u64, usize>,
 }
+
 
 impl Default for ChessApp {
     fn default() -> Self {
@@ -57,10 +67,9 @@ impl Default for ChessApp {
             current: GameState {
                 board: Board::init_board(),
                 active_player: Color::White,
-                checkmate: false,
-                pat: false,
+                opponent: Color::Black,
+                end: None,
                 last_move: None,
-                // last_move_san: String::new(),
                 history_san: String::new(),
                 turn: 1,
             },
@@ -81,6 +90,7 @@ impl Default for ChessApp {
             piece_legals_moves: Vec::new(),
             file_dialog: FileDialog::new(),
             file_path: None,
+            board_hashs: HashMap::new(),
         }
     }
 }
@@ -100,6 +110,25 @@ impl App for ChessApp {
 }
 
 impl ChessApp {
+    pub fn check_endgame(&mut self) {
+        self.current.board.update_threatens_cells(&self.current.active_player);
+        self.current.board.update_legals_moves(&self.current.active_player);
+        // for coord in &self.current.board.threaten_cells {
+        //     println!("Cell threaten : ({}, {})", coord.row, coord.col);
+        // }
+        if self.current.board.legals_moves.is_empty() {
+            self.current.board.print();
+            let king_cell = self.current.board.get_king(&self.current.active_player);
+            if let Some(coord) = king_cell {
+                if self.current.board.threaten_cells.contains(&coord) {
+                    self.current.end = Some(Checkmate);
+                } else {
+                    self.current.end = Some(Pat);
+                }
+            }
+        }
+    }
+
     pub fn is_active_player_piece(&mut self, coord: &Coord) -> bool {
         let cell = self.current.board.get(coord);
         cell.is_color(&self.current.active_player)

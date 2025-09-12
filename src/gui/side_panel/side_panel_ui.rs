@@ -3,7 +3,6 @@ use crate::Color;
 use crate::Color::*;
 use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
-use crate::validate_move::try_move::mat_or_pat;
 use egui::Context;
 
 impl ChessApp {
@@ -63,14 +62,7 @@ impl ChessApp {
                         // println!("Check !");
                     }
                 }
-                let (end, mate) = mat_or_pat(&mut self.current.board, &self.current.active_player);
-                if end {
-                    if mate {
-                        self.current.checkmate = true;
-                    } else {
-                        self.current.pat = true;
-                    }
-                }
+                self.check_endgame();
                 if let Some(promoteinfo) = &self.promoteinfo {
                     let from = promoteinfo.from;
                     let to = promoteinfo.to;
