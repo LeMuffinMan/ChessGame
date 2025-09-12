@@ -8,7 +8,7 @@ use crate::gui::chessapp_struct::GameState;
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
-use crate::gui::chessapp_struct::End::*;
+use crate::gui::chessapp_struct::DrawOption::*;
 
 impl ChessApp {
     pub fn add_hash(&mut self) {
@@ -29,7 +29,7 @@ impl ChessApp {
         let count = self.board_hashs.entry(hash_value).or_insert(0);
         *count += 1;
         if *count >= 3 {
-            self.current.end = Some(Draw);
+            self.draw_option = Some(Available);
         }
     }
 

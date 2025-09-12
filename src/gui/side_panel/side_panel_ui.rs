@@ -3,12 +3,18 @@ use crate::Color;
 use crate::Color::*;
 use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
+use crate::gui::chessapp_struct::End::*;
+use crate::gui::chessapp_struct::DrawOption::*;
 use egui::Context;
 
 impl ChessApp {
     pub fn side_panel_ui(&mut self, ui: &mut egui::Ui, ctx: &Context) {
         ui.heading("ChessGame");
-        if let None = self.current.board.pawn_to_promote {
+        if self.current.board.pawn_to_promote.is_some() {
+            self.side_panel_promote(ui);
+        } else if let Some(draw) = &self.draw_option && *draw == Request {
+            self.side_panel_draw_request(ui);
+        } else {
             ui.separator();
             self.turn_infos(ui);
             ui.separator();
@@ -36,10 +42,22 @@ impl ChessApp {
                 ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
             }
         }
-        self.side_panel_promote(ui);
+    }
+    
+    fn side_panel_draw_request(&mut self, ui: &mut egui::Ui) {
+        ui.label("Accept draw offer ?");
+        ui.horizontal(|ui| {
+            if ui.button("Accept").clicked() {
+                self.current.end = Some(Draw);
+                self.draw_option = Some(Unavailable);
+            }
+            if ui.button("Reject").clicked() {
+                self.draw_option = Some(Unavailable);
+            }
+        });
     }
 
-    pub fn side_panel_promote(&mut self, ui: &mut egui::Ui) {
+    fn side_panel_promote(&mut self, ui: &mut egui::Ui) {
         if let Some(coord) = self.current.board.pawn_to_promote {
             if let Some(piece) = self.current.board.promote {
                 let color = if self.current.active_player == Color::White {
