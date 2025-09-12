@@ -18,21 +18,12 @@ mod validate_move;
 //- Unit tests ?
 //- Pipeline de tests end to end ?
 //
-//++ implementer draw rules
-//      - triple repetition
-//
 //gui
 //  side panel
-//      pieces took
 //      flip + replay / + play to fix
 //
 //      import pgn
 //          decoder pgn
-//
-//      versus
-//          deux joueurs
-//          serie de parties
-//
 //
 
 fn main() {
