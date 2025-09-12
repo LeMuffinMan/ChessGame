@@ -27,11 +27,9 @@ impl ChessApp {
             self.current.active_player,
             self.current.board.grid
         );
-        println!("To be hashed : {:?}", state);
         state.hash(&mut hasher);
         let hash_value = hasher.finish();
         if self.board_hashs.contains_key(&hash_value) {
-            println!("Hash found as double : {:?}", hash_value);
             self.draw_option = Some(Available(TripleRepetition));
             self.draw_hash = Some(hash_value);
         } else { 
@@ -186,14 +184,11 @@ impl ChessApp {
                     };
                 }
                 King => {
-                    println!("WHYYYYY");
                     self.current.switch_castle(false, false);
                 }
                 _ => {}
             }
         };
-        println!("White castle_tuple : {:?}, {:?}", self.current.board.white_castle.0, self.current.board.white_castle.1);
-        println!("Black castle_tuple : {:?}, {:?}", self.current.board.black_castle.0, self.current.board.black_castle.1);
     }
 
     fn events_check(&mut self) {
