@@ -67,4 +67,21 @@ impl Board {
             }
         }
     }
+    pub fn promote_pawn(&mut self, color: &Color) {
+
+        let promote_row = if *color == Color::White { 7 } else { 0 };
+        for y in 0..8 {
+            if self.grid[promote_row][y].is_color(color) {
+                if let Some(piece) = self.grid[promote_row][y].get_piece()
+                    && *piece == Piece::Pawn
+                {
+                    let coord = Coord {
+                        row: promote_row as u8,
+                        col: y as u8,
+                    };
+                    self.pawn_to_promote = Some(coord);
+                }
+            }
+        }
+    }
 }
