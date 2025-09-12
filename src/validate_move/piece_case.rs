@@ -2,7 +2,7 @@ use crate::Board;
 use crate::Color;
 use crate::Color::*;
 use crate::Coord;
-use crate::cell::Cell;
+use crate::board::cell::Cell;
 use crate::validate_move::is_legal_move::find_obstacle;
 
 pub fn queen_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {

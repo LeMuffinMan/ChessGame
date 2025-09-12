@@ -1,8 +1,8 @@
 use crate::ChessApp;
 
 use crate::Color;
-use crate::cell::Cell;
-use crate::cell::Piece::*;
+use crate::board::cell::Cell;
+use crate::board::cell::Piece::*;
 use crate::gui::render::{centered_square, draw_border};
 use crate::mat_or_pat;
 
