@@ -4,7 +4,6 @@ use crate::Color::*;
 use crate::Board;
 use crate::Coord;
 use crate::board::cell::Piece::*;
-use crate::board::cell::Piece;
 use crate::gui::chessapp_struct::PromoteInfo;
 use crate::validate_move;
 
@@ -29,11 +28,6 @@ impl ChessApp {
             println!("King is exposed: illegal move");
             return;
         }
-        // self.add_history();
-        // println!(
-        //     "{:?} : {:?}",
-        //     self.current.active_player, self.current.last_move_san
-        // );
         self.undo.push(self.current.clone());
         self.current
             .board
@@ -61,26 +55,6 @@ impl ChessApp {
             self.current.turn += 1;
         }
     }
-
-    // fn add_history(&mut self) {
-    //     if self.current.active_player == White {
-    //         let turn_str = self.current.turn.to_string();
-    //         if self.current.history_san.is_empty() {
-    //         } else {
-    //             self.current.history_san.push(' ');
-    //         }
-    //         self.current
-    //             .history_san
-    //             .push_str(&format!("{}. {}", turn_str, self.current.last_move_san));
-    //     } else {
-    //         if !self.current.history_san.is_empty() {
-    //             self.current.history_san.push(' ');
-    //         }
-    //         self.current
-    //             .history_san
-    //             .push_str(&self.current.last_move_san);
-    //     }
-    // }
 
     fn update_castles(&mut self, to: &Coord) {
         let mut castle_tuple = self
@@ -133,163 +107,7 @@ impl ChessApp {
             }
         }
     }
-    
-    fn is_en_passant_take(&mut self, from: &Coord, to: &Coord, prev_board: &Board) -> bool {
-        let row_en_passant = if self.current.active_player == White { 5 } else { 4 };
-        let diff: i8 = if self.current.active_player == White { -1 } else { 1 };
-        if from.row == row_en_passant {
-            let new_row = from.row as i8 + diff;
-            let coord = Coord { row: new_row as u8, col: to.col };
-            if self.current.board.get(&coord).get_piece() != prev_board.get(&coord).get_piece() {
-                return true;
-            }
-        }
-        return false;
-    }
 
-    fn pawn_san(&mut self, from: &Coord, to: &Coord, prev_board: &Board) {
-        if  !prev_board.get(&to).is_empty() 
-            || self.is_en_passant_take(from, to, prev_board) {
-            self.current.history_san.push((b'a' + from.col as u8) as char);
-            self.current.history_san.push('x');
-        } 
-        self.current.history_san.push((b'a' + to.col as u8) as char);
-        self.current.history_san.push((b'0' + to.row + 1) as char);
-
-        if let Some(piece) = self.current.board.get(&to).get_piece() {
-            if *piece != Pawn {
-                self.current.history_san.push('=');
-                let p = match piece {
-                    Rook => 'R',
-                    Knight => 'N',
-                    Bishop => 'B',
-                    Queen => 'Q',
-                    _ => '_',
-                };
-                self.current.history_san.push(p);
-            }
-        }
-    }
-
-    pub fn is_ambiguous_move(&mut self, piece: &Piece, from: &Coord, to: &Coord) {
-        if !self.undo.is_empty() {
-            if let Some(prev_state) = self.undo.last() {
-                let prev_legal_moves = prev_state.board.legals_moves.clone();
-                for (f, t) in prev_legal_moves.iter() {
-                    if t == to && let Some(p) = self.current.board.get(f).get_piece() && p == piece{
-                        if from.col != f.col {
-                            self.current.history_san.push((b'a' + from.col) as char);
-                        } else if from.row != f.row {
-                            self.current.history_san.push((b'0' + from.row + 1) as char);
-                        } else {
-                            self.current.history_san.push((b'a' + from.col) as char);
-                            self.current.history_san.push((b'0' + from.row + 1) as char);
-                        }
-                    }
-                }    
-            }
-        }
-    }
-
-    pub fn from_move_to_san(&mut self, from: &Coord, to: &Coord, prev_board: &Board) {
-
-        //on ecrit le dernier coup une fois les checks du tour suivant faits
-        if self.current.active_player == Black {
-            self.current.history_san.push_str(self.current.turn.to_string().as_str());
-            self.current.history_san.push_str(". ");
-        } 
-
-        let piece: char = if let Some(p) = prev_board.get(from).get_piece() {
-            match p {
-                Pawn => 'p',
-                Rook => 'R',
-                Knight => 'N',
-                Bishop => 'B',
-                Queen => 'Q',
-                King => 'K',
-            }
-        } else { '?' };
-
-        if piece == 'p' {
-            self.pawn_san(from, to, prev_board);
-        } else if piece == 'K' && (to.col as i8 - from.col as i8).abs() > 1 {
-            if (to.col as i8 - from.col as i8) < 0 {
-                self.current.history_san.push_str("O-O-O");
-            } else {
-                self.current.history_san.push_str("O-O");
-            }
-        } else {
-            self.current.history_san.push(piece);
-            if let Some(piece) = prev_board.get(from).get_piece() {
-                match piece {
-                    Pawn => { },
-                    King => { }, 
-                    _ => { self.is_ambiguous_move(&piece, &from, &to) },
-                };
-            }
-            
-            if !prev_board.get(&to).is_empty() {
-                self.current.history_san.push('x');
-            }
-            self.current.history_san.push((b'a' + to.col) as char);
-            self.current.history_san.push((b'0' + to.row + 1) as char);
-        }
-
-        //endgame and checks
-        if self.current.checkmate {
-            self.current.history_san.push_str("# ");
-            if self.current.active_player == White {
-                self.current.history_san.push_str("0-1");
-            } else {
-                self.current.history_san.push_str("1-0");
-            }
-        } else if self.current.pat {
-            self.current.history_san.push_str(" 1/2 - 1/2");
-
-        } else if self.current.board.check.is_some() {
-            self.current.history_san.push_str("+ ");
-        } else {
-            self.current.history_san.push(' ');
-        }
-    }
-
-    // pub fn from_move_to_san(&mut self, move_to_encode: (Coord, Coord)) {
-    //     let (from, to) = move_to_encode;
-    //     let piece_char = match self.current.board.get(&from).get_piece() {
-    //         Some(Pawn) => None,
-    //         Some(Rook) => Some('R'),
-    //         Some(Knight) => Some('N'),
-    //         Some(Bishop) => Some('B'),
-    //         Some(Queen) => Some('Q'),
-    //         Some(King) => Some('K'),
-    //         None => Some('?'),
-    //     };
-    //
-    //     let is_capture = !self.current.board.get(&to).is_empty();
-    //
-    //     let dest_col = (b'a' + to.col as u8) as char;
-    //     let dest_row = char::from_digit((to.row + 1) as u32, 10).unwrap();
-    //
-    //     self.current.last_move_san = String::new();
-    //     if let Some(pc) = piece_char {
-    //         self.current.last_move_san.push(pc);
-    //     } else if is_capture {
-    //         let src_col = (b'a' + from.col as u8) as char;
-    //         self.current.last_move_san.push(src_col);
-    //     }
-    //
-    //     if is_capture {
-    //         self.current.last_move_san.push('x');
-    //     }
-    //
-    //     self.current.last_move_san.push(dest_col);
-    //     self.current.last_move_san.push(dest_row);
-        //ajouter le check
-        //ajouter le mat / pat
-        //ajouter la promotion
-        //ajouter ambiguite
-        //ajouter les roques
-    // }
 }
 
 pub fn mat_or_pat(board: &mut Board, color: &Color) -> (bool, bool) {
