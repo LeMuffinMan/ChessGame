@@ -1,5 +1,4 @@
 use crate::ChessApp;
-use crate::gui::central_panel::render::{centered_square, draw_border};
 
 use eframe::egui;
 
@@ -11,7 +10,7 @@ impl ChessApp {
 
         let board_rect = centered_square(rect);
         let inner = if self.widgets.show_coordinates {
-            draw_border(&painter, board_rect);
+            render_border(&painter, board_rect);
             board_rect.shrink(16.0)
         } else {
             board_rect
@@ -22,12 +21,22 @@ impl ChessApp {
         if self.widgets.show_coordinates {
             self.display_coordinates(&painter, inner, sq);
         }
-        self.draw_board(&painter, inner, sq);
-        self.draw_pieces(&painter, inner, sq);
-        self.draw_dragged_piece(&painter, inner);
+        self.render_board(&painter, inner, sq);
+        self.render_pieces(&painter, inner, sq);
+        self.render_dragged_piece(&painter, inner);
 
         self.left_click(inner, sq, &response);
         self.right_click(&response);
         self.drag_and_drop(inner, sq, &response);
     }
+}
+
+fn centered_square(rect: egui::Rect) -> egui::Rect {
+    let side = rect.width().min(rect.height());
+    egui::Rect::from_center_size(rect.center(), egui::vec2(side, side))
+}
+
+fn render_border(p: &egui::Painter, rect: egui::Rect) {
+    let border_color = egui::Color32::from_rgb(50, 50, 50);
+    p.rect_filled(rect, 0.0, border_color);
 }
