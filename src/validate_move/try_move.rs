@@ -1,10 +1,14 @@
 use crate::ChessApp;
+use crate::Color;
 use crate::Color::*;
 use crate::Coord;
+use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
 use crate::gui::chessapp_struct::PromoteInfo;
 use crate::validate_move;
 use crate::gui::chessapp_struct::GameState;
+use crate::gui::chessapp_struct::End::Draw;
+
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -25,6 +29,7 @@ impl ChessApp {
         //si oui on propose la nulle au joueur qui va produire la repetition 
         let mut hasher = DefaultHasher::new();
         //il faut recuperer aussi l'etat des roques et des en passant et tous les coups legaux !!
+        // ((bool, bool), (bool, bool), grid, trait, en_passant)
         self.current.board.grid.hash(&mut hasher);
         let hash_value = hasher.finish();
         let count = self.board_hashs.entry(hash_value).or_insert(0);
@@ -49,12 +54,66 @@ impl ChessApp {
             return ;
         }
         self.draw_moves_count += 1;
-        println!("{:?}", self.draw_moves_count);
+        // println!("{:?}", self.draw_moves_count);
         if self.draw_moves_count >= 50 {
             self.draw_option = Some(Available(FiftyMoves));
         } else {
             self.draw_option = None;
         }
+    }
+
+    fn get_pieces_on_board(&mut self) -> Vec<(Piece, Color, Color)> {
+        let mut vec = Vec::new();
+        for x in 0.. 8 {
+            for y in 0 ..7 {
+                if let Some(piece) = self.current.board.grid[x][y].get_piece()
+                    && let Some(color) = self.current.board.grid[x][y].get_color() {
+                        let cell_color = if (x + y) % 2 == 0 { White } else { Black };    
+                        vec.push((*piece, *color, cell_color));  
+                }
+            }
+        }
+        vec
+    }
+
+    fn impossible_mate_check(&mut self) -> bool {
+        let pieces = self.get_pieces_on_board();
+        println!("pieces on board : {:?}", pieces);
+        match pieces.len() {
+            2 => return true,
+            3 => {
+                for (piece, _, _) in pieces {
+                    if piece != King && piece != Bishop && piece != Knight {
+                        return false
+                    }
+                }
+                return true
+            },
+            4 => {
+                let mut white_bishop_cell_color = None;
+                let mut black_bishop_cell_color = None;
+                for (piece, color, cell_color) in pieces {
+                    if piece != King && piece != Bishop {
+                        return false
+                    } 
+                    white_bishop_cell_color = if piece == Bishop && color == White {
+                        Some(cell_color)
+                    } else {
+                        None
+                    };
+                    black_bishop_cell_color = if piece == Bishop && color == Black {
+                        Some(cell_color)
+                    } else {
+                        None
+                    };
+                }
+                if white_bishop_cell_color != black_bishop_cell_color {
+                    return true
+                }
+                return false
+            },
+            _ => { return false },
+        };
     }
 
     pub fn try_move(&mut self, from: Coord, to: Coord) {
@@ -80,6 +139,9 @@ impl ChessApp {
         self.current
             .board
             .update_board(&from, &to, &self.current.active_player);
+        if self.impossible_mate_check() {
+            self.current.end = Some(Draw);
+        }
         self.add_hash();
         self.update_castles(&to);
         self.redo.clear();

@@ -17,10 +17,12 @@ impl ChessApp {
                 Resign => ui.label(format!("{:?} resigned : {:?} win", self.current.active_player, self.current.opponent)),
             };
         } else {
-            if self.current.board.check.is_some() {
-                ui.label("Check !");
-            }
-            ui.label(format!("{:?} to move", self.current.active_player));
+            ui.horizontal(|ui| {
+                if self.current.board.check.is_some() {
+                    ui.label("Check !");
+                }
+                ui.label(format!("{:?} to move", self.current.active_player));
+            });
         }
     }
     pub fn draw_resign(&mut self, ui: &mut egui::Ui) {
