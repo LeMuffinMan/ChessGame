@@ -1,7 +1,7 @@
 use crate::ChessApp;
 use crate::Color;
 use crate::Coord;
-use crate::cell::Piece;
+use crate::board::cell::Piece;
 
 pub fn centered_square(rect: egui::Rect) -> egui::Rect {
     let side = rect.width().min(rect.height());

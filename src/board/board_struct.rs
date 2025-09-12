@@ -1,9 +1,9 @@
 use crate::Color;
 use crate::Color::*;
 use crate::Coord;
-use crate::cell::Cell;
-use crate::cell::Piece;
-use crate::cell::Piece::*;
+use crate::board::cell::Cell;
+use crate::board::cell::Piece;
+use crate::board::cell::Piece::*;
 
 #[derive(Clone)]
 pub struct Board {

@@ -2,7 +2,7 @@ use crate::Board;
 use crate::Color;
 use crate::Color::*;
 use crate::Coord;
-use crate::cell::Piece;
+use crate::board::cell::Piece;
 use crate::validate_move::is_legal_move::is_king_exposed;
 
 impl Board {

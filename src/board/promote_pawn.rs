@@ -1,7 +1,7 @@
 use crate::Board;
 use crate::Color;
 use crate::Coord;
-use crate::cell::Piece;
+use crate::board::cell::Piece;
 // use std::io::{self, BufRead}; // en haut ou dans la fonction ?
 
 impl Board {

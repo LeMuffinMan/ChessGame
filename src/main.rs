@@ -1,11 +1,11 @@
 mod threat;
 use threat::get_threaten_cells;
-mod cell;
-use cell::Color;
+use crate::board::cell::Color;
 mod board;
 use board::Board;
-mod get_inputs;
-use get_inputs::Coord;
+mod cli;
+use crate::cli::get_inputs::Coord;
+use crate::cli::get_inputs;
 mod gui;
 mod validate_move;
 use crate::gui::chessapp_struct::ChessApp;
