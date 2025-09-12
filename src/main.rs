@@ -9,6 +9,7 @@ use crate::cli::get_inputs::run_cli;
 mod gui;
 mod validate_move;
 use crate::gui::chessapp_struct::ChessApp;
+mod pgn;
 
 //TO DO
 //- fmt + clippy puis merge sur main et bloquer les pushs
