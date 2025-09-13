@@ -24,8 +24,8 @@ impl ChessApp {
             ui.separator();
             // self.new_save_load(ui, ctx);
             // ui.separator();
-            self.side_panel_flip(ui);
-            ui.separator();
+            // self.side_panel_flip(ui);
+            // ui.separator();
             ui.checkbox(&mut self.widgets.show_coordinates, "Coordinates")
                 .changed();
             ui.label("Highlight :");
@@ -39,7 +39,7 @@ impl ChessApp {
             if !self.current.history_san.is_empty() {
                 ui.monospace(&self.current.history_san);
             }
-            ui.separator();
+            // ui.separator();
             // if ui.button("Quit").clicked() {
             //     ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
             // }
