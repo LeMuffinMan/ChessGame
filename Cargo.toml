@@ -8,3 +8,10 @@ chrono = "0.4.42"
 eframe = "0.32.2"
 egui = "0.32.2"
 egui-file-dialog = "0.11.0"
+log = "0.4.28"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = ["Window", "Document", "HtmlCanvasElement"] }
+
+[lib]
+crate-type = ["cdylib", "rlib"]

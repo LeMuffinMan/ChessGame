@@ -42,7 +42,7 @@ impl ChessApp {
                 };
                 if ui.button("Claim draw").clicked() {
                     self.current.end = Some(Draw);
-                    self.draw.draw_option = Some(Request);
+                    self.draw.draw_option = None;
                 }
             } else if ui
                 .add_enabled(self.current.end.is_none(), egui::Button::new("Draw"))
@@ -59,30 +59,30 @@ impl ChessApp {
         });
     }
 
-    pub fn new_save_load(&mut self, ui: &mut egui::Ui, ctx: &Context) {
-        ui.horizontal(|ui| {
-            if ui.button("New game").clicked() {
-                *self = ChessApp::default();
-            }
-
-            if ui
-                .add_enabled(!(self.undo.is_empty()), egui::Button::new("Save"))
-                .clicked()
-            {
-                self.file_dialog.save_file();
-                ui.label(format!("save file: {:?}", self.file_path));
-            }
-            if let Some(path) = self.file_dialog.update(ctx).picked() {
-                if let Some(path) = Some(path.to_path_buf()) {
-                    println!("{:?}", path);
-                }
-                export_pgn(&self.current.history_san, path);
-            }
-            if ui.add_enabled(false, egui::Button::new("Load")).clicked() {
-                println!("Load game");
-            }
-        });
-    }
+    // pub fn new_save_load(&mut self, ui: &mut egui::Ui, ctx: &Context) {
+    //     ui.horizontal(|ui| {
+    //         if ui.button("New game").clicked() {
+    //             *self = ChessApp::default();
+    //         }
+    //
+    //         if ui
+    //             .add_enabled(!(self.undo.is_empty()), egui::Button::new("Save"))
+    //             .clicked()
+    //         {
+    //             self.file_dialog.save_file();
+    //             ui.label(format!("save file: {:?}", self.file_path));
+    //         }
+    //         if let Some(path) = self.file_dialog.update(ctx).picked() {
+    //             if let Some(path) = Some(path.to_path_buf()) {
+    //                 println!("{:?}", path);
+    //             }
+    //             export_pgn(&self.current.history_san, path);
+    //         }
+    //         if ui.add_enabled(false, egui::Button::new("Load")).clicked() {
+    //             println!("Load game");
+    //         }
+    //     });
+    // }
 
     pub fn side_panel_flip(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
