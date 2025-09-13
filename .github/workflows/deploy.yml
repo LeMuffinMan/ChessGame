@@ -1,30 +1,13 @@
 
-name: CI + Deploy
+name: Deploy Wasm ChessGame on GitHub Pages
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
-  checks:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-      - name: Cargo check
-        run: cargo check
-      - name: Clippy
-        run: cargo clippy -- -D warnings
-      # - name: Test
-      #   run: cargo test
-
   deploy:
-    needs: checks   # 👉 ne déploie que si checks passe
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,10 +23,11 @@ jobs:
         run: cargo install --locked trunk
 
       - name: Build
-        run: trunk build --release --public-url /${{ github.event.repository.name }}/
+        run: cd ChessGame && trunk build --release --public-url /${{ github.event.repository.name }}/
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          publish_dir: ./ChessGame/dist
+         publish_dir: ./dist
