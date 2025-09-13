@@ -118,7 +118,7 @@ impl ChessApp {
                 self.current = next;
             }
             if ui
-                .add_enabled(!self.undo.is_empty(), egui::Button::new("widgets.Replay"))
+                .add_enabled(!self.undo.is_empty(), egui::Button::new("Replay"))
                 .clicked()
             {
                 self.redo.clear();
