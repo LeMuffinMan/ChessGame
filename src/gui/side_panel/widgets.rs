@@ -117,22 +117,22 @@ impl ChessApp {
                 self.undo.push(self.current.clone());
                 self.current = next;
             }
-            if ui
-                .add_enabled(!self.undo.is_empty(), egui::Button::new("Replay"))
-                .clicked()
-            {
-                self.redo.clear();
-                self.redo.push(self.current.clone());
-                while let Some(prev) = self.undo.pop() {
-                    self.redo.push(prev.clone());
-                    if self.undo.is_empty() {
-                        self.current = prev;
-                    }
-                }
-                self.widgets.next_replay_time =
-                    Some(Instant::now() + Duration::from_millis(self.widgets.replay_speed));
-            }
-            self.replay_step(ui.ctx());
+            // if ui
+            //     .add_enabled(!self.undo.is_empty(), egui::Button::new("Replay"))
+            //     .clicked()
+            // {
+            //     self.redo.clear();
+            //     self.redo.push(self.current.clone());
+            //     while let Some(prev) = self.undo.pop() {
+            //         self.redo.push(prev.clone());
+            //         if self.undo.is_empty() {
+            //             self.current = prev;
+            //         }
+            //     }
+            //     self.widgets.next_replay_time =
+            //         Some(Instant::now() + Duration::from_millis(self.widgets.replay_speed));
+            // }
+            // self.replay_step(ui.ctx());
         });
         ui.separator();
         if self.widgets.next_replay_time.is_some() {
