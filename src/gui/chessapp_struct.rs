@@ -153,7 +153,6 @@ impl App for ChessApp {
 //     }
 // }
 
-
 impl ChessApp {
     pub fn check_endgame(&mut self) {
         self.current

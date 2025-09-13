@@ -2,8 +2,8 @@ use crate::ChessApp;
 use crate::gui::chessapp_struct::DrawOption::*;
 use crate::gui::chessapp_struct::DrawRule::*;
 use crate::gui::chessapp_struct::End::*;
-use crate::pgn::encode_pgn::export_pgn;
-use egui::Context;
+// use crate::pgn::encode_pgn::export_pgn;
+// use egui::Context;
 use std::time::{Duration, Instant};
 
 impl ChessApp {
