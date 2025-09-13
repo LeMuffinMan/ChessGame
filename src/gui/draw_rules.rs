@@ -31,6 +31,7 @@ impl ChessApp {
                 e.insert(1);
             }
             Entry::Occupied(_) => {
+                //si les legals moves permettent la repetition 
                 self.draw.draw_option = Some(Available(TripleRepetition));
                 self.draw.draw_hash = Some(hash_value);
             }

@@ -22,8 +22,8 @@ impl ChessApp {
             ui.separator();
             self.draw_resign(ui);
             ui.separator();
-            self.new_save_load(ui, ctx);
-            ui.separator();
+            // self.new_save_load(ui, ctx);
+            // ui.separator();
             self.side_panel_flip(ui);
             ui.separator();
             ui.checkbox(&mut self.widgets.show_coordinates, "Coordinates")

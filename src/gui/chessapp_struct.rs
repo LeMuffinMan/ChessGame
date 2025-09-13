@@ -5,7 +5,7 @@ use crate::gui::chessapp_struct::End::*;
 
 use eframe::{App, egui};
 use egui::Pos2;
-use egui_file_dialog::FileDialog;
+// use egui_file_dialog::FileDialog;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Instant;
@@ -82,7 +82,7 @@ pub struct ChessApp {
     pub highlight: Highlight,
     pub draw: Draw,
     pub promoteinfo: Option<PromoteInfo>,
-    pub file_dialog: FileDialog,
+    // pub file_dialog: FileDialog,
     pub file_path: Option<PathBuf>,
 }
 
@@ -123,7 +123,7 @@ impl Default for ChessApp {
                 draw_hash: None,
             },
             promoteinfo: None,
-            file_dialog: FileDialog::new(),
+            // file_dialog: FileDialog::new(),
             file_path: None,
         }
     }
