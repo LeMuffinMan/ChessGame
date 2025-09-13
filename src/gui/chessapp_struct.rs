@@ -8,7 +8,6 @@ use egui::Pos2;
 // use egui_file_dialog::FileDialog;
 use std::collections::HashMap;
 use std::path::PathBuf;
-use std::time::Instant;
 
 #[derive(Clone, PartialEq)]
 pub enum DrawRule {
@@ -37,7 +36,7 @@ pub struct PromoteInfo {
     pub prev_board: Board,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct GameState {
     pub board: Board,
     pub active_player: Color,
@@ -67,10 +66,11 @@ pub struct Widgets {
     pub show_legals_moves: bool,
     pub show_last_move: bool,
     pub show_threaten_cells: bool,
-    pub next_replay_time: Option<Instant>,
+    pub next_replay_time: Option<f64>,
     pub flip: bool,
     pub autoflip: bool,
     pub replay_speed: u64,
+    pub replay_index: usize,
 }
 
 pub struct ChessApp {
@@ -84,6 +84,8 @@ pub struct ChessApp {
     pub promoteinfo: Option<PromoteInfo>,
     // pub file_dialog: FileDialog,
     pub file_path: Option<PathBuf>,
+    pub white_name: String,
+    pub black_name: String,
 }
 
 impl Default for ChessApp {
@@ -109,6 +111,7 @@ impl Default for ChessApp {
                 flip: true,
                 autoflip: false,
                 replay_speed: 1000,
+                replay_index: 0,
             },
             highlight: Highlight {
                 from_cell: None,
@@ -125,6 +128,8 @@ impl Default for ChessApp {
             promoteinfo: None,
             // file_dialog: FileDialog::new(),
             file_path: None,
+            white_name: "White".to_string(),
+            black_name: "Black".to_string(),
         }
     }
 }
@@ -137,21 +142,27 @@ impl App for ChessApp {
             .show(ctx, |ui| {
                 self.side_panel_ui(ui, ctx);
             });
+        egui::SidePanel::right("right_panel")
+            .default_width(180.0)
+            .show(ctx, |ui| {
+                self.right_panel_ui(ui, ctx);
+            });
+        egui::TopBottomPanel::top("spacer_top")
+            .show(ctx, |ui| {
+                ui.label("White");
+                // ui.add(TextEdit::singleline(&mut self.white_name));
+            });
+        egui::TopBottomPanel::bottom("spacer_bottom")
+            .show(ctx, |ui| {
+                ui.label("Black");
+                // ui.add(TextEdit::singleline(&mut self.black_name));
+            });
         egui::CentralPanel::default().show(ctx, |ui| {
             self.central_panel_ui(ui);
         });
     }
 }
 
-//
-// impl eframe::App for ChessApp {
-//     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-//         egui::CentralPanel::default().show(ctx, |ui| {
-//             ui.label("ChessGame fonctionne !");
-//             ui.allocate_exact_size(egui::Vec2::new(800.0, 600.0), egui::Sense::hover());
-//         });
-//     }
-// }
 
 impl ChessApp {
     pub fn check_endgame(&mut self) {

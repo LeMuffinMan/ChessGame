@@ -49,3 +49,24 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 
     Ok(())
 }
+
+//Todo 
+//
+//Fix : 
+//      - Flip + autoflip
+//      - Replay
+//
+//New game 
+//      - ask for names
+//      - count rounds
+//      - save as pgn
+//      - load as pgn
+//      - mode in game / mode analyse
+//
+//Chat 
+//
+//Settings 
+//  - dark mode
+//  - regroupe
+//
+//Decode pgn 

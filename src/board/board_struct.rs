@@ -5,7 +5,7 @@ use crate::board::cell::Cell;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Board {
     pub grid: [[Cell; 8]; 8],
     pub white_castle: (bool, bool), //(long, short)
