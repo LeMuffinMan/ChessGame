@@ -40,9 +40,9 @@ impl ChessApp {
                 ui.monospace(&self.current.history_san);
             }
             ui.separator();
-            if ui.button("Quit").clicked() {
-                ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
-            }
+            // if ui.button("Quit").clicked() {
+            //     ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
+            // }
         }
     }
 
