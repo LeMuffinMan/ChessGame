@@ -96,37 +96,30 @@ impl ChessApp {
 
     pub fn side_panel_undo_redo_replay(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
-            let can_undo = !self.undo.is_empty();
-            let can_redo = !self.redo.is_empty();
+            let can_undo = self.widgets.replay_index != 0;
+            let can_redo = self.widgets.replay_index + 1 < self.history.len();
             if ui
-                .add_enabled(can_undo, egui::Button::new("<"))
-                .clicked()
-                && let Some(prev) = self.undo.pop()
-            {
-                self.redo.push(self.current.clone());
-                self.current = prev;
-                self.highlight.piece_legals_moves.clear();
-            }
-            if ui
-                .add_enabled(can_undo, egui::Button::new("||"))
-                .clicked()
-            {
-                self.widgets.replay_speed = 0;
-            }
-            if ui
-                .add_enabled(can_redo, egui::Button::new(">"))
-                .clicked()
-                && let Some(next) = self.redo.pop()
-            {
-                self.undo.push(self.current.clone());
-                self.current = next;
-            }
-            if ui
-                .add_enabled(!self.undo.is_empty(), egui::Button::new("Replay"))
+                .add_enabled(can_undo, egui::Button::new("|<"))
                 .clicked()
             {
                 self.widgets.replay_index = 0;
-                self.current = self.undo[0].clone();
+                self.current = self.history[self.widgets.replay_index].clone();
+                self.highlight.piece_legals_moves.clear();
+            }
+            if ui
+                .add_enabled(can_undo, egui::Button::new("<"))
+                .clicked()
+            {
+                self.widgets.replay_index -= 1;
+                self.current = self.history[self.widgets.replay_index].clone();
+                self.highlight.piece_legals_moves.clear();
+            }
+            if ui
+                .add_enabled(!self.history.is_empty(), egui::Button::new("Replay"))
+                .clicked()
+            {
+                self.widgets.replay_index = 0;
+                self.current = self.history[0].clone();
 
                 let now = ui.input(|i| i.time);
                 log::debug!("now = {}", now);
@@ -135,6 +128,22 @@ impl ChessApp {
                 self.widgets.next_replay_time = Some(now + delay);
             }
             self.replay_step(ui.ctx());
+            if ui
+                .add_enabled(can_redo, egui::Button::new(">"))
+                .clicked()
+            {
+                self.widgets.replay_index += 1;
+                self.current = self.history[self.widgets.replay_index].clone();
+                self.highlight.piece_legals_moves.clear();
+            }
+            if ui
+                .add_enabled(can_redo, egui::Button::new(">|"))
+                .clicked()
+            {
+                self.widgets.replay_index = self.history.len() - 1;
+                self.current = self.history[self.widgets.replay_index].clone();
+                self.highlight.piece_legals_moves.clear();
+            }
             });
         ui.separator();
         if self.widgets.next_replay_time.is_some() {
@@ -150,10 +159,10 @@ impl ChessApp {
         if let Some(next_time) = self.widgets.next_replay_time {
             let now = ctx.input(|i| i.time);
             if now >= next_time {
-                if self.widgets.replay_index + 1 < self.undo.len() {
+                if self.widgets.replay_index + 1 < self.history.len() {
                     self.widgets.replay_index += 1;
                     log::debug!("Replay index = {}", self.widgets.replay_index);
-                    self.current = self.undo[self.widgets.replay_index].clone();
+                    self.current = self.history[self.widgets.replay_index].clone();
                     let delay = self.widgets.replay_speed as f64 / 1000.0;
                     self.widgets.next_replay_time = Some(now + delay);               
                 } else {

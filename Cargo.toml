@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 chrono = "0.4.42"
+console_log = "1.0.0"
 eframe = "0.32.2"
 egui = "0.32.2"
 egui-file-dialog = "0.11.0"

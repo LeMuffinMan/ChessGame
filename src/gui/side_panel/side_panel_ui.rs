@@ -90,6 +90,8 @@ impl ChessApp {
                     let from = promoteinfo.from;
                     let to = promoteinfo.to;
                     let prev_board = promoteinfo.prev_board.clone();
+                    self.history.push(self.current.clone());
+                    self.widgets.replay_index += 1;
                     self.encode_move_to_san(&from, &to, &prev_board);
                 }
                 self.current.board.pawn_to_promote = None;

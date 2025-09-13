@@ -76,8 +76,7 @@ pub struct Widgets {
 pub struct ChessApp {
     //history undo / redo
     pub current: GameState,
-    pub undo: Vec<GameState>,
-    pub redo: Vec<GameState>,
+    pub history: Vec<GameState>,
     pub widgets: Widgets,
     pub highlight: Highlight,
     pub draw: Draw,
@@ -100,8 +99,7 @@ impl Default for ChessApp {
                 history_san: String::new(),
                 turn: 1,
             },
-            undo: Vec::new(),
-            redo: Vec::new(),
+            history: Vec::new(),
             widgets: Widgets {
                 show_coordinates: false,
                 show_legals_moves: true,

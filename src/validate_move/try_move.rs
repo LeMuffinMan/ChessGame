@@ -26,7 +26,10 @@ impl ChessApp {
             println!("King is exposed: illegal move");
             return;
         }
-        self.undo.push(self.current.clone());
+        if self.history.is_empty() {
+            self.history.push(self.current.clone());
+            self.widgets.replay_index += 1;
+        }
         self.fifty_moves_draw_check(&from, &to);
         self.current
             .board
@@ -36,24 +39,23 @@ impl ChessApp {
         }
         self.update_castles(&to);
         self.add_hash();
-        self.redo.clear();
         self.current.last_move = Some((from, to));
         if self.widgets.autoflip {
             self.widgets.flip = !self.widgets.flip;
         }
         self.incremente_turn();
         self.events_check();
-        if let Some(prev_state) = self.undo.last() {
-            let prev_board = &prev_state.board.clone();
-            if self.current.board.pawn_to_promote.is_some() {
-                self.promoteinfo = Some(PromoteInfo {
-                    from,
-                    to,
-                    prev_board: prev_board.clone(),
-                });
-            } else {
-                self.encode_move_to_san(&from, &to, prev_board);
-            }
+        let prev_board = self.history[self.widgets.replay_index - 1].board.clone();
+        if self.current.board.pawn_to_promote.is_some() {
+            self.promoteinfo = Some(PromoteInfo {
+                from,
+                to,
+                prev_board: prev_board.clone(),
+            });
+        } else {
+            self.history.push(self.current.clone());
+            self.widgets.replay_index += 1;
+            self.encode_move_to_san(&from, &to, &prev_board);
         }
     }
 
