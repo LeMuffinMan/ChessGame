@@ -20,13 +20,10 @@ use eframe::WebRunner;
 
 #[wasm_bindgen(start)]
 pub fn start() -> Result<(), wasm_bindgen::JsValue> {
-    // Installer un logger web (facultatif mais utile)
     eframe::WebLogger::init(log::LevelFilter::Debug).ok();
 
-    // Créer le WebRunner
     let runner = WebRunner::new();
 
-    // Récupérer le canvas HTML
     let window = web_sys::window().expect("no global `window`");
     let document = window.document().expect("should have a document");
     let canvas = document
@@ -35,7 +32,6 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
         .dyn_into::<HtmlCanvasElement>()
         .expect("Failed to cast canvas");
 
-    // Démarrer l'app dans une future
     spawn_local(async move {
         runner
             .start(
