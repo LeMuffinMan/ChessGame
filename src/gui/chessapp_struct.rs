@@ -143,6 +143,17 @@ impl App for ChessApp {
     }
 }
 
+//
+// impl eframe::App for ChessApp {
+//     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+//         egui::CentralPanel::default().show(ctx, |ui| {
+//             ui.label("ChessGame fonctionne !");
+//             ui.allocate_exact_size(egui::Vec2::new(800.0, 600.0), egui::Sense::hover());
+//         });
+//     }
+// }
+
+
 impl ChessApp {
     pub fn check_endgame(&mut self) {
         self.current
