@@ -4,7 +4,7 @@ use crate::gui::chessapp_struct::DrawRule::*;
 use crate::gui::chessapp_struct::End::*;
 // use crate::pgn::encode_pgn::export_pgn;
 // use egui::Context;
-use std::time::{Duration, Instant};
+// use std::time::{Duration, Instant};
 
 impl ChessApp {
     pub fn turn_infos(&mut self, ui: &mut egui::Ui) {
@@ -143,21 +143,21 @@ impl ChessApp {
             );
         }
     }
-    fn replay_step(&mut self, ctx: &egui::Context) {
-        if let Some(next_time) = self.widgets.next_replay_time {
-            if Instant::now() >= next_time {
-                if let Some(next) = self.redo.pop() {
-                    self.undo.push(self.current.clone());
-                    self.current = next;
-                    self.widgets.next_replay_time =
-                        Some(Instant::now() + Duration::from_millis(self.widgets.replay_speed));
-                    ctx.request_repaint();
-                } else {
-                    self.widgets.next_replay_time = None;
-                }
-            } else {
-                ctx.request_repaint();
-            }
-        }
-    }
+    // fn replay_step(&mut self, ctx: &egui::Context) {
+    //     if let Some(next_time) = self.widgets.next_replay_time {
+    //         if Instant::now() >= next_time {
+    //             if let Some(next) = self.redo.pop() {
+    //                 self.undo.push(self.current.clone());
+    //                 self.current = next;
+    //                 self.widgets.next_replay_time =
+    //                     Some(Instant::now() + Duration::from_millis(self.widgets.replay_speed));
+    //                 ctx.request_repaint();
+    //             } else {
+    //                 self.widgets.next_replay_time = None;
+    //             }
+    //         } else {
+    //             ctx.request_repaint();
+    //         }
+    //     }
+    // }
 }
