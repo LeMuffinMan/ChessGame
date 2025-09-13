@@ -8,7 +8,7 @@ use crate::gui::chessapp_struct::End::*;
 use egui::Context;
 
 impl ChessApp {
-    pub fn side_panel_ui(&mut self, ui: &mut egui::Ui, ctx: &Context) {
+    pub fn side_panel_ui(&mut self, ui: &mut egui::Ui, _ctx: &Context) {
         ui.heading("ChessGame");
         if self.current.board.pawn_to_promote.is_some() {
             self.side_panel_promote(ui);

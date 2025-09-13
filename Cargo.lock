@@ -3,20 +3,6 @@
 version = 4
 
 [[package]]
-name = "ChessGame"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "eframe",
- "egui",
- "egui-file-dialog",
- "log",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
-]
-
-[[package]]
 name = "ab_glyph"
 version = "0.2.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -576,6 +562,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ced0551234e87afee12411d535648dd89d2e7f34c78b753395567aff3d447ff"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "chess_game"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "eframe",
+ "egui",
+ "egui-file-dialog",
+ "log",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]

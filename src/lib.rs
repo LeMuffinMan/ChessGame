@@ -1,4 +1,3 @@
-
 pub mod gui;
 use crate::gui::chessapp_struct::ChessApp;
 
@@ -13,12 +12,17 @@ use board::Board;
 mod pgn;
 mod validate_move;
 
-use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::spawn_local;
-use web_sys::HtmlCanvasElement;
+#[cfg(target_arch = "wasm32")]
 use eframe::WebRunner;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen_futures::spawn_local;
+#[cfg(target_arch = "wasm32")]
+use web_sys::HtmlCanvasElement;
 
 #[wasm_bindgen(start)]
+#[cfg(target_arch = "wasm32")]
 pub fn start() -> Result<(), wasm_bindgen::JsValue> {
     eframe::WebLogger::init(log::LevelFilter::Debug).ok();
 
@@ -45,4 +49,3 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 
     Ok(())
 }
-
