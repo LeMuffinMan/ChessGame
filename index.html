@@ -3,10 +3,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ChessGame WASM</title>
+    <title>ChessGame</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            overflow: hidden;
+        }
+
+        canvas#chessappid {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
 <link rel="modulepreload" href="/ChessGame/chess_game-33bc36bf172c6f6a.js" crossorigin="anonymous" integrity="sha384-lPxsp/7dHtXbq11vDJEZdzmN3ix9UAO8oCQhsfi7JqPW0NnGM3di8IMLoT7+Lyam"><link rel="preload" href="/ChessGame/chess_game-33bc36bf172c6f6a_bg.wasm" crossorigin="anonymous" integrity="sha384-HYTyghCnMcv0G68A6dQauOvuwf5OZUeP4hgO3JKiNE7RgGKCVYkVKlTC0jLAoEI2" as="fetch" type="application/wasm"></head>
 <body>
-<canvas id="chessappid" width="800" height="600" style="width: 800px; height: 600px; display: block;"></canvas>
+    <canvas id="chessappid"></canvas>
     <script type="module">
         import init from "./pkg/chessgame.js";
         init();
@@ -24,3 +40,4 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
 
 </script></body>
 </html>
+
