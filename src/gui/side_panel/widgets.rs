@@ -98,6 +98,7 @@ impl ChessApp {
         ui.horizontal(|ui| {
             let can_undo = self.widgets.replay_index != 0;
             let can_redo = self.widgets.replay_index + 1 < self.history.len();
+            let can_replay = can_undo && self.widgets.next_replay_time.is_none();
             if ui
                 .add_enabled(can_undo, egui::Button::new("|<"))
                 .clicked()
@@ -114,18 +115,24 @@ impl ChessApp {
                 self.current = self.history[self.widgets.replay_index].clone();
                 self.highlight.piece_legals_moves.clear();
             }
-            if ui
-                .add_enabled(!self.history.is_empty(), egui::Button::new("Replay"))
-                .clicked()
-            {
-                self.widgets.replay_index = 0;
-                self.current = self.history[0].clone();
+            if can_replay {
+                if ui.button("▶").clicked()
+                {
+                    self.widgets.replay_index = 0;
+                    self.current = self.history[0].clone();
 
-                let now = ui.input(|i| i.time);
-                log::debug!("now = {}", now);
-                let delay = self.widgets.replay_speed as f64 / 1000.0;
-                log::debug!("delay = {}", now);
-                self.widgets.next_replay_time = Some(now + delay);
+                    let now = ui.input(|i| i.time);
+                    let delay = self.widgets.replay_speed as f64 / 1000.0;
+                    self.widgets.next_replay_time = Some(now + delay);
+                }
+            } else if self.widgets.next_replay_time.is_some() {
+                if ui.button("⏸").clicked() {
+                    self.widgets.next_replay_time = None;
+                }
+            } else {
+                ui
+                    .add_enabled(false, egui::Button::new("▶"))
+                    .clicked();
             }
             self.replay_step(ui.ctx());
             if ui

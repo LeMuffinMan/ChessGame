@@ -154,6 +154,8 @@ impl ChessApp {
             self.current.history_san.push(p);
         }
     }
+// ui.label("♔ ♕ ♖ ♗ ♘ ♙");
+// ui.label("♚ ♛ ♜ ♝ ♞ ♟")
 
     pub fn is_ambiguous_move(&mut self, piece: &Piece, from: &Coord, to: &Coord) {
         if !self.history.is_empty()
