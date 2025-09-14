@@ -158,87 +158,19 @@ impl Default for ChessApp {
 impl App for ChessApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.update_timer(ctx);
-        egui::TopBottomPanel::top("title")
-            .show(ctx, |ui| {
-                ui.with_layout(egui::Layout::centered_and_justified(egui::Direction::LeftToRight), |ui| {
-                    ui.heading("ChessGame");
-                });
-            });
-        egui::TopBottomPanel::bottom("source code")
-            .show(ctx, |ui| {
-                ui.with_layout(egui::Layout::centered_and_justified(egui::Direction::LeftToRight), |ui| {
-                    ui.label("source code : https://github.com/LeMuffinMan/ChessGame");
-                });
-            });
-        egui::SidePanel::left("left_panel")
-            .default_width(180.0)
-            .show(ctx, |ui| {
-                self.side_panel_ui(ui, ctx);
-            });
-        egui::SidePanel::right("right_panel")
-            .default_width(180.0)
-            .show(ctx, |ui| {
-                self.right_panel_ui(ui, ctx);
-            });
 
-                // ui.add(TextEdit::singleline(&mut self.white_name));
-        egui::TopBottomPanel::top("spacer_top").show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                let now = ctx.input(|i| i.time);
-                if let Some(timer) = &self.widgets.timer {
-                    let rem = {
-                        if let Some(start) = timer.black.0 {
-                            timer.black.1 - (now - start)
-                        } else {
-                            timer.black.1
-                        }
-                    }.max(0.0);
-                    if rem == 0.0 {
-                        self.current.end = Some(TimeOut);
-                        self.widgets.timer = None;
-                    }
-                    ui.label(format_time(rem));
-                }
-                ui.label("Black");
-            });
-        });
-        egui::TopBottomPanel::bottom("spacer_bottom").show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                let now = ctx.input(|i| i.time);
-                if let Some(timer) = &self.widgets.timer {
-                    let rem = {
-                        if let Some(start) = timer.white.0 {
-                            timer.white.1 - (now - start)
-                        } else {
-                            timer.white.1
-                        }
-                    }.max(0.0);
-                    if rem == 0.0 {
-                        self.current.end = Some(TimeOut);
-                    }
-                    ui.label(format_time(rem));
-                } 
-                ui.label("White");
-            });
-        });
+        self.top_title_panel(ctx);
+        self.bot_source_code_panel(ctx);
 
-        egui::CentralPanel::default().show(ctx, |ui| {
-            self.central_panel_ui(ui);
-        });
+        self.left_panel_ui(ctx);
+        self.right_panel_ui(ctx);
+        
+        self.top_black_panel(ctx);
+        self.bot_white_panel(ctx);
+        
+        self.central_panel_ui(ctx);
     }
 }
-
-fn format_time(seconds_f64: f64) -> String {
-    let total_secs = seconds_f64.max(0.0).floor() as i64;
-    let mins = total_secs / 60;
-    let secs = total_secs % 60;
-    if mins > 0 {
-        format!("{}:{:02}", mins, secs) 
-    } else {
-        format!("0:{:02}", secs)        
-    }
-}
-
 
 impl ChessApp {
     fn update_timer(&mut self, ctx: &egui::Context) {
@@ -271,28 +203,6 @@ impl ChessApp {
             }
         }
     }   
-    pub fn check_endgame(&mut self) {
-        self.current
-            .board
-            .update_threatens_cells(&self.current.active_player);
-        self.current
-            .board
-            .update_legals_moves(&self.current.active_player);
-        // for coord in &self.current.board.threaten_cells {
-        //     println!("Cell threaten : ({}, {})", coord.row, coord.col);
-        // }
-        if self.current.board.legals_moves.is_empty() {
-            self.current.board.print();
-            let king_cell = self.current.board.get_king(&self.current.active_player);
-            if let Some(coord) = king_cell {
-                if self.current.board.threaten_cells.contains(&coord) {
-                    self.current.end = Some(Checkmate);
-                } else {
-                    self.current.end = Some(Pat);
-                }
-            }
-        }
-    }
 
     pub fn is_active_player_piece(&mut self, coord: &Coord) -> bool {
         let cell = self.current.board.get(coord);

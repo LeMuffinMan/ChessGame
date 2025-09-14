@@ -3,7 +3,8 @@ use crate::ChessApp;
 use eframe::egui;
 
 impl ChessApp {
-    pub fn central_panel_ui(&mut self, ui: &mut egui::Ui) {
+    pub fn central_panel_ui(&mut self, ctx: &egui::Context) {
+        egui::CentralPanel::default().show(ctx, |ui| {
         let size = ui.available_size();
         let (response, painter) = ui.allocate_painter(size, egui::Sense::click_and_drag());
         let rect = response.rect;
@@ -28,6 +29,7 @@ impl ChessApp {
         self.left_click(inner, sq, &response);
         self.right_click(&response);
         self.drag_and_drop(inner, sq, &response);
+        });
     }
 }
 

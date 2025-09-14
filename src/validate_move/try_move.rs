@@ -2,7 +2,7 @@ use crate::ChessApp;
 use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Piece::*;
-use crate::gui::chessapp_struct::End::Draw;
+use crate::gui::chessapp_struct::End::*;
 use crate::gui::chessapp_struct::GameState;
 use crate::gui::chessapp_struct::PromoteInfo;
 use crate::validate_move;
@@ -46,17 +46,6 @@ impl ChessApp {
         }
         self.incremente_turn();
         self.events_check();
-        // if let Some(timer) = self.wdigets.timer
-        //     && self.history.len() == 1 {
-        //     timer.white = (Some())
-        // }
-        // if let Some(timer) = &mut self.widgets.timer { 
-        //     if self.history.len() % 2 != 0 {
-        //         timer.black.0 = None;
-        //     } else {
-        //         timer.white.0 = None;
-        //     }
-        // }
         let prev_board = self.history[self.widgets.replay_index - 1].board.clone();
         if self.current.board.pawn_to_promote.is_some() {
             self.promoteinfo = Some(PromoteInfo {
@@ -94,6 +83,29 @@ impl ChessApp {
                 _ => {}
             }
         };
+    }
+
+    pub fn check_endgame(&mut self) {
+        self.current
+            .board
+            .update_threatens_cells(&self.current.active_player);
+        self.current
+            .board
+            .update_legals_moves(&self.current.active_player);
+        // for coord in &self.current.board.threaten_cells {
+        //     println!("Cell threaten : ({}, {})", coord.row, coord.col);
+        // }
+        if self.current.board.legals_moves.is_empty() {
+            self.current.board.print();
+            let king_cell = self.current.board.get_king(&self.current.active_player);
+            if let Some(coord) = king_cell {
+                if self.current.board.threaten_cells.contains(&coord) {
+                    self.current.end = Some(Checkmate);
+                } else {
+                    self.current.end = Some(Pat);
+                }
+            }
+        }
     }
 
     fn events_check(&mut self) {
