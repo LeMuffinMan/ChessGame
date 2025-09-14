@@ -20,6 +20,7 @@ impl ChessApp {
             && self.is_active_player_piece(&c)
             && self.current.end.is_none()
             && let None = self.current.board.pawn_to_promote
+            && self.widgets.replay_index == self.history.len()
         {
             self.highlight.drag_from = Some(c);
             self.highlight.from_cell = Some(c);
@@ -57,6 +58,7 @@ impl ChessApp {
             && self.current.end.is_none()
             && self.current.board.pawn_to_promote.is_none()
             && let Some(pos) = response.interact_pointer_pos()
+            && self.widgets.replay_index == self.history.len()
         {
             if let Some(clicked) = ui_to_board(inner, sq, self.widgets.flip, pos) {
                 match self.highlight.from_cell {
