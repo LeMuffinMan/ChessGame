@@ -16,7 +16,7 @@ impl ChessApp {
                     self.current = self.history[0].clone();
 
                     let now = ui.input(|i| i.time);
-                    let delay = self.widgets.replay_speed as f64 / 1000.0;
+                    let delay = self.widgets.replay_speed as f64;
                     self.widgets.next_replay_time = Some(now + delay);
                 }
             } else if self.widgets.next_replay_time.is_some() {
@@ -35,8 +35,8 @@ impl ChessApp {
         ui.separator();
         if self.widgets.next_replay_time.is_some() {
             ui.add(
-                egui::Slider::new(&mut self.widgets.replay_speed, 100..=5000)
-                    .text("ms/move")
+                egui::Slider::new(&mut self.widgets.replay_speed, 0.1..=10.0)
+                    .text("sec/move")
                     .logarithmic(true),
             );
         }
@@ -95,7 +95,7 @@ impl ChessApp {
                     self.widgets.replay_index += 1;
                     // log::debug!("Replay index = {}", self.widgets.replay_index);
                     self.current = self.history[self.widgets.replay_index].clone();
-                    let delay = self.widgets.replay_speed as f64 / 1000.0;
+                    let delay = self.widgets.replay_speed as f64;
                     self.widgets.next_replay_time = Some(now + delay);               
                 } else {
                     self.widgets.replay_index = self.history.len();

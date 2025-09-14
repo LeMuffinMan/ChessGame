@@ -71,7 +71,7 @@ pub struct Widgets {
     pub next_replay_time: Option<f64>,
     pub flip: bool,
     pub autoflip: bool,
-    pub replay_speed: u64,
+    pub replay_speed: f64,
     pub replay_index: usize,
     pub timer: Option<Timer>,
 }
@@ -129,7 +129,7 @@ impl Default for ChessApp {
                 next_replay_time: None,
                 flip: true,
                 autoflip: false,
-                replay_speed: 1000,
+                replay_speed: 1.0,
                 replay_index: 0,
                 timer: None,
             },
