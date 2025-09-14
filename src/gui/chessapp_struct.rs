@@ -93,6 +93,7 @@ pub struct ChessApp {
 pub struct Timer {
     pub white: (Option<f64>, f64), //start of turn, remaining time
     pub black: (Option<f64>, f64),
+    pub increment: f64,
 }
 
 impl Default for Timer {
@@ -100,6 +101,7 @@ impl Default for Timer {
         Self {
             white: (None, 600.0),
             black: (None, 600.0),
+            increment: 0.0,
         }
     }
 }
@@ -185,8 +187,6 @@ impl App for ChessApp {
                         }
                     }.max(0.0);
                     ui.label(format_time(rem));
-                } else {
-                    ui.label("00:00");
                 }
                 ui.label("Black");
             });
@@ -203,9 +203,7 @@ impl App for ChessApp {
                         }
                     }.max(0.0);
                     ui.label(format_time(rem));
-                } else {
-                    ui.label("00:00");
-                }
+                } 
                 ui.label("White");
             });
         });
@@ -221,9 +219,9 @@ fn format_time(seconds_f64: f64) -> String {
     let mins = total_secs / 60;
     let secs = total_secs % 60;
     if mins > 0 {
-        format!("{}:{:02}", mins, secs) // e.g. "5:03"
+        format!("{}:{:02}", mins, secs) 
     } else {
-        format!("0:{:02}", secs)        // e.g. "0:09"
+        format!("0:{:02}", secs)        
     }
 }
 
@@ -232,28 +230,28 @@ impl ChessApp {
     fn update_timer(&mut self, ctx: &egui::Context) {
         let now = ctx.input(|i| i.time);
 
-        log::debug!("ici");
+        // log::debug!("ici");
         if let Some(timer) = &mut self.widgets.timer {
-            // Si on passe au tour de White : démarrer son timer et clore celui de Black
             if timer.white.0.is_none() && self.current.active_player == White && !self.history.is_empty() {
                 timer.white.0 = Some(now);
                 if let Some(black_start) = timer.black.0 {
-                    timer.black.1 -= now - black_start; // applique l'écoulé une seule fois
+                    timer.black.1 += timer.increment;
+                    timer.black.1 -= now - black_start; 
                 }
                 timer.black.0 = None;
             }
-            // Si on passe au tour de Black : idem
             else if timer.black.0.is_none() && self.current.active_player == Black {
-                log::debug!("la");
                 timer.black.0 = Some(now);
                 if let Some(white_start) = timer.white.0 {
-                    timer.white.1 -= now - white_start;
+                    timer.white.1 += timer.increment;
+                    timer.white.1 -= now - white_start ;
                 }
                 timer.white.0 = None;
             }
 
-            // clamp négatifs
-            if timer.white.1 < 0.0 { timer.white.1 = 0.0; }
+            if timer.white.1 < 0.0 { timer.white.1 = 0.0;
+                //Out of Time !
+            }
             if timer.black.1 < 0.0 { timer.black.1 = 0.0; }
         }
     }    pub fn check_endgame(&mut self) {

@@ -6,7 +6,6 @@ use crate::gui::chessapp_struct::End::Draw;
 use crate::gui::chessapp_struct::GameState;
 use crate::gui::chessapp_struct::PromoteInfo;
 use crate::validate_move;
-use crate::gui::chessapp_struct::Timer;
 
 impl ChessApp {
     pub fn try_move(&mut self, from: Coord, to: Coord) {
