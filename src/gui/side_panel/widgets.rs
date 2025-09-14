@@ -111,7 +111,11 @@ impl ChessApp {
                 .add_enabled(can_undo, egui::Button::new("<"))
                 .clicked()
             {
+                if self.widgets.replay_index == self.history.len() {
+                    self.widgets.replay_index -= 1;
+                }
                 self.widgets.replay_index -= 1;
+                log::info!("after button < {} {}", self.widgets.replay_index, self.history.len());
                 self.current = self.history[self.widgets.replay_index].clone();
                 self.highlight.piece_legals_moves.clear();
             }
@@ -141,6 +145,10 @@ impl ChessApp {
             {
                 self.widgets.replay_index += 1;
                 self.current = self.history[self.widgets.replay_index].clone();
+                if self.widgets.replay_index == self.history.len() - 1 {
+                    self.widgets.replay_index += 1;
+                }
+                log::info!("after button > {} {}", self.widgets.replay_index, self.history.len());
                 self.highlight.piece_legals_moves.clear();
             }
             if ui
@@ -149,6 +157,9 @@ impl ChessApp {
             {
                 self.widgets.replay_index = self.history.len() - 1;
                 self.current = self.history[self.widgets.replay_index].clone();
+                if self.widgets.replay_index == self.history.len() - 1 {
+                    self.widgets.replay_index += 1;
+                }
                 self.highlight.piece_legals_moves.clear();
             }
             });
