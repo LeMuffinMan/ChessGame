@@ -11,45 +11,45 @@ use egui::Context;
 
 impl ChessApp {
 
-    pub fn right_panel_ui(&mut self, ui: &mut egui::Ui, _ctx: &Context) {
-        ui.checkbox(&mut self.widgets.show_coordinates, "Coordinates")
-            .changed();
-        ui.label("Highlight :");
-        ui.checkbox(&mut self.widgets.show_legals_moves, "Legals moves")
-            .changed();
-        ui.checkbox(&mut self.widgets.show_threaten_cells, "Threaten cells");
-        ui.checkbox(&mut self.widgets.show_last_move, "Last move")
-            .changed();
-        ui.separator();
-        self.side_panel_undo_redo_replay(ui);
-        if !self.current.history_san.is_empty() {
-            ui.monospace(&self.current.history_san);
-        }
-    }
-    pub fn side_panel_ui(&mut self, ui: &mut egui::Ui, ctx: &Context) {
-        if self.current.board.pawn_to_promote.is_some() {
-            self.side_panel_promote(ui);
-        } else if let Some(draw) = &self.draw.draw_option
-            && *draw == Request
-        {
-            self.side_panel_draw_request(ui);
-        } else {
-            self.turn_infos(ui);
-            self.draw_resign(ui);
-            // ui.separator();
-            self.new_save_load(ui, ctx);
-            if self.history.is_empty() || self.current.end.is_some() {
-                self.timer_increment(ui, ctx);
+    pub fn right_panel_ui(&mut self,ctx: &Context) {
+        egui::SidePanel::right("right_panel")
+            .default_width(180.0)
+            .show(ctx, |ui| {
+            ui.checkbox(&mut self.widgets.show_coordinates, "Coordinates")
+                .changed();
+            ui.label("Highlight :");
+            ui.checkbox(&mut self.widgets.show_legals_moves, "Legals moves")
+                .changed();
+            ui.checkbox(&mut self.widgets.show_threaten_cells, "Threaten cells");
+            ui.checkbox(&mut self.widgets.show_last_move, "Last move")
+                .changed();
+            ui.separator();
+            self.side_panel_undo_redo_replay(ui);
+            if !self.current.history_san.is_empty() {
+                ui.monospace(&self.current.history_san);
             }
-            // ui.separator();
-            // self.side_panel_flip(ui);
-            // ui.separator();
-
-            // ui.separator();
-            // if ui.button("Quit").clicked() {
-            //     ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
-            // }
-        }
+        });
+    }
+    pub fn left_panel_ui(&mut self, ctx: &Context) {
+        egui::SidePanel::left("left_panel")
+            .default_width(180.0)
+            .show(ctx, |ui| {
+            if self.current.board.pawn_to_promote.is_some() {
+                self.side_panel_promote(ui);
+            } else if let Some(draw) = &self.draw.draw_option
+                && *draw == Request
+            {
+                self.side_panel_draw_request(ui);
+            } else {
+                self.turn_infos(ui);
+                self.draw_resign(ui);
+                // ui.separator();
+                self.new_save_load(ui, ctx);
+                if self.history.is_empty() || self.current.end.is_some() {
+                    self.timer_increment(ui, ctx);
+                }
+            }
+        });
     }
 
     fn side_panel_draw_request(&mut self, ui: &mut egui::Ui) {
