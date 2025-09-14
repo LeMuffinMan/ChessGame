@@ -59,13 +59,15 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //New game 
 //      - ask for names
 //      - count rounds
-//      - load as pgn
 //      - mode in game / mode analyse
 //
-//Chat 
+//Timer
 //
 //Settings 
 //  - dark mode
 //  - regroupe
 //
 //Decode pgn 
+//      - load as pgn
+//
+//Chat 

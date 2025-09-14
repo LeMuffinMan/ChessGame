@@ -71,6 +71,9 @@ pub struct Widgets {
     pub autoflip: bool,
     pub replay_speed: u64,
     pub replay_index: usize,
+    pub timer: Option<f64>,
+    pub start_time: f64,
+    pub total_time: f64,
 }
 
 pub struct ChessApp {
@@ -110,6 +113,9 @@ impl Default for ChessApp {
                 autoflip: false,
                 replay_speed: 1000,
                 replay_index: 0,
+                timer: None,
+                start_time: 0.0,
+                total_time: 600.0, 
             },
             highlight: Highlight {
                 from_cell: None,
@@ -147,6 +153,24 @@ impl App for ChessApp {
             });
         egui::TopBottomPanel::top("spacer_top")
             .show(ctx, |ui| {
+                self.update_timer(ui);
+                if let Some(time) = self.widgets.timer {
+                    let elapsed_time = self.widgets.total_time - time;
+                    if elapsed_time > 60.0 {
+                        let min = (elapsed_time / 60.0).floor();
+                        let sec = (elapsed_time % 60.0).floor();
+                        let t = min.to_string() + ":" + &sec.to_string();
+                        ui.label(t.to_string());
+                    } else {
+                        ui.label(elapsed_time.to_string());
+                    }
+                } else if ui.button("start timer").clicked() {
+                    self.widgets.timer = Some(ui.input(|i| i.time));
+                }
+                // if let Some(time) = self.widgets.timer {
+                //     ui.label("Timer = ");
+                //     ui.label(time.to_string());
+                // }
                 ui.label("White");
                 // ui.add(TextEdit::singleline(&mut self.white_name));
             });
@@ -163,6 +187,11 @@ impl App for ChessApp {
 
 
 impl ChessApp {
+    fn update_timer(&mut self, ui: &mut egui::Ui) {
+        if let Some(_) = self.widgets.timer {
+            self.widgets.timer = Some(ui.input(|i| i.time));
+        }
+    }
     pub fn check_endgame(&mut self) {
         self.current
             .board
