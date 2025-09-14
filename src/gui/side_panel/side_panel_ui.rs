@@ -26,6 +26,9 @@ impl ChessApp {
             self.draw_resign(ui);
             ui.separator();
             self.new_save_load(ui, ctx);
+            if self.history.is_empty() {
+                self.timer_increment(ui, ctx);
+            }
             ui.separator();
             // self.side_panel_flip(ui);
             // ui.separator();
@@ -37,66 +40,6 @@ impl ChessApp {
             ui.checkbox(&mut self.widgets.show_threaten_cells, "Threaten cells");
             ui.checkbox(&mut self.widgets.show_last_move, "Last move")
                 .changed();
-            ui.horizontal(|ui| {
-                ui.label("Timer :");
-                if self.widgets.timer.is_none() {
-                    if ui.add_enabled(self.history.is_empty(), egui::Button::new("OFF")).clicked() {
-                        let timer: Timer = Default::default();
-                        self.widgets.timer = Some(timer);
-                    }
-                } else {
-                    //Si on est pas en cour de game
-                    if let Some(timer) = &mut self.widgets.timer {
-                        if timer.white.0.is_none() && timer.black.0.is_none() {
-                            let white_remaining_time: &mut f64 = &mut timer.white.1;
-                            let black_remaining_time: &mut f64 = &mut timer.black.1;
-
-                            let mut remove_timer = false;
-
-                            ui.menu_button(
-                                format!(
-                                    "{:.0}:{:02.0}",
-                                    (*white_remaining_time / 60.0).floor(),
-                                    (*white_remaining_time % 60.0).floor(),
-                                ),
-                                |ui| {
-                                    if ui.button("OFF").clicked() {
-                                        remove_timer = true;
-                                    }
-                                    if ui.button("1 min").clicked() {
-                                        *white_remaining_time = 60.0;
-                                        *black_remaining_time = 60.0;
-                                    }
-                                    if ui.button("3 min").clicked() {
-                                        *white_remaining_time = 180.0;
-                                        *black_remaining_time = 180.0;
-                                    }
-                                    if ui.button("5 min").clicked() {
-                                        *white_remaining_time = 300.0;
-                                        *black_remaining_time = 300.0;
-                                    }
-                                    if ui.button("10 min").clicked() {
-                                        *white_remaining_time = 600.0;
-                                        *black_remaining_time = 600.0;
-                                    }
-                                    if ui.button("15 min").clicked() {
-                                        *white_remaining_time = 900.0;
-                                        *black_remaining_time = 900.0;
-                                    }
-                                    if ui.button("30 min").clicked() {
-                                        *white_remaining_time = 1800.0;
-                                        *black_remaining_time = 1800.0;
-                                    }
-                                },
-                            );
-                            //used flag cause of double borrow case
-                            if remove_timer {
-                                self.widgets.timer = None;
-                            }
-                        }
-                    }               
-                } 
-            });
             ui.separator();
             self.side_panel_undo_redo_replay(ui);
             if !self.current.history_san.is_empty() {
