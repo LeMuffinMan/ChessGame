@@ -29,15 +29,16 @@ impl ChessApp {
                 let cell = egui::Rect::from_min_size(min, egui::vec2(sq, sq));
 
                 let board_row = if self.widgets.flip { 7 - row } else { row };
+                let board_col = if self.widgets.flip { col } else { 7 - col };
                 let coord = Coord {
                     row: board_row,
-                    col,
+                    col: board_col,
                 };
                 let idx = (row + col) % 2;
                 if let Some(_) = &self.current.board.check
                     && let Some(k) = self.current.board.get_king(&self.current.active_player)
                     && k.row == board_row
-                    && k.col == col
+                    && k.col == board_col
                     && self.current.board.threaten_cells.contains(&k)
                 {
                     if let Some(end) = &self.current.end
@@ -149,9 +150,10 @@ pub fn ui_to_board(inner: egui::Rect, sq: f32, flip: bool, pos: egui::Pos2) -> O
         return None;
     }
     let row_board = if flip { 7 - row_ui } else { row_ui };
+    let col_board = if flip { col_ui } else { 7 - col_ui };
     Some(Coord {
         row: row_board as u8,
-        col: col_ui as u8,
+        col: col_board as u8,
     })
 }
 

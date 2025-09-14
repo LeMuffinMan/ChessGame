@@ -55,3 +55,13 @@ impl Board {
         println!();
     }
 }
+
+impl Coord {
+    pub fn flip(&mut self, flip: bool) -> Coord {
+        if flip {
+            self.row = 7 - self.row;
+            self.col = 7 - self.col;
+        }
+        *self
+    }
+}
