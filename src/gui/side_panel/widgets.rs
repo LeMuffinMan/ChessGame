@@ -13,6 +13,7 @@ impl ChessApp {
         if let Some(end) = &self.current.end {
             match end {
                 Checkmate => ui.label(format!("Checkmate ! {:?} win", self.current.opponent)),
+                TimeOut => ui.label(format!("{:?} out of time !\n{:?} win", self.current.active_player, self.current.opponent)),
                 Pat => ui.label("Pat !"),
                 Draw => ui.label("Draw"),
                 Resign => ui.label(format!(
@@ -149,8 +150,10 @@ impl ChessApp {
 
     pub fn new_save_load(&mut self, ui: &mut egui::Ui, _ctx: &Context) {
         ui.horizontal(|ui| {
-            if ui.button("New game").clicked() {
-                *self = ChessApp::default();
+            if self.current.end.is_some() {
+                if ui.button("New game").clicked() {
+                    *self = ChessApp::default();
+                }
             }
 
             // if ui
@@ -170,6 +173,7 @@ impl ChessApp {
             //     println!("Load game");
             // }
         });
+            ui.separator();
     }
 
     pub fn side_panel_flip(&mut self, ui: &mut egui::Ui) {
@@ -186,6 +190,7 @@ impl ChessApp {
 
     pub fn side_panel_undo_redo_replay(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
+            ui.add_enabled(false, egui::Button::new("Save"));
             let can_undo = self.widgets.replay_index != 0;
             let can_redo = self.widgets.replay_index + 1 < self.history.len();
             let can_replay = can_undo && self.widgets.next_replay_time.is_none();
@@ -247,11 +252,10 @@ impl ChessApp {
             {
                 self.widgets.replay_index = self.history.len() - 1;
                 self.current = self.history[self.widgets.replay_index].clone();
-                if self.widgets.replay_index == self.history.len() - 1 {
-                    self.widgets.replay_index += 1;
-                }
+                self.widgets.replay_index += 1;
                 self.highlight.piece_legals_moves.clear();
             }
+            ui.add_enabled(false, egui::Button::new("Load"));
             });
         ui.separator();
         if self.widgets.next_replay_time.is_some() {

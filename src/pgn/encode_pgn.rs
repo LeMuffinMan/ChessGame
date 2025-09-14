@@ -85,7 +85,7 @@ impl ChessApp {
         //
         if let Some(end) = &self.current.end {
             match end {
-                Resign => {
+                Resign | TimeOut => {
                     match self.current.opponent {
                         White => self.current.history_san.push_str("0-1"),
                         Black => self.current.history_san.push_str("1-0"),

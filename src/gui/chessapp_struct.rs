@@ -25,6 +25,7 @@ pub enum DrawOption {
 #[derive(Clone, PartialEq)]
 pub enum End {
     Checkmate,
+    TimeOut,
     Pat,
     Draw,
     Resign,
@@ -163,6 +164,12 @@ impl App for ChessApp {
                     ui.heading("ChessGame");
                 });
             });
+        egui::TopBottomPanel::bottom("source code")
+            .show(ctx, |ui| {
+                ui.with_layout(egui::Layout::centered_and_justified(egui::Direction::LeftToRight), |ui| {
+                    ui.label("source code : https://github.com/LeMuffinMan/ChessGame");
+                });
+            });
         egui::SidePanel::left("left_panel")
             .default_width(180.0)
             .show(ctx, |ui| {
@@ -181,11 +188,15 @@ impl App for ChessApp {
                 if let Some(timer) = &self.widgets.timer {
                     let rem = {
                         if let Some(start) = timer.black.0 {
-                            timer.black.1 - (now - start) // display only, no writeback
+                            timer.black.1 - (now - start)
                         } else {
                             timer.black.1
                         }
                     }.max(0.0);
+                    if rem == 0.0 {
+                        self.current.end = Some(TimeOut);
+                        self.widgets.timer = None;
+                    }
                     ui.label(format_time(rem));
                 }
                 ui.label("Black");
@@ -202,6 +213,9 @@ impl App for ChessApp {
                             timer.white.1
                         }
                     }.max(0.0);
+                    if rem == 0.0 {
+                        self.current.end = Some(TimeOut);
+                    }
                     ui.label(format_time(rem));
                 } 
                 ui.label("White");
@@ -230,7 +244,6 @@ impl ChessApp {
     fn update_timer(&mut self, ctx: &egui::Context) {
         let now = ctx.input(|i| i.time);
 
-        // log::debug!("ici");
         if let Some(timer) = &mut self.widgets.timer {
             if timer.white.0.is_none() && self.current.active_player == White && !self.history.is_empty() {
                 timer.white.0 = Some(now);
@@ -248,13 +261,17 @@ impl ChessApp {
                 }
                 timer.white.0 = None;
             }
-
-            if timer.white.1 < 0.0 { timer.white.1 = 0.0;
-                //Out of Time !
+            if timer.white.1 < 0.0 { 
+                timer.white.1 = 0.0;
+                self.current.end = Some(TimeOut);
             }
-            if timer.black.1 < 0.0 { timer.black.1 = 0.0; }
+            if timer.black.1 < 0.0 {
+                timer.black.1 = 0.0;
+                self.current.end = Some(TimeOut);
+            }
         }
-    }    pub fn check_endgame(&mut self) {
+    }   
+    pub fn check_endgame(&mut self) {
         self.current
             .board
             .update_threatens_cells(&self.current.active_player);
