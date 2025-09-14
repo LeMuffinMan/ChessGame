@@ -11,7 +11,7 @@ impl ChessApp {
 
     pub fn right_panel_ui(&mut self, _ui: &mut egui::Ui, _ctx: &Context) {
     }
-    pub fn side_panel_ui(&mut self, ui: &mut egui::Ui, _ctx: &Context) {
+    pub fn side_panel_ui(&mut self, ui: &mut egui::Ui, ctx: &Context) {
         ui.heading("ChessGame");
         if self.current.board.pawn_to_promote.is_some() {
             self.side_panel_promote(ui);
@@ -25,8 +25,8 @@ impl ChessApp {
             ui.separator();
             self.draw_resign(ui);
             ui.separator();
-            // self.new_save_load(ui, ctx);
-            // ui.separator();
+            self.new_save_load(ui, ctx);
+            ui.separator();
             // self.side_panel_flip(ui);
             // ui.separator();
             ui.checkbox(&mut self.widgets.show_coordinates, "Coordinates")

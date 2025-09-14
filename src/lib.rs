@@ -54,12 +54,11 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //
 //Fix : 
 //      - Flip + autoflip
-//      - Replay
+//      - save as pgn
 //
 //New game 
 //      - ask for names
 //      - count rounds
-//      - save as pgn
 //      - load as pgn
 //      - mode in game / mode analyse
 //
