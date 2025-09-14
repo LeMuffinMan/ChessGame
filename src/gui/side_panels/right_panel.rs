@@ -17,8 +17,8 @@ impl ChessApp {
                 .changed();
             ui.separator();
             self.undo_redo_replay(ui);
-            if !self.current.history_san.is_empty() {
-                ui.monospace(&self.current.history_san);
+            if !self.history_san.is_empty() {
+                ui.monospace(&self.history_san);
             }
         });
     }

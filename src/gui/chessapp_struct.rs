@@ -45,7 +45,6 @@ pub struct GameState {
     pub opponent: Color,
     pub end: Option<End>,
     pub last_move: Option<(Coord, Coord)>,
-    pub history_san: String,
     pub turn: u32,
 }
 
@@ -81,6 +80,7 @@ pub struct ChessApp {
     //history undo / redo
     pub current: GameState,
     pub history: Vec<GameState>,
+    pub history_san: String,
     pub widgets: Widgets,
     pub highlight: Highlight,
     pub draw: Draw,
@@ -116,10 +116,10 @@ impl Default for ChessApp {
                 opponent: Color::Black,
                 end: None,
                 last_move: None,
-                history_san: String::new(),
                 turn: 1,
             },
             history: Vec::new(),
+            history_san: String::new(),
             widgets: Widgets {
                 show_coordinates: false,
                 show_legals_moves: true,
