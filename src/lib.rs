@@ -55,6 +55,7 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //Fix : 
 //      - Flip + autoflip
 //      - save as pgn
+//      - promotion in replay
 //
 //New game 
 //      - ask for names
