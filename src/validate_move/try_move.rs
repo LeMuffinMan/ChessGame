@@ -6,6 +6,7 @@ use crate::gui::chessapp_struct::End::Draw;
 use crate::gui::chessapp_struct::GameState;
 use crate::gui::chessapp_struct::PromoteInfo;
 use crate::validate_move;
+use crate::gui::chessapp_struct::Timer;
 
 impl ChessApp {
     pub fn try_move(&mut self, from: Coord, to: Coord) {
@@ -30,6 +31,7 @@ impl ChessApp {
             self.history.push(self.current.clone());
             self.widgets.replay_index += 1;
         }
+        //si ya un timer active, et que c'est le premier ocup joue
         self.fifty_moves_draw_check(&from, &to);
         self.current
             .board
@@ -45,6 +47,17 @@ impl ChessApp {
         }
         self.incremente_turn();
         self.events_check();
+        // if let Some(timer) = self.wdigets.timer
+        //     && self.history.len() == 1 {
+        //     timer.white = (Some())
+        // }
+        // if let Some(timer) = &mut self.widgets.timer { 
+        //     if self.history.len() % 2 != 0 {
+        //         timer.black.0 = None;
+        //     } else {
+        //         timer.white.0 = None;
+        //     }
+        // }
         let prev_board = self.history[self.widgets.replay_index - 1].board.clone();
         if self.current.board.pawn_to_promote.is_some() {
             self.promoteinfo = Some(PromoteInfo {
