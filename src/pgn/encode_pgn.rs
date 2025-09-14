@@ -37,10 +37,8 @@ impl ChessApp {
     pub fn encode_move_to_san(&mut self, from: &Coord, to: &Coord, prev_board: &Board) {
         //on ecrit le dernier coup une fois les checks du tour suivant faits
         if self.current.active_player == Black {
-            self.current
-                .history_san
-                .push_str(self.current.turn.to_string().as_str());
-            self.current.history_san.push_str(". ");
+            self.history_san.push_str(self.current.turn.to_string().as_str());
+            self.history_san.push_str(". ");
         }
 
         let piece: char = if let Some(p) = prev_board.get(from).get_piece() {
@@ -60,12 +58,12 @@ impl ChessApp {
             self.pawn_san(from, to, prev_board);
         } else if piece == 'K' && (to.col as i8 - from.col as i8).abs() > 1 {
             if (to.col as i8 - from.col as i8) < 0 {
-                self.current.history_san.push_str("O-O-O");
+                self.history_san.push_str("O-O-O");
             } else {
-                self.current.history_san.push_str("O-O");
+                self.history_san.push_str("O-O");
             }
         } else {
-            self.current.history_san.push(piece);
+            self.history_san.push(piece);
             if let Some(piece) = prev_board.get(from).get_piece() {
                 match piece {
                     Pawn => {}
@@ -75,10 +73,10 @@ impl ChessApp {
             }
 
             if !prev_board.get(to).is_empty() {
-                self.current.history_san.push('x');
+                self.history_san.push('x');
             }
-            self.current.history_san.push((b'a' + to.col) as char);
-            self.current.history_san.push((b'0' + to.row + 1) as char);
+            self.history_san.push((b'a' + to.col) as char);
+            self.history_san.push((b'0' + to.row + 1) as char);
         }
 
         //endgame and checks
@@ -87,25 +85,25 @@ impl ChessApp {
             match end {
                 Resign | TimeOut => {
                     match self.current.opponent {
-                        White => self.current.history_san.push_str("0-1"),
-                        Black => self.current.history_san.push_str("1-0"),
+                        White => self.history_san.push_str("0-1"),
+                        Black => self.history_san.push_str("1-0"),
                     };
                 }
                 Checkmate => {
-                    self.current.history_san.push_str("# ");
+                    self.history_san.push_str("# ");
                     match self.current.active_player {
-                        White => self.current.history_san.push_str("0-1"),
-                        Black => self.current.history_san.push_str("1-0"),
+                        White => self.history_san.push_str("0-1"),
+                        Black => self.history_san.push_str("1-0"),
                     };
                 }
-                Pat => self.current.history_san.push_str(" 1/2 - 1/2"),
-                Draw => self.current.history_san.push_str(" 1/2 - 1/2"),
+                Pat => self.history_san.push_str(" 1/2 - 1/2"),
+                Draw => self.history_san.push_str(" 1/2 - 1/2"),
             };
         }
         if self.current.board.check.is_some() && self.current.end.is_none() {
-            self.current.history_san.push('+');
+            self.history_san.push('+');
         }
-        self.current.history_san.push(' ');
+        self.history_san.push(' ');
     }
 
     fn is_en_passant_take(&mut self, from: &Coord, to: &Coord, prev_board: &Board) -> bool {
@@ -134,16 +132,16 @@ impl ChessApp {
 
     fn pawn_san(&mut self, from: &Coord, to: &Coord, prev_board: &Board) {
         if !prev_board.get(to).is_empty() || self.is_en_passant_take(from, to, prev_board) {
-            self.current.history_san.push((b'a' + from.col) as char);
-            self.current.history_san.push('x');
+            self.history_san.push((b'a' + from.col) as char);
+            self.history_san.push('x');
         }
-        self.current.history_san.push((b'a' + to.col) as char);
-        self.current.history_san.push((b'0' + to.row + 1) as char);
+        self.history_san.push((b'a' + to.col) as char);
+        self.history_san.push((b'0' + to.row + 1) as char);
 
         if let Some(piece) = self.current.board.get(to).get_piece()
             && *piece != Pawn
         {
-            self.current.history_san.push('=');
+            self.history_san.push('=');
             let p = match piece {
                 Rook => 'R',
                 Knight => 'N',
@@ -151,7 +149,7 @@ impl ChessApp {
                 Queen => 'Q',
                 _ => '_',
             };
-            self.current.history_san.push(p);
+            self.history_san.push(p);
         }
     }
 // ui.label("♔ ♕ ♖ ♗ ♘ ♙");
@@ -169,12 +167,12 @@ impl ChessApp {
                     && p == piece
                 {
                     if from.col != f.col {
-                        self.current.history_san.push((b'a' + from.col) as char);
+                        self.history_san.push((b'a' + from.col) as char);
                     } else if from.row != f.row {
-                        self.current.history_san.push((b'0' + from.row + 1) as char);
+                        self.history_san.push((b'0' + from.row + 1) as char);
                     } else {
-                        self.current.history_san.push((b'a' + from.col) as char);
-                        self.current.history_san.push((b'0' + from.row + 1) as char);
+                        self.history_san.push((b'a' + from.col) as char);
+                        self.history_san.push((b'0' + from.row + 1) as char);
                     }
                 }
             }
