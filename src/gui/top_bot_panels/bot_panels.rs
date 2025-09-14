@@ -2,6 +2,10 @@
 use crate::ChessApp;
 use crate::gui::chessapp_struct::End::TimeOut;
 
+use egui::Direction;
+use egui::Layout;
+use egui::TopBottomPanel;
+
 impl ChessApp {
     pub fn bot_white_panel(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::bottom("spacer_bottom").show(ctx, |ui| {
@@ -25,12 +29,19 @@ impl ChessApp {
         });
     }
 
+
+
     pub fn bot_source_code_panel(&self, ctx: &egui::Context) {
-        egui::TopBottomPanel::bottom("source code")
-        .show(ctx, |ui| {
-            ui.with_layout(egui::Layout::centered_and_justified(egui::Direction::LeftToRight), |ui| {
-                ui.label("source code : https://github.com/LeMuffinMan/ChessGame");
-            });
+        egui::TopBottomPanel::bottom("source code").show(ctx, |ui| {
+            ui.with_layout(
+                egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
+                |ui| {
+                    // ui.set_min_width(ui.available_width());
+                    // ui.label("Source code :");
+                    // ui.separator();
+                    ui.hyperlink_to("Source code", "https://github.com/LeMuffinMan/ChessGame");
+                },
+            );
         });
     }
 }
