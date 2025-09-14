@@ -32,9 +32,9 @@ impl ChessApp {
                         //mettre a jour le pgn ici
                         self.widgets.timer = None;
                     }
-                    ui.label(format_time(rem));
+                    ui.heading(format_time(rem));
                 }
-                ui.label("Black");
+                ui.heading("Black");
             });
         });
     }

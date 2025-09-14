@@ -13,7 +13,8 @@ impl ChessApp {
         egui::SidePanel::left("left_panel")
             .default_width(180.0)
             .show(ctx, |ui| {
-            if self.current.board.pawn_to_promote.is_some() {
+            if self.widgets.replay_index == self.history.len()
+                && self.current.board.pawn_to_promote.is_some() {
                 self.side_panel_promote(ui);
             } else if let Some(draw) = &self.draw.draw_option
                 && *draw == Request
@@ -46,7 +47,8 @@ impl ChessApp {
     }
 
     fn side_panel_promote(&mut self, ui: &mut egui::Ui) {
-        if let Some(coord) = self.current.board.pawn_to_promote {
+        if self.widgets.replay_index == self.history.len() 
+            && let Some(coord) = self.current.board.pawn_to_promote {
             if let Some(piece) = self.current.board.promote {
                 let color = if self.current.active_player == Color::White {
                     Black

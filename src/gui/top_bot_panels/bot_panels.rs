@@ -2,10 +2,6 @@
 use crate::ChessApp;
 use crate::gui::chessapp_struct::End::TimeOut;
 
-use egui::Direction;
-use egui::Layout;
-use egui::TopBottomPanel;
-
 impl ChessApp {
     pub fn bot_white_panel(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::bottom("spacer_bottom").show(ctx, |ui| {
@@ -22,9 +18,9 @@ impl ChessApp {
                     if rem == 0.0 {
                         self.current.end = Some(TimeOut);
                     }
-                    ui.label(format_time(rem));
+                    ui.heading(format_time(rem));
                 } 
-                ui.label("White");
+                ui.heading("White");
             });
         });
     }
