@@ -20,7 +20,7 @@
             height: 100vh;
         }
     </style>
-<link rel="modulepreload" href="/ChessGame/chess_game-8810b97167340c98.js" crossorigin="anonymous" integrity="sha384-QuwNJOY+CPi+0auT2zhJVdNnUTqeL7dqzaiwiHRatxusrWbbi2K9WdsY8EpuX6u3"><link rel="preload" href="/ChessGame/chess_game-8810b97167340c98_bg.wasm" crossorigin="anonymous" integrity="sha384-DASbresZaAaIn9beshCh2orPOdOATSvOvyuEjqg6nEBw9Mj4Mx+2pxb3Bj+8mQl3" as="fetch" type="application/wasm"></head>
+<link rel="modulepreload" href="/ChessGame/chess_game-8627482c098b62ce.js" crossorigin="anonymous" integrity="sha384-qLqk9idoAR+2n74M2RU2kxZpnqjIIh7rP+UF7VqudnArV6TjxyioD/WalpkuC98j"><link rel="preload" href="/ChessGame/chess_game-8627482c098b62ce_bg.wasm" crossorigin="anonymous" integrity="sha384-IrimYoZcY4qkApT2A5Oaio7wGGTXkIk5spxyAFRQL4LXC0QPLusxSR7yQ9V3QZWl" as="fetch" type="application/wasm"></head>
 <body>
     <canvas id="chessappid"></canvas>
     <script type="module">
@@ -29,8 +29,8 @@
     </script>
 
 <script type="module">
-import init, * as bindings from '/ChessGame/chess_game-8810b97167340c98.js';
-const wasm = await init({ module_or_path: '/ChessGame/chess_game-8810b97167340c98_bg.wasm' });
+import init, * as bindings from '/ChessGame/chess_game-8627482c098b62ce.js';
+const wasm = await init({ module_or_path: '/ChessGame/chess_game-8627482c098b62ce_bg.wasm' });
 
 
 window.wasmBindings = bindings;
