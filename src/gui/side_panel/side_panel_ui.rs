@@ -5,13 +5,26 @@ use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
 use crate::gui::chessapp_struct::DrawOption::*;
 use crate::gui::chessapp_struct::End::*;
-use crate::gui::chessapp_struct::Timer;
+// use crate::gui::chessapp_struct::Timer;
 
 use egui::Context;
 
 impl ChessApp {
 
-    pub fn right_panel_ui(&mut self, _ui: &mut egui::Ui, _ctx: &Context) {
+    pub fn right_panel_ui(&mut self, ui: &mut egui::Ui, _ctx: &Context) {
+        ui.checkbox(&mut self.widgets.show_coordinates, "Coordinates")
+            .changed();
+        ui.label("Highlight :");
+        ui.checkbox(&mut self.widgets.show_legals_moves, "Legals moves")
+            .changed();
+        ui.checkbox(&mut self.widgets.show_threaten_cells, "Threaten cells");
+        ui.checkbox(&mut self.widgets.show_last_move, "Last move")
+            .changed();
+        ui.separator();
+        self.side_panel_undo_redo_replay(ui);
+        if !self.current.history_san.is_empty() {
+            ui.monospace(&self.current.history_san);
+        }
     }
     pub fn side_panel_ui(&mut self, ui: &mut egui::Ui, ctx: &Context) {
         if self.current.board.pawn_to_promote.is_some() {
@@ -22,29 +35,16 @@ impl ChessApp {
             self.side_panel_draw_request(ui);
         } else {
             self.turn_infos(ui);
-            ui.separator();
             self.draw_resign(ui);
-            ui.separator();
+            // ui.separator();
             self.new_save_load(ui, ctx);
-            if self.history.is_empty() {
+            if self.history.is_empty() || self.current.end.is_some() {
                 self.timer_increment(ui, ctx);
             }
-            ui.separator();
+            // ui.separator();
             // self.side_panel_flip(ui);
             // ui.separator();
-            ui.checkbox(&mut self.widgets.show_coordinates, "Coordinates")
-                .changed();
-            ui.label("Highlight :");
-            ui.checkbox(&mut self.widgets.show_legals_moves, "Legals moves")
-                .changed();
-            ui.checkbox(&mut self.widgets.show_threaten_cells, "Threaten cells");
-            ui.checkbox(&mut self.widgets.show_last_move, "Last move")
-                .changed();
-            ui.separator();
-            self.side_panel_undo_redo_replay(ui);
-            if !self.current.history_san.is_empty() {
-                ui.monospace(&self.current.history_san);
-            }
+
             // ui.separator();
             // if ui.button("Quit").clicked() {
             //     ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
