@@ -124,58 +124,53 @@ impl ChessApp {
             "Custom",
         );
         self.widgets.timer = None;
-        if let Some(gm) = &mut self.widgets.game_mode {
-            match gm {
-                GameMode::Custom(time, inc) => {
-                    ui.horizontal(|ui| {
-                        ui.label("Time :");
-                        ui.menu_button(format!("{:.0} min", (*time / 60.0).floor(),), |ui| {
-                            if ui.button("1 min").clicked() {
-                                *time = 60.0;
-                            }
-                            if ui.button("3 min").clicked() {
-                                *time = 180.0;
-                            }
-                            if ui.button("5 min").clicked() {
-                                *time = 300.0;
-                            }
-                            if ui.button("10 min").clicked() {
-                                *time = 600.0;
-                            }
-                            if ui.button("15 min").clicked() {
-                                *time = 900.0;
-                            }
-                            if ui.button("30 min").clicked() {
-                                *time = 1800.0;
-                            }
-                        });
-                    });
-                    ui.horizontal(|ui| {
-                        ui.label("Increment :");
-                        ui.menu_button(format!("{:.0} sec", *inc,), |ui| {
-                            if ui.button("None").clicked() {
-                                *inc = 0.0;
-                            }
-                            if ui.button("1 sec").clicked() {
-                                *inc = 1.0;
-                            }
-                            if ui.button("2 sec").clicked() {
-                                *inc = 2.0;
-                            }
-                            if ui.button("10 sec").clicked() {
-                                *inc = 10.0;
-                            }
-                        });
-                    });
-                    ui.separator();
-                }
-                _ => {}
-            }
+        if let Some(gm) = &mut self.widgets.game_mode
+            && let GameMode::Custom(time, inc) = gm
+        {
+            ui.horizontal(|ui| {
+                ui.label("Time :");
+                ui.menu_button(format!("{:.0} min", (*time / 60.0).floor(),), |ui| {
+                    if ui.button("1 min").clicked() {
+                        *time = 60.0;
+                    }
+                    if ui.button("3 min").clicked() {
+                        *time = 180.0;
+                    }
+                    if ui.button("5 min").clicked() {
+                        *time = 300.0;
+                    }
+                    if ui.button("10 min").clicked() {
+                        *time = 600.0;
+                    }
+                    if ui.button("15 min").clicked() {
+                        *time = 900.0;
+                    }
+                    if ui.button("30 min").clicked() {
+                        *time = 1800.0;
+                    }
+                });
+            });
+            ui.horizontal(|ui| {
+                ui.label("Increment :");
+                ui.menu_button(format!("{:.0} sec", *inc,), |ui| {
+                    if ui.button("None").clicked() {
+                        *inc = 0.0;
+                    }
+                    if ui.button("1 sec").clicked() {
+                        *inc = 1.0;
+                    }
+                    if ui.button("2 sec").clicked() {
+                        *inc = 2.0;
+                    }
+                    if ui.button("10 sec").clicked() {
+                        *inc = 10.0;
+                    }
+                });
+            });
+            ui.separator();
         }
-        // }
-        // }
-        // });
     }
+
     pub fn update_timer(&mut self, ctx: &egui::Context) {
         let now = ctx.input(|i| i.time);
 
@@ -192,9 +187,10 @@ impl ChessApp {
                 }
                 timer.black.0 = None;
                 //start the timer at the beginning
-            } else if timer.black.0.is_none() && self.current.active_player == Black {
-                if self.history.len() == 1
-                /* && let Some(timer) = &mut self.widgets.timer */
+            } else if timer.black.0.is_none()
+                && self.current.active_player == Black
+                && self.history.len() == 1
+            {
                 {
                     if let Some(game_mode) = &self.widgets.game_mode {
                         match game_mode {

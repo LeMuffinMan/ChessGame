@@ -24,7 +24,4 @@ impl ChessApp {
                 }
             });
     }
-
-
-
 }

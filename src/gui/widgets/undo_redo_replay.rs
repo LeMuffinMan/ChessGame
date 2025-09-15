@@ -34,16 +34,22 @@ impl ChessApp {
             let can_replay = can_undo && self.widgets.next_replay_time.is_none();
             self.undo(ui, can_undo);
             if can_replay {
-                if ui.add_enabled(!self.win_dialog, egui::Button::new("▶")).clicked() {
+                if ui
+                    .add_enabled(!self.win_dialog, egui::Button::new("▶"))
+                    .clicked()
+                {
                     self.widgets.replay_index = 0;
                     self.current = self.history[0].clone();
 
                     let now = ui.input(|i| i.time);
-                    let delay = self.widgets.replay_speed as f64;
+                    let delay = self.widgets.replay_speed;
                     self.widgets.next_replay_time = Some(now + delay);
                 }
             } else if self.widgets.next_replay_time.is_some() {
-                if ui.add_enabled(!self.win_dialog, egui::Button::new("⏸")).clicked() {
+                if ui
+                    .add_enabled(!self.win_dialog, egui::Button::new("⏸"))
+                    .clicked()
+                {
                     self.widgets.next_replay_time = None;
                 }
             } else {
@@ -64,12 +70,18 @@ impl ChessApp {
     }
 
     pub fn undo(&mut self, ui: &mut egui::Ui, can_undo: bool) {
-        if ui.add_enabled(can_undo && !self.win_dialog, egui::Button::new("|<")).clicked() {
+        if ui
+            .add_enabled(can_undo && !self.win_dialog, egui::Button::new("|<"))
+            .clicked()
+        {
             self.widgets.replay_index = 0;
             self.current = self.history[self.widgets.replay_index].clone();
             self.highlight.piece_legals_moves.clear();
         }
-        if ui.add_enabled(can_undo && !self.win_dialog, egui::Button::new("<")).clicked() {
+        if ui
+            .add_enabled(can_undo && !self.win_dialog, egui::Button::new("<"))
+            .clicked()
+        {
             if self.widgets.replay_index == self.history.len() {
                 self.widgets.replay_index -= 1;
             }
@@ -114,7 +126,7 @@ impl ChessApp {
                     self.widgets.replay_index += 1;
                     // log::debug!("Replay index = {}", self.widgets.replay_index);
                     self.current = self.history[self.widgets.replay_index].clone();
-                    let delay = self.widgets.replay_speed as f64;
+                    let delay = self.widgets.replay_speed;
                     self.widgets.next_replay_time = Some(now + delay);
                 } else {
                     self.widgets.replay_index = self.history.len();
