@@ -1,9 +1,12 @@
 use crate::Board;
-use crate::board::cell::Piece::*;
 use crate::Color;
-use crate::board::cell::Cell;
 use crate::Color::*;
 use crate::Coord;
+// use crate::gui::chessapp_struct::LateDraw;
+use crate::gui::chessapp_struct::DrawOption::*;
+use crate::gui::chessapp_struct::End::Draw;
+use crate::board::cell::Piece::*;
+use crate::board::cell::Cell;
 use crate::gui::widgets::undo_redo_replay::Timer;
 
 use eframe::{App, egui};
@@ -58,7 +61,7 @@ pub struct GameState {
     pub turn: u32,
 }
 
-pub struct Draw {
+pub struct LateDraw {
     pub board_hashs: HashMap<u64, usize>,
     pub draw_option: Option<DrawOption>,
     pub draw_moves_count: u32,
@@ -94,7 +97,7 @@ pub struct ChessApp {
     pub history_san: String,
     pub widgets: Widgets,
     pub highlight: Highlight,
-    pub draw: Draw,
+    pub draw: LateDraw,
     pub promoteinfo: Option<PromoteInfo>,
     // pub file_dialog: FileDialog,
     pub file_path: Option<PathBuf>,
@@ -146,7 +149,7 @@ impl Default for ChessApp {
                 drag_pos: None,
                 piece_legals_moves: Vec::new(),
             },
-            draw: Draw {
+            draw: LateDraw {
                 board_hashs: HashMap::new(),
                 draw_option: None,
                 draw_moves_count: 0,
@@ -167,6 +170,7 @@ impl App for ChessApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.update_timer(ctx);
 
+            //Promotion window dialog
         if self.widgets.replay_index == self.history.len()
             && self.current.board.pawn_to_promote.is_some() {
             self.win_dialog = true;
@@ -184,6 +188,35 @@ impl App for ChessApp {
                 });
             self.update_promote();
         }
+
+        if let Some(rq) = & self.draw.draw_option {
+            match rq {
+                Request => {
+                    egui::Window::new(format!("{:?} offers a draw", self.current.active_player))
+                    .collapsible(false)
+                    .resizable(false)
+                    .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
+                    .show(ctx, |ui| {
+                        ui.add_space(10.0);
+                        ui.horizontal(|ui| {
+                            ui.add_space(20.0);
+                            if ui.button("Accept").clicked() {
+                                self.current.end = Some(Draw);
+                                self.draw.draw_option = None;
+                            } 
+                            ui.add_space(30.0);
+                            if ui.button("Decline").clicked() {
+                                self.draw.draw_option = None;
+                            }
+                            ui.add_space(20.0);
+                        });
+                        ui.add_space(10.0);
+                    });
+                },
+                _ => { },
+            }
+        }
+
         self.top_title_panel(ctx);
         self.bot_source_code_panel(ctx);
 
@@ -199,6 +232,18 @@ impl App for ChessApp {
 
 impl ChessApp {
 
+    pub fn draw_request(&mut self, ui: &mut egui::Ui) {
+        ui.label("Accept draw offer ?");
+        ui.horizontal(|ui| {
+            if ui.button("Accept").clicked() {
+                self.current.end = Some(Draw);
+                self.draw.draw_option = None;
+            }
+            if ui.button("Reject").clicked() {
+                self.draw.draw_option = None;
+            }
+        });
+    }
     pub fn update_promote(&mut self) {
 
         if self.widgets.replay_index == self.history.len()
