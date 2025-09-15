@@ -4,6 +4,7 @@ use crate::gui::chessapp_struct::GameMode::*;
 use crate::Color::*;
 use crate::gui::chessapp_struct::End::TimeOut;
 use crate::gui::chessapp_struct::GameMode;
+// use crate::gui::chessapp_struct::GameMode::*;
 
 use egui::Context;
 
