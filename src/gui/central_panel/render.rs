@@ -181,52 +181,84 @@ pub fn render_piece_unicode(
 
 impl ChessApp {
     pub fn display_coordinates(&mut self, painter: &egui::Painter, inner: egui::Rect, sq: f32) {
-        {
-            let font = egui::FontId::monospace(14.0);
-            let color = egui::Color32::from_gray(200);
+        let font = egui::FontId::monospace(14.0);
+        let color = egui::Color32::from_gray(200);
 
-            let left_margin = 10.0;
-
-            for r in 0..8 {
-                let idx = if self.widgets.flip { 7 - r + 1 } else { r + 1 };
-                let text = idx.to_string();
+        let mut draw_labels = |count: usize,
+                               pos_fn: &dyn Fn(usize) -> egui::Pos2,
+                               align: egui::Align2,
+                               text_fn: &dyn Fn(usize) -> String| {
+            for i in 0..count {
+                let text = text_fn(i);
                 let galley = painter.layout_no_wrap(text, font.clone(), color);
+                let pos = align
+                    .align_size_within_rect(
+                        galley.size(),
+                        egui::Rect::from_center_size(pos_fn(i), galley.size()),
+                    )
+                    .min;
+                painter.galley(pos, galley, color);
+            }
+        };
+
+        let left_margin = 10.0;
+        draw_labels(
+            8,
+            &|r| {
                 let cy = inner.top() + r as f32 * sq + sq * 0.5;
                 let x = inner.left() - left_margin;
+                egui::pos2(x, cy)
+            },
+            egui::Align2::RIGHT_CENTER,
+            &|r| {
+                let idx = if self.widgets.flip { 7 - r + 1 } else { r + 1 };
+                idx.to_string()
+            },
+        );
 
-                let pos = egui::Align2::RIGHT_CENTER
-                    .align_size_within_rect(
-                        galley.size(),
-                        egui::Rect::from_center_size(egui::pos2(x, cy), galley.size()),
-                    )
-                    .min;
+        let right_margin = 10.0;
+        draw_labels(
+            8,
+            &|r| {
+                let cy = inner.top() + r as f32 * sq + sq * 0.5;
+                let x = inner.right() + right_margin;
+                egui::pos2(x, cy)
+            },
+            egui::Align2::LEFT_CENTER,
+            &|r| {
+                let idx = if self.widgets.flip { 7 - r + 1 } else { r + 1 };
+                idx.to_string()
+            },
+        );
 
-                painter.galley(pos, galley, color);
-            }
-        }
-        {
-            let font = egui::FontId::monospace(14.0);
-            let color = egui::Color32::from_gray(200);
-
-            let top_margin = 8.0;
-
-            for c in 0..8 {
-                let label_idx = if self.widgets.flip { c } else { 7 - c };
-                let ch = (b'A' + label_idx as u8) as char;
-                let text = ch.to_string();
-                let galley = painter.layout_no_wrap(text, font.clone(), color);
-
+        let top_margin = 8.0;
+        draw_labels(
+            8,
+            &|c| {
                 let cx = inner.left() + c as f32 * sq + sq * 0.5;
                 let y = inner.top() - top_margin;
+                egui::pos2(cx, y)
+            },
+            egui::Align2::CENTER_BOTTOM,
+            &|c| {
+                let idx = if self.widgets.flip { c } else { 7 - c };
+                ((b'A' + idx as u8) as char).to_string()
+            },
+        );
 
-                let pos = egui::Align2::CENTER_BOTTOM
-                    .align_size_within_rect(
-                        galley.size(),
-                        egui::Rect::from_center_size(egui::pos2(cx, y), galley.size()),
-                    )
-                    .min;
-                painter.galley(pos, galley, color);
-            }
-        }
+        let bottom_margin = 8.0;
+        draw_labels(
+            8,
+            &|c| {
+                let cx = inner.left() + c as f32 * sq + sq * 0.5;
+                let y = inner.bottom() + bottom_margin;
+                egui::pos2(cx, y)
+            },
+            egui::Align2::CENTER_TOP,
+            &|c| {
+                let idx = if self.widgets.flip { c } else { 7 - c };
+                ((b'A' + idx as u8) as char).to_string()
+            },
+        );
     }
 }
