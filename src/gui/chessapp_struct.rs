@@ -7,7 +7,7 @@ use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
 use crate::gui::chessapp_struct::DrawOption::*;
 use crate::gui::chessapp_struct::End::*;
-use crate::gui::widgets::undo_redo_replay::Timer;
+use crate::gui::widgets::replay::Timer;
 
 use eframe::{App, egui};
 use egui::Pos2;
@@ -105,6 +105,8 @@ pub struct ChessApp {
     pub black_name: String,
     pub win_dialog: bool,
     pub win_resign: bool,
+    pub win_undo: bool,
+    pub win_save: bool,
 }
 
 impl Default for Timer {
@@ -163,6 +165,8 @@ impl Default for ChessApp {
             black_name: "Black".to_string(),
             win_dialog: false,
             win_resign: false,
+            win_undo: false,
+            win_save: false,
         }
     }
 }
@@ -190,6 +194,50 @@ impl App for ChessApp {
                     });
                 });
             self.update_promote();
+        }
+
+        if self.win_undo {
+            egui::Window::new(format!("{:?} ask to undo", self.current.opponent))
+                .collapsible(false)
+                .resizable(false)
+                .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
+                .show(ctx, |ui| {
+                    self.win_dialog = true;
+                    ui.add_space(10.0);
+                    ui.horizontal(|ui| {
+                        ui.add_space(20.0);
+                        if ui.button("Accept").clicked() {
+                            match self.history.len() {
+                                1 | 2 => {
+                                    *self = ChessApp::default();
+                                }
+                                _ => {
+                                    if let Some(last) = self.history.pop() {
+                                        if last == self.current {
+                                            if let Some(before_last) = self.history.pop() {
+                                                self.current = before_last;
+                                            } else {
+                                                self.current = last;
+                                            }
+                                            self.widgets.replay_index = self.history.len();
+                                        }
+                                    }
+                                    //effacer historique
+                                    //ne pas toucher aux timers
+                                }
+                            }
+                            self.win_dialog = false;
+                            self.win_undo = false;
+                        }
+                        ui.add_space(30.0);
+                        if ui.button("Decline").clicked() {
+                            self.win_dialog = false;
+                            self.win_undo = false;
+                        }
+                        ui.add_space(20.0);
+                    });
+                    ui.add_space(10.0);
+                });
         }
 
         if self.win_resign {
@@ -236,6 +284,29 @@ impl App for ChessApp {
                         ui.add_space(30.0);
                         if ui.button("Decline").clicked() {
                             self.draw.draw_option = None;
+                        }
+                        ui.add_space(20.0);
+                    });
+                    ui.add_space(10.0);
+                });
+        }
+        if self.win_save {
+
+            egui::Window::new("Save game")
+                .collapsible(false)
+                .resizable(false)
+                .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
+                .show(ctx, |ui| {
+                    ui.add_space(10.0);
+                    ui.horizontal(|ui| {
+                        ui.add_space(20.0);
+                        if ui.button("Accept").clicked() {
+                            self.export_pgn();
+                            self.win_save = false;
+                        }
+                        ui.add_space(30.0);
+                        if ui.button("Decline").clicked() {
+                            self.win_save = false;
                         }
                         ui.add_space(20.0);
                     });

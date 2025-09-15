@@ -16,7 +16,7 @@ impl ChessApp {
                 ui.checkbox(&mut self.widgets.show_last_move, "Last move")
                     .changed();
                 ui.separator();
-                self.undo_redo_replay(ui);
+                self.replay_panel(ui);
                 if !self.history_san.is_empty() {
                     ui.monospace(&self.history_san);
                 }

@@ -572,6 +572,7 @@ dependencies = [
  "console_log",
  "eframe",
  "egui",
+ "js-sys",
  "log",
  "wasm-bindgen",
  "wasm-bindgen-futures",

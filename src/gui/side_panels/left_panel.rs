@@ -15,7 +15,7 @@ impl ChessApp {
             .show(ctx, |ui| {
                 self.turn_infos(ui);
                 if !self.history.is_empty() {
-                    self.draw_resign(ui);
+                    self.draw_resign_undo(ui);
                 }
                 // ui.separator();
                 self.new_save_load(ui, ctx);
