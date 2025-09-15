@@ -2,6 +2,8 @@
 use crate::ChessApp;
 use crate::gui::chessapp_struct::End::TimeOut;
 
+use egui::TextEdit;
+
 impl ChessApp {
     pub fn bot_white_panel(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::bottom("spacer_bottom").show(ctx, |ui| {
@@ -19,10 +21,15 @@ impl ChessApp {
                         self.current.end = Some(TimeOut);
                         self.history_san.push_str("0-1");
                         self.widgets.timer = None;
+                        self.widgets.game_mode = None;
                     }
                     ui.heading(format_time(rem));
                 } 
-                ui.heading("White");
+                if self.history.is_empty() || self.current.end.is_some() {
+                    ui.add(TextEdit::singleline(&mut self.white_name));
+                } else {
+                    ui.heading(&self.white_name);
+                }
             });
         });
     }

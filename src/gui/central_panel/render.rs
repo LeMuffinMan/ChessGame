@@ -184,7 +184,7 @@ impl ChessApp {
         let font = egui::FontId::monospace(14.0);
         let color = egui::Color32::from_gray(200);
 
-        let mut draw_labels = |count: usize,
+        let draw_labels = |count: usize,
                                pos_fn: &dyn Fn(usize) -> egui::Pos2,
                                align: egui::Align2,
                                text_fn: &dyn Fn(usize) -> String| {
