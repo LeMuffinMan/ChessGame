@@ -56,6 +56,7 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //
 //Fix :
 //      - save as pgn
+//          - finir les metadonnees et les 80 chars
 //      - undo avec promotion
 //
 //Tests :
@@ -67,7 +68,6 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //
 //
 //Back :
-//      Buttun Load : decode pgn
 //      Settings :
 //          - regroupe
 //          - link blitz bullet rapid

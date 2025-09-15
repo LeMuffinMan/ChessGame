@@ -58,7 +58,7 @@ impl ChessApp {
             }
             pgn.push_str("\"]\n");
         }
-        pgn.push_str("\n");
+        pgn.push('\n');
         pgn.push_str(&self.history_san);
         //ici split l'history en plusieurs lignes de 80 chars
         pgn.push('\n');
