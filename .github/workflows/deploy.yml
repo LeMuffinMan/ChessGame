@@ -22,7 +22,7 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Cargo check 
-        run: cargo check
+        run: cargo check --target wasm32-unknown-unknown
 
       - name: Cargo clippy
         run: cargo clippy --target wasm32-unknown-unknown -- -D warnings
