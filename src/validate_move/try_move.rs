@@ -58,7 +58,11 @@ impl ChessApp {
             self.widgets.replay_index += 1;
             self.encode_move_to_san(&from, &to, &prev_board);
         }
-        log::info!("end try move {} {}", self.widgets.replay_index, self.history.len());
+        log::info!(
+            "end try move {} {}",
+            self.widgets.replay_index,
+            self.history.len()
+        );
     }
 
     fn incremente_turn(&mut self) {

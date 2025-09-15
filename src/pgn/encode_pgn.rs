@@ -37,7 +37,8 @@ impl ChessApp {
     pub fn encode_move_to_san(&mut self, from: &Coord, to: &Coord, prev_board: &Board) {
         //on ecrit le dernier coup une fois les checks du tour suivant faits
         if self.current.active_player == Black {
-            self.history_san.push_str(self.current.turn.to_string().as_str());
+            self.history_san
+                .push_str(self.current.turn.to_string().as_str());
             self.history_san.push_str(". ");
         }
 
@@ -152,13 +153,11 @@ impl ChessApp {
             self.history_san.push(p);
         }
     }
-// ui.label("♔ ♕ ♖ ♗ ♘ ♙");
-// ui.label("♚ ♛ ♜ ♝ ♞ ♟")
+    // ui.label("♔ ♕ ♖ ♗ ♘ ♙");
+    // ui.label("♚ ♛ ♜ ♝ ♞ ♟")
 
     pub fn is_ambiguous_move(&mut self, piece: &Piece, from: &Coord, to: &Coord) {
-        if !self.history.is_empty()
-            && self.widgets.replay_index > 0
-        {
+        if !self.history.is_empty() && self.widgets.replay_index > 0 {
             let prev_state = &self.history[self.widgets.replay_index - 1];
             let prev_legal_moves = prev_state.board.legals_moves.clone();
             for (f, t) in prev_legal_moves.iter() {

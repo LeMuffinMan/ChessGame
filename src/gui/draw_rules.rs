@@ -97,19 +97,24 @@ impl ChessApp {
                     if piece != King && piece != Bishop {
                         return false;
                     }
-                    white_bishop_cell_color = if piece == Bishop && color == White {
-                        Some(cell_color)
-                    } else {
-                        None
-                    };
-                    black_bishop_cell_color = if piece == Bishop && color == Black {
-                        Some(cell_color)
-                    } else {
-                        None
-                    };
+                    if piece == Bishop {
+                        if color == White {
+                            white_bishop_cell_color = Some(cell_color);
+                        } else {
+                            black_bishop_cell_color = Some(cell_color);
+                        }
+                    }
                 }
-                if white_bishop_cell_color != black_bishop_cell_color {
-                    return true;
+                if white_bishop_cell_color.is_some() != black_bishop_cell_color.is_some() {
+                    let Some(cell_1) = white_bishop_cell_color else {
+                        return false;
+                    };
+                    let Some(cell_2) = white_bishop_cell_color else {
+                        return false;
+                    };
+                    if cell_1 == cell_2 {
+                        return true;
+                    }
                 }
                 false
             }

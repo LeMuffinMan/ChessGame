@@ -1,4 +1,3 @@
-
 use crate::ChessApp;
 
 use egui::Context;
@@ -29,7 +28,6 @@ impl ChessApp {
             //     println!("Load game");
             // }
         });
-            ui.separator();
+        ui.separator();
     }
-
 }

@@ -1,4 +1,3 @@
-
 use crate::ChessApp;
 use crate::gui::chessapp_struct::End::TimeOut;
 
@@ -16,7 +15,8 @@ impl ChessApp {
                         } else {
                             timer.white.1
                         }
-                    }.max(0.0);
+                    }
+                    .max(0.0);
                     if rem == 0.0 {
                         self.current.end = Some(TimeOut);
                         self.history_san.push_str("0-1");
@@ -24,7 +24,7 @@ impl ChessApp {
                         self.widgets.game_mode = None;
                     }
                     ui.heading(format_time(rem));
-                } 
+                }
                 if self.history.is_empty() || self.current.end.is_some() {
                     ui.add(TextEdit::singleline(&mut self.white_name));
                 } else {
@@ -33,8 +33,6 @@ impl ChessApp {
             });
         });
     }
-
-
 
     pub fn bot_source_code_panel(&self, ctx: &egui::Context) {
         egui::TopBottomPanel::bottom("source code").show(ctx, |ui| {
@@ -56,8 +54,8 @@ pub fn format_time(seconds_f64: f64) -> String {
     let mins = total_secs / 60;
     let secs = total_secs % 60;
     if mins > 0 {
-        format!("{}:{:02}", mins, secs) 
+        format!("{}:{:02}", mins, secs)
     } else {
-        format!("0:{:02}", secs)        
+        format!("0:{:02}", secs)
     }
 }

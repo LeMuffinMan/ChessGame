@@ -185,9 +185,9 @@ impl ChessApp {
         let color = egui::Color32::from_gray(200);
 
         let draw_labels = |count: usize,
-                               pos_fn: &dyn Fn(usize) -> egui::Pos2,
-                               align: egui::Align2,
-                               text_fn: &dyn Fn(usize) -> String| {
+                           pos_fn: &dyn Fn(usize) -> egui::Pos2,
+                           align: egui::Align2,
+                           text_fn: &dyn Fn(usize) -> String| {
             for i in 0..count {
                 let text = text_fn(i);
                 let galley = painter.layout_no_wrap(text, font.clone(), color);

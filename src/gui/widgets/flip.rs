@@ -1,4 +1,3 @@
-
 use crate::ChessApp;
 
 impl ChessApp {
@@ -13,5 +12,4 @@ impl ChessApp {
             {}
         });
     }
-
 }

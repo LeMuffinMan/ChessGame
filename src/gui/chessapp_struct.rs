@@ -1,8 +1,7 @@
 use crate::Board;
 use crate::Color;
-use crate::Color::*;
 use crate::Coord;
-use crate::gui::chessapp_struct::End::*;
+use crate::gui::widgets::undo_redo_replay::Timer;
 
 use eframe::{App, egui};
 use egui::Pos2;
@@ -10,7 +9,7 @@ use egui::Pos2;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum GameMode {
     Bullet(f64, f64), //(timer, increment)
     Blitz(f64, f64),
@@ -75,7 +74,7 @@ pub struct Widgets {
     pub show_legals_moves: bool,
     pub show_last_move: bool,
     pub show_threaten_cells: bool,
-    pub show_timer: bool,
+    pub custom_timer: bool,
     pub next_replay_time: Option<f64>,
     pub flip: bool,
     pub autoflip: bool,
@@ -100,11 +99,6 @@ pub struct ChessApp {
     pub black_name: String,
 }
 
-pub struct Timer {
-    pub white: (Option<f64>, f64), //start of turn, remaining time
-    pub black: (Option<f64>, f64),
-    pub increment: f64,
-}
 
 impl Default for Timer {
     fn default() -> Self {
@@ -134,7 +128,7 @@ impl Default for ChessApp {
                 show_legals_moves: true,
                 show_last_move: true,
                 show_threaten_cells: false,
-                show_timer: false,
+                custom_timer: false,
                 next_replay_time: None,
                 flip: true,
                 autoflip: false,
@@ -174,60 +168,16 @@ impl App for ChessApp {
 
         self.left_panel_ui(ctx);
         self.right_panel_ui(ctx);
-        
+
         self.top_black_panel(ctx);
         self.bot_white_panel(ctx);
-        
+
         self.central_panel_ui(ctx);
     }
 }
 
 impl ChessApp {
-    fn update_timer(&mut self, ctx: &egui::Context) {
-        let now = ctx.input(|i| i.time);
-
-        if let Some(timer) = &mut self.widgets.timer {
-            if timer.white.0.is_none() && self.current.active_player == White && !self.history.is_empty() {
-                timer.white.0 = Some(now);
-                if let Some(black_start) = timer.black.0 {
-                    timer.black.1 += timer.increment;
-                    timer.black.1 -= now - black_start; 
-                }
-                timer.black.0 = None;
-            }
-            else if timer.black.0.is_none() && self.current.active_player == Black {
-                if self.history.len() == 1 /* && let Some(timer) = &mut self.widgets.timer */ {
-                    if let Some(game_mode) = &self.widgets.game_mode {
-                        match game_mode {
-                            GameMode::Bullet(max_time, inc)
-                            | GameMode::Blitz(max_time, inc)
-                            | GameMode::Rapid(max_time, inc)
-                            | GameMode::Custom(max_time, inc) => {      
-                                timer.white.1 = *max_time;
-                                timer.black.1 = *max_time;
-                                timer.increment = *inc;
-                            }
-                        }
-                    }
-                }
-                timer.black.0 = Some(now);
-                if let Some(white_start) = timer.white.0 {
-                    timer.white.1 += timer.increment;
-                    timer.white.1 -= now - white_start ;
-                }
-                timer.white.0 = None;
-            }
-            if timer.white.1 < 0.0 { 
-                timer.white.1 = 0.0;
-                self.current.end = Some(TimeOut);
-            }
-            if timer.black.1 < 0.0 {
-                timer.black.1 = 0.0;
-                self.current.end = Some(TimeOut);
-            }
-        }
-    }   
-
+    
     pub fn is_active_player_piece(&mut self, coord: &Coord) -> bool {
         let cell = self.current.board.get(coord);
         cell.is_color(&self.current.active_player)
