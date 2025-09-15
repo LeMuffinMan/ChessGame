@@ -18,6 +18,15 @@ jobs:
       - name: Add wasm target
         run: rustup target add wasm32-unknown-unknown
 
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Check warnings
+        run: cargo check --all-targets --all-features --locked --verbose -- -D warnings
+
+      - name: Check Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
       - name: Install Trunk
         run: cargo install --locked trunk
 
