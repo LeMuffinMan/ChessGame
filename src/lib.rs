@@ -51,11 +51,12 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 }
 
 //Todo
-//      - offer / accept / decline undo
-//      - window for promotion or draw
+//      - pgn decoder
+//          - load
 //
 //Fix :
 //      - save as pgn
+//      - undo avec promotion
 //
 //Tests :
 //      - unit

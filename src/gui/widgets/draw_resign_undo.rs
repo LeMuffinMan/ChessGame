@@ -5,7 +5,7 @@ use crate::gui::chessapp_struct::End::*;
 use crate::ChessApp;
 
 impl ChessApp {
-    pub fn draw_resign(&mut self, ui: &mut egui::Ui) {
+    pub fn draw_resign_undo(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             if let Some(draw) = &self.draw.draw_option {
                 match draw {
@@ -39,6 +39,17 @@ impl ChessApp {
             {
                 self.win_resign = true;
             }
+            // if ui
+            //     .add_enabled(
+            //         self.current.end.is_none()
+            //         && !self.history.is_empty()
+            //         && !self.win_dialog,
+            //         egui::Button::new("Undo"),
+            //     )
+            //     .clicked()
+            // {
+            //     self.win_undo = true;
+            // }
         });
     }
 }
