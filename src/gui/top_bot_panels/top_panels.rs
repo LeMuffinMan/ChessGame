@@ -4,6 +4,8 @@ use crate::ChessApp;
 use crate::gui::chessapp_struct::End::TimeOut;
 use crate::gui::top_bot_panels::bot_panels::format_time;
 
+use egui::TextEdit;
+
 impl ChessApp {
     pub fn top_title_panel(&self, ctx: &egui::Context) {
         egui::TopBottomPanel::top("title")
@@ -15,7 +17,6 @@ impl ChessApp {
     }
 
     pub fn top_black_panel(&mut self, ctx: &egui::Context) {
-        // ui.add(TextEdit::singleline(&mut self.white_name));
         egui::TopBottomPanel::top("spacer_top").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 let now = ctx.input(|i| i.time);
@@ -31,10 +32,15 @@ impl ChessApp {
                         self.current.end = Some(TimeOut);
                         self.history_san.push_str("1-0");
                         self.widgets.timer = None;
+                        self.widgets.game_mode = None;
                     }
                     ui.heading(format_time(rem));
                 }
-                ui.heading("Black");
+                if self.history.is_empty() || self.current.end.is_some() {
+                    ui.add(TextEdit::singleline(&mut self.black_name));
+                } else {
+                    ui.heading(&self.black_name);
+                }
             });
         });
     }

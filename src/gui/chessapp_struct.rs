@@ -11,6 +11,14 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 #[derive(Clone, PartialEq)]
+pub enum GameMode {
+    Bullet(f64, f64), //(timer, increment)
+    Blitz(f64, f64),
+    Rapid(f64, f64),
+    Custom(f64, f64),
+}
+
+#[derive(Clone, PartialEq)]
 pub enum DrawRule {
     TripleRepetition,
     FiftyMoves,
@@ -74,6 +82,7 @@ pub struct Widgets {
     pub replay_speed: f64,
     pub replay_index: usize,
     pub timer: Option<Timer>,
+    pub game_mode: Option<GameMode>,
 }
 
 pub struct ChessApp {
@@ -132,6 +141,7 @@ impl Default for ChessApp {
                 replay_speed: 1.0,
                 replay_index: 0,
                 timer: None,
+                game_mode: None,
             },
             highlight: Highlight {
                 from_cell: None,
@@ -186,6 +196,20 @@ impl ChessApp {
                 timer.black.0 = None;
             }
             else if timer.black.0.is_none() && self.current.active_player == Black {
+                if self.history.len() == 1 /* && let Some(timer) = &mut self.widgets.timer */ {
+                    if let Some(game_mode) = &self.widgets.game_mode {
+                        match game_mode {
+                            GameMode::Bullet(max_time, inc)
+                            | GameMode::Blitz(max_time, inc)
+                            | GameMode::Rapid(max_time, inc)
+                            | GameMode::Custom(max_time, inc) => {      
+                                timer.white.1 = *max_time;
+                                timer.black.1 = *max_time;
+                                timer.increment = *inc;
+                            }
+                        }
+                    }
+                }
                 timer.black.0 = Some(now);
                 if let Some(white_start) = timer.white.0 {
                     timer.white.1 += timer.increment;

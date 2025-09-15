@@ -1,17 +1,18 @@
 
 use crate::ChessApp;
 use crate::gui::chessapp_struct::Timer;
+use crate::gui::chessapp_struct::GameMode::*;
 
 use egui::Context;
 
 impl ChessApp {
     pub fn timer_increment(&mut self, ui: &mut egui::Ui, _ctx: &Context) {
         ui.horizontal(|ui| {
-            ui.label("Timer :");
-            if self.widgets.timer.is_none() {
-                if ui.add_enabled(self.history.is_empty(), egui::Button::new("OFF")).clicked() {
-                    let timer: Timer = Default::default();
-                    self.widgets.timer = Some(timer);
+            if ui.checkbox(&mut self.widgets.show_timer, "Timer").changed() {
+                if self.widgets.show_timer {
+                    self.widgets.timer = Some(Timer::default());
+                } else {
+                    self.widgets.timer = None;
                 }
             } else {
                 //Si on est pas en cour de game
@@ -20,17 +21,12 @@ impl ChessApp {
                         let white_remaining_time: &mut f64 = &mut timer.white.1;
                         let black_remaining_time: &mut f64 = &mut timer.black.1;
 
-                        let mut remove_timer = false;
-
                         ui.menu_button(
                             format!(
                                 "{:.0} min",
                                 (*white_remaining_time / 60.0).floor(),
                             ),
                             |ui| {
-                                if ui.button("OFF").clicked() {
-                                    remove_timer = true;
-                                }
                                 if ui.button("1 min").clicked() {
                                     *white_remaining_time = 60.0;
                                     *black_remaining_time = 60.0;
@@ -57,10 +53,6 @@ impl ChessApp {
                                 }
                             },
                         );
-                        //used flag cause of double borrow case
-                        if remove_timer {
-                            self.widgets.timer = None;
-                        }
                     }
                 }               
             } 
@@ -88,6 +80,41 @@ impl ChessApp {
                         }
                     },
                 );
+            });
+            ui.separator();
+            ui.label("Bullet");
+            ui.horizontal(|ui| {
+                ui.selectable_value(&mut self.widgets.game_mode, Some(Bullet(20.0, 1.0)), "20 sec | 1 sec");
+                ui.selectable_value(&mut self.widgets.game_mode, Some(Bullet(30.0, 0.0)), "30 sec | 0 sec");
+            });
+            ui.horizontal(|ui| {
+                ui.selectable_value(&mut self.widgets.game_mode, Some(Bullet(60.0, 0.0)), "1 min | 0 sec");
+                ui.selectable_value(&mut self.widgets.game_mode, Some(Bullet(60.0, 1.0)), "1 min | 1 sec");
+            });
+            ui.separator();
+            ui.label("Blitz");
+            ui.horizontal(|ui| {
+                ui.selectable_value(&mut self.widgets.game_mode, Some(Blitz(180.0, 0.0)), "3 min | 0 sec");
+                ui.selectable_value(&mut self.widgets.game_mode, Some(Blitz(180.0, 2.0)), "3 min | 2 sec");
+            });
+            ui.horizontal(|ui| {
+                ui.selectable_value(&mut self.widgets.game_mode, Some(Blitz(300.0, 0.0)), "5 min | 0 sec");
+                ui.selectable_value(&mut self.widgets.game_mode, Some(Blitz(300.0, 5.0)), "5 min | 5 sec");
+            });
+            ui.selectable_value(&mut self.widgets.game_mode, Some(Blitz(300.0, 2.0)), "5 min | 2 sec");
+            ui.separator();
+            ui.label("Rapid");
+            ui.horizontal(|ui| {
+                ui.selectable_value(&mut self.widgets.game_mode, Some(Rapid(600.0, 0.0)), "10 min | 0 sec");
+                ui.selectable_value(&mut self.widgets.game_mode, Some(Rapid(600.0, 5.0)), "10 min | 5 sec");
+            });
+            ui.horizontal(|ui| {
+                ui.selectable_value(&mut self.widgets.game_mode, Some(Rapid(900.0, 10.0)), "15 min | 10 sec");
+                ui.selectable_value(&mut self.widgets.game_mode, Some(Rapid(1200.0, 0.0)), "20 min | 0 sec");
+            });
+            ui.horizontal(|ui| {
+                ui.selectable_value(&mut self.widgets.game_mode, Some(Rapid(1800.0, 0.0)), "30 min | 0 sec");
+                ui.selectable_value(&mut self.widgets.game_mode, Some(Rapid(3600.0, 5.0)), "60 min | 0 sec");
             });
         }
     }

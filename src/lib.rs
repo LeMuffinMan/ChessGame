@@ -53,16 +53,12 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //Todo 
 //
 //Fix : 
-//      - Flip + autoflip
 //      - save as pgn
-//      Timer
-//           - end et replay
 //
-//New game 
+//Rounds 
 //      - ask for names
-//      - count rounds
-//      - mode in game / mode analyse
-//
+//      - revenge button
+//      - graph 
 //
 //Settings 
 //  - dark mode
