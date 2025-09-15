@@ -56,7 +56,6 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //
 //Fix :
 //      - save as pgn
-//      - draw end situation
 //
 //Tests :
 //      - unit

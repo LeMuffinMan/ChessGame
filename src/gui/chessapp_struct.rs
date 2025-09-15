@@ -1,5 +1,8 @@
 use crate::Board;
+use crate::board::cell::Piece::*;
 use crate::Color;
+use crate::board::cell::Cell;
+use crate::Color::*;
 use crate::Coord;
 use crate::gui::widgets::undo_redo_replay::Timer;
 
@@ -97,6 +100,7 @@ pub struct ChessApp {
     pub file_path: Option<PathBuf>,
     pub white_name: String,
     pub black_name: String,
+    pub win_dialog: bool,
 }
 
 impl Default for Timer {
@@ -153,6 +157,7 @@ impl Default for ChessApp {
             file_path: None,
             white_name: "White".to_string(),
             black_name: "Black".to_string(),
+            win_dialog: false,
         }
     }
 }
@@ -162,6 +167,23 @@ impl App for ChessApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.update_timer(ctx);
 
+        if self.widgets.replay_index == self.history.len()
+            && self.current.board.pawn_to_promote.is_some() {
+            self.win_dialog = true;
+            egui::Window::new("Promotion")
+                .collapsible(false)
+                .resizable(false)
+                .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
+                .show(ctx, |ui| {
+                    ui.vertical(|ui| {
+                        ui.radio_value(&mut self.current.board.promote, Some(Queen), "Queen");
+                        ui.radio_value(&mut self.current.board.promote, Some(Bishop), "Bishop");
+                        ui.radio_value(&mut self.current.board.promote, Some(Knight), "Knight");
+                        ui.radio_value(&mut self.current.board.promote, Some(Rook), "Rook");
+                    });
+                });
+            self.update_promote();
+        }
         self.top_title_panel(ctx);
         self.bot_source_code_panel(ctx);
 
@@ -176,8 +198,51 @@ impl App for ChessApp {
 }
 
 impl ChessApp {
+
+    pub fn update_promote(&mut self) {
+
+        if self.widgets.replay_index == self.history.len()
+            && let Some(coord) = self.current.board.pawn_to_promote
+        {
+            if let Some(piece) = self.current.board.promote {
+                let color = if self.current.active_player == Color::White {
+                    Black
+                } else {
+                    White
+                };
+                self.current.board.grid[coord.row as usize][coord.col as usize] =
+                    Cell::Occupied(piece, color);
+
+                let opponent = if self.current.active_player != White {
+                    White
+                } else {
+                    Black
+                };
+                if let Some(k) = self.current.board.get_king(&opponent)
+                    && self.current.board.threaten_cells.contains(&k)
+                    && let Some(k) = self.current.board.get_king(&opponent)
+                {
+                    self.current.board.check = Some(k);
+                    // println!("Check !");
+                }
+                self.check_endgame();
+                if let Some(promoteinfo) = &self.promoteinfo {
+                    let from = promoteinfo.from;
+                    let to = promoteinfo.to;
+                    let prev_board = promoteinfo.prev_board.clone();
+                    self.history.push(self.current.clone());
+                    self.widgets.replay_index += 1;
+                    self.encode_move_to_san(&from, &to, &prev_board);
+                }
+                self.current.board.pawn_to_promote = None;
+                self.current.board.promote = None;
+                self.win_dialog = false;
+            } 
+        }
+    }
     pub fn is_active_player_piece(&mut self, coord: &Coord) -> bool {
         let cell = self.current.board.get(coord);
         cell.is_color(&self.current.active_player)
     }
 }
+
