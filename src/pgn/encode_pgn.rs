@@ -177,6 +177,80 @@ impl ChessApp {
             }
         }
     }
+
+    fn load_pgn_datas() -> (Vec<String>, Vec<(Coord, Coord)>) {
+        let mut headers = Vec::new();
+        let mut move_list = Vec::new();
+        //extraire le contenu d'un fichier recu
+        //
+        //
+        //headers = get_headers(lines);
+        //move_list = get_moves_list(line);
+        (headers, move_list)
+    }
+
+    fn get_san_moves_list(san: String) -> Vec<String> {
+        let moves_list = Vec::new();
+
+        //recuperer la ligne du san
+        //accepter : 
+        //      abcdefghRNBQKO12345678.[]/-
+        //split sur les espaces
+        //evacuer les 1. si isdigit+.
+        moves_list
+    }
+
+    fn load_san(move_list: Vec<String>) -> ChessApp {
+        //for move in move_list
+        //{
+        //   if (from, to) = interpret_san {
+        //      gerrer l'erreur
+        //   } else {
+        //      try_move(from, to); 
+        //      //gerer l'erreur
+        //   }
+        //   //success -> ChessApp
+        //}
+    }
+
+    fn interpret_san(move: String) -> Option<(Option<Coord>, Coord)> {
+        // let piece: char = if move[0].is_lowercase {
+        //     pawn
+        // } else if move[0].is_uppercase() {
+        //      match move[0] {
+        //         R
+        //         N
+        //         B
+        //         Q
+        //         K
+        //         O
+        //         [
+        //         1
+        //         0
+        //         _ { invalid }
+        //      }
+        // }
+        //
+        // let to = match piece {
+        //      Pawn => { 
+        //          if is_capture {
+        //              to = x +1 +2
+        //              chercher indice origin
+        //          }
+        //      }
+        //      Rook | Knight | Bishop | Queen | King => {
+        //          if is_capture {
+        //              to = x +1 +2
+        //              chercher indice origin
+        //          }
+        //      }
+        //      _ { edges cases or invalid }
+        //
+        // let from = if Some(Coord) = find_piece_origin(hint) { Coord } else { None }
+        // Some((from, to))
+        // }
+    }
+
     //as IMPL CHESSAPP
     // fn update_last_move_san(&mut self) {
     //     if self.current.checkmate {
