@@ -13,23 +13,24 @@ impl ChessApp {
         egui::SidePanel::left("left_panel")
             .default_width(180.0)
             .show(ctx, |ui| {
-            if self.widgets.replay_index == self.history.len()
-                && self.current.board.pawn_to_promote.is_some() {
-                self.side_panel_promote(ui);
-            } else if let Some(draw) = &self.draw.draw_option
-                && *draw == Request
-            {
-                self.side_panel_draw_request(ui);
-            } else {
-                self.turn_infos(ui);
-                self.draw_resign(ui);
-                // ui.separator();
-                self.new_save_load(ui, ctx);
-                if self.history.is_empty() || self.current.end.is_some() {
-                    self.timer_increment(ui, ctx);
+                if self.widgets.replay_index == self.history.len()
+                    && self.current.board.pawn_to_promote.is_some()
+                {
+                    self.side_panel_promote(ui);
+                } else if let Some(draw) = &self.draw.draw_option
+                    && *draw == Request
+                {
+                    self.side_panel_draw_request(ui);
+                } else {
+                    self.turn_infos(ui);
+                    self.draw_resign(ui);
+                    // ui.separator();
+                    self.new_save_load(ui, ctx);
+                    if self.history.is_empty() || self.current.end.is_some() {
+                        self.timer_increment(ui, ctx);
+                    }
                 }
-            }
-        });
+            });
     }
 
     //panels that open on special event and force input
@@ -47,8 +48,9 @@ impl ChessApp {
     }
 
     fn side_panel_promote(&mut self, ui: &mut egui::Ui) {
-        if self.widgets.replay_index == self.history.len() 
-            && let Some(coord) = self.current.board.pawn_to_promote {
+        if self.widgets.replay_index == self.history.len()
+            && let Some(coord) = self.current.board.pawn_to_promote
+        {
             if let Some(piece) = self.current.board.promote {
                 let color = if self.current.active_player == Color::White {
                     Black
@@ -94,5 +96,4 @@ impl ChessApp {
             }
         }
     }
-
 }

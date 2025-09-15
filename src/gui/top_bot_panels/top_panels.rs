@@ -1,5 +1,3 @@
-
-
 use crate::ChessApp;
 use crate::gui::chessapp_struct::End::TimeOut;
 use crate::gui::top_bot_panels::bot_panels::format_time;
@@ -8,11 +6,13 @@ use egui::TextEdit;
 
 impl ChessApp {
     pub fn top_title_panel(&self, ctx: &egui::Context) {
-        egui::TopBottomPanel::top("title")
-            .show(ctx, |ui| {
-            ui.with_layout(egui::Layout::centered_and_justified(egui::Direction::LeftToRight), |ui| {
-                ui.heading("ChessGame");
-            });
+        egui::TopBottomPanel::top("title").show(ctx, |ui| {
+            ui.with_layout(
+                egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
+                |ui| {
+                    ui.heading("ChessGame");
+                },
+            );
         });
     }
 
@@ -27,7 +27,8 @@ impl ChessApp {
                         } else {
                             timer.black.1
                         }
-                    }.max(0.0);
+                    }
+                    .max(0.0);
                     if rem == 0.0 {
                         self.current.end = Some(TimeOut);
                         self.history_san.push_str("1-0");

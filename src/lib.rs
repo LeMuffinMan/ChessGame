@@ -50,21 +50,43 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
     Ok(())
 }
 
-//Todo 
+//Todo
+//      - offer / accept / decline undo
+//      - window for promotion or draw
 //
-//Fix : 
+//Fix :
 //      - save as pgn
+//      - draw end situation
 //
-//Rounds 
-//      - ask for names
-//      - revenge button
-//      - graph 
+//Tests :
+//      - unit
+//      - end to end
 //
-//Settings 
-//  - dark mode
-//  - regroupe
 //
-//Decode pgn 
-//      - load as pgn
 //
-//Chat 
+//
+//
+//Back :
+//      Buttun Load : decode pgn
+//      Settings :
+//          - regroupe
+//          - link blitz bullet rapid
+//      Rounds :
+//          - revenge button
+//      AI : minmax et +
+//          - Evaluation
+//          - multithread
+//          - profondeur
+//      UCI compatibility ?
+//      Multiplayer (web socket + serveur web ?)
+//          - matchmaking
+//          - elo
+//      Analyse mode
+//      Didactitiel mode
+//      daily puzzle
+//
+//Front :
+//      Sounds
+//      Animations
+//      Chat
+//      Themes board / pieces
