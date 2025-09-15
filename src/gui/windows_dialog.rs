@@ -1,6 +1,7 @@
 use crate::ChessApp;
 use crate::board::cell::Piece::*;
 use crate::gui::chessapp_struct::End::*;
+use egui::TextEdit;
 
 impl ChessApp {
     pub fn save_game(&mut self, ctx: &egui::Context) {
@@ -10,14 +11,16 @@ impl ChessApp {
             .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
             .show(ctx, |ui| {
                 ui.add_space(10.0);
+                ui.add(TextEdit::singleline(&mut self.widgets.file_name));
+                ui.add_space(10.0);
                 ui.horizontal(|ui| {
                     ui.add_space(20.0);
-                    if ui.button("Accept").clicked() {
+                    if ui.button("Download").clicked() {
                         let _ = self.export_pgn(); //Todo : handle error 
                         self.win_save = false;
                     }
-                    ui.add_space(30.0);
-                    if ui.button("Decline").clicked() {
+                    ui.add_space(130.0);
+                    if ui.button("Cancel").clicked() {
                         self.win_save = false;
                     }
                     ui.add_space(20.0);
