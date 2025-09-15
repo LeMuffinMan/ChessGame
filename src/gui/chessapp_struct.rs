@@ -4,7 +4,8 @@ use crate::Color::*;
 use crate::Coord;
 // use crate::gui::chessapp_struct::LateDraw;
 use crate::gui::chessapp_struct::DrawOption::*;
-use crate::gui::chessapp_struct::End::Draw;
+use crate::gui::chessapp_struct::End::*;
+use crate::gui::chessapp_struct::End::*;
 use crate::board::cell::Piece::*;
 use crate::board::cell::Cell;
 use crate::gui::widgets::undo_redo_replay::Timer;
@@ -104,6 +105,7 @@ pub struct ChessApp {
     pub white_name: String,
     pub black_name: String,
     pub win_dialog: bool,
+    pub win_resign: bool,
 }
 
 impl Default for Timer {
@@ -161,6 +163,7 @@ impl Default for ChessApp {
             white_name: "White".to_string(),
             black_name: "Black".to_string(),
             win_dialog: false,
+            win_resign: false,
         }
     }
 }
@@ -187,6 +190,32 @@ impl App for ChessApp {
                     });
                 });
             self.update_promote();
+        }
+
+        if self.win_resign {
+            egui::Window::new("Resignation ?")
+                .collapsible(false)
+                .resizable(false)
+                .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
+                .show(ctx, |ui| {
+                    self.win_dialog = true;
+                    ui.add_space(10.0);
+                    ui.horizontal(|ui| {
+                        ui.add_space(20.0);
+                        if ui.button("Accept").clicked() {
+                            self.current.end = Some(Resign);
+                            self.win_resign = false;
+                            self.win_dialog = false;
+                        } 
+                        ui.add_space(30.0);
+                        if ui.button("Decline").clicked() {
+                            self.win_resign = false;
+                            self.win_dialog = false;
+                        }
+                        ui.add_space(20.0);
+                    });
+                });
+
         }
 
         if let Some(rq) = & self.draw.draw_option {

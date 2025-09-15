@@ -85,12 +85,12 @@ impl ChessApp {
                 ui.selectable_value(
                     &mut self.widgets.game_mode,
                     Some(Rapid(600.0, 0.0)),
-                    "10:00 + 0",
+                    " 10:00 + 0",
                 );
                 ui.selectable_value(
                     &mut self.widgets.game_mode,
                     Some(Rapid(600.0, 5.0)),
-                    "10:00 + 5",
+                    " 10:00 + 5",
                 );
                 ui.selectable_value(
                     &mut self.widgets.game_mode,

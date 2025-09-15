@@ -1,6 +1,7 @@
 use crate::gui::chessapp_struct::DrawOption::*;
 use crate::gui::chessapp_struct::DrawRule::*;
 use crate::gui::chessapp_struct::End::*;
+use egui::Context;
 
 use crate::ChessApp;
 
@@ -31,7 +32,7 @@ impl ChessApp {
                 .add_enabled(self.current.end.is_none() && !self.win_dialog, egui::Button::new("Resign"))
                 .clicked()
             {
-                self.current.end = Some(Resign);
+                self.win_resign = true;
             }
         });
     }
