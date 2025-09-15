@@ -1,6 +1,6 @@
 use crate::ChessApp;
-use crate::gui::chessapp_struct::GameMode::*;
 use crate::gui::chessapp_struct::GameMode;
+use crate::gui::chessapp_struct::GameMode::*;
 // use crate::pgn::encode_pgn::export_pgn;
 
 pub struct Timer {
@@ -12,16 +12,14 @@ pub struct Timer {
 impl Timer {
     pub fn build(game_mode: Option<GameMode>) -> Option<Self> {
         match game_mode {
-            Some(Bullet(time, inc)) 
-            | Some(Blitz(time, inc)) 
-            | Some(Rapid(time, inc)) 
-            | Some(Custom(time, inc)) => {
-                Some(Self {
-                    white: (None, time),
-                    black: (None, time),
-                    increment: inc,
-                })
-            },
+            Some(Bullet(time, inc))
+            | Some(Blitz(time, inc))
+            | Some(Rapid(time, inc))
+            | Some(Custom(time, inc)) => Some(Self {
+                white: (None, time),
+                black: (None, time),
+                increment: inc,
+            }),
             None => None,
         }
     }

@@ -2,13 +2,21 @@ use crate::ChessApp;
 use crate::gui::chessapp_struct::GameMode::*;
 // use crate::gui::widgets::undo_redo_replay::Timer;
 use crate::Color::*;
-use crate::gui::chessapp_struct::GameMode;
 use crate::gui::chessapp_struct::End::TimeOut;
+use crate::gui::chessapp_struct::GameMode;
 
 use egui::Context;
 
 impl ChessApp {
     pub fn timer_increment(&mut self, ui: &mut egui::Ui, _ctx: &Context) {
+        if ui
+            .add_enabled(self.widgets.timer.is_some(), egui::Button::new("Timer OFF"))
+            .clicked()
+        {
+            self.widgets.game_mode = None;
+            self.widgets.timer = None;
+        }
+        ui.separator();
         ui.label("Bullet");
         ui.horizontal(|ui| {
             ui.vertical(|ui| {
@@ -104,70 +112,67 @@ impl ChessApp {
                     &mut self.widgets.game_mode,
                     Some(Rapid(3600.0, 5.0)),
                     "60:00 + 0",
-                )
+                );
             });
         });
         ui.separator();
         // ui.horizontal(|ui| {
-            ui.selectable_value(&mut self.widgets.game_mode, Some(Custom(600.0, 0.0)), "Custom timer");
-            //Si on est pas en cours de game
-            // if self.widgets.custom_timer && let Some(timer) = &mut self.widgets.timer {
-            //     if timer.white.0.is_none() && timer.black.0.is_none() {
-            //         let white_remaining_time: &mut f64 = &mut timer.white.1;
-            //         let black_remaining_time: &mut f64 = &mut timer.black.1;
-            if let Some(gm) = &mut self.widgets.game_mode {
-                match gm {
-                    | GameMode::Custom(time, inc) => {
-                        ui.horizontal(|ui| {
-                            ui.label("Time :");
-                            ui.menu_button(
-                                format!("{:.0} min", (*time / 60.0).floor(),),
-                                |ui| {
-                                    if ui.button("1 min").clicked() {
-                                        *time = 60.0;
-                                    }
-                                    if ui.button("3 min").clicked() {
-                                        *time = 180.0;
-                                    }
-                                    if ui.button("5 min").clicked() {
-                                        *time = 300.0;
-                                    }
-                                    if ui.button("10 min").clicked() {
-                                        *time = 600.0;
-                                    }
-                                    if ui.button("15 min").clicked() {
-                                        *time = 900.0;
-                                    }
-                                    if ui.button("30 min").clicked() {
-                                        *time = 1800.0;
-                                    }
-                                },
-                            );
+        ui.selectable_value(
+            &mut self.widgets.game_mode,
+            Some(Custom(600.0, 0.0)),
+            "Custom",
+        );
+        self.widgets.timer = None;
+        if let Some(gm) = &mut self.widgets.game_mode {
+            match gm {
+                GameMode::Custom(time, inc) => {
+                    ui.horizontal(|ui| {
+                        ui.label("Time :");
+                        ui.menu_button(format!("{:.0} min", (*time / 60.0).floor(),), |ui| {
+                            if ui.button("1 min").clicked() {
+                                *time = 60.0;
+                            }
+                            if ui.button("3 min").clicked() {
+                                *time = 180.0;
+                            }
+                            if ui.button("5 min").clicked() {
+                                *time = 300.0;
+                            }
+                            if ui.button("10 min").clicked() {
+                                *time = 600.0;
+                            }
+                            if ui.button("15 min").clicked() {
+                                *time = 900.0;
+                            }
+                            if ui.button("30 min").clicked() {
+                                *time = 1800.0;
+                            }
                         });
-                        ui.horizontal(|ui| {
-                            ui.label("Increment :");
-                            ui.menu_button(format!("{:.0} sec", *inc,), |ui| {
-                                if ui.button("None").clicked() {
-                                    *inc = 0.0;
-                                }
-                                if ui.button("1 sec").clicked() {
-                                    *inc = 1.0;
-                                }
-                                if ui.button("2 sec").clicked() {
-                                    *inc = 2.0;
-                                }
-                                if ui.button("10 sec").clicked() {
-                                    *inc = 10.0;
-                                }
-                            });
+                    });
+                    ui.horizontal(|ui| {
+                        ui.label("Increment :");
+                        ui.menu_button(format!("{:.0} sec", *inc,), |ui| {
+                            if ui.button("None").clicked() {
+                                *inc = 0.0;
+                            }
+                            if ui.button("1 sec").clicked() {
+                                *inc = 1.0;
+                            }
+                            if ui.button("2 sec").clicked() {
+                                *inc = 2.0;
+                            }
+                            if ui.button("10 sec").clicked() {
+                                *inc = 10.0;
+                            }
                         });
-                        ui.separator();
-                    },
-                    _ => { },
-                    }
+                    });
+                    ui.separator();
                 }
-                // }
-            // }
+                _ => {}
+            }
+        }
+        // }
+        // }
         // });
     }
     pub fn update_timer(&mut self, ctx: &egui::Context) {
@@ -220,5 +225,4 @@ impl ChessApp {
             }
         }
     }
-
 }
