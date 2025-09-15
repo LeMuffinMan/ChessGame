@@ -187,11 +187,9 @@ impl ChessApp {
                 }
                 timer.black.0 = None;
                 //start the timer at the beginning
-            } else if timer.black.0.is_none()
-                && self.current.active_player == Black
-                && self.history.len() == 1
-            {
-                {
+            } else if timer.black.0.is_none() && self.current.active_player == Black {
+                if self.history.len() == 2 {
+                    #[allow(clippy::collapsible_if)]
                     if let Some(game_mode) = &self.widgets.game_mode {
                         match game_mode {
                             GameMode::Bullet(max_time, inc)

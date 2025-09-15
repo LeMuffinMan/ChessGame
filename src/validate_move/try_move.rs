@@ -29,6 +29,10 @@ impl ChessApp {
         if self.history.is_empty() {
             self.history.push(self.current.clone());
             self.widgets.replay_index += 1;
+            if let Some(timer) = &mut self.widgets.timer {
+                timer.white.0 = None;
+                timer.black.0 = None;
+            };
         }
         //si ya un timer active, et que c'est le premier ocup joue
         self.fifty_moves_draw_check(&from, &to);
