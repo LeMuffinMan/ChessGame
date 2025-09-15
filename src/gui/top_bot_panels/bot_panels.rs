@@ -17,6 +17,8 @@ impl ChessApp {
                     }.max(0.0);
                     if rem == 0.0 {
                         self.current.end = Some(TimeOut);
+                        self.history_san.push_str("0-1");
+                        self.widgets.timer = None;
                     }
                     ui.heading(format_time(rem));
                 } 

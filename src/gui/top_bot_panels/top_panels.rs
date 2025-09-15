@@ -29,7 +29,7 @@ impl ChessApp {
                     }.max(0.0);
                     if rem == 0.0 {
                         self.current.end = Some(TimeOut);
-                        //mettre a jour le pgn ici
+                        self.history_san.push_str("1-0");
                         self.widgets.timer = None;
                     }
                     ui.heading(format_time(rem));
