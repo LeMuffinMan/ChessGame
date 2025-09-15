@@ -34,7 +34,7 @@ impl ChessApp {
             let can_replay = can_undo && self.widgets.next_replay_time.is_none();
             self.undo(ui, can_undo);
             if can_replay {
-                if ui.button("▶").clicked() {
+                if ui.add_enabled(!self.win_dialog, egui::Button::new("▶")).clicked() {
                     self.widgets.replay_index = 0;
                     self.current = self.history[0].clone();
 
@@ -43,7 +43,7 @@ impl ChessApp {
                     self.widgets.next_replay_time = Some(now + delay);
                 }
             } else if self.widgets.next_replay_time.is_some() {
-                if ui.button("⏸").clicked() {
+                if ui.add_enabled(!self.win_dialog, egui::Button::new("⏸")).clicked() {
                     self.widgets.next_replay_time = None;
                 }
             } else {
@@ -64,12 +64,12 @@ impl ChessApp {
     }
 
     pub fn undo(&mut self, ui: &mut egui::Ui, can_undo: bool) {
-        if ui.add_enabled(can_undo, egui::Button::new("|<")).clicked() {
+        if ui.add_enabled(can_undo && !self.win_dialog, egui::Button::new("|<")).clicked() {
             self.widgets.replay_index = 0;
             self.current = self.history[self.widgets.replay_index].clone();
             self.highlight.piece_legals_moves.clear();
         }
-        if ui.add_enabled(can_undo, egui::Button::new("<")).clicked() {
+        if ui.add_enabled(can_undo && !self.win_dialog, egui::Button::new("<")).clicked() {
             if self.widgets.replay_index == self.history.len() {
                 self.widgets.replay_index -= 1;
             }

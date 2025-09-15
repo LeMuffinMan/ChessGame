@@ -22,13 +22,13 @@ impl ChessApp {
                     self.draw.draw_option = None;
                 }
             } else if ui
-                .add_enabled(self.current.end.is_none(), egui::Button::new("Draw"))
+                .add_enabled(self.current.end.is_none() && !self.win_dialog, egui::Button::new("Draw"))
                 .clicked()
             {
                 self.draw.draw_option = Some(Request);
             }
             if ui
-                .add_enabled(self.current.end.is_none(), egui::Button::new("Resign"))
+                .add_enabled(self.current.end.is_none() && !self.win_dialog, egui::Button::new("Resign"))
                 .clicked()
             {
                 self.current.end = Some(Resign);
