@@ -88,6 +88,7 @@ pub struct Widgets {
     pub replay_index: usize,
     pub timer: Option<Timer>,
     pub game_mode: Option<GameMode>,
+    pub file_name: String,
 }
 
 pub struct ChessApp {
@@ -145,6 +146,7 @@ impl Default for ChessApp {
                 replay_index: 0,
                 timer: None,
                 game_mode: None,
+                file_name: "chessgame.pgn".to_string(),
             },
             highlight: Highlight {
                 from_cell: None,
