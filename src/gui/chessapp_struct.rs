@@ -3,11 +3,10 @@ use crate::Color;
 use crate::Color::*;
 use crate::Coord;
 // use crate::gui::chessapp_struct::LateDraw;
+use crate::board::cell::Cell;
+use crate::board::cell::Piece::*;
 use crate::gui::chessapp_struct::DrawOption::*;
 use crate::gui::chessapp_struct::End::*;
-use crate::gui::chessapp_struct::End::*;
-use crate::board::cell::Piece::*;
-use crate::board::cell::Cell;
 use crate::gui::widgets::undo_redo_replay::Timer;
 
 use eframe::{App, egui};
@@ -173,9 +172,10 @@ impl App for ChessApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.update_timer(ctx);
 
-            //Promotion window dialog
+        //Promotion window dialog
         if self.widgets.replay_index == self.history.len()
-            && self.current.board.pawn_to_promote.is_some() {
+            && self.current.board.pawn_to_promote.is_some()
+        {
             self.win_dialog = true;
             egui::Window::new("Promotion")
                 .collapsible(false)
@@ -206,7 +206,7 @@ impl App for ChessApp {
                             self.current.end = Some(Resign);
                             self.win_resign = false;
                             self.win_dialog = false;
-                        } 
+                        }
                         ui.add_space(30.0);
                         if ui.button("Decline").clicked() {
                             self.win_resign = false;
@@ -214,36 +214,33 @@ impl App for ChessApp {
                         }
                         ui.add_space(20.0);
                     });
+                    ui.add_space(10.0);
                 });
-
         }
 
-        if let Some(rq) = & self.draw.draw_option {
-            match rq {
-                Request => {
-                    egui::Window::new(format!("{:?} offers a draw", self.current.active_player))
-                    .collapsible(false)
-                    .resizable(false)
-                    .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
-                    .show(ctx, |ui| {
-                        ui.add_space(10.0);
-                        ui.horizontal(|ui| {
-                            ui.add_space(20.0);
-                            if ui.button("Accept").clicked() {
-                                self.current.end = Some(Draw);
-                                self.draw.draw_option = None;
-                            } 
-                            ui.add_space(30.0);
-                            if ui.button("Decline").clicked() {
-                                self.draw.draw_option = None;
-                            }
-                            ui.add_space(20.0);
-                        });
-                        ui.add_space(10.0);
+        if let Some(rq) = &self.draw.draw_option
+            && *rq == Request
+        {
+            egui::Window::new(format!("{:?} offers a draw", self.current.active_player))
+                .collapsible(false)
+                .resizable(false)
+                .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
+                .show(ctx, |ui| {
+                    ui.add_space(10.0);
+                    ui.horizontal(|ui| {
+                        ui.add_space(20.0);
+                        if ui.button("Accept").clicked() {
+                            self.current.end = Some(Draw);
+                            self.draw.draw_option = None;
+                        }
+                        ui.add_space(30.0);
+                        if ui.button("Decline").clicked() {
+                            self.draw.draw_option = None;
+                        }
+                        ui.add_space(20.0);
                     });
-                },
-                _ => { },
-            }
+                    ui.add_space(10.0);
+                });
         }
 
         self.top_title_panel(ctx);
@@ -260,7 +257,6 @@ impl App for ChessApp {
 }
 
 impl ChessApp {
-
     pub fn draw_request(&mut self, ui: &mut egui::Ui) {
         ui.label("Accept draw offer ?");
         ui.horizontal(|ui| {
@@ -274,44 +270,42 @@ impl ChessApp {
         });
     }
     pub fn update_promote(&mut self) {
-
         if self.widgets.replay_index == self.history.len()
             && let Some(coord) = self.current.board.pawn_to_promote
+            && let Some(piece) = self.current.board.promote
         {
-            if let Some(piece) = self.current.board.promote {
-                let color = if self.current.active_player == Color::White {
-                    Black
-                } else {
-                    White
-                };
-                self.current.board.grid[coord.row as usize][coord.col as usize] =
-                    Cell::Occupied(piece, color);
+            let color = if self.current.active_player == Color::White {
+                Black
+            } else {
+                White
+            };
+            self.current.board.grid[coord.row as usize][coord.col as usize] =
+                Cell::Occupied(piece, color);
 
-                let opponent = if self.current.active_player != White {
-                    White
-                } else {
-                    Black
-                };
-                if let Some(k) = self.current.board.get_king(&opponent)
-                    && self.current.board.threaten_cells.contains(&k)
-                    && let Some(k) = self.current.board.get_king(&opponent)
-                {
-                    self.current.board.check = Some(k);
-                    // println!("Check !");
-                }
-                self.check_endgame();
-                if let Some(promoteinfo) = &self.promoteinfo {
-                    let from = promoteinfo.from;
-                    let to = promoteinfo.to;
-                    let prev_board = promoteinfo.prev_board.clone();
-                    self.history.push(self.current.clone());
-                    self.widgets.replay_index += 1;
-                    self.encode_move_to_san(&from, &to, &prev_board);
-                }
-                self.current.board.pawn_to_promote = None;
-                self.current.board.promote = None;
-                self.win_dialog = false;
-            } 
+            let opponent = if self.current.active_player != White {
+                White
+            } else {
+                Black
+            };
+            if let Some(k) = self.current.board.get_king(&opponent)
+                && self.current.board.threaten_cells.contains(&k)
+                && let Some(k) = self.current.board.get_king(&opponent)
+            {
+                self.current.board.check = Some(k);
+                // println!("Check !");
+            }
+            self.check_endgame();
+            if let Some(promoteinfo) = &self.promoteinfo {
+                let from = promoteinfo.from;
+                let to = promoteinfo.to;
+                let prev_board = promoteinfo.prev_board.clone();
+                self.history.push(self.current.clone());
+                self.widgets.replay_index += 1;
+                self.encode_move_to_san(&from, &to, &prev_board);
+            }
+            self.current.board.pawn_to_promote = None;
+            self.current.board.promote = None;
+            self.win_dialog = false;
         }
     }
     pub fn is_active_player_piece(&mut self, coord: &Coord) -> bool {
@@ -319,4 +313,3 @@ impl ChessApp {
         cell.is_color(&self.current.active_player)
     }
 }
-

@@ -5,10 +5,8 @@ use egui::Context;
 impl ChessApp {
     pub fn new_save_load(&mut self, ui: &mut egui::Ui, _ctx: &Context) {
         ui.horizontal(|ui| {
-            if self.current.end.is_some() {
-                if ui.button("New game").clicked() {
-                    *self = ChessApp::default();
-                }
+            if ui.button("New game").clicked() && self.current.end.is_some() {
+                *self = ChessApp::default();
             }
 
             // if ui
