@@ -15,10 +15,10 @@ impl ChessApp {
         let pgn = self.generate_pgn_content();
         self.url_with_blob_export(pgn)
     }
-        //error handling
+    //error handling
     //Documenter
-    fn  url_with_blob_export(&mut self, pgn: String) -> Result<(), JsValue> {
-        //we create a Js to build the sequence needed for the blob 
+    fn url_with_blob_export(&mut self, pgn: String) -> Result<(), JsValue> {
+        //we create a Js to build the sequence needed for the blob
         let parts = Array::new();
         parts.push(&JsValue::from_str(&pgn));
 
@@ -34,12 +34,12 @@ impl ChessApp {
         let window = window().unwrap();
         let doc = window.document().unwrap();
 
-        //we create the "link" to our blob 
+        //we create the "link" to our blob
         let link = doc.create_element("a")?.dyn_into::<HtmlAnchorElement>()?;
         link.set_href(&url);
         link.set_download("chessgame.pgn");
 
-        //hide the link we created 
+        //hide the link we created
         link.style().set_property("display", "none")?;
         //put the element in the DOM
         doc.body().unwrap().append_child(&link)?;
@@ -73,10 +73,10 @@ impl ChessApp {
             match result {
                 "0-1" | "1-0" | "1/2 - 1/2" => {
                     pgn.push_str(result);
-                },
+                }
                 _ => {
                     pgn.push('*');
-                },
+                }
             }
             pgn.push_str("\"]\n");
         }

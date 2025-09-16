@@ -56,7 +56,7 @@ impl ChessApp {
                     if ui.button("Accept").clicked() {
                         self.current.end = Some(Draw);
                         self.draw.draw_option = None;
-    //window dialog
+                        //window dialog
                     }
                     ui.add_space(30.0);
                     if ui.button("Decline").clicked() {
