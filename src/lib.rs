@@ -21,22 +21,29 @@ use wasm_bindgen_futures::spawn_local;
 #[cfg(target_arch = "wasm32")]
 use web_sys::HtmlCanvasElement;
 
-//Documenter
+//Todo : Error handling
 #[wasm_bindgen(start)]
 #[cfg(target_arch = "wasm32")]
 pub fn start() -> Result<(), wasm_bindgen::JsValue> {
-    eframe::WebLogger::init(log::LevelFilter::Debug).ok();
+    //to collect logs and display it in the browser inspect mode
+    eframe::WebLogger::init(log::LevelFilter::Debug).ok(); //error to handle
 
+    //the runner allow to execute our UI in a HTML canva
     let runner = WebRunner::new();
 
+    //we try to catch the JS object window to interact with
     let window = web_sys::window().expect("no global `window`");
+    //this is the html content of the page
     let document = window.document().expect("should have a document");
+    //we seek for our element chessappid in the DOM : we must set it too in the html file at the
+    //root
     let canvas = document
         .get_element_by_id("chessappid")
         .expect("Canvas not found")
-        .dyn_into::<HtmlCanvasElement>()
+        .dyn_into::<HtmlCanvasElement>() //exposes canvas API
         .expect("Failed to cast canvas");
 
+    //execute in the js our chessapp
     spawn_local(async move {
         runner
             .start(
@@ -52,28 +59,14 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 }
 
 //Todo
-//      - refacto
-//          - encode pgn
-//          - export pgn
-//          move in board :
-//          - get_threaten
-//          - update_threaten
-//          - is_legal
-//          - piece_case
-//          - try_move
-//
-//          - draw rules : hash
-//          - hooks
-//          - window_dialog
-//          pgn folder
-//          thread & validate to move in board
-//      - documenter
+//      -error handling
 //      - readme / release
 //
 //      - pgn decoder
 //          - load
 //
 //Fix :
+//      - include in legal move for triple repetition
 //      - save as pgn
 //          - finir les metadonnees et les 80 chars
 //      - undo avec promotion
