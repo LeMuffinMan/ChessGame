@@ -1,21 +1,19 @@
 
 # ChessGame ♟️
 
-**ChessGame** is a pedagogical project designed to help beginner developers—and Rust enthusiasts of all levels—explore Rust, WebAssembly, and CI/CD deployment. It’s a playable chess game running in your browser, with plenty of room to grow!
+ChessGame is a pedagogical project I created to learn Rust. Following some excellent advice, I also explored WebAssembly and CI/CD deployment along the way. The result is a playable chess game that runs directly in your browser.
 
-Whether you’re a student just learning Rust or a recruiter checking out a solid demo of your skills, this project is meant to teach, explore, and have a bit of fun along the way.
+At its core, the project focuses on move validation and a minimal graphical user interface built with egui. 
+Compiling to WebAssembly allows the game to run directly in the browser, with the rust performances.
+While the CI/CD pipeline gives me a first experience with modern deployment workflows for even a small, personal project.
 
----
+Try it live on GitHub Pages: ![https://lemuffinman.github.io/ChessGame/](https://lemuffinman.github.io/ChessGame/)
 
-## Demo
-
-Try it live on GitHub Pages: \[PLACEHOLDER\_LINK]
-
-![ChessGame Demo](PLACEHOLDER_GIF)
+![sscreenshot_demo](assets/screenshot_demo)
 
 ---
 
-## Goals 🎯
+## Goals
 
 * Introduce Rust programming through a real, interactive project.
 * Explore WebAssembly for web deployment.
@@ -27,23 +25,68 @@ Try it live on GitHub Pages: \[PLACEHOLDER\_LINK]
 ## Features
 
 * Play a basic chess game with another player on the same browser.
-* Modular Rust code for board, GUI, move validation, threats, and PGN handling.
+* Different standards timing are available : blitz, rapid ...
+* A basic replay mode.
+* Encode and export pgn files.
+  
+* Modular Rust code for board, GUI, move validation, PGN handling ...
 * CI/CD deployment using GitHub Actions and GitHub Pages.
 
-> ⚠️ Note: Multiplayer, AI opponents, and move evaluation are on the roadmap!
-
+* More to come ...
 ---
 
-## Installation
+## Installation :
+Some help to reproduce this setup at home :
 
-Since this project runs in the browser, installation isn’t necessary.
-However, if you want to set up a local development environment, check the [Installation Guide](PLACEHOLDER_INSTALLATION_README).
+Install rust as recommended by the ![Rust official site](https://www.rust-lang.org/tools/install) : 
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+Ensure you run ```cargo build``` to fetch and compile dependencies.
 
----
+Install trunk if not installed yet : 
+```bash
+cargo install --locked trunk 
+```
+And run it with 
+```bash
+trunk serve 
+```
+Now, you can access the app in your browser at ![http://127.0.0.1:8080/](http://127.0.0.1:8080/)
 
-## How to Play
+If you want to run your own program with WebAssembly, you need to edit your code to add a lib.rs file.
 
-Simply open the demo link in your browser and start playing. All moves are validated, and the game updates in real time.
+If you use rust, the lib.rs in this repos is a very basic implementation of a WebAssembly entry point.
+
+You can use WebAssembly with several other langages, listed and documented on the ![WebAssembly official site](https://webassembly.org/getting-started/developers-guide/).
+
+Deprecracted branches exists to use ChessGame in native or cli versions, no need for trunk, run it with cargo only. 
+
+```bash
+cargo run
+```
+
+## CI/CD :
+In the yml file you'll find my basic workflow to deploy my app on github pages at each push on main.
+
+For now it only checks for formatting and warnings using amazings cargo tools ```clippy```, ```check``` and ```fmt```. Later I want to explore testing tools of cargo.
+
+You would also need, on Github, to tweak you own repo settings : 
+
+In Settings, Actions, Build and deployment :
+- Source : deploy from a branch
+- branch : gh-pages /root
+  
+Github will automatically create the gh-pages branch and release your compiled app on it.
+
+By adding this yml file in a folder .github/workflows/deploy.yml, and pushing it on main, you will trigger the CI/CD, Github will do on a remote VM : 
+- Install Rust and webasm dependencies.
+- Check the project with cargo tools.
+- Install trunk : this step could take some time, expect between 5 and 10 minutes of deployment.
+- Build your app : doing so, trunk generate in dist folder the static site to run on an HTML page.
+- Release dist folder on github pages.
+
+Once deployed, you can visit your app with your favourite browser following this link base : [username].github.io/[Project_name]
 
 ---
 
@@ -52,48 +95,18 @@ Simply open the demo link in your browser and start playing. All moves are valid
 ```text
 src
 ├── board
-│   └── ...
+│   └── //include the board data structures and functions to operate on or update it
 ├── gui
-│   └── ...
-├── lib.rs
-├── pgn
-│   └── ...
+│   └── //the graphical user interface : panels, components ...
+├── lib.rs // in webassembly we need a endpoint to run the app, not a main.rs
+├── pgn 
+│   └── //include a pgn encoding and soon a basic decoding module
 ├── threat
-│   └── ...
+│   └── //map the threats on the board
 └── validate_move
-    └── ...
+    └── // validation procedure for a move in input
 ```
 
-* **board** – Board logic and legal move calculation
-* **gui** – All user interface components, panels, widgets
-* **pgn** – Export and encode game history
-* **threat** – Compute threatened cells
-* **validate\_move** – Verify legal moves
-
----
-
-## CI/CD Deployment
-
-The project uses GitHub Actions to:
-
-1. Build the Rust project into WebAssembly.
-2. Automatically deploy the result to GitHub Pages.
-
-This way, every commit keeps the live demo up-to-date.
-
----
-
-## Contribution ✨
-
-If you want to explore Rust and help, feel free to submit PRs! Some ideas for contributions:
-
-* Improve GUI or add new widgets
-* Implement move export/import (PGN)
-* Add multiplayer functionality
-* Optimize board or move evaluation logic
-* Enhance CI/CD workflow and DevOps practices
-
-> Don’t worry if you’re new—any contribution is a chance to learn Rust and web deployment!
 
 ---
 
@@ -101,20 +114,10 @@ If you want to explore Rust and help, feel free to submit PRs! Some ideas for co
 
 1. Finish PGN export/import, add error handling and security.
 2. Explore DevOps workflows and build a basic stack for development.
-3. Add multiplayer support with a web server (C++ backend).
-4. Implement basic move evaluation, multithreaded for server-side.
-5. Add AI opponent on server side with multithreading.
-6. Build a full-stack backend: user registration, matchmaking, Elo system, rankings.
+3. Add multiplayer support with matchmaking.
+4. Implement basic move evaluation, and add AI opponent.
+6. Build a backend for user registration, Elo system, rankings.
 
 ---
 
-## Learning Outcomes 📚
-
-By exploring this project, you’ll gain:
-
-* Rust fundamentals and modular project structuring
-* WebAssembly deployment for browser-based apps
-* CI/CD workflow with GitHub Actions
-* GUI logic for games and interactive applications
-* Basics of DevOps, networking, and low-level programming
 
