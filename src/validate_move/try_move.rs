@@ -48,11 +48,11 @@ impl ChessApp {
         if self.impossible_mate_check() {
             self.current.end = Some(Draw);
         }
-        //update castles bool state for both player 
+        //update castles bool state for both player
         self.update_castles(&to);
         //This add a hash for the 3 repetition draw
         //it takes player on trait, the grid, the castle and en_passant state
-        //hash gives us the info if this exact situation happened 
+        //hash gives us the info if this exact situation happened
         self.add_hash();
 
         self.current.last_move = Some((from, to));
@@ -63,7 +63,7 @@ impl ChessApp {
         self.incremente_turn();
 
         //checks for promotion
-        //switch player color 
+        //switch player color
         //check for mate, or pat and finaly for check situation
         self.events_check();
 

@@ -65,7 +65,7 @@ impl ChessApp {
             return;
         }
         //if a capture occured, we reset the counter
-        //this is why we need to call this fct before updating the baord 
+        //this is why we need to call this fct before updating the baord
         if !self.current.board.get(to).is_empty() {
             self.draw.draw_moves_count = 0;
             return;

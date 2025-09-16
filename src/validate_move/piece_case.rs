@@ -65,7 +65,7 @@ pub fn rook_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
     false
 }
 
-//the trickiest one with the king 
+//the trickiest one with the king
 //it can goes 1 cell in one direction dependending of the color player
 //BUT it can move 2 cells if it's the first pawn move
 //By doing so, it exposes himself at a en_passant if it land in a column next to an opponent pawn
