@@ -1,20 +1,15 @@
 use crate::Board;
 use crate::Color;
-use crate::Color::*;
 use crate::Coord;
-// use crate::gui::chessapp_struct::LateDraw;
-use crate::board::cell::Cell;
-// use crate::board::cell::Piece::*;
 use crate::gui::chessapp_struct::DrawOption::*;
-use crate::gui::chessapp_struct::End::*;
 use crate::gui::widgets::replay::Timer;
 
 use eframe::{App, egui};
 use egui::Pos2;
-// use egui_file_dialog::FileDialog;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+//a file for enums ?
 #[derive(Clone, Copy, PartialEq)]
 pub enum GameMode {
     Bullet(f64, f64), //(timer, increment)
@@ -44,6 +39,7 @@ pub enum End {
     Resign,
 }
 
+//a file for structs ?
 #[derive(Clone)]
 pub struct PromoteInfo {
     pub from: Coord,
@@ -92,32 +88,29 @@ pub struct Widgets {
 }
 
 pub struct ChessApp {
-    //history undo / redo
+    //snapshots of all gamestates as history
     pub current: GameState,
     pub history: Vec<GameState>,
     pub history_san: String,
+
+    //rendering and interface stuff
     pub widgets: Widgets,
     pub highlight: Highlight,
-    pub draw: LateDraw,
-    pub promoteinfo: Option<PromoteInfo>,
-    // pub file_dialog: FileDialog,
-    pub file_path: Option<PathBuf>,
     pub white_name: String,
     pub black_name: String,
+
+    //info to transmit to board / to move in board
+    pub draw: LateDraw,
+    pub promoteinfo: Option<PromoteInfo>,
+
+    //Window dialog for special events
+    //used to block any inputs and force user to choose an option
     pub win_dialog: bool,
     pub win_resign: bool,
     pub win_undo: bool,
     pub win_save: bool,
-}
 
-impl Default for Timer {
-    fn default() -> Self {
-        Self {
-            white: (None, 600.0),
-            black: (None, 600.0),
-            increment: 0.0,
-        }
-    }
+    pub file_path: Option<PathBuf>,
 }
 
 impl Default for ChessApp {
@@ -178,7 +171,6 @@ impl App for ChessApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.update_timer(ctx);
 
-        //Windows dialog
         //Promotion
         if self.widgets.replay_index == self.history.len()
             && self.current.board.pawn_to_promote.is_some()
@@ -218,57 +210,6 @@ impl App for ChessApp {
 }
 
 impl ChessApp {
-    pub fn draw_request(&mut self, ui: &mut egui::Ui) {
-        ui.label("Accept draw offer ?");
-        ui.horizontal(|ui| {
-            if ui.button("Accept").clicked() {
-                self.current.end = Some(Draw);
-                self.draw.draw_option = None;
-            }
-            if ui.button("Reject").clicked() {
-                self.draw.draw_option = None;
-            }
-        });
-    }
-    pub fn update_promote(&mut self) {
-        if self.widgets.replay_index == self.history.len()
-            && let Some(coord) = self.current.board.pawn_to_promote
-            && let Some(piece) = self.current.board.promote
-        {
-            let color = if self.current.active_player == Color::White {
-                Black
-            } else {
-                White
-            };
-            self.current.board.grid[coord.row as usize][coord.col as usize] =
-                Cell::Occupied(piece, color);
-
-            let opponent = if self.current.active_player != White {
-                White
-            } else {
-                Black
-            };
-            if let Some(k) = self.current.board.get_king(&opponent)
-                && self.current.board.threaten_cells.contains(&k)
-                && let Some(k) = self.current.board.get_king(&opponent)
-            {
-                self.current.board.check = Some(k);
-                // println!("Check !");
-            }
-            self.check_endgame();
-            if let Some(promoteinfo) = &self.promoteinfo {
-                let from = promoteinfo.from;
-                let to = promoteinfo.to;
-                let prev_board = promoteinfo.prev_board.clone();
-                self.history.push(self.current.clone());
-                self.widgets.replay_index += 1;
-                self.encode_move_to_san(&from, &to, &prev_board);
-            }
-            self.current.board.pawn_to_promote = None;
-            self.current.board.promote = None;
-            self.win_dialog = false;
-        }
-    }
     pub fn is_active_player_piece(&mut self, coord: &Coord) -> bool {
         let cell = self.current.board.get(coord);
         cell.is_color(&self.current.active_player)

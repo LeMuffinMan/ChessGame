@@ -7,6 +7,7 @@ use crate::ChessApp;
 impl ChessApp {
     pub fn draw_resign_undo(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
+            //shows the rule triggering the draw
             if let Some(draw) = &self.draw.draw_option {
                 match draw {
                     Available(TripleRepetition) => {
@@ -15,8 +16,10 @@ impl ChessApp {
                     Available(FiftyMoves) => {
                         ui.label("%50 moves : ");
                     }
+                    //ajouter les situations impossibles
                     _ => {}
                 };
+                //catch user inputs to ask for resign or draw to opponent using window_dialog
                 if ui.button("Claim draw").clicked() {
                     self.current.end = Some(Draw);
                     self.draw.draw_option = None;
@@ -39,17 +42,6 @@ impl ChessApp {
             {
                 self.win_resign = true;
             }
-            // if ui
-            //     .add_enabled(
-            //         self.current.end.is_none()
-            //         && !self.history.is_empty()
-            //         && !self.win_dialog,
-            //         egui::Button::new("Undo"),
-            //     )
-            //     .clicked()
-            // {
-            //     self.win_undo = true;
-            // }
         });
     }
 }

@@ -180,6 +180,18 @@ pub fn render_piece_unicode(
 }
 
 impl ChessApp {
+    //To draw the selected piece legals moves
+    pub fn get_piece_legal_moves(&mut self) {
+        if let Some(coord) = self.highlight.drag_from {
+            for (from, to) in self.current.board.legals_moves.iter() {
+                if from.row == coord.row && from.col == coord.col {
+                    // println!("pushing {:?}", coord);
+                    self.highlight.piece_legals_moves.push(*to);
+                }
+            }
+        }
+    }
+
     pub fn display_coordinates(&mut self, painter: &egui::Painter, inner: egui::Rect, sq: f32) {
         let font = egui::FontId::monospace(14.0);
         let color = egui::Color32::from_gray(200);

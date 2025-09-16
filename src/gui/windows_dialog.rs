@@ -4,6 +4,20 @@ use crate::gui::chessapp_struct::End::*;
 use egui::TextEdit;
 
 impl ChessApp {
+    //window dialog
+    pub fn draw_request(&mut self, ui: &mut egui::Ui) {
+        ui.label("Accept draw offer ?");
+        ui.horizontal(|ui| {
+            if ui.button("Accept").clicked() {
+                self.current.end = Some(Draw);
+                self.draw.draw_option = None;
+            }
+            if ui.button("Reject").clicked() {
+                self.draw.draw_option = None;
+            }
+        });
+    }
+
     pub fn save_game(&mut self, ctx: &egui::Context) {
         egui::Window::new("Save game")
             .collapsible(false)

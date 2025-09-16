@@ -10,7 +10,18 @@ pub struct Timer {
     pub increment: f64,
 }
 
+impl Default for Timer {
+    fn default() -> Self {
+        Self {
+            white: (None, 600.0),
+            black: (None, 600.0),
+            increment: 0.0,
+        }
+    }
+}
+
 impl Timer {
+    //build a timer folowwing the Gamemode provided or a default one
     pub fn build(game_mode: Option<GameMode>) -> Option<Self> {
         match game_mode {
             Some(Bullet(time, inc))
@@ -21,57 +32,73 @@ impl Timer {
                 black: (None, time),
                 increment: inc,
             }),
+            //return a default one ?
             None => None,
         }
     }
 }
 
 impl ChessApp {
+    //This panel holds the replay buttons
     pub fn replay_panel(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
-            if ui
-                .add_enabled(!self.history.is_empty(), egui::Button::new("Save"))
-                .clicked()
-            {
-                self.win_save = true;
-            }
+            self.save_button(ui);
             let can_undo = self.widgets.replay_index != 0;
             let can_redo = self.widgets.replay_index + 1 < self.history.len();
             let can_replay = can_undo && self.widgets.next_replay_time.is_none();
+            self.play_pause_button(ui, can_replay);
             self.rewind(ui, can_undo);
-            if can_replay {
-                if ui
-                    .add_enabled(!self.win_dialog, egui::Button::new("▶"))
-                    .clicked()
-                {
-                    self.widgets.replay_index = 0;
-                    self.current = self.history[0].clone();
-
-                    let now = ui.input(|i| i.time);
-                    let delay = self.widgets.replay_speed;
-                    self.widgets.next_replay_time = Some(now + delay);
-                }
-            } else if self.widgets.next_replay_time.is_some() {
-                if ui
-                    .add_enabled(!self.win_dialog, egui::Button::new("⏸"))
-                    .clicked()
-                {
-                    self.widgets.next_replay_time = None;
-                }
-            } else {
-                ui.add_enabled(false, egui::Button::new("▶")).clicked();
-            }
             self.replay_step(ui.ctx());
             self.redo(ui, can_redo);
             ui.add_enabled(false, egui::Button::new("Load"));
         });
         ui.separator();
+        self.replay_time_slider(ui);
+    }
+
+    //Replay buttons following :
+
+    pub fn save_button(&mut self, ui: &mut egui::Ui) {
+        if ui
+            .add_enabled(!self.history.is_empty(), egui::Button::new("Save"))
+            .clicked()
+        {
+            self.win_save = true;
+        }
+    }
+
+    pub fn replay_time_slider(&mut self, ui: &mut egui::Ui) {
         if self.widgets.next_replay_time.is_some() {
             ui.add(
                 egui::Slider::new(&mut self.widgets.replay_speed, 0.1..=10.0)
                     .text("sec/move")
                     .logarithmic(true),
             );
+        }
+    }
+
+    pub fn play_pause_button(&mut self, ui: &mut egui::Ui, can_replay: bool) {
+        if can_replay {
+            if ui
+                .add_enabled(!self.win_dialog, egui::Button::new("▶"))
+                .clicked()
+            {
+                self.widgets.replay_index = 0;
+                self.current = self.history[0].clone();
+
+                let now = ui.input(|i| i.time);
+                let delay = self.widgets.replay_speed;
+                self.widgets.next_replay_time = Some(now + delay);
+            }
+        } else if self.widgets.next_replay_time.is_some() {
+            if ui
+                .add_enabled(!self.win_dialog, egui::Button::new("⏸"))
+                .clicked()
+            {
+                self.widgets.next_replay_time = None;
+            }
+        } else {
+            ui.add_enabled(false, egui::Button::new("▶")).clicked();
         }
     }
 
@@ -112,24 +139,5 @@ impl ChessApp {
             self.widgets.replay_index += 1;
             self.highlight.piece_legals_moves.clear();
         }
-    }
-
-    fn replay_step(&mut self, ctx: &egui::Context) {
-        if let Some(next_time) = self.widgets.next_replay_time {
-            let now = ctx.input(|i| i.time);
-            if now >= next_time {
-                if self.widgets.replay_index + 1 < self.history.len() {
-                    self.widgets.replay_index += 1;
-                    // log::debug!("Replay index = {}", self.widgets.replay_index);
-                    self.current = self.history[self.widgets.replay_index].clone();
-                    let delay = self.widgets.replay_speed;
-                    self.widgets.next_replay_time = Some(now + delay);
-                } else {
-                    self.widgets.replay_index = self.history.len();
-                    self.widgets.next_replay_time = None;
-                }
-            }
-        }
-        ctx.request_repaint();
     }
 }

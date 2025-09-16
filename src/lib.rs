@@ -21,6 +21,7 @@ use wasm_bindgen_futures::spawn_local;
 #[cfg(target_arch = "wasm32")]
 use web_sys::HtmlCanvasElement;
 
+//Documenter
 #[wasm_bindgen(start)]
 #[cfg(target_arch = "wasm32")]
 pub fn start() -> Result<(), wasm_bindgen::JsValue> {
@@ -51,6 +52,24 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 }
 
 //Todo
+//      - refacto
+//          - encode pgn
+//          - export pgn
+//          move in board :
+//          - get_threaten
+//          - update_threaten
+//          - is_legal
+//          - piece_case
+//          - try_move
+//
+//          - draw rules : hash
+//          - hooks
+//          - window_dialog
+//          pgn folder
+//          thread & validate to move in board
+//      - documenter
+//      - readme / release
+//
 //      - pgn decoder
 //          - load
 //
@@ -65,6 +84,7 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //
 //
 //
+// -- Later --
 //
 //
 //Back :
@@ -90,3 +110,57 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //      Animations
 //      Chat
 //      Themes board / pieces
+//
+//
+//      Doc
+//          Objectives :
+//
+//          - Learning rust :
+//              - why rust :
+//                  - interested in system prog
+//                  - Like low level prog
+//                  - modern syntax and memory safety promess without perf loss
+//              - highlight certains bouts de code
+//              - fmt clippy et trunk
+//
+//          - learn in practice :
+//             - Network :
+//                 - multiplayer
+//                 - chat
+//             - Algo :
+//                 - evaluation algorithm and research of best sequences of moves
+//             - DevOps :
+//                 - tools in situation
+//                  - CI/CD
+//                  - webasm as portability solution
+//              - Front :
+//                  - gui
+//              - Back :
+//                  - validation engine
+//              - DB
+//                  - users and elo ..
+//              - encoding / decoding / reading data :
+//                  - pgn module
+//              - Security
+//                  - Network
+//                  - DB
+//                  - Back
+//
+//          - Rust difficulties
+//              - first : Theory
+//              - Cargo makes it easier
+//              - Doc is amazing
+//              - longer to compile but easier to refact, restructure and maintain
+//
+//          - Dependencies :
+//              - chrono : temps ?
+//              - console_log / log : doublon, debug
+//              - eframe && egui : interface
+//              - wasm : Un des objectifs du projet
+//              - web-sys : open windos and html and blob and url ...
+//              - js-sys : DL file : pourquoi besoin du JS que pour ca ?
+//          lib crrate-type cdylib rlib ?
+//
+//          - Crates
+//          - Structure de mon code
+//          -

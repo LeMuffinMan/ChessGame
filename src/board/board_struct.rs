@@ -19,6 +19,10 @@ pub struct Board {
 }
 
 impl Board {
+    //Considering to move from GameState, into board :
+    //  - Active player / opponent color
+    //  - end state
+    //  - turn
     pub fn init_board() -> Board {
         let mut board = Board {
             grid: [[Cell::Free; 8]; 8],
@@ -39,6 +43,8 @@ impl Board {
 
         board
     }
+
+    //Setting up basic chess board
     pub fn fill_side(&mut self, color: Color) {
         let color_idx = match color {
             White => 0,
@@ -67,6 +73,11 @@ impl Board {
             }
         }
     }
+
+    //Since we need player input to know in which piece promote a pawn, i need to
+    //store the coord of the pawn to promote and stop the try move process
+    //the GUI will hook on the coord position stored and force player to input a desired promotion
+    //Then this hook process the end of try move we skipped earlier
     pub fn promote_pawn(&mut self, color: &Color) {
         let promote_row = if *color == White { 7 } else { 0 };
         for y in 0..8 {
