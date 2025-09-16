@@ -9,13 +9,13 @@ While the CI/CD pipeline gives me a first experience with modern deployment work
 
 Try it live on GitHub Pages: ![https://lemuffinman.github.io/ChessGame/](https://lemuffinman.github.io/ChessGame/)
 
-![sscreenshot_demo](assets/screenshot_demo)
+<img width="1918" height="1102" alt="250917_00h30m17s_screenshot" src="https://github.com/user-attachments/assets/b4c4dcb6-a7e1-472e-9157-766642b5dc85" />
 
 ---
 
 ## Goals
 
-* Introduce Rust programming through a real, interactive project.
+* Get into Rust programming through a real, interactive project.
 * Explore WebAssembly for web deployment.
 * Learn CI/CD workflows with GitHub Actions.
 * Build a foundation for more advanced projects: AI, multiplayer, and full-stack chess platforms.
