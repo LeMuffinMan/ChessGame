@@ -1,5 +1,4 @@
 use crate::ChessApp;
-use crate::Color;
 use crate::Color::*;
 use crate::board::cell::Cell;
 use crate::gui::chessapp_struct::End::TimeOut;
@@ -7,7 +6,6 @@ use crate::gui::chessapp_struct::GameMode;
 
 impl ChessApp {
     //Hook to keep update the replay in real time
-    //Todo : hook folder
     pub fn replay_step(&mut self, ctx: &egui::Context) {
         if let Some(next_time) = self.widgets.next_replay_time {
             let now = ctx.input(|i| i.time);
@@ -26,8 +24,8 @@ impl ChessApp {
         }
         ctx.request_repaint();
     }
-    //Hook to keep timers update or start it
-    //To do : hook folder
+
+    //Hook to keep timers update or start it if needed
     pub fn update_timer(&mut self, ctx: &egui::Context) {
         let now = ctx.input(|i| i.time);
 
@@ -78,13 +76,14 @@ impl ChessApp {
         }
     }
 
+    //if a player promoted a pawn, try_move didnt finished it's work, so we do it here
     pub fn update_promote(&mut self) {
         if let Some(piece) = self.current.board.promote
             && let Some(coord) = self.current.board.pawn_to_promote
             && self.widgets.replay_index == self.history.len()
         {
-            //methods
-            let color = if self.current.active_player == Color::White {
+            //methods get opponent color
+            let color = if self.current.active_player == White {
                 Black
             } else {
                 White

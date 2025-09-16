@@ -9,8 +9,6 @@ use crate::validate_move::piece_case::{
 
 ///check if the piece on from coords, can move to the "to" coords, and if there is an
 ///obstacle on way
-//il faut qu'elle renvoie un board mis a jour, ou rien
-//on check is_king_exposed sur ce board et on return true ou false
 pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
     let cell = board.get(from);
     match cell {
@@ -82,6 +80,8 @@ pub fn find_obstacle(from: &Coord, to: &Coord, board: &Board) -> bool {
     find_obstacle(&next, to, board)
 }
 
+//Makes a copy of the board, and update it with the legal move to verify is the active player king
+//is in check position or does not solve a previous check position
 pub fn is_king_exposed(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
     let mut new_board = board.clone();
     new_board.update_board(from, to, color);

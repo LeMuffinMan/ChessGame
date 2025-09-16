@@ -1,6 +1,7 @@
 use crate::Board;
 use crate::Coord;
 
+//recursively search in diagonals for empty cells or the first piece it finds
 pub fn get_threaten_cells_in_diag(from: &Coord, row: u8, col: u8, board: &mut Board) {
     if row > 7 || col > 7 {
         return;
@@ -38,6 +39,7 @@ pub fn get_threaten_cells_in_diag(from: &Coord, row: u8, col: u8, board: &mut Bo
     }
 }
 
+//Same as above, in line
 pub fn get_threaten_cells_in_line(from: &Coord, row: u8, col: u8, board: &mut Board) {
     if row > 7 || col > 7 {
         return;

@@ -3,8 +3,9 @@ use crate::board::cell::Piece::*;
 use crate::gui::chessapp_struct::End::*;
 use egui::TextEdit;
 
+//i use window dialog as popup to ask player for input or confirmation
+
 impl ChessApp {
-    //window dialog
     pub fn draw_request(&mut self, ui: &mut egui::Ui) {
         ui.label("Accept draw offer ?");
         ui.horizontal(|ui| {
@@ -55,6 +56,7 @@ impl ChessApp {
                     if ui.button("Accept").clicked() {
                         self.current.end = Some(Draw);
                         self.draw.draw_option = None;
+    //window dialog
                     }
                     ui.add_space(30.0);
                     if ui.button("Decline").clicked() {
