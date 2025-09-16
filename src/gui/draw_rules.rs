@@ -12,6 +12,7 @@ use std::collections::hash_map::Entry;
 use std::hash::{Hash, Hasher};
 
 impl ChessApp {
+    //Documenter
     pub fn add_hash(&mut self) {
         let mut hasher = DefaultHasher::new();
         let state = (

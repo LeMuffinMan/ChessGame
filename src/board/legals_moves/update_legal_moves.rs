@@ -11,6 +11,9 @@ use crate::board::legals_moves::piece_case::update_rook_legals_moves;
 use crate::validate_move::is_legal_move::is_king_exposed;
 
 impl Board {
+    //For each cell, we test each active player color piece possible moves
+    //each piece case fct return a vec of the piece tested possible moves
+    //We push this vec in the legals moves vec
     pub fn update_legals_moves(&mut self, color: &Color) {
         self.legals_moves.clear();
         for x in 0..8 {
@@ -51,15 +54,10 @@ impl Board {
                 }
             }
         }
-        // println!("Legals moves : ");
-        // for (from, to) in &self.legals_moves {
-        //     println!(
-        //         "from: ({}, {}), to: ({}, {})",
-        //         from.row, from.col, to.row, to.col
-        //     );
-        // }
     }
 
+    //we want to know if the move is piece-legal
+    //and if it does not leave the active player king threaten
     pub fn test_and_push(
         &mut self,
         from: &Coord,
@@ -67,15 +65,12 @@ impl Board {
         color: &Color,
     ) -> Option<(Coord, Coord)> {
         if self.is_legal_move(from, to, color) && !is_king_exposed(from, to, color, self) {
-            // println!("pushing from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
             return Some((*from, *to));
-            // self.legals_moves.push((*from, *to));
-            // println!("king exposed: from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
         }
-        // println!("illegal move: from: ({}, {}), to: ({}, {})", from.row, from.col, to.row, to.col);
         None
     }
 
+    //util fct to prevent over/underflow
     pub fn checked_coord(row: i8, col: i8) -> Option<Coord> {
         if (0..8).contains(&row) && (0..8).contains(&col) {
             Some(Coord {

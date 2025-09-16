@@ -1,14 +1,9 @@
 use crate::ChessApp;
-// use crate::Color;
-// use crate::Color::*;
-// use crate::board::cell::Cell;
-// use crate::board::cell::Piece::*;
-// use crate::gui::chessapp_struct::DrawOption::*;
-// use crate::gui::chessapp_struct::End::*;
 
 use egui::Context;
 
 impl ChessApp {
+    //Shows turn infos, resign / draw options, new game option and timer options
     pub fn left_panel_ui(&mut self, ctx: &Context) {
         egui::SidePanel::left("left_panel")
             .default_width(180.0)

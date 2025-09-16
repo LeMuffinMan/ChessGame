@@ -17,6 +17,7 @@ impl ChessApp {
         });
     }
 
+    //Shows Black player name and its timer
     pub fn top_black_panel(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::top("spacer_top").show(ctx, |ui| {
             ui.horizontal(|ui| {

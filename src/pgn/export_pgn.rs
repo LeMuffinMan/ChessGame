@@ -10,6 +10,7 @@ use web_sys::Url;
 use web_sys::window;
 
 impl ChessApp {
+    //Documenter
     pub fn export_pgn(&mut self) -> Result<(), JsValue> {
         let mut pgn = String::new();
         //ajouter type de game et rounds

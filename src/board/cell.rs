@@ -1,3 +1,11 @@
+//Cell enums and methods
+//The board contains a vec of vec of each cell containing data :
+//- Empty / occupied
+//Occupied is a variant of an enum containing a tuple of two elements
+//  - The piece occupiying the cell
+//  - The color of this pieace
+//pattern matching makes enums very useful
+
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
 pub enum Piece {
     Pawn,
@@ -18,7 +26,7 @@ use Color::*;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub struct Coord {
-    pub col: u8, //declarer de base des u8 ?
+    pub col: u8, //declarer de base des u8 ou usize ?
     pub row: u8,
 }
 

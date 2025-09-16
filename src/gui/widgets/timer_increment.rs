@@ -1,14 +1,12 @@
 use crate::ChessApp;
-use crate::gui::chessapp_struct::GameMode::*;
-// use crate::gui::widgets::undo_redo_replay::Timer;
-use crate::Color::*;
-use crate::gui::chessapp_struct::End::TimeOut;
 use crate::gui::chessapp_struct::GameMode;
-// use crate::gui::chessapp_struct::GameMode::*;
+use crate::gui::chessapp_struct::GameMode::*;
 
 use egui::Context;
 
+//a refacto
 impl ChessApp {
+    //This shows the list a presets for timings
     pub fn timer_increment(&mut self, ui: &mut egui::Ui, _ctx: &Context) {
         if ui
             .add_enabled(self.widgets.timer.is_some(), egui::Button::new("Timer OFF"))
@@ -168,56 +166,6 @@ impl ChessApp {
                 });
             });
             ui.separator();
-        }
-    }
-
-    pub fn update_timer(&mut self, ctx: &egui::Context) {
-        let now = ctx.input(|i| i.time);
-
-        //Switching timers for each turn
-        if let Some(timer) = &mut self.widgets.timer {
-            if timer.white.0.is_none()
-                && self.current.active_player == White
-                && !self.history.is_empty()
-            {
-                timer.white.0 = Some(now);
-                if let Some(black_start) = timer.black.0 {
-                    timer.black.1 += timer.increment;
-                    timer.black.1 -= now - black_start;
-                }
-                timer.black.0 = None;
-                //start the timer at the beginning
-            } else if timer.black.0.is_none() && self.current.active_player == Black {
-                if self.history.len() == 2 {
-                    #[allow(clippy::collapsible_if)]
-                    if let Some(game_mode) = &self.widgets.game_mode {
-                        match game_mode {
-                            GameMode::Bullet(max_time, inc)
-                            | GameMode::Blitz(max_time, inc)
-                            | GameMode::Rapid(max_time, inc)
-                            | GameMode::Custom(max_time, inc) => {
-                                timer.white.1 = *max_time;
-                                timer.black.1 = *max_time;
-                                timer.increment = *inc;
-                            }
-                        }
-                    }
-                }
-                timer.black.0 = Some(now);
-                if let Some(white_start) = timer.white.0 {
-                    timer.white.1 += timer.increment;
-                    timer.white.1 -= now - white_start;
-                }
-                timer.white.0 = None;
-            }
-            if timer.white.1 < 0.0 {
-                timer.white.1 = 0.0;
-                self.current.end = Some(TimeOut);
-            }
-            if timer.black.1 < 0.0 {
-                timer.black.1 = 0.0;
-                self.current.end = Some(TimeOut);
-            }
         }
     }
 }

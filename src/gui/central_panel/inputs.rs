@@ -2,17 +2,6 @@ use crate::ChessApp;
 use crate::gui::central_panel::render::ui_to_board;
 
 impl ChessApp {
-    pub fn get_piece_legal_moves(&mut self) {
-        if let Some(coord) = self.highlight.drag_from {
-            for (from, to) in self.current.board.legals_moves.iter() {
-                if from.row == coord.row && from.col == coord.col {
-                    // println!("pushing {:?}", coord);
-                    self.highlight.piece_legals_moves.push(*to);
-                }
-            }
-        }
-    }
-
     pub fn drag_and_drop(&mut self, inner: egui::Rect, sq: f32, response: &egui::Response) {
         if response.drag_started()
             && let Some(pos) = response.interact_pointer_pos()

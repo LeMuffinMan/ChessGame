@@ -4,10 +4,12 @@ use crate::gui::chessapp_struct::End::TimeOut;
 use egui::TextEdit;
 
 impl ChessApp {
+    //The bot pannels show the white player name and its timer
     pub fn bot_white_panel(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::bottom("spacer_bottom").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 let now = ctx.input(|i| i.time);
+                //fonction panel_timer : revoir la structure timer
                 if let Some(timer) = &self.widgets.timer {
                     let rem = {
                         if let Some(start) = timer.white.0 {
@@ -39,9 +41,6 @@ impl ChessApp {
             ui.with_layout(
                 egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
                 |ui| {
-                    // ui.set_min_width(ui.available_width());
-                    // ui.label("Source code :");
-                    // ui.separator();
                     ui.hyperlink_to("Source code", "https://github.com/LeMuffinMan/ChessGame");
                 },
             );

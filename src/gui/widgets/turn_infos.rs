@@ -2,6 +2,7 @@ use crate::ChessApp;
 use crate::gui::chessapp_struct::End;
 
 impl ChessApp {
+    //Inform on the current game state, player to move, check, or endgame
     pub fn turn_infos(&mut self, ui: &mut egui::Ui) {
         ui.label(format!("Turn #{}", self.current.turn));
         if let Some(end) = &self.current.end {

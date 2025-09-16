@@ -3,6 +3,7 @@ use crate::Color;
 use crate::Color::*;
 use crate::Coord;
 
+// For each piece, a fct testing respective allowed moves
 pub fn update_pawn_legals_moves(
     from: &Coord,
     color: &Color,

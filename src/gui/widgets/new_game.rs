@@ -11,26 +11,10 @@ impl ChessApp {
                     .add_enabled(self.current.end.is_some(), egui::Button::new("New game"))
                     .clicked()
                 {
+                    //todo : separate replay / game_on / game_end : new game ne regenere pas tout !
                     *self = ChessApp::default();
                 }
             }
-
-            // if ui
-            //     .add_enabled(!(self.undo.is_empty()), egui::Button::new("Save"))
-            //     .clicked()
-            // {
-            //     self.file_dialog.save_file();
-            //     ui.label(format!("save file: {:?}", self.file_path));
-            // }
-            // if let Some(path) = self.file_dialog.update(ctx).picked() {
-            //     if let Some(path) = Some(path.to_path_buf()) {
-            //         println!("{:?}", path);
-            //     }
-            //     export_pgn(&self.current.history_san, path);
-            // }
-            // if ui.add_enabled(false, egui::Button::new("Load")).clicked() {
-            //     println!("Load game");
-            // }
         });
         ui.separator();
     }
