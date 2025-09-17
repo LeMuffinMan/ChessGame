@@ -44,18 +44,16 @@ impl ChessApp {
                 //start the timer at the beginning
             } else if timer.black.0.is_none() && self.current.active_player == Black {
                 if self.history.len() == 2 {
-                    #[allow(clippy::collapsible_if)]
-                    if let Some(game_mode) = &self.widgets.game_mode {
-                        match game_mode {
-                            GameMode::Bullet(max_time, inc)
-                            | GameMode::Blitz(max_time, inc)
-                            | GameMode::Rapid(max_time, inc)
-                            | GameMode::Custom(max_time, inc) => {
-                                timer.white.1 = *max_time;
-                                timer.black.1 = *max_time;
-                                timer.increment = *inc;
-                            }
-                        }
+                    match self.widgets.game_mode {
+                        GameMode::Bullet(max_time, inc)
+                        | GameMode::Blitz(max_time, inc)
+                        | GameMode::Rapid(max_time, inc)
+                        | GameMode::Custom(max_time, inc) => {
+                            timer.white.1 = max_time;
+                            timer.black.1 = max_time;
+                            timer.increment = inc;
+                        },
+                        _ => !unreachable!(),
                     }
                 }
                 timer.black.0 = Some(now);

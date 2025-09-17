@@ -22,18 +22,18 @@ impl Default for Timer {
 
 impl Timer {
     //build a timer folowwing the Gamemode provided or a default one
-    pub fn build(game_mode: Option<GameMode>) -> Option<Self> {
+    pub fn build(game_mode: GameMode) -> Option<Self> {
         match game_mode {
-            Some(Bullet(time, inc))
-            | Some(Blitz(time, inc))
-            | Some(Rapid(time, inc))
-            | Some(Custom(time, inc)) => Some(Self {
+            Bullet(time, inc)
+            |Blitz(time, inc)
+            |Rapid(time, inc)
+            |Custom(time, inc) => Some(Self {
                 white: (None, time),
                 black: (None, time),
                 increment: inc,
             }),
-            //return a default one ?
-            None => None,
+            NoTime(_, _) 
+            | Replay (_, _) => None,
         }
     }
 }

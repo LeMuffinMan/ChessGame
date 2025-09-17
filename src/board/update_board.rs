@@ -7,7 +7,7 @@ use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
 
 impl Board {
-    //if a move has passed the is legal move and is king exposed test : we upgrade the board
+    //if a move has passed the is legal move and is king exposed test : we update the board
     //applying this move
     pub fn update_board(&mut self, from: &Coord, to: &Coord, color: &Color) {
         self.en_passant = None;
@@ -30,10 +30,7 @@ impl Board {
         );
     }
 
-    //
     pub fn update_en_passant(&mut self, from: &Coord, to: &Coord) {
-        //Si la piece au depart est un pion, et que sa case d'arrivee est vide et en diag
-        //c'est une prise en passant : clean from cell, et le pion mange
         //if the moving piece is a pawn and it just moved in diag : if the cell is empty, it is a
         //en passant, so we need to clean the cell "behind" this pawn following the side
         if self.grid[to.row as usize][to.col as usize].is_empty() && from.col != to.col {

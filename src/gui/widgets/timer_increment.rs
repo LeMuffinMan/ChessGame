@@ -12,7 +12,7 @@ impl ChessApp {
             .add_enabled(self.widgets.timer.is_some(), egui::Button::new("Timer OFF"))
             .clicked()
         {
-            self.widgets.game_mode = None;
+            self.widgets.game_mode = NoTime(0.0, 0.0);
             self.widgets.timer = None;
         }
         ui.separator();
@@ -21,24 +21,24 @@ impl ChessApp {
             ui.vertical(|ui| {
                 ui.selectable_value(
                     &mut self.widgets.game_mode,
-                    Some(Bullet(20.0, 1.0)),
+                    Bullet(20.0, 1.0),
                     "0:20 + 1",
                 );
                 ui.selectable_value(
                     &mut self.widgets.game_mode,
-                    Some(Bullet(30.0, 0.0)),
+                    Bullet(30.0, 0.0),
                     "0:30 + 0",
                 );
             });
             ui.vertical(|ui| {
                 ui.selectable_value(
                     &mut self.widgets.game_mode,
-                    Some(Bullet(60.0, 0.0)),
+                    Bullet(60.0, 0.0),
                     " 1:00 + 0",
                 );
                 ui.selectable_value(
                     &mut self.widgets.game_mode,
-                    Some(Bullet(60.0, 1.0)),
+                    Bullet(60.0, 1.0),
                     " 1:00 + 1",
                 );
             });
@@ -49,31 +49,31 @@ impl ChessApp {
             ui.vertical(|ui| {
                 ui.selectable_value(
                     &mut self.widgets.game_mode,
-                    Some(Blitz(180.0, 0.0)),
+                    Blitz(180.0, 0.0),
                     "3:00 + 0",
                 );
                 ui.selectable_value(
                     &mut self.widgets.game_mode,
-                    Some(Blitz(180.0, 2.0)),
+                    Blitz(180.0, 2.0),
                     "3:00 + 2",
                 );
             });
             ui.vertical(|ui| {
                 ui.selectable_value(
                     &mut self.widgets.game_mode,
-                    Some(Blitz(300.0, 0.0)),
+                    Blitz(300.0, 0.0),
                     "5:00 + 0",
                 );
                 ui.selectable_value(
                     &mut self.widgets.game_mode,
-                    Some(Blitz(300.0, 5.0)),
+                    Blitz(300.0, 5.0),
                     "5:00 + 5",
                 );
             });
         });
         ui.selectable_value(
             &mut self.widgets.game_mode,
-            Some(Blitz(300.0, 2.0)),
+            Blitz(300.0, 2.0),
             "5:00 + 2",
         );
         ui.separator();
@@ -82,34 +82,34 @@ impl ChessApp {
             ui.vertical(|ui| {
                 ui.selectable_value(
                     &mut self.widgets.game_mode,
-                    Some(Rapid(600.0, 0.0)),
+                    Rapid(600.0, 0.0),
                     " 10:00 + 0",
                 );
                 ui.selectable_value(
                     &mut self.widgets.game_mode,
-                    Some(Rapid(600.0, 5.0)),
+                    Rapid(600.0, 5.0),
                     " 10:00 + 5",
                 );
                 ui.selectable_value(
                     &mut self.widgets.game_mode,
-                    Some(Rapid(900.0, 10.0)),
+                    Rapid(900.0, 10.0),
                     "15:00 + 10",
                 );
             });
             ui.vertical(|ui| {
                 ui.selectable_value(
                     &mut self.widgets.game_mode,
-                    Some(Rapid(1200.0, 0.0)),
+                    Rapid(1200.0, 0.0),
                     "20:00 + 0",
                 );
                 ui.selectable_value(
                     &mut self.widgets.game_mode,
-                    Some(Rapid(1800.0, 0.0)),
+                    Rapid(1800.0, 0.0),
                     "30:00 + 0",
                 );
                 ui.selectable_value(
                     &mut self.widgets.game_mode,
-                    Some(Rapid(3600.0, 5.0)),
+                    Rapid(3600.0, 5.0),
                     "60:00 + 0",
                 );
             });
@@ -118,50 +118,49 @@ impl ChessApp {
         // ui.horizontal(|ui| {
         ui.selectable_value(
             &mut self.widgets.game_mode,
-            Some(Custom(600.0, 0.0)),
+            Custom(600.0, 0.0),
             "Custom",
         );
         self.widgets.timer = None;
-        if let Some(gm) = &mut self.widgets.game_mode
-            && let GameMode::Custom(time, inc) = gm
+        if let GameMode::Custom(mut time, mut inc) = self.widgets.game_mode 
         {
             ui.horizontal(|ui| {
                 ui.label("Time :");
-                ui.menu_button(format!("{:.0} min", (*time / 60.0).floor(),), |ui| {
+                ui.menu_button(format!("{:.0} min", (time / 60.0).floor(),), |ui| {
                     if ui.button("1 min").clicked() {
-                        *time = 60.0;
+                        time = 60.0;
                     }
                     if ui.button("3 min").clicked() {
-                        *time = 180.0;
+                        time = 180.0;
                     }
                     if ui.button("5 min").clicked() {
-                        *time = 300.0;
+                        time = 300.0;
                     }
                     if ui.button("10 min").clicked() {
-                        *time = 600.0;
+                        time = 600.0;
                     }
                     if ui.button("15 min").clicked() {
-                        *time = 900.0;
+                        time = 900.0;
                     }
                     if ui.button("30 min").clicked() {
-                        *time = 1800.0;
+                        time = 1800.0;
                     }
                 });
             });
             ui.horizontal(|ui| {
                 ui.label("Increment :");
-                ui.menu_button(format!("{:.0} sec", *inc,), |ui| {
+                ui.menu_button(format!("{:.0} sec", inc,), |ui| {
                     if ui.button("None").clicked() {
-                        *inc = 0.0;
+                        inc = 0.0;
                     }
                     if ui.button("1 sec").clicked() {
-                        *inc = 1.0;
+                        inc = 1.0;
                     }
                     if ui.button("2 sec").clicked() {
-                        *inc = 2.0;
+                        inc = 2.0;
                     }
                     if ui.button("10 sec").clicked() {
-                        *inc = 10.0;
+                        inc = 10.0;
                     }
                 });
             });
