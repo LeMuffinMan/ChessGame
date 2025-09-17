@@ -8,7 +8,7 @@ use crate::board::legals_moves::piece_case::update_knight_legals_moves;
 use crate::board::legals_moves::piece_case::update_pawn_legals_moves;
 use crate::board::legals_moves::piece_case::update_queen_legals_moves;
 use crate::board::legals_moves::piece_case::update_rook_legals_moves;
-use crate::validate_move::is_legal_move::is_king_exposed;
+use crate::board::validate_move::is_king_exposed;
 
 impl Board {
     //For each cell, we test each active player color piece possible moves

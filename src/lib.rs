@@ -1,16 +1,12 @@
 pub mod gui;
+mod pgn;
 use crate::gui::chessapp_struct::ChessApp;
-
-mod threat;
-use threat::get_threaten_cells;
 
 mod board;
 use crate::board::cell::Color;
 use crate::board::cell::Coord;
 use board::Board;
 
-mod pgn;
-mod validate_move;
 
 #[cfg(target_arch = "wasm32")]
 use eframe::WebRunner;

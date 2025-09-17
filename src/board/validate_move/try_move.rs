@@ -5,7 +5,7 @@ use crate::board::cell::Piece::*;
 use crate::gui::chessapp_struct::End::*;
 use crate::gui::chessapp_struct::GameState;
 use crate::gui::chessapp_struct::PromoteInfo;
-use crate::validate_move;
+use crate::board::validate_move;
 
 impl ChessApp {
     //this function takes two cells as the move input from the player
