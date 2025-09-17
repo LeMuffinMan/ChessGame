@@ -53,7 +53,7 @@ impl ChessApp {
                             timer.black.1 = max_time;
                             timer.increment = inc;
                         },
-                        _ => !unreachable!(),
+                        _ => { },
                     }
                 }
                 timer.black.0 = Some(now);
