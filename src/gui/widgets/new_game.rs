@@ -12,6 +12,7 @@ impl ChessApp {
                     .clicked()
                 {
                     //todo : separate replay / game_on / game_end : new game ne regenere pas tout !
+                    //si un time gamemode autre que replay est set au click, on build en fonction
                     *self = ChessApp::default();
                 }
             }

@@ -3,7 +3,7 @@ use crate::Color;
 use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Cell;
-use crate::validate_move::is_legal_move::find_obstacle;
+use crate::board::validate_move::is_legal_move::find_obstacle;
 
 //we call recursives searches in diag and line
 pub fn queen_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {

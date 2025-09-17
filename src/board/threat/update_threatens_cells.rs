@@ -6,7 +6,7 @@ use crate::Coord;
 use crate::board::cell::Cell;
 use crate::board::cell::Color::*;
 use crate::board::cell::Piece::*;
-use crate::get_threaten_cells::*;
+use crate::board::threat::get_threaten_cells::*;
 
 //For each piece, we collect the cells it threatens, and we push it in the
 //opponenent threats cell vector

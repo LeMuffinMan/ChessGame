@@ -3,7 +3,7 @@ use crate::Color;
 use crate::Coord;
 use crate::board::cell::Cell;
 use crate::board::cell::Piece;
-use crate::validate_move::is_legal_move::is_legal_move;
+use crate::board::validate_move::is_legal_move::is_legal_move;
 
 impl Board {
     pub fn get(&self, coord: &Coord) -> Cell {

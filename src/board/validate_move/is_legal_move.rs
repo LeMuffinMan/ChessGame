@@ -3,7 +3,7 @@ use crate::Color;
 use crate::Coord;
 use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
-use crate::validate_move::piece_case::{
+use crate::board::validate_move::piece_case::{
     bishop_case, king_case, knight_case, pawn_case, queen_case, rook_case,
 };
 
