@@ -2,6 +2,7 @@ use crate::ChessApp;
 use crate::gui::chessapp_struct::End::TimeOut;
 use crate::gui::top_bot_panels::bot_panels::format_time;
 use crate::gui::widgets::replay::Timer;
+use crate::gui::chessapp_struct::GameMode::Replay;
 
 use egui::TextEdit;
 
@@ -24,9 +25,8 @@ impl ChessApp {
                 let now = ctx.input(|i| i.time);
                 //set timer if needed
                 if self.widgets.timer.is_none()
-                    && let Some(gm) = &self.widgets.game_mode
                 {
-                    self.widgets.timer = Timer::build(Some(*gm));
+                    self.widgets.timer = Timer::build(self.widgets.game_mode);
                 }
 
                 if let Some(timer) = &self.widgets.timer {
@@ -42,7 +42,7 @@ impl ChessApp {
                         self.current.end = Some(TimeOut);
                         self.history_san.push_str("1-0");
                         self.widgets.timer = None;
-                        self.widgets.game_mode = None;
+                        self.widgets.game_mode = Replay(0.0, 0.0);
                     }
                     ui.heading(format_time(rem));
                 }

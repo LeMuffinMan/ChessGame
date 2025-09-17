@@ -1,6 +1,6 @@
 use crate::ChessApp;
 use crate::gui::chessapp_struct::End::TimeOut;
-
+use crate::gui::chessapp_struct::GameMode::Replay;
 use egui::TextEdit;
 
 impl ChessApp {
@@ -23,7 +23,7 @@ impl ChessApp {
                         self.current.end = Some(TimeOut);
                         self.history_san.push_str("0-1");
                         self.widgets.timer = None;
-                        self.widgets.game_mode = None;
+                        self.widgets.game_mode = Replay(0.0, 0.0);
                     }
                     ui.heading(format_time(rem));
                 }
