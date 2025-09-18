@@ -4,9 +4,12 @@ use crate::Coord;
 use crate::gui::chessapp_struct::DrawOption::*;
 use crate::gui::widgets::replay::Timer;
 use crate::gui::chessapp_struct::GameMode::NoTime;
+use crate::gui::central_panel::central_panel_ui::*;
 
 use eframe::{App, egui};
 use egui::Pos2;
+use egui::FontId;
+use egui::TextStyle;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
@@ -91,6 +94,8 @@ pub struct Widgets {
 }
 
 pub struct ChessApp {
+
+    pub mobile: bool,
     //snapshots of all gamestates as history
     pub current: GameState,
     pub history: Vec<GameState>,
@@ -119,6 +124,7 @@ pub struct ChessApp {
 impl Default for ChessApp {
     fn default() -> Self {
         Self {
+            mobile: false,
             current: GameState {
                 board: Board::init_board(),
                 active_player: Color::White,
@@ -169,9 +175,176 @@ impl Default for ChessApp {
     }
 }
 
+impl ChessApp {
+    pub fn new(mobile: bool) -> Self {
+        Self {
+            mobile: mobile,
+            current: GameState {
+                board: Board::init_board(),
+                active_player: Color::White,
+                opponent: Color::Black,
+                end: None,
+                last_move: None,
+                turn: 1,
+            },
+            history: Vec::new(),
+            history_san: String::new(),
+            widgets: Widgets {
+                show_coordinates: false,
+                show_legals_moves: true,
+                show_last_move: true,
+                show_threaten_cells: false,
+                custom_timer: false,
+                next_replay_time: None,
+                flip: true,
+                autoflip: false,
+                replay_speed: 1.0,
+                replay_index: 0,
+                timer: None,
+                game_mode: NoTime(0.0, 0.0),
+                file_name: "chessgame.pgn".to_string(),
+            },
+            highlight: Highlight {
+                from_cell: None,
+                drag_from: None,
+                drag_pos: None,
+                piece_legals_moves: Vec::new(),
+            },
+            draw: LateDraw {
+                board_hashs: HashMap::new(),
+                draw_option: None,
+                draw_moves_count: 0,
+                draw_hash: None,
+            },
+            promoteinfo: None,
+            // file_dialog: FileDialog::new(),
+            file_path: None,
+            white_name: "White".to_string(),
+            black_name: "Black".to_string(),
+            win_dialog: false,
+            win_resign: false,
+            win_undo: false,
+            win_save: false,
+            // init de ton état
+        }
+    }
+}
+
 //This App trait runs the eframe : fn update is the main loop, run for each frame
 impl App for ChessApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        if self.mobile {
+            self.ui_mobile(ctx, frame);
+        } else {
+            self.ui_desktop(ctx);
+        }
+    }
+}
+
+impl ChessApp {
+
+    pub fn ui_mobile(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        let mut style = (*ctx.style()).clone();
+        style.text_styles = [
+            (TextStyle::Heading, FontId::new(30.0, egui::FontFamily::Proportional)),
+            (TextStyle::Body, FontId::new(30.0, egui::FontFamily::Proportional)),
+            (TextStyle::Monospace, FontId::new(22.0, egui::FontFamily::Monospace)),
+            (TextStyle::Button, FontId::new(24.0, egui::FontFamily::Proportional)),
+            (TextStyle::Small, FontId::new(18.0, egui::FontFamily::Proportional)),
+        ]
+        .into();
+        ctx.set_style(style);
+
+        self.top_title_panel(ctx);
+        
+        egui::TopBottomPanel::top("title").show(ctx, |ui| {
+            ui.label("1. e4 e5  2. Nf3 Nc6  3. Bb5 a6  4. Ba4 Nf6  5. O-O Be7");
+        });
+        
+        egui::CentralPanel::default().show(ctx, |ui| {
+
+
+
+            let available_width = ui.available_width();
+
+            // Hauteurs des barres et du plateau
+            let bar_height = 40.0;
+            let board_size = available_width.min(ui.available_height() - bar_height * 2.0);
+
+            // Hauteur totale du bloc (barres + plateau)
+            let total_height = bar_height * 2.0 + board_size;
+
+            // Coin supérieur gauche du bloc
+            let top_left = ui.min_rect().min + egui::vec2(0.0, (ui.available_height() - total_height) / 2.0);
+
+            // Créer un rectangle pour le bloc
+            let block_rect = egui::Rect::from_min_size(top_left, egui::vec2(available_width, total_height));
+
+            // Tout le bloc (barre haut + plateau + barre bas)
+            ui.allocate_ui_at_rect(block_rect, |ui| {
+                ui.vertical(|ui| {
+
+                    // barre joueur noir
+                    ui.horizontal(|ui| {
+                        ui.label("Black");
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.label("⏱ 05:32");
+                        });
+                    });
+
+                    // plateau
+                    let (response, painter) = ui.allocate_painter(
+                        egui::Vec2::new(board_size, board_size),
+                        egui::Sense::click_and_drag(),
+                    );
+
+                    let rect = response.rect;
+                    let inner = if self.widgets.show_coordinates {
+                        render_border(&painter, rect);
+                        rect.shrink(16.0)
+                    } else {
+                        rect
+                    };
+
+                    let sq = inner.width() / 8.0;
+
+                    if self.widgets.show_coordinates {
+                        self.display_coordinates(&painter, inner, sq);
+                    }
+                    self.render_board(&painter, inner, sq);
+                    self.render_pieces(&painter, inner, sq);
+                    self.render_dragged_piece(&painter, inner);
+
+                    self.left_click(inner, sq, &response);
+                    self.right_click(&response);
+                    self.drag_and_drop(inner, sq, &response);
+
+                    // barre joueur blanc
+                    ui.horizontal(|ui| {
+                        ui.label("White");
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.label("⏱ 06:10");
+                        });
+                    });
+                });
+            });
+        });
+        egui::TopBottomPanel::bottom("buttons").show(ctx, |ui| {
+            ui.horizontal(|ui| {
+                if ui.button("Nouvelle Partie").clicked() {
+                    log::info!("Nouvelle partie !");
+                }
+                if ui.button("Options").clicked() {
+                    log::info!("Ouverture options !");
+                }
+                if ui.button("Undo").clicked() {
+                    log::info!("Undo move !");
+                }
+            });
+        });
+    }
+    pub fn ui_desktop(&mut self, ctx: &egui::Context) {
+
         self.update_timer(ctx);
 
         //Promotion
@@ -210,9 +383,7 @@ impl App for ChessApp {
 
         self.central_panel_ui(ctx);
     }
-}
 
-impl ChessApp {
     pub fn is_active_player_piece(&mut self, coord: &Coord) -> bool {
         let cell = self.current.board.get(coord);
         cell.is_color(&self.current.active_player)

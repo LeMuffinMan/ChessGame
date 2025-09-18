@@ -39,13 +39,20 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
         .dyn_into::<HtmlCanvasElement>() //exposes canvas API
         .expect("Failed to cast canvas");
 
-    //execute in the js our chessapp
+    let is_mobile = {
+    let ua = window.navigator().user_agent().unwrap_or_default();
+        //this line detects a mobile or desktop environment
+    ua.to_lowercase().contains("mobi") || window.inner_width().unwrap().as_f64().unwrap_or(1024.0) < 800.0
+    };
+
+    //execute through the js our chessapp
     spawn_local(async move {
         runner
             .start(
                 canvas,
                 eframe::WebOptions::default(),
-                Box::new(|_cc| Ok(Box::new(ChessApp::default()))),
+                //added move to build the mobile/desktop app
+                Box::new(move |_cc| Ok(Box::new(ChessApp::new(true)))),
             )
             .await
             .unwrap();
