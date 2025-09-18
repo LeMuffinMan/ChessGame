@@ -2,7 +2,7 @@ use crate::Board;
 use crate::Color;
 use crate::Coord;
 use crate::gui::chessapp_struct::DrawOption::*;
-use crate::gui::widgets::replay::Timer;
+use crate::gui::desktop_ui::widgets::replay::Timer;
 use crate::gui::chessapp_struct::GameMode::NoTime;
 use crate::gui::chessapp_struct::AppMode::*;
 

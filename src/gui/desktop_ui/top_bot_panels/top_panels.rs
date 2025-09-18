@@ -1,7 +1,7 @@
 use crate::ChessApp;
 use crate::gui::chessapp_struct::End::TimeOut;
-use crate::gui::top_bot_panels::bot_panels::format_time;
-use crate::gui::widgets::replay::Timer;
+use crate::gui::desktop_ui::top_bot_panels::bot_panels::format_time;
+use crate::gui::desktop_ui::widgets::replay::Timer;
 use crate::gui::chessapp_struct::GameMode::Replay;
 
 use egui::TextEdit;
