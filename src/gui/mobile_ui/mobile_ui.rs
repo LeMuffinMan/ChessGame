@@ -2,6 +2,8 @@ use crate::gui::chessapp_struct::WinDia::*;
 use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::chessapp_struct::AppMode;
 use crate::gui::chessapp_struct::GameState;
+use crate::gui::chessapp_struct::MobileGameMode::*;
+use crate::gui::desktop_ui::top_bot_panels::bot_panels::format_time;
 use crate::ChessApp;
 use crate::Board;
 use crate::Color;
@@ -51,7 +53,9 @@ impl ChessApp {
                     ui.horizontal(|ui| {
                         ui.label("Black");
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            ui.label("⏱ 05:32");
+                            if self.mobile_timer.mode != NoTime {
+                                ui.label(format_time(self.mobile_timer.start) + " ⏱ + " + &format_time(self.mobile_timer.increment).to_string());
+                            }
                         });
                     });
 
@@ -89,7 +93,9 @@ impl ChessApp {
                     ui.horizontal(|ui| {
                         ui.label("White");
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            ui.label("⏱ 06:10");
+                            if self.mobile_timer.mode != NoTime {
+                                ui.label(format_time(self.mobile_timer.start) + " ⏱ + " + &format_time(self.mobile_timer.increment).to_string());
+                            }
                         });
                     });
                     ui.add_space(40.0);
@@ -109,7 +115,7 @@ impl ChessApp {
                             .history_san
                             .chars()
                             .rev()                 // inverse pour prendre depuis la fin
-                            .take(73)              // prend les 80 derniers
+                            .take(73)              // prend les 73 derniers
                             .collect::<Vec<_>>()   // collect en vecteur de chars
                             .into_iter()
                             .rev()                 // remettre dans l’ordre correct
@@ -179,7 +185,6 @@ impl ChessApp {
                             AppMode::Versus => {
                                 ui.add_space(400.0);
                                 if ui.button("Draw").clicked() {
-                                    log::info!("Ouverture options !");
                                    self.mobile_win = Some(Draw);
                                 }
                                 ui.add_space(40.0);

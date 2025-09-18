@@ -99,12 +99,21 @@ pub enum WinDia {
     Resign,
     Timer,
 }
+#[derive(PartialEq)]
+pub enum MobileGameMode {
+    Rapid,
+    Blitz,
+    Bullet,
+    Custom,
+    NoTime,
+}
 
+#[derive(PartialEq)]
 pub struct MobileTimer {
     pub start: f64,
     pub increment: f64,
     pub active: bool,
-    pub custom: bool,
+    pub mode: MobileGameMode, 
 }
 
 #[derive(PartialEq)]
@@ -152,7 +161,7 @@ impl Default for ChessApp {
                 start: 0.0,
                 increment: 0.0,
                 active: false,
-                custom: false,
+                mode: MobileGameMode::NoTime,
             },
             mobile_win: None,
             app_mode: Lobby,
@@ -214,7 +223,7 @@ impl ChessApp {
                 start: 0.0,
                 increment: 0.0,
                 active: false,
-                custom: false,
+                mode: MobileGameMode::NoTime,
             },
             mobile_win: None,
             app_mode: Lobby,
