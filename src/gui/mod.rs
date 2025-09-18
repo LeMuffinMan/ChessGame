@@ -6,3 +6,4 @@ pub mod side_panels;
 pub mod top_bot_panels;
 pub mod widgets;
 pub mod windows_dialog;
+pub mod mobile;
