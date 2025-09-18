@@ -6,6 +6,7 @@ use crate::gui::chessapp_struct::End::*;
 use crate::gui::chessapp_struct::GameState;
 use crate::gui::chessapp_struct::PromoteInfo;
 use crate::board::validate_move;
+use crate::gui::chessapp_struct::AppMode::*;
 
 impl ChessApp {
     //this function takes two cells as the move input from the player
@@ -37,6 +38,9 @@ impl ChessApp {
                 timer.white.0 = None;
                 timer.black.0 = None;
             };
+            //for mobile test
+            self.app_mode = Versus;
+            //Setup les timers ici ?
         }
         //it triggers a draw if true, before update board for pawn detection in case of promotion
         self.fifty_moves_draw_check(&from, &to);
