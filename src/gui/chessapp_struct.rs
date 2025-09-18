@@ -6,6 +6,7 @@ use crate::gui::widgets::replay::Timer;
 use crate::gui::chessapp_struct::GameMode::NoTime;
 use crate::gui::central_panel::central_panel_ui::*;
 use crate::gui::chessapp_struct::GameMode::*;
+use crate::gui::chessapp_struct::WinDia::Options;
 
 use eframe::{App, egui};
 use egui::RichText;
@@ -95,10 +96,18 @@ pub struct Widgets {
     pub file_name: String,
 }
 
+pub enum WinDia {
+    Options,
+    Promote,
+    Draw,
+    Resign,
+}
+
 pub struct ChessApp {
 
     pub mobile: bool,
     pub mobile_timer: MobileTimer,
+    pub mobile_win: Option<WinDia>,
     //snapshots of all gamestates as history
     pub current: GameState,
     pub history: Vec<GameState>,
@@ -128,6 +137,7 @@ pub struct MobileTimer {
     start: f64,
     increment: f64,
     active: bool,
+    custom: bool,
 }
 
 impl Default for ChessApp {
@@ -138,7 +148,9 @@ impl Default for ChessApp {
                 start: 0.0,
                 increment: 0.0,
                 active: false,
+                custom: false,
             },
+            mobile_win: None,
             current: GameState {
                 board: Board::init_board(),
                 active_player: Color::White,
@@ -197,7 +209,9 @@ impl ChessApp {
                 start: 0.0,
                 increment: 0.0,
                 active: false,
+                custom: false,
             },
+            mobile_win: None,
             current: GameState {
                 board: Board::init_board(),
                 active_player: Color::White,
@@ -252,6 +266,7 @@ impl ChessApp {
 //This App trait runs the eframe : fn update is the main loop, run for each frame
 impl App for ChessApp {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        self.hook_win_diag(ctx);
         if self.mobile {
             self.ui_mobile(ctx, frame);
         } else {
@@ -261,6 +276,34 @@ impl App for ChessApp {
 }
 
 impl ChessApp {
+
+    pub fn hook_win_diag(&mut self, ctx: &egui::Context) {
+        if let Some(win) = &self.mobile_win {
+            egui::Window::new("Options")
+            .collapsible(false)
+            .resizable(false)
+            .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
+            .show(ctx, |ui| {
+                let style = ui.style_mut();
+                style.spacing.icon_width = 40.0; // largeur de la checkbox
+                style.spacing.icon_spacing = 8.0; // espace entre checkbox et texte
+
+                ui.add_space(20.0);
+                // Checkboxes avec texte réduit
+                ui.checkbox(&mut self.widgets.show_coordinates, RichText::new("Coordinates").size(30.0));
+                ui.checkbox(&mut self.widgets.show_legals_moves, RichText::new("Legals moves").size(30.0));
+                ui.checkbox(&mut self.widgets.show_threaten_cells, RichText::new("Threaten cells").size(30.0));
+                ui.checkbox(&mut self.widgets.show_last_move, RichText::new("Last move").size(30.0));
+
+                ui.add_space(20.0);
+                ui.vertical_centered(|ui| {
+                    if ui.button("Save options").clicked() {
+                        self.mobile_win = None;
+                    }
+                });
+            });
+        }
+    }
 
     pub fn ui_mobile(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let mut style = (*ctx.style()).clone();
@@ -297,13 +340,19 @@ impl ChessApp {
                 egui::Layout::top_down_justified(egui::Align::Center),
                 |ui| {
                     ui.horizontal(|ui| {
-                        ui.with_layout(egui::Layout::left_to_right(egui::Align::Min), |ui| {
-                        ui.label(
-                            RichText::new("1. e4 e5  2. Nf3 Nc6  3. Bb5 a6  4. Ba4 Nf6  5. O-O Be7")
-                            .text_style(TextStyle::Monospace),
-                            );
-                        });
+                        let displayed_text: String = self
+                            .history_san
+                            .chars()
+                            .rev()                 // inverse pour prendre depuis la fin
+                            .take(73)              // prend les 80 derniers
+                            .collect::<Vec<_>>()   // collect en vecteur de chars
+                            .into_iter()
+                            .rev()                 // remettre dans l’ordre correct
+                            .collect();            // collect en String
+                        ui.monospace(displayed_text);
                     });
+
+                    ui.add_space(20.0);
                     // barre joueur noir
                     ui.horizontal(|ui| {
                         ui.label("Black");
@@ -339,6 +388,7 @@ impl ChessApp {
                     self.right_click(&response);
                     self.drag_and_drop(inner, sq, &response);
 
+                    ui.add_space(20.0);
                     // barre joueur blanc
                     ui.horizontal(|ui| {
                         ui.label("White");
@@ -348,15 +398,31 @@ impl ChessApp {
                     });
                     ui.add_space(40.0);
                     self.ui_mobile_timers(ui);
+                    ui.add_space(40.0);
                     ui.horizontal(|ui| {
-                        if ui.button("Nouvelle Partie").clicked() {
-                            log::info!("Nouvelle partie !");
-                        }
+                        ui.add_space(60.0);
                         if ui.button("Options").clicked() {
+                                self.mobile_win = Some(Options);
+                        }
+                    ui.add_space(200.0);
+                        if ui.button("|<").clicked() {
                             log::info!("Ouverture options !");
                         }
-                        if ui.button("Undo").clicked() {
-                            log::info!("Undo move !");
+                    ui.add_space(40.0);
+                        if ui.button("<").clicked() {
+                            log::info!("Ouverture options !");
+                        }
+                    ui.add_space(40.0);
+                        if ui.button("Play").clicked() {
+                            log::info!("Ouverture options !");
+                        }
+                    ui.add_space(40.0);
+                        if ui.button(">").clicked() {
+                            log::info!("Ouverture options !");
+                        }
+                    ui.add_space(40.0);
+                        if ui.button(">|").clicked() {
+                            log::info!("Ouverture options !");
                         }
                     });
                 });
@@ -372,14 +438,70 @@ impl ChessApp {
                 self.mobile_timer.active = !self.mobile_timer.active; 
             }
         } else {
-            if ui.button("Timer OFF").clicked() {
+            // if ui.button("Custom").clicked() {
+            //     self.mobile_timer.active = !self.mobile_timer.active; 
+            // }
+            if ui.add_enabled(self.mobile_timer.active, egui::Button::new("Timer OFF"))
+            .clicked()  {
                 self.mobile_timer.active = !self.mobile_timer.active; 
+            }
+            if self.mobile_timer.custom == false {
+                if ui.add_enabled(!self.mobile_timer.custom, egui::Button::new("Custom"))
+                .clicked() {
+                    self.mobile_timer.custom = !self.mobile_timer.custom;
+                }
+            } else {
+                if ui.add_enabled(self.mobile_timer.custom, egui::Button::new("Presets"))
+                .clicked()  {
+                    self.mobile_timer.custom = !self.mobile_timer.custom; 
+                }
+                ui.add_space(20.0);
+                ui.horizontal(|ui| {
+                    ui.label(RichText::new("Time :").size(40.0));
+                    ui.selectable_value(&mut self.mobile_timer.start, 30.0, "0:30");
+                    ui.selectable_value(&mut self.mobile_timer.start, 60.0, "1:00");
+                    ui.selectable_value(&mut self.mobile_timer.start, 180.0, "3:00");
+                    ui.selectable_value(&mut self.mobile_timer.start, 300.0, "5:00");
+                    ui.selectable_value(&mut self.mobile_timer.start, 600.0, "10:00");
+                    ui.selectable_value(&mut self.mobile_timer.start, 900.0, "15:00");
+                    ui.selectable_value(&mut self.mobile_timer.start, 1800.0, "30:00");
+                    ui.selectable_value(&mut self.mobile_timer.start, 3600.0, "60:00");
+                });
+                ui.add_space(20.0);
+                ui.horizontal(|ui| {
+                    ui.label(RichText::new("Increment :").size(40.0));
+                    ui.selectable_value(&mut self.mobile_timer.increment, 1.0, "1");
+                    ui.add_space(25.0);
+                    ui.separator();
+                    ui.add_space(25.0);
+                    ui.selectable_value(&mut self.mobile_timer.increment, 2.0, "2");
+                    ui.add_space(25.0);
+                    ui.separator();
+                    ui.add_space(25.0);
+                    ui.selectable_value(&mut self.mobile_timer.increment, 3.0, "3");
+                    ui.add_space(25.0);
+                    ui.separator();
+                    ui.add_space(25.0);
+                    ui.selectable_value(&mut self.mobile_timer.increment, 5.0, "5");
+                    ui.add_space(25.0);
+                    ui.separator();
+                    ui.add_space(25.0);
+                    ui.selectable_value(&mut self.mobile_timer.increment, 10.0, "10");
+                    ui.add_space(25.0);
+                    ui.separator();
+                    ui.add_space(25.0);
+                    ui.selectable_value(&mut self.mobile_timer.increment, 20.0, "15");
+                    ui.add_space(25.0);
+                    ui.separator();
+                    ui.add_space(25.0);
+                    ui.selectable_value(&mut self.mobile_timer.increment, 30.0, "30");
+                });
             }
         }
         let total_width = ui.available_width();
         let col_width = total_width / 3.0;
        
-        if self.mobile_timer.active {
+        if self.mobile_timer.active && !self.mobile_timer.custom {
             ui.horizontal(|ui| {
                 let total_width = ui.available_width();
                 let col_width = total_width / 3.0;
@@ -408,7 +530,6 @@ impl ChessApp {
                         ui.selectable_value(&mut self.widgets.game_mode, Blitz(180.0, 2.0), "3:00 + 2");
                         ui.selectable_value(&mut self.widgets.game_mode, Blitz(300.0, 0.0), "5:00 + 0");
                         ui.selectable_value(&mut self.widgets.game_mode, Blitz(300.0, 5.0), "5:00 + 5");
-                        ui.selectable_value(&mut self.widgets.game_mode, Blitz(300.0, 2.0), "5:00 + 2");
                     });
                 });
                 ui.add_space(col_width / 6.0);
@@ -422,13 +543,12 @@ impl ChessApp {
                         ui.selectable_value(&mut self.widgets.game_mode, Rapid(600.0, 0.0), "10:00 + 0");
                         ui.selectable_value(&mut self.widgets.game_mode, Rapid(600.0, 5.0), "10:00 + 5");
                         ui.selectable_value(&mut self.widgets.game_mode, Rapid(900.0, 10.0), "15:00 + 10");
-                        ui.selectable_value(&mut self.widgets.game_mode, Rapid(1200.0, 0.0), "20:00 + 0");
                         ui.selectable_value(&mut self.widgets.game_mode, Rapid(1800.0, 0.0), "30:00 + 0");
-                        ui.selectable_value(&mut self.widgets.game_mode, Rapid(3600.0, 5.0), "60:00 + 0");
                     });
                 });
                 ui.add_space(col_width / 3.0);
             });
+            ui.separator();
         }
     }
     pub fn ui_desktop(&mut self, ctx: &egui::Context) {
