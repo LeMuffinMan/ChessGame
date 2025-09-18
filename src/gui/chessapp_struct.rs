@@ -5,8 +5,10 @@ use crate::gui::chessapp_struct::DrawOption::*;
 use crate::gui::widgets::replay::Timer;
 use crate::gui::chessapp_struct::GameMode::NoTime;
 use crate::gui::central_panel::central_panel_ui::*;
+use crate::gui::chessapp_struct::GameMode::*;
 
 use eframe::{App, egui};
+use egui::RichText;
 use egui::Pos2;
 use egui::FontId;
 use egui::TextStyle;
@@ -96,6 +98,7 @@ pub struct Widgets {
 pub struct ChessApp {
 
     pub mobile: bool,
+    pub mobile_timer: MobileTimer,
     //snapshots of all gamestates as history
     pub current: GameState,
     pub history: Vec<GameState>,
@@ -121,10 +124,21 @@ pub struct ChessApp {
     pub file_path: Option<PathBuf>,
 }
 
+pub struct MobileTimer {
+    start: f64,
+    increment: f64,
+    active: bool,
+}
+
 impl Default for ChessApp {
     fn default() -> Self {
         Self {
             mobile: false,
+            mobile_timer: MobileTimer {
+                start: 0.0,
+                increment: 0.0,
+                active: false,
+            },
             current: GameState {
                 board: Board::init_board(),
                 active_player: Color::White,
@@ -179,6 +193,11 @@ impl ChessApp {
     pub fn new(mobile: bool) -> Self {
         Self {
             mobile: mobile,
+            mobile_timer: MobileTimer {
+                start: 0.0,
+                increment: 0.0,
+                active: false,
+            },
             current: GameState {
                 board: Board::init_board(),
                 active_player: Color::White,
@@ -246,10 +265,10 @@ impl ChessApp {
     pub fn ui_mobile(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let mut style = (*ctx.style()).clone();
         style.text_styles = [
-            (TextStyle::Heading, FontId::new(30.0, egui::FontFamily::Proportional)),
-            (TextStyle::Body, FontId::new(30.0, egui::FontFamily::Proportional)),
+            (TextStyle::Heading, FontId::new(70.0, egui::FontFamily::Proportional)),
+            (TextStyle::Body, FontId::new(50.0, egui::FontFamily::Proportional)),
             (TextStyle::Monospace, FontId::new(22.0, egui::FontFamily::Monospace)),
-            (TextStyle::Button, FontId::new(24.0, egui::FontFamily::Proportional)),
+            (TextStyle::Button, FontId::new(40.0, egui::FontFamily::Proportional)),
             (TextStyle::Small, FontId::new(18.0, egui::FontFamily::Proportional)),
         ]
         .into();
@@ -257,14 +276,11 @@ impl ChessApp {
 
         self.top_title_panel(ctx);
         
-        egui::TopBottomPanel::top("title").show(ctx, |ui| {
-            ui.label("1. e4 e5  2. Nf3 Nc6  3. Bb5 a6  4. Ba4 Nf6  5. O-O Be7");
-        });
+        // egui::TopBottomPanel::top("title").show(ctx, |ui| {
+        //     ui.label("1. e4 e5  2. Nf3 Nc6  3. Bb5 a6  4. Ba4 Nf6  5. O-O Be7");
+        // });
         
         egui::CentralPanel::default().show(ctx, |ui| {
-
-
-
             let available_width = ui.available_width();
 
             // Hauteurs des barres et du plateau
@@ -275,15 +291,19 @@ impl ChessApp {
             let total_height = bar_height * 2.0 + board_size;
 
             // Coin supérieur gauche du bloc
-            let top_left = ui.min_rect().min + egui::vec2(0.0, (ui.available_height() - total_height) / 2.0);
-
-            // Créer un rectangle pour le bloc
-            let block_rect = egui::Rect::from_min_size(top_left, egui::vec2(available_width, total_height));
-
-            // Tout le bloc (barre haut + plateau + barre bas)
-            ui.allocate_ui_at_rect(block_rect, |ui| {
-                ui.vertical(|ui| {
-
+            ui.vertical(|ui| {
+                ui.allocate_ui_with_layout(
+                egui::Vec2::new(available_width, total_height),
+                egui::Layout::top_down_justified(egui::Align::Center),
+                |ui| {
+                    ui.horizontal(|ui| {
+                        ui.with_layout(egui::Layout::left_to_right(egui::Align::Min), |ui| {
+                        ui.label(
+                            RichText::new("1. e4 e5  2. Nf3 Nc6  3. Bb5 a6  4. Ba4 Nf6  5. O-O Be7")
+                            .text_style(TextStyle::Monospace),
+                            );
+                        });
+                    });
                     // barre joueur noir
                     ui.horizontal(|ui| {
                         ui.label("Black");
@@ -326,22 +346,90 @@ impl ChessApp {
                             ui.label("⏱ 06:10");
                         });
                     });
+                    ui.add_space(40.0);
+                    self.ui_mobile_timers(ui);
+                    ui.horizontal(|ui| {
+                        if ui.button("Nouvelle Partie").clicked() {
+                            log::info!("Nouvelle partie !");
+                        }
+                        if ui.button("Options").clicked() {
+                            log::info!("Ouverture options !");
+                        }
+                        if ui.button("Undo").clicked() {
+                            log::info!("Undo move !");
+                        }
+                    });
                 });
             });
         });
-        egui::TopBottomPanel::bottom("buttons").show(ctx, |ui| {
+    }
+    pub fn ui_mobile_timers(&mut self, ui: &mut egui::Ui) {
+
+        if self.mobile_timer.active == false {
+            if ui.add_enabled(!self.mobile_timer.active, egui::Button::new("Timer"))
+            .clicked()
+            {
+                self.mobile_timer.active = !self.mobile_timer.active; 
+            }
+        } else {
+            if ui.button("Timer OFF").clicked() {
+                self.mobile_timer.active = !self.mobile_timer.active; 
+            }
+        }
+        let total_width = ui.available_width();
+        let col_width = total_width / 3.0;
+       
+        if self.mobile_timer.active {
             ui.horizontal(|ui| {
-                if ui.button("Nouvelle Partie").clicked() {
-                    log::info!("Nouvelle partie !");
-                }
-                if ui.button("Options").clicked() {
-                    log::info!("Ouverture options !");
-                }
-                if ui.button("Undo").clicked() {
-                    log::info!("Undo move !");
-                }
+                let total_width = ui.available_width();
+                let col_width = total_width / 3.0;
+
+                ui.add_space(col_width / 3.0);
+                // Bullet
+                ui.allocate_ui(egui::Vec2::new(col_width, ui.available_height()), |ui| {
+                    ui.vertical(|ui| {
+                        ui.label(RichText::new("  Bullet").size(40.0));
+                        ui.add_space(20.0);
+                        ui.selectable_value(&mut self.widgets.game_mode, Bullet(20.0, 1.0), "0:20 + 1");
+                        ui.selectable_value(&mut self.widgets.game_mode, Bullet(30.0, 0.0), "0:30 + 0");
+                        ui.selectable_value(&mut self.widgets.game_mode, Bullet(60.0, 0.0), "1:00 + 0");
+                        ui.selectable_value(&mut self.widgets.game_mode, Bullet(60.0, 1.0), "1:00 + 1");
+                    });
+                });
+                ui.add_space(col_width / 6.0);
+                ui.separator();
+                ui.add_space(col_width / 6.0);
+                // Blitz
+                ui.allocate_ui(egui::Vec2::new(col_width, ui.available_height()), |ui| {
+                    ui.vertical(|ui| {
+                        ui.label(RichText::new("   Blitz").size(40.0));
+                        ui.add_space(20.0);
+                        ui.selectable_value(&mut self.widgets.game_mode, Blitz(180.0, 0.0), "3:00 + 0");
+                        ui.selectable_value(&mut self.widgets.game_mode, Blitz(180.0, 2.0), "3:00 + 2");
+                        ui.selectable_value(&mut self.widgets.game_mode, Blitz(300.0, 0.0), "5:00 + 0");
+                        ui.selectable_value(&mut self.widgets.game_mode, Blitz(300.0, 5.0), "5:00 + 5");
+                        ui.selectable_value(&mut self.widgets.game_mode, Blitz(300.0, 2.0), "5:00 + 2");
+                    });
+                });
+                ui.add_space(col_width / 6.0);
+                ui.separator();
+                ui.add_space(col_width / 6.0);
+                // Rapid
+                ui.allocate_ui(egui::Vec2::new(col_width, ui.available_height()), |ui| {
+                    ui.vertical(|ui| {
+                        ui.label(RichText::new("    Rapid").size(40.0));
+                        ui.add_space(20.0);
+                        ui.selectable_value(&mut self.widgets.game_mode, Rapid(600.0, 0.0), "10:00 + 0");
+                        ui.selectable_value(&mut self.widgets.game_mode, Rapid(600.0, 5.0), "10:00 + 5");
+                        ui.selectable_value(&mut self.widgets.game_mode, Rapid(900.0, 10.0), "15:00 + 10");
+                        ui.selectable_value(&mut self.widgets.game_mode, Rapid(1200.0, 0.0), "20:00 + 0");
+                        ui.selectable_value(&mut self.widgets.game_mode, Rapid(1800.0, 0.0), "30:00 + 0");
+                        ui.selectable_value(&mut self.widgets.game_mode, Rapid(3600.0, 5.0), "60:00 + 0");
+                    });
+                });
+                ui.add_space(col_width / 3.0);
             });
-        });
+        }
     }
     pub fn ui_desktop(&mut self, ctx: &egui::Context) {
 
