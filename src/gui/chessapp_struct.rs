@@ -417,6 +417,14 @@ impl ChessApp {
                         ui.add_space(col_width / 5.0);
                     });
                     ui.add_space(40.0);
+                    ui.horizontal(|ui| {
+                        ui.add_space(330.0);
+                        if ui.button("Save timer").clicked() {
+                            self.mobile_win = None;
+                        } 
+                        ui.add_space(40.0);
+                    });
+                    ui.add_space(40.0);
                 } else {
                     ui.add_space(40.0);
                     ui.horizontal(|ui| {
@@ -456,7 +464,15 @@ impl ChessApp {
                         });
                         ui.add_space(60.0);
                     });
-                    ui.add_space(60.0);
+                    ui.add_space(40.0);
+                    ui.horizontal(|ui| {
+                        ui.add_space(150.0);
+                        if ui.button("Save timer").clicked() {
+                            self.mobile_win = None;
+                        } 
+                        ui.add_space(40.0);
+                    });
+                    ui.add_space(40.0);
                 }
         });
     }
@@ -601,11 +617,12 @@ impl ChessApp {
                                 }
                             },
                             AppMode::Lobby => {
-                                // ui.add_space(500.0);
+                                ui.add_space(180.0);
                                 if ui.add_enabled(self.mobile_win.is_none(), egui::Button::new("Timer"))
                                 .clicked() {
                                     self.mobile_win = Some(Timer);
                                 }
+                                ui.add_space(180.0);
                                 if ui.add_enabled(!self.history.is_empty(), egui::Button::new("New Game"))
                                 .clicked()
                                     {
