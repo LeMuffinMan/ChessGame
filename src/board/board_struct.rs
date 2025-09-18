@@ -18,6 +18,11 @@ pub struct Board {
     pub promote: Option<Piece>,
 }
 
+//cancastle
+// left
+// right
+// leftandright
+
 impl Board {
     //Considering to move from GameState, into board :
     //  - Active player / opponent color
