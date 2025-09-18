@@ -45,12 +45,12 @@ impl ChessApp {
     }
 }
 
-fn centered_square(rect: egui::Rect) -> egui::Rect {
+pub fn centered_square(rect: egui::Rect) -> egui::Rect {
     let side = rect.width().min(rect.height());
     egui::Rect::from_center_size(rect.center(), egui::vec2(side, side))
 }
 
-fn render_border(p: &egui::Painter, rect: egui::Rect) {
+pub fn render_border(p: &egui::Painter, rect: egui::Rect) {
     let border_color = egui::Color32::from_rgb(50, 50, 50);
     p.rect_filled(rect, 0.0, border_color);
 }
