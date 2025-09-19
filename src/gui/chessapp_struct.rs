@@ -121,9 +121,15 @@ pub struct MobileTimer {
 
 #[derive(PartialEq)]
 pub enum AppMode {
-    Versus,
+    Versus(Option<End>),
     Replay,
     Lobby,
+}
+
+pub struct ReplayInfos {
+    pub index: usize,
+    pub sec_per_frame: f64,
+    pub next_step: Option<f64>,
 }
 
 pub struct ChessApp {
@@ -131,6 +137,7 @@ pub struct ChessApp {
     pub mobile_timer: MobileTimer,
     pub mobile_win: Option<WinDia>,
     pub app_mode: AppMode,
+    pub replay_infos: ReplayInfos,
     //snapshots of all gamestates as history
     pub current: GameState,
     pub history: Vec<GameState>,
@@ -155,6 +162,8 @@ pub struct ChessApp {
 
     pub file_path: Option<PathBuf>,
 }
+
+
 impl Default for ChessApp {
     fn default() -> Self {
         Self {
@@ -170,6 +179,11 @@ impl Default for ChessApp {
             },
             mobile_win: None,
             app_mode: Lobby,
+            replay_infos: ReplayInfos {
+                index: 0,
+                sec_per_frame: 1.0,
+                next_step: None,
+            },
             current: GameState {
                 board: Board::init_board(),
                 active_player: Color::White,
@@ -235,6 +249,11 @@ impl ChessApp {
             },
             mobile_win: None,
             app_mode: Lobby,
+            replay_infos: ReplayInfos {
+                index: 0,
+                sec_per_frame: 1.0,
+                next_step: None,
+            },
             current: GameState {
                 board: Board::init_board(),
                 active_player: Color::White,

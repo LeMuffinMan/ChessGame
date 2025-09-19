@@ -27,6 +27,9 @@ impl ChessApp {
         self.top_title_panel(ctx);
 
         egui::CentralPanel::default().show(ctx, |ui| {
+            if self.app_mode == Replay {
+                self.mobile_replay_step(ctx);
+            }
             let available_width = ui.available_width();
 
             let bar_height = 40.0;
@@ -59,9 +62,11 @@ impl ChessApp {
                         ui.separator();
 
                         self.display_history(ui);
-                        if self.app_mode == Versus {
+
+                        if matches!(self.app_mode, AppMode::Versus(_)) {
                             ui.add_space(50.0);
                         }
+
                         ui.add_space(140.0);
                         ui.horizontal(|ui| {
                             ui.add_space(60.0);
@@ -74,14 +79,17 @@ impl ChessApp {
                             {
                                 self.mobile_win = Some(Options);
                             }
-                            match self.app_mode {
+                            match &self.app_mode {
                                 AppMode::Replay => {
                                     self.replay_buttons(ui);
                                 }
                                 AppMode::Lobby => {
                                     self.lobby_buttons(ui);
                                 }
-                                AppMode::Versus => {
+                                AppMode::Versus(Some(end)) => {
+                                    self.draw_endgame_buttons(ui);
+                                }
+                                AppMode::Versus(None) => {
                                     self.draw_resign_buttons(ui);
                                 }
                             }
@@ -90,6 +98,28 @@ impl ChessApp {
                 );
             });
         });
+    }
+
+    pub fn draw_endgame_buttons(&mut self, ui: &mut egui::Ui) {
+
+        ui.add_space(180.0);
+        if ui.add_enabled(
+            self.mobile_win.is_none(),
+            egui::Button::new("Replay"),
+        )
+        .clicked()
+        {
+            self.app_mode = Replay;
+            self.current = self.history[self.replay_infos.index - 1].clone();
+        }
+        ui.add_space(170.0);
+        if ui.add_enabled(
+            self.mobile_win.is_none(),
+            egui::Button::new("New Game"),
+        ).clicked() {
+            *self = ChessApp::new(true);
+        }
+
     }
 
     pub fn mobile_board_display(&mut self, ui: &mut egui::Ui, board_size: f32) {
@@ -138,25 +168,61 @@ impl ChessApp {
     }
 
     pub fn replay_buttons(&mut self, ui: &mut egui::Ui) {
-        ui.add_space(200.0);
+        ui.add_space(50.0);
         if ui.button("|<").clicked() {
-            log::debug!("todo");
+            self.replay_infos.index = 0;
+            self.current = self.history[0].clone();
         }
-        ui.add_space(40.0);
+        ui.add_space(25.0);
         if ui.button("<").clicked() {
-            log::debug!("todo");
+            if self.replay_infos.index > 0 {
+                self.replay_infos.index -= 1;
+                self.current = self.history[self.replay_infos.index].clone();
+            }
         }
-        ui.add_space(40.0);
+        ui.add_space(25.0);
         if ui.button("Play").clicked() {
-            log::debug!("todo");
+            // if !self.replay_infos.next_step.is_none() {
+                // if ui
+                //     .add_enabled(!self.win_dialog, egui::Button::new("▶"))
+                //     .clicked()
+                // {
+                    self.replay_infos.index = 0;
+                    self.current = self.history[0].clone();
+
+                    let now = ui.input(|i| i.time);
+                    let delay = self.replay_infos.sec_per_frame;
+                    self.replay_infos.next_step = Some(now + delay);
+                // }
+            // } else if self.replay_infos.next_step.is_some() {
+            //     if ui
+            //         .add_enabled(!self.win_dialog, egui::Button::new("⏸"))
+            //         .clicked()
+            //     {
+            //         self.replay_infos.next_step = None;
+            //     }
+            // } else {
+            //     ui.add_enabled(false, egui::Button::new("▶")).clicked();
+            // }
         }
-        ui.add_space(40.0);
+        ui.add_space(25.0);
         if ui.button(">").clicked() {
-            log::debug!("todo");
+            if self.replay_infos.index < self.history.len() - 1 {
+                self.replay_infos.index += 1;
+                self.current = self.history[self.replay_infos.index].clone();
+            }
         }
-        ui.add_space(40.0);
+        ui.add_space(25.0);
         if ui.button(">|").clicked() {
-            log::debug!("todo");
+            self.replay_infos.index = self.history.len() - 1;
+            self.current = self.history[self.replay_infos.index].clone();
+        }
+        ui.add_space(50.0);
+        if ui.add_enabled(
+            self.mobile_win.is_none(),
+            egui::Button::new("New Game"),
+        ).clicked() {
+            *self = ChessApp::new(true);
         }
     }
 
