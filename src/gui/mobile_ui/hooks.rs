@@ -105,7 +105,6 @@ impl ChessApp {
             .resizable(false)
             .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
             .show(ctx, |ui| {
-                self.win_dialog = true;
                 ui.add_space(40.0);
                 ui.horizontal(|ui| {
                     ui.add_space(100.0);
@@ -221,7 +220,6 @@ impl ChessApp {
             .resizable(false)
             .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
             .show(ctx, |ui| {
-                self.win_dialog = true;
                 ui.add_space(40.0);
                 ui.horizontal(|ui| {
                     ui.add_space(40.0);
@@ -248,7 +246,6 @@ impl ChessApp {
         .resizable(false)
         .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
         .show(ctx, |ui| {
-            self.win_dialog = true;
             ui.add_space(40.0);
             ui.horizontal(|ui| {
                 ui.add_space(40.0);
@@ -273,7 +270,6 @@ impl ChessApp {
             .resizable(false)
             .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
             .show(ctx, |ui| {
-                self.win_dialog = true;
                 ui.add_space(40.0);
                 ui.horizontal(|ui| {
                     ui.add_space(40.0);

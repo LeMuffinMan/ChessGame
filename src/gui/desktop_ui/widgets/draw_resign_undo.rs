@@ -1,6 +1,7 @@
 use crate::gui::chessapp_struct::DrawOption::*;
 use crate::gui::chessapp_struct::DrawRule::*;
 use crate::gui::chessapp_struct::End::*;
+use crate::gui::chessapp_struct::WinDia;
 
 use crate::ChessApp;
 
@@ -26,7 +27,7 @@ impl ChessApp {
                 }
             } else if ui
                 .add_enabled(
-                    self.current.end.is_none() && !self.win_dialog,
+                    self.current.end.is_none() && self.mobile_win.is_none(),
                     egui::Button::new("Draw"),
                 )
                 .clicked()
@@ -35,12 +36,12 @@ impl ChessApp {
             }
             if ui
                 .add_enabled(
-                    self.current.end.is_none() && !self.win_dialog,
+                    self.current.end.is_none() && self.mobile_win.is_none(),
                     egui::Button::new("Resign"),
                 )
                 .clicked()
             {
-                self.win_resign = true;
+                self.mobile_win = Some(WinDia::Resign);
             }
         });
     }

@@ -32,11 +32,11 @@ impl ChessApp {
                     ui.add_space(20.0);
                     if ui.button("Download").clicked() {
                         let _ = self.export_pgn(); //Todo : handle error 
-                        self.win_save = false;
+                        self.mobile_win = None;
                     }
                     ui.add_space(130.0);
                     if ui.button("Cancel").clicked() {
-                        self.win_save = false;
+                        self.mobile_win = None;
                     }
                     ui.add_space(20.0);
                 });
@@ -74,20 +74,15 @@ impl ChessApp {
             .resizable(false)
             .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
             .show(ctx, |ui| {
-                self.win_dialog = true;
                 ui.add_space(10.0);
                 ui.horizontal(|ui| {
                     ui.add_space(20.0);
                     if ui.button("Accept").clicked() {
                         self.current.end = Some(Resign);
-                        self.win_resign = false;
-                        self.win_dialog = false;
                         self.mobile_win = None;
                     }
                     ui.add_space(30.0);
                     if ui.button("Decline").clicked() {
-                        self.win_resign = false;
-                        self.win_dialog = false;
                         self.mobile_win = None;
                     }
                     ui.add_space(20.0);
@@ -103,7 +98,6 @@ impl ChessApp {
             .resizable(false)
             .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
             .show(ctx, |ui| {
-                self.win_dialog = true;
                 ui.add_space(10.0);
                 ui.horizontal(|ui| {
                     ui.add_space(20.0);
@@ -122,20 +116,20 @@ impl ChessApp {
                                         } else {
                                             self.current = last;
                                         }
-                                        self.widgets.replay_index = self.history.len();
+                                        self.replay_infos.index = self.history.len();
                                     }
                                 }
                                 //effacer historique
                                 //ne pas toucher aux timers
                             }
                         }
-                        self.win_dialog = false;
-                        self.win_undo = false;
+                        // self.win_dialog = false;
+                        // self.win_undo = false;
                     }
                     ui.add_space(30.0);
                     if ui.button("Decline").clicked() {
-                        self.win_dialog = false;
-                        self.win_undo = false;
+                        // self.win_dialog = false;
+                        // self.win_undo = false;
                     }
                     ui.add_space(20.0);
                 });
@@ -144,7 +138,7 @@ impl ChessApp {
     }
 
     pub fn get_promotion_input(&mut self, ctx: &egui::Context) {
-        self.win_dialog = true;
+        // self.win_dialog = true;
         egui::Window::new("Promotion")
             .collapsible(false)
             .resizable(false)
