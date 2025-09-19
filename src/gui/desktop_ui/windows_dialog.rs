@@ -116,7 +116,7 @@ impl ChessApp {
                     ui.add_space(20.0);
                 });
                 ui.add_space(10.0);
-            });   
+            });
     }
 
     pub fn ask_to_undo(&mut self, ctx: &egui::Context) {

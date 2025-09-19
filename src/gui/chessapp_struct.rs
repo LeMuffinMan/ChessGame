@@ -166,7 +166,6 @@ pub struct ChessApp {
     pub file_path: Option<PathBuf>,
 }
 
-
 impl Default for ChessApp {
     fn default() -> Self {
         Self {
