@@ -1,4 +1,5 @@
 use crate::ChessApp;
+use crate::gui::chessapp_struct::AppMode::*;
 
 use egui::Context;
 
@@ -15,7 +16,14 @@ impl ChessApp {
                     //si un time gamemode autre que replay est set au click, on build en fonction
                     *self = ChessApp::default();
                 }
+                if ui
+                    .add_enabled(self.app_mode != Replay, egui::Button::new("Replay"))
+                    .clicked()
+                {
+                    self.app_mode = Replay;
+                }
             }
+            
         });
         ui.separator();
     }

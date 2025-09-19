@@ -13,7 +13,7 @@ impl ChessApp {
             ),
             (
                 TextStyle::Body,
-                FontId::new(20.0, egui::FontFamily::Proportional),
+                FontId::new(30.0, egui::FontFamily::Proportional),
             ),
             (
                 TextStyle::Monospace,
@@ -21,7 +21,7 @@ impl ChessApp {
             ),
             (
                 TextStyle::Button,
-                FontId::new(20.0, egui::FontFamily::Proportional),
+                FontId::new(25.0, egui::FontFamily::Proportional),
             ),
             (
                 TextStyle::Small,
