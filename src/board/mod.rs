@@ -4,5 +4,6 @@ pub mod legals_moves;
 pub mod threat;
 pub mod update_board;
 pub mod utils;
+pub mod draw_rules;
 pub mod validate_move;
 pub use board_struct::Board;

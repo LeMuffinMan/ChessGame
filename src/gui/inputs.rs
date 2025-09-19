@@ -1,5 +1,5 @@
 use crate::ChessApp;
-use crate::gui::desktop_ui::central_panel::render::ui_to_board;
+use crate::gui::render::ui_to_board;
 
 impl ChessApp {
     pub fn drag_and_drop(&mut self, inner: egui::Rect, sq: f32, response: &egui::Response) {

@@ -3,14 +3,13 @@ use crate::gui::chessapp_struct::AppMode;
 use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::chessapp_struct::MobileGameMode::*;
 use crate::gui::chessapp_struct::WinDia::*;
-use crate::gui::desktop_ui::top_bot_panels::bot_panels::format_time;
+use crate::gui::desktop_ui::bot_panels::format_time;
 
 use egui::Label;
 use egui::RichText;
 use egui::Sense;
 
 //a remplacer
-use crate::gui::desktop_ui::central_panel::central_panel_ui::render_border;
 
 impl ChessApp {
     pub fn ui_mobile(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
@@ -100,7 +99,7 @@ impl ChessApp {
 
         let rect = response.rect;
         let inner = if self.widgets.show_coordinates {
-            render_border(&painter, rect);
+            ChessApp::render_border(&painter, rect);
             rect.shrink(16.0)
         } else {
             rect
