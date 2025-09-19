@@ -1,10 +1,11 @@
 use crate::ChessApp;
+use crate::board::cell::Cell;
 use crate::Color::*;
 use crate::board::cell::Piece::*;
 use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::chessapp_struct::End;
 use crate::gui::chessapp_struct::WinDia::*;
-use crate::gui::mobile_ui::hooks::End::TimeOut;
+use crate::gui::chessapp_struct::End::TimeOut;
 use egui::RichText;
 
 impl ChessApp {
@@ -292,5 +293,50 @@ impl ChessApp {
                 });
                 ui.add_space(40.0);
             });
+    }
+
+    //Desktop hook
+    //if a player promoted a pawn, try_move didnt finished it's work, so we do it here
+    pub fn update_promote(&mut self) {
+        if let Some(piece) = self.current.board.promote
+            && let Some(coord) = self.current.board.pawn_to_promote
+            && self.replay_infos.index == self.history.len()
+        {
+            //methods get opponent color
+            let color = if self.current.active_player == White {
+                Black
+            } else {
+                White
+            };
+            self.current.board.grid[coord.row as usize][coord.col as usize] =
+                Cell::Occupied(piece, color);
+
+            //methods
+            let opponent = if self.current.active_player != White {
+                White
+            } else {
+                Black
+            };
+            if let Some(k) = self.current.board.get_king(&opponent)
+                && self.current.board.threaten_cells.contains(&k)
+                && let Some(k) = self.current.board.get_king(&opponent)
+            {
+                self.current.board.check = Some(k);
+                // println!("Check !");
+            }
+            self.check_endgame();
+            if let Some(promoteinfo) = &self.promoteinfo {
+                let from = promoteinfo.from;
+                let to = promoteinfo.to;
+                let prev_board = promoteinfo.prev_board.clone();
+                self.history.push(self.current.clone());
+                self.replay_infos.index += 1;
+                self.replay_infos.index += 1;
+                self.encode_move_to_san(&from, &to, &prev_board);
+            }
+            self.current.board.pawn_to_promote = None;
+            self.current.board.promote = None;
+            self.mobile_win = None;
+        }
     }
 }
