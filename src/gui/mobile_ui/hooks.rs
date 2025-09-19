@@ -154,6 +154,10 @@ impl ChessApp {
                         self.mobile_win = None;
                     }
                 });
+                ui.vertical_centered(|ui| {
+                    ui.add_space(20.0);
+                    ui.hyperlink_to("Source code", "https://github.com/LeMuffinMan/ChessGame");
+                });
                 //ajouter le nombre de undo max par joueur
                 ui.add_space(20.0);
             });
