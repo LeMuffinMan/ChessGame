@@ -18,7 +18,8 @@ impl ChessApp {
     pub fn ui_mobile(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.apply_styles(ctx);
 
-        if self.widgets.replay_index == self.history.len()
+        if matches!(self.app_mode, AppMode::Versus(_))
+            && self.widgets.replay_index == self.history.len()
             && self.current.board.pawn_to_promote.is_some()
         {
             self.get_promotion_input(ctx);
@@ -181,29 +182,25 @@ impl ChessApp {
             }
         }
         ui.add_space(25.0);
-        if ui.button("Play").clicked() {
-            // if !self.replay_infos.next_step.is_none() {
-                // if ui
-                //     .add_enabled(!self.win_dialog, egui::Button::new("▶"))
-                //     .clicked()
-                // {
+        if self.replay_infos.next_step.is_none() {
+            if ui
+                .add_enabled(self.mobile_win.is_none(), egui::Button::new("▶"))
+                .clicked()
+            {
                     self.replay_infos.index = 0;
                     self.current = self.history[0].clone();
 
                     let now = ui.input(|i| i.time);
                     let delay = self.replay_infos.sec_per_frame;
                     self.replay_infos.next_step = Some(now + delay);
-                // }
-            // } else if self.replay_infos.next_step.is_some() {
-            //     if ui
-            //         .add_enabled(!self.win_dialog, egui::Button::new("⏸"))
-            //         .clicked()
-            //     {
-            //         self.replay_infos.next_step = None;
-            //     }
-            // } else {
-            //     ui.add_enabled(false, egui::Button::new("▶")).clicked();
-            // }
+            }
+        } else {
+            if ui
+                .add_enabled(!self.win_dialog, egui::Button::new("⏸"))
+                .clicked()
+            {
+                self.widgets.next_replay_time = None;
+            }
         }
         ui.add_space(25.0);
         if ui.button(">").clicked() {
