@@ -122,7 +122,8 @@ impl ChessApp {
     }
 
     pub fn pgn_win(&mut self, ctx: &egui::Context) {
-        egui::Window::new("PGN")
+        if self.mobile {
+            egui::Window::new("PGN")
             .collapsible(false)
             .resizable(false)
             .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
@@ -153,6 +154,40 @@ impl ChessApp {
                 //ajouter le nombre de undo max par joueur
                 ui.add_space(20.0);
             });
+        } else {
+            egui::Window::new("PGN")
+            .collapsible(false)
+            .resizable(false)
+            .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
+            .show(ctx, |ui| {
+                let style = ui.style_mut();
+                style.spacing.icon_width = 40.0; // largeur de la checkbox
+                style.spacing.icon_spacing = 8.0; // espace entre checkbox et texte
+
+                ui.add_space(20.0);
+                ui.horizontal(|ui| {
+                    // ui.add_space(60.0);
+                    ui.vertical_centered(|ui| {
+                        ui.label(&self.history_san);
+                        ui.add_space(20.0);
+                        ui.text_edit_singleline(&mut self.widgets.file_name);
+                        ui.add_space(20.0);
+                        if ui.button(RichText::new("Download").size(30.0)).clicked() {
+                            let _ = self.export_pgn(); //Todo : handle error 
+                            self.mobile_win = None;
+                        }
+                        ui.add_space(20.0);
+                    });
+                });
+                ui.vertical_centered(|ui| {
+                    if ui.button("Cancel").clicked() {
+                        self.mobile_win = None;
+                    }
+                });
+                //ajouter le nombre de undo max par joueur
+                ui.add_space(20.0);
+            });
+        }
     }
 
     pub fn settings_win(&mut self, ctx: &egui::Context) {
