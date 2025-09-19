@@ -20,6 +20,12 @@ impl ChessApp {
     pub fn ui_mobile(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.apply_styles(ctx);
 
+        if self.widgets.replay_index == self.history.len()
+            && self.current.board.pawn_to_promote.is_some()
+        {
+            self.get_promotion_input(ctx);
+        }
+
         self.top_title_panel(ctx);
 
         egui::CentralPanel::default().show(ctx, |ui| {

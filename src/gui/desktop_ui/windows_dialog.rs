@@ -147,12 +147,20 @@ impl ChessApp {
             .resizable(false)
             .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
             .show(ctx, |ui| {
-                ui.vertical(|ui| {
-                    ui.radio_value(&mut self.current.board.promote, Some(Queen), "Queen");
-                    ui.radio_value(&mut self.current.board.promote, Some(Bishop), "Bishop");
-                    ui.radio_value(&mut self.current.board.promote, Some(Knight), "Knight");
-                    ui.radio_value(&mut self.current.board.promote, Some(Rook), "Rook");
+                ui.horizontal(|ui| {
+                    ui.add_space(140.0);
+                    ui.vertical(|ui| {
+                        ui.add_space(20.0);
+                        ui.selectable_value(&mut self.current.board.promote, Some(Queen), "Queen");
+                        ui.add_space(20.0);
+                        ui.selectable_value(&mut self.current.board.promote, Some(Bishop), "Bishop");
+                        ui.add_space(20.0);
+                        ui.selectable_value(&mut self.current.board.promote, Some(Knight), "Knight");
+                        ui.add_space(20.0);
+                        ui.selectable_value(&mut self.current.board.promote, Some(Rook), "Rook");
+                    });
                 });
+                ui.add_space(20.0);
             });
         self.update_promote();
     }
