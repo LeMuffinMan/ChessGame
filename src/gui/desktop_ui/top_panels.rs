@@ -1,28 +1,16 @@
 use crate::ChessApp;
 use crate::gui::desktop_ui::bot_panels::format_time;
-use crate::gui::chessapp_struct::MobileGameMode::NoTime;
+use crate::gui::update_timer::MobileGameMode::NoTime;
 
-use egui::TextEdit;
 use egui::RichText;
 
 impl ChessApp {
-    pub fn top_title_panel(&self, ctx: &egui::Context) {
-        egui::TopBottomPanel::top("title").show(ctx, |ui| {
-            ui.with_layout(
-                egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
-                |ui| {
-                    ui.heading("ChessGame");
-                },
-            );
-        });
-    }
-
     //Shows Black player name and its timer
-    pub fn top_black_panel(&mut self, ctx: &egui::Context) {
+    pub fn top_black_panel_desktop(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::top("spacer_top").show(ctx, |ui| {
             ui.vertical(|ui| {
                 if self.history.is_empty() || self.current.end.is_some() {
-                        ui.text_edit_singleline(&mut self.black_name);
+                    ui.text_edit_singleline(&mut self.black_name);
                 } else {
                     ui.label(&self.black_name);
                 }
@@ -43,7 +31,6 @@ impl ChessApp {
                         );
                     }
                 }
-
             });
         });
     }

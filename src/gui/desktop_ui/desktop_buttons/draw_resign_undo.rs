@@ -2,6 +2,7 @@ use crate::gui::chessapp_struct::DrawOption::*;
 use crate::gui::chessapp_struct::DrawRule::*;
 use crate::gui::chessapp_struct::End::*;
 use crate::gui::chessapp_struct::WinDia;
+use crate::gui::desktop_ui::desktop_buttons::draw_resign_undo::WinDia::DrawRequest;
 
 use crate::ChessApp;
 
@@ -32,7 +33,7 @@ impl ChessApp {
                 )
                 .clicked()
             {
-                self.draw.draw_option = Some(Request);
+                self.mobile_win = Some(DrawRequest);
             }
             if ui
                 .add_enabled(

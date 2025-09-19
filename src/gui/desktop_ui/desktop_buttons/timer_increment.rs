@@ -1,7 +1,7 @@
 use crate::ChessApp;
-use crate::gui::chessapp_struct::MobileGameMode::*;
-use crate::gui::chessapp_struct::MobileTimer;
-use crate::gui::chessapp_struct::MobileGameMode;
+use crate::gui::update_timer::MobileGameMode;
+use crate::gui::update_timer::MobileGameMode::*;
+use crate::gui::update_timer::Timer;
 
 use egui::Context;
 
@@ -21,7 +21,7 @@ impl ChessApp {
             ui.vertical(|ui| {
                 ui.selectable_value(
                     &mut self.mobile_timer,
-                    MobileTimer {
+                    Timer {
                         start: 20.0,
                         increment: 1.0,
                         active: false,
@@ -34,7 +34,7 @@ impl ChessApp {
                 );
                 ui.selectable_value(
                     &mut self.mobile_timer,
-                    MobileTimer {
+                    Timer {
                         start: 30.0,
                         increment: 0.0,
                         active: false,
@@ -49,7 +49,7 @@ impl ChessApp {
             ui.vertical(|ui| {
                 ui.selectable_value(
                     &mut self.mobile_timer,
-                    MobileTimer {
+                    Timer {
                         start: 60.0,
                         increment: 0.0,
                         active: false,
@@ -62,7 +62,7 @@ impl ChessApp {
                 );
                 ui.selectable_value(
                     &mut self.mobile_timer,
-                    MobileTimer {
+                    Timer {
                         start: 60.0,
                         increment: 1.0,
                         active: false,
@@ -81,7 +81,7 @@ impl ChessApp {
             ui.vertical(|ui| {
                 ui.selectable_value(
                     &mut self.mobile_timer,
-                    MobileTimer {
+                    Timer {
                         start: 180.0,
                         increment: 2.0,
                         active: false,
@@ -94,7 +94,7 @@ impl ChessApp {
                 );
                 ui.selectable_value(
                     &mut self.mobile_timer,
-                    MobileTimer {
+                    Timer {
                         start: 300.0,
                         increment: 0.0,
                         active: false,
@@ -109,7 +109,7 @@ impl ChessApp {
             ui.vertical(|ui| {
                 ui.selectable_value(
                     &mut self.mobile_timer,
-                    MobileTimer {
+                    Timer {
                         start: 300.0,
                         increment: 5.0,
                         active: false,
@@ -128,7 +128,7 @@ impl ChessApp {
             ui.vertical(|ui| {
                 ui.selectable_value(
                     &mut self.mobile_timer,
-                    MobileTimer {
+                    Timer {
                         start: 600.0,
                         increment: 0.0,
                         active: false,
@@ -141,7 +141,7 @@ impl ChessApp {
                 );
                 ui.selectable_value(
                     &mut self.mobile_timer,
-                    MobileTimer {
+                    Timer {
                         start: 600.0,
                         increment: 5.0,
                         active: false,
@@ -152,24 +152,24 @@ impl ChessApp {
                     },
                     "10:00 + 5",
                 );
-                    ui.selectable_value(
-                        &mut self.mobile_timer,
-                        MobileTimer {
-                            start: 900.0,
-                            increment: 10.0,
-                            active: false,
-                            mode: Rapid,
-                            white_time: 900.0,
-                            black_time: 900.0,
-                            start_of_turn: (0.0, None),
-                        },
-                        "15:00 + 10",
-                    );
+                ui.selectable_value(
+                    &mut self.mobile_timer,
+                    Timer {
+                        start: 900.0,
+                        increment: 10.0,
+                        active: false,
+                        mode: Rapid,
+                        white_time: 900.0,
+                        black_time: 900.0,
+                        start_of_turn: (0.0, None),
+                    },
+                    "15:00 + 10",
+                );
             });
             ui.vertical(|ui| {
                 ui.selectable_value(
                     &mut self.mobile_timer,
-                    MobileTimer {
+                    Timer {
                         start: 1800.0,
                         increment: 0.0,
                         active: false,
@@ -182,7 +182,7 @@ impl ChessApp {
                 );
                 ui.selectable_value(
                     &mut self.mobile_timer,
-                    MobileTimer {
+                    Timer {
                         start: 3600.0,
                         increment: 0.0,
                         active: false,
@@ -202,16 +202,20 @@ impl ChessApp {
         if self.mobile_timer.mode == Custom {
             ui.horizontal(|ui| {
                 ui.label("Time :");
-                ui.menu_button(format!("{:.0} min", (self.mobile_timer.start / 60.0).floor(),), |ui| {
-                    ui.selectable_value(&mut self.mobile_timer.start, 20.0, " 0:20");
-                    ui.selectable_value(&mut self.mobile_timer.start, 30.0, " 0:30");
-                    ui.selectable_value(&mut self.mobile_timer.start, 60.0, " 1:00");
-                    ui.selectable_value(&mut self.mobile_timer.start, 180.0, " 3:00");
-                    ui.selectable_value(&mut self.mobile_timer.start, 300.0, " 5:00");
-                    ui.selectable_value(&mut self.mobile_timer.start, 600.0, "10:00");
-                    ui.selectable_value(&mut self.mobile_timer.start, 900.0, "15:00");
-                    ui.selectable_value(&mut self.mobile_timer.start, 1800.0, "30:00");
-                    ui.selectable_value(&mut self.mobile_timer.start, 3600.0, "60:00");                });
+                ui.menu_button(
+                    format!("{:.0} min", (self.mobile_timer.start / 60.0).floor(),),
+                    |ui| {
+                        ui.selectable_value(&mut self.mobile_timer.start, 20.0, " 0:20");
+                        ui.selectable_value(&mut self.mobile_timer.start, 30.0, " 0:30");
+                        ui.selectable_value(&mut self.mobile_timer.start, 60.0, " 1:00");
+                        ui.selectable_value(&mut self.mobile_timer.start, 180.0, " 3:00");
+                        ui.selectable_value(&mut self.mobile_timer.start, 300.0, " 5:00");
+                        ui.selectable_value(&mut self.mobile_timer.start, 600.0, "10:00");
+                        ui.selectable_value(&mut self.mobile_timer.start, 900.0, "15:00");
+                        ui.selectable_value(&mut self.mobile_timer.start, 1800.0, "30:00");
+                        ui.selectable_value(&mut self.mobile_timer.start, 3600.0, "60:00");
+                    },
+                );
             });
             ui.horizontal(|ui| {
                 ui.label("Increment :");

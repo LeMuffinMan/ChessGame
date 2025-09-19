@@ -4,7 +4,7 @@ use egui::Context;
 
 impl ChessApp {
     //Shows turn infos, resign / draw options, new game option and timer options
-    pub fn left_panel_ui(&mut self, ctx: &Context) {
+    pub fn left_panel_desktop(&mut self, ctx: &Context) {
         egui::SidePanel::left("left_panel")
             .default_width(230.0)
             .show(ctx, |ui| {

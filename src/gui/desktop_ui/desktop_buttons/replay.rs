@@ -3,7 +3,6 @@ use crate::gui::chessapp_struct::WinDia::*;
 
 // use crate::pgn::encode_pgn::export_pgn;
 
-
 impl ChessApp {
     //This panel holds the replay buttons
     pub fn replay_panel(&mut self, ui: &mut egui::Ui) {
@@ -70,7 +69,10 @@ impl ChessApp {
 
     pub fn rewind(&mut self, ui: &mut egui::Ui, can_undo: bool) {
         if ui
-            .add_enabled(can_undo && self.mobile_win.is_some(), egui::Button::new("|<"))
+            .add_enabled(
+                can_undo && self.mobile_win.is_some(),
+                egui::Button::new("|<"),
+            )
             .clicked()
         {
             self.replay_infos.index = 0;
@@ -78,7 +80,10 @@ impl ChessApp {
             self.highlight.piece_legals_moves.clear();
         }
         if ui
-            .add_enabled(can_undo && self.mobile_win.is_some(), egui::Button::new("<"))
+            .add_enabled(
+                can_undo && self.mobile_win.is_some(),
+                egui::Button::new("<"),
+            )
             .clicked()
         {
             if self.replay_infos.index == self.history.len() {

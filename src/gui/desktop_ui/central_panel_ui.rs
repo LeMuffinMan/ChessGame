@@ -4,7 +4,7 @@ use eframe::egui;
 
 impl ChessApp {
     //The central panels holds the board : there is the most of the rendering stuff here
-    pub fn central_panel_ui(&mut self, ctx: &egui::Context) {
+    pub fn central_panel_desktop(&mut self, ctx: &egui::Context) {
         egui::CentralPanel::default().show(ctx, |ui| {
             let size = ui.available_size();
             //egui uses a painter to paint shapes : we ask for a painter, to draw shapes sensitive
@@ -44,5 +44,3 @@ impl ChessApp {
         });
     }
 }
-
-
