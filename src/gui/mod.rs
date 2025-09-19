@@ -9,3 +9,4 @@ pub mod chessapp_struct;
 pub mod buttons;
 pub mod desktop_ui;
 pub mod mobile_ui;
+pub mod hooks;
