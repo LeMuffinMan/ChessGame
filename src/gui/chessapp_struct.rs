@@ -35,7 +35,13 @@ pub enum End {
     Resign,
 }
 
-//a file for structs ?
+#[derive(PartialEq)]
+pub enum AppMode {
+    Versus(Option<End>),
+    Replay,
+    Lobby,
+}
+
 #[derive(Clone)]
 pub struct PromoteInfo {
     pub from: Coord,
@@ -43,6 +49,7 @@ pub struct PromoteInfo {
     pub prev_board: Board,
 }
 
+//fichier a part ?
 #[derive(Clone, PartialEq)]
 pub struct GameState {
     pub board: Board,
@@ -80,12 +87,6 @@ pub struct Widgets {
 }
 
 
-#[derive(PartialEq)]
-pub enum AppMode {
-    Versus(Option<End>),
-    Replay,
-    Lobby,
-}
 
 pub struct ReplayInfos {
     pub index: usize,
