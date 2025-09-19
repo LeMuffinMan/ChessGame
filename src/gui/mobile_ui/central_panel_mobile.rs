@@ -67,42 +67,62 @@ impl ChessApp {
                         if matches!(self.app_mode, AppMode::Versus(_)) {
                             ui.add_space(50.0);
                         }
-
-                        ui.add_space(140.0);
-                        ui.horizontal(|ui| {
-                            ui.add_space(60.0);
-                            if ui
-                                .add_enabled(
-                                    self.mobile_win.is_none(),
-                                    egui::Button::new("Settings"),
-                                )
-                                .clicked()
-                            {
-                                self.mobile_win = Some(Options);
-                            }
-                            match &self.app_mode {
-                                AppMode::Replay => {
-                                    self.replay_buttons(ui);
-                                }
-                                AppMode::Lobby => {
-                                    self.lobby_buttons(ui);
-                                }
-                                AppMode::Versus(Some(end)) => {
-                                    self.draw_endgame_buttons(ui);
-                                }
-                                AppMode::Versus(None) => {
-                                    self.draw_resign_buttons(ui);
-                                }
-                            }
-                        });
+                        ui.add_space(100.0);
+                        if matches!(self.app_mode, AppMode::Replay) {
+                            ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                                ui.add_space(385.0);
+                                ui.add(
+                                    egui::Slider::new(&mut self.replay_infos.sec_per_frame, 0.1..=5.0)
+                                        .text("sec/move")
+                                        .logarithmic(true)
+                                );
+                            });
+                            ui.add_space(20.0);
+                        } else {
+                            ui.add_space(40.0);
+                        }
+                        self.display_bottom_buttons(ui);                      
                     },
                 );
             });
         });
     }
 
+    pub fn display_bottom_buttons(&mut self, ui: &mut egui::Ui) {
+        ui.horizontal_centered(|ui| {
+            match &self.app_mode {
+                AppMode::Replay => {
+                    self.replay_buttons(ui);
+                }
+                AppMode::Lobby => {
+                    self.lobby_buttons(ui);
+                }
+                AppMode::Versus(Some(_end)) => {
+                    self.draw_endgame_buttons(ui);
+                }
+                AppMode::Versus(None) => {
+                    self.draw_resign_buttons(ui);
+                }
+            }
+        });
+    }
+
+    pub fn settings_button(&mut self, ui: &mut egui::Ui) {
+        if ui
+            .add_enabled(
+                self.mobile_win.is_none(),
+                egui::Button::new("Settings"),
+            )
+            .clicked()
+        {
+            self.mobile_win = Some(Options);
+        }
+    }
+
     pub fn draw_endgame_buttons(&mut self, ui: &mut egui::Ui) {
 
+        ui.add_space(60.0);
+        self.settings_button(ui);
         ui.add_space(180.0);
         if ui.add_enabled(
             self.mobile_win.is_none(),
@@ -169,6 +189,9 @@ impl ChessApp {
     }
 
     pub fn replay_buttons(&mut self, ui: &mut egui::Ui) {
+
+        ui.add_space(60.0);
+        self.settings_button(ui);
         ui.add_space(50.0);
         if ui.button("|<").clicked() {
             self.replay_infos.index = 0;
@@ -203,18 +226,28 @@ impl ChessApp {
             }
         }
         ui.add_space(25.0);
-        if ui.button(">").clicked() {
+        if ui
+            .add_enabled(self.replay_infos.index < self.history.len() - 1, egui::Button::new(">"))
+            .clicked()
+        {
             if self.replay_infos.index < self.history.len() - 1 {
                 self.replay_infos.index += 1;
                 self.current = self.history[self.replay_infos.index].clone();
             }
         }
         ui.add_space(25.0);
-        if ui.button(">|").clicked() {
+        if ui
+            .add_enabled(self.replay_infos.index < self.history.len() - 1, egui::Button::new(">|"))
+            .clicked()
+        {
             self.replay_infos.index = self.history.len() - 1;
             self.current = self.history[self.replay_infos.index].clone();
         }
         ui.add_space(50.0);
+        self.new_game_button(ui);
+    }
+
+    pub fn new_game_button(&mut self, ui: &mut egui::Ui) {
         if ui.add_enabled(
             self.mobile_win.is_none(),
             egui::Button::new("New Game"),
@@ -224,6 +257,9 @@ impl ChessApp {
     }
 
     pub fn lobby_buttons(&mut self, ui: &mut egui::Ui) {
+
+        ui.add_space(60.0);
+        self.settings_button(ui);
         ui.add_space(180.0);
         if ui
             .add_enabled(self.mobile_win.is_none(), egui::Button::new("Timer"))
@@ -232,29 +268,11 @@ impl ChessApp {
             self.mobile_win = Some(Timer);
         }
         ui.add_space(180.0);
-        if ui
-            .add_enabled(
-                !self.history.is_empty() && self.mobile_win.is_none(),
-                egui::Button::new("New Game"),
-            )
-            .clicked()
-        {
-            self.history.clear();
-            self.history_san.clear();
-            self.widgets.replay_index = 0;
-            self.current = GameState {
-                // faire un builder
-                board: Board::init_board(),
-                active_player: Color::White,
-                opponent: Color::Black,
-                end: None,
-                last_move: None,
-                turn: 1,
-            }
-        }
+        self.new_game_button(ui);
     }
 
     pub fn draw_resign_buttons(&mut self, ui: &mut egui::Ui) {
+        self.settings_button(ui);
         ui.add_space(400.0);
         if ui.button("Draw").clicked() {
             self.mobile_win = Some(Draw);
