@@ -2,9 +2,12 @@ use crate::ChessApp;
 use crate::gui::chessapp_struct::AppMode;
 use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::chessapp_struct::MobileGameMode::*;
+use crate::gui::chessapp_struct::WinDia::*;
 use crate::gui::desktop_ui::top_bot_panels::bot_panels::format_time;
 
 use egui::RichText;
+use egui::Label;
+use egui::Sense;
 
 //a remplacer
 use crate::gui::desktop_ui::central_panel::central_panel_ui::render_border;
@@ -125,13 +128,21 @@ impl ChessApp {
             let displayed_text: String = self
                 .history_san
                 .chars()
-                .rev() // inverse pour prendre depuis la fin
-                .take(58) // prend les 73 derniers
-                .collect::<Vec<_>>() // collect en vecteur de chars
+                .rev()
+                .take(66)
+                .collect::<Vec<_>>()
                 .into_iter()
-                .rev() // remettre dans l’ordre correct
-                .collect(); // collect en String
-            ui.monospace(displayed_text);
+                .rev()
+                .collect();
+
+            let response = ui.add(
+                Label::new(displayed_text)
+                    .sense(Sense::click())
+            );
+
+            if response.clicked() {
+                self.mobile_win = Some(Pgn);
+            }
         });
     }
 
