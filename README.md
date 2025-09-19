@@ -7,7 +7,7 @@ At its core, the project focuses on move validation and a minimal graphical user
 Compiling to WebAssembly allows the game to run directly in the browser, with the rust performances.
 While the CI/CD pipeline gives me a first experience with modern deployment workflows for even a small, personal project.
 
-Try it live on GitHub Pages: ![https://lemuffinman.github.io/ChessGame/](https://lemuffinman.github.io/ChessGame/)
+Try it live on GitHub Pages: [https://lemuffinman.github.io/ChessGame/](https://lemuffinman.github.io/ChessGame/)
 
 <img width="1918" height="1102" alt="250917_00h30m17s_screenshot" src="https://github.com/user-attachments/assets/b4c4dcb6-a7e1-472e-9157-766642b5dc85" />
 
@@ -38,7 +38,7 @@ Try it live on GitHub Pages: ![https://lemuffinman.github.io/ChessGame/](https:/
 ## Installation :
 Some help to reproduce this setup at home :
 
-Install rust as recommended by the ![Rust official site](https://www.rust-lang.org/tools/install) : 
+Install rust as recommended by the [Rust official site](https://www.rust-lang.org/tools/install) : 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
@@ -52,13 +52,13 @@ And run it with
 ```bash
 trunk serve 
 ```
-Now, you can access the app in your browser at ![http://127.0.0.1:8080/](http://127.0.0.1:8080/)
+Now, you can access the app in your browser at [http://127.0.0.1:8080/](http://127.0.0.1:8080/)
 
 If you want to run your own program with WebAssembly, you need to edit your code to add a lib.rs file.
 
 If you use rust, the lib.rs in this repos is a very basic implementation of a WebAssembly entry point.
 
-You can use WebAssembly with several other langages, listed and documented on the ![WebAssembly official site](https://webassembly.org/getting-started/developers-guide/).
+You can use WebAssembly with several other langages, listed and documented on the [WebAssembly official site](https://webassembly.org/getting-started/developers-guide/).
 
 Deprecracted branches exists to use ChessGame in native or cli versions, no need for trunk, run it with cargo only. 
 
