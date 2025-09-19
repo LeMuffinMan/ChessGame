@@ -44,7 +44,13 @@ impl Timer {
         if self.start_of_turn.1 != Some(*active_player) {
             self.switch_timer(now, active_player);
         }
+
         return self.decrement_timer(now, active_player);
+    }
+
+    pub fn init_timer(&mut self, now: f64, active_player: &Color) {
+        self.start_of_turn.1 = Some(*active_player);
+        self.start_of_turn.0 = now;
     }
 
     pub fn switch_timer(&mut self, now: f64, active_player: &Color) {
@@ -53,11 +59,6 @@ impl Timer {
             Some(Black) => self.black_time += self.increment,
             None => {}
         }
-        self.start_of_turn.1 = Some(*active_player);
-        self.start_of_turn.0 = now;
-    }
-
-    pub fn init_timer(&mut self, now: f64, active_player: &Color) {
         self.start_of_turn.1 = Some(*active_player);
         self.start_of_turn.0 = now;
     }
