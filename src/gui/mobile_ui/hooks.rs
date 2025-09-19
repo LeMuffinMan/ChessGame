@@ -99,6 +99,31 @@ impl ChessApp {
         }
     }
 
+    pub fn ask_undo(&mut self, ctx: &egui::Context) {
+        egui::Window::new("Accept undo ?") //opponent
+            .collapsible(false)
+            .resizable(false)
+            .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
+            .show(ctx, |ui| {
+                self.win_dialog = true;
+                ui.add_space(40.0);
+                ui.horizontal(|ui| {
+                    ui.add_space(100.0);
+                    if ui.button("Accept").clicked() {
+                        self.mobile_win = None;
+                        self.current = self.history[self.replay_infos.index - 2].clone();
+                        self.replay_infos.index -= 1;
+                    }
+                    ui.add_space(30.0);
+                    if ui.button("Decline").clicked() {
+                        self.mobile_win = None;
+                    }
+                    ui.add_space(20.0);
+                });
+                ui.add_space(40.0);
+            });
+    }
+
     pub fn pgn_win(&mut self, ctx: &egui::Context) {
         egui::Window::new("PGN")
             .collapsible(false)
