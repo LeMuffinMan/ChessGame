@@ -1,6 +1,6 @@
 use crate::ChessApp;
-use crate::board::cell::Piece::*;
 use crate::Color::*;
+use crate::board::cell::Piece::*;
 use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::chessapp_struct::End;
 use crate::gui::chessapp_struct::WinDia::*;
@@ -127,7 +127,7 @@ impl ChessApp {
                 Draw => {
                     egui::Window::new(
                         RichText::new(format!("{:?} offer a Draw", self.current.opponent))
-                            .size(50.0) // taille plus petite
+                            .size(50.0), // taille plus petite
                     )
                     .collapsible(false)
                     .resizable(false)
@@ -161,17 +161,33 @@ impl ChessApp {
                             ui.add_space(40.0);
                             ui.horizontal(|ui| {
                                 ui.add_space(40.0);
-                                    ui.vertical(|ui| {
-                                        ui.radio_value(&mut self.current.board.promote, Some(Queen), "Queen");
-                                        ui.radio_value(&mut self.current.board.promote, Some(Bishop), "Bishop");
-                                        ui.radio_value(&mut self.current.board.promote, Some(Knight), "Knight");
-                                        ui.radio_value(&mut self.current.board.promote, Some(Rook), "Rook");
-                                    });
-                                    if ui.button("Promote").clicked() {
-                                        self.current.end = Some(End::Resign);
-                                        self.mobile_win = None;
-                                        self.app_mode = Lobby;
-                                    }
+                                ui.vertical(|ui| {
+                                    ui.radio_value(
+                                        &mut self.current.board.promote,
+                                        Some(Queen),
+                                        "Queen",
+                                    );
+                                    ui.radio_value(
+                                        &mut self.current.board.promote,
+                                        Some(Bishop),
+                                        "Bishop",
+                                    );
+                                    ui.radio_value(
+                                        &mut self.current.board.promote,
+                                        Some(Knight),
+                                        "Knight",
+                                    );
+                                    ui.radio_value(
+                                        &mut self.current.board.promote,
+                                        Some(Rook),
+                                        "Rook",
+                                    );
+                                });
+                                if ui.button("Promote").clicked() {
+                                    self.current.end = Some(End::Resign);
+                                    self.mobile_win = None;
+                                    self.app_mode = Lobby;
+                                }
                                 ui.add_space(120.0);
                                 if ui.button("Decline").clicked() {
                                     self.mobile_win = None;

@@ -15,8 +15,6 @@ use egui::TextStyle;
 use crate::gui::desktop_ui::central_panel::central_panel_ui::render_border;
 
 impl ChessApp {
-
-
     pub fn ui_mobile(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.apply_styles(ctx);
 
@@ -77,9 +75,15 @@ impl ChessApp {
                                 self.mobile_win = Some(Options);
                             }
                             match self.app_mode {
-                                AppMode::Replay => { self.replay_buttons(ui); }
-                                AppMode::Lobby => { self.lobby_buttons(ui); }
-                                AppMode::Versus => { self.draw_resign_buttons(ui); }
+                                AppMode::Replay => {
+                                    self.replay_buttons(ui);
+                                }
+                                AppMode::Lobby => {
+                                    self.lobby_buttons(ui);
+                                }
+                                AppMode::Versus => {
+                                    self.draw_resign_buttons(ui);
+                                }
                             }
                         });
                     },
@@ -87,7 +91,6 @@ impl ChessApp {
             });
         });
     }
-
 
     pub fn mobile_board_display(&mut self, ui: &mut egui::Ui, board_size: f32) {
         // plateau
@@ -118,7 +121,7 @@ impl ChessApp {
         self.drag_and_drop(inner, sq, &response);
     }
 
-    pub fn display_history(&mut self, ui :&mut egui::Ui) {
+    pub fn display_history(&mut self, ui: &mut egui::Ui) {
         ui.add_space(40.0);
         ui.horizontal(|ui| {
             let displayed_text: String = self
@@ -137,28 +140,30 @@ impl ChessApp {
     pub fn replay_buttons(&mut self, ui: &mut egui::Ui) {
         ui.add_space(200.0);
         if ui.button("|<").clicked() {
+            log::debug!("todo");
         }
         ui.add_space(40.0);
         if ui.button("<").clicked() {
+            log::debug!("todo");
         }
         ui.add_space(40.0);
         if ui.button("Play").clicked() {
+            log::debug!("todo");
         }
         ui.add_space(40.0);
         if ui.button(">").clicked() {
+            log::debug!("todo");
         }
         ui.add_space(40.0);
         if ui.button(">|").clicked() {
+            log::debug!("todo");
         }
     }
 
     pub fn lobby_buttons(&mut self, ui: &mut egui::Ui) {
-            ui.add_space(180.0);
+        ui.add_space(180.0);
         if ui
-            .add_enabled(
-                self.mobile_win.is_none(),
-                egui::Button::new("Timer"),
-            )
+            .add_enabled(self.mobile_win.is_none(), egui::Button::new("Timer"))
             .clicked()
         {
             self.mobile_win = Some(Timer);
@@ -196,55 +201,43 @@ impl ChessApp {
             self.mobile_win = Some(Resign);
         }
     }
-    
+
     //impl pour mobile_timer
     pub fn black_panel(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             ui.label("Black");
-            ui.with_layout(
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui| {
-                    if self.mobile_timer.mode != NoTime {
-                        if self.mobile_timer.increment == 0.0 {
-                            ui.label(
-                                format_time(self.mobile_timer.black_time) + " ⏱",
-                            );
-                        } else {
-                            ui.label(
-                                format_time(self.mobile_timer.black_time)
-                                    + " ⏱ + "
-                                    + &format_time(self.mobile_timer.increment)
-                                        .to_string(),
-                            );
-                        }
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if self.mobile_timer.mode != NoTime {
+                    if self.mobile_timer.increment == 0.0 {
+                        ui.label(format_time(self.mobile_timer.black_time) + " ⏱");
+                    } else {
+                        ui.label(
+                            format_time(self.mobile_timer.black_time)
+                                + " ⏱ + "
+                                + &format_time(self.mobile_timer.increment).to_string(),
+                        );
                     }
-                },
-            );
+                }
+            });
         });
     }
 
     pub fn white_panel(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             ui.label("White");
-            ui.with_layout(
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui| {
-                    if self.mobile_timer.mode != NoTime {
-                        if self.mobile_timer.increment == 0.0 {
-                            ui.label(
-                                format_time(self.mobile_timer.white_time) + " ⏱",
-                            );
-                        } else {
-                            ui.label(
-                                format_time(self.mobile_timer.white_time)
-                                    + " ⏱ + "
-                                    + &format_time(self.mobile_timer.increment)
-                                        .to_string(),
-                            );
-                        }
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if self.mobile_timer.mode != NoTime {
+                    if self.mobile_timer.increment == 0.0 {
+                        ui.label(format_time(self.mobile_timer.white_time) + " ⏱");
+                    } else {
+                        ui.label(
+                            format_time(self.mobile_timer.white_time)
+                                + " ⏱ + "
+                                + &format_time(self.mobile_timer.increment).to_string(),
+                        );
                     }
-                },
-            );
+                }
+            });
         });
     }
 
