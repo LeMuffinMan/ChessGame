@@ -1,8 +1,8 @@
 use crate::ChessApp;
 use crate::gui::chessapp_struct::End::TimeOut;
+use crate::gui::chessapp_struct::GameMode::Replay;
 use crate::gui::desktop_ui::top_bot_panels::bot_panels::format_time;
 use crate::gui::desktop_ui::widgets::replay::Timer;
-use crate::gui::chessapp_struct::GameMode::Replay;
 
 use egui::TextEdit;
 
@@ -24,8 +24,7 @@ impl ChessApp {
             ui.horizontal(|ui| {
                 let now = ctx.input(|i| i.time);
                 //set timer if needed
-                if self.widgets.timer.is_none()
-                {
+                if self.widgets.timer.is_none() {
                     self.widgets.timer = Timer::build(self.widgets.game_mode);
                 }
 

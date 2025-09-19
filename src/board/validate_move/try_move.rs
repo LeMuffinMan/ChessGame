@@ -2,11 +2,11 @@ use crate::ChessApp;
 use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Piece::*;
+use crate::board::validate_move;
+use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::chessapp_struct::End::*;
 use crate::gui::chessapp_struct::GameState;
 use crate::gui::chessapp_struct::PromoteInfo;
-use crate::board::validate_move;
-use crate::gui::chessapp_struct::AppMode::*;
 
 impl ChessApp {
     //this function takes two cells as the move input from the player
@@ -40,6 +40,8 @@ impl ChessApp {
             };
             //for mobile test
             self.app_mode = Versus;
+            self.mobile_timer.active = true;
+            self.mobile_timer.start_of_turn.1 = Some(White);
             //Setup les timers ici ?
         }
         //it triggers a draw if true, before update board for pawn detection in case of promotion

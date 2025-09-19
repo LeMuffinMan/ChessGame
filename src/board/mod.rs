@@ -1,8 +1,8 @@
 pub mod board_struct;
 pub mod cell;
 pub mod legals_moves;
+pub mod threat;
 pub mod update_board;
 pub mod utils;
-pub mod threat;
 pub mod validate_move;
 pub use board_struct::Board;

@@ -52,8 +52,8 @@ impl ChessApp {
                             timer.white.1 = max_time;
                             timer.black.1 = max_time;
                             timer.increment = inc;
-                        },
-                        _ => { },
+                        }
+                        _ => {}
                     }
                 }
                 timer.black.0 = Some(now);
