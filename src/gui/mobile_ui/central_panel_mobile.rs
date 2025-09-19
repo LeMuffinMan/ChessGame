@@ -4,8 +4,6 @@ use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::chessapp_struct::MobileGameMode::*;
 use crate::gui::desktop_ui::top_bot_panels::bot_panels::format_time;
 
-use egui::FontId;
-use egui::TextStyle;
 use egui::RichText;
 
 //a remplacer
@@ -62,7 +60,7 @@ impl ChessApp {
                         self.display_history(ui);
 
                         if matches!(self.app_mode, AppMode::Versus(_)) {
-                            ui.add_space(50.0);
+                            ui.add_space(20.0);
                         }
                         ui.add_space(100.0);
                         self.speed_replay_slider(ui);
@@ -73,20 +71,23 @@ impl ChessApp {
         });
     }
 
-    pub fn speed_replay_slider(&mut self, ui: &mut egui::Ui) {
-            if matches!(self.app_mode, AppMode::Replay) {
-            ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
-                ui.add_space(385.0);
-                ui.add(
-                    egui::Slider::new(&mut self.replay_infos.sec_per_frame, 0.1..=5.0)
-                        .text("sec/move")
-                        .logarithmic(true)
-                );
-            });
-            ui.add_space(20.0);
-        } else {
-            ui.add_space(40.0);
-        }
+    pub fn display_bottom_buttons(&mut self, ui: &mut egui::Ui) {
+        ui.horizontal_centered(|ui| {
+            match &self.app_mode {
+                AppMode::Replay => {
+                    self.replay_buttons(ui);
+                }
+                AppMode::Lobby => {
+                    self.lobby_buttons(ui);
+                }
+                AppMode::Versus(Some(_end)) => {
+                    self.draw_endgame_buttons(ui);
+                }
+                AppMode::Versus(None) => {
+                    self.draw_resign_undo_buttons(ui);
+                }
+            }
+        });
     }
 
     pub fn mobile_board_display(&mut self, ui: &mut egui::Ui, board_size: f32) {
@@ -172,33 +173,5 @@ impl ChessApp {
                 }
             });
         });
-    }
-
-    pub fn apply_styles(&mut self, ctx: &egui::Context) {
-        let mut style = (*ctx.style()).clone();
-        style.text_styles = [
-            (
-                TextStyle::Heading,
-                FontId::new(70.0, egui::FontFamily::Proportional),
-            ),
-            (
-                TextStyle::Body,
-                FontId::new(30.0, egui::FontFamily::Proportional),
-            ),
-            (
-                TextStyle::Monospace,
-                FontId::new(28.0, egui::FontFamily::Monospace),
-            ),
-            (
-                TextStyle::Button,
-                FontId::new(40.0, egui::FontFamily::Proportional),
-            ),
-            (
-                TextStyle::Small,
-                FontId::new(18.0, egui::FontFamily::Proportional),
-            ),
-        ]
-        .into();
-        ctx.set_style(style);
     }
 }
