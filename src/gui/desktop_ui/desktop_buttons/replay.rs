@@ -1,5 +1,5 @@
 use crate::ChessApp;
-use crate::gui::chessapp_struct::WinDia::*;
+use crate::gui::hooks::WinDia::*;
 
 // use crate::pgn::encode_pgn::export_pgn;
 

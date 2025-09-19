@@ -1,8 +1,9 @@
 use crate::gui::chessapp_struct::DrawOption::*;
 use crate::gui::chessapp_struct::DrawRule::*;
 use crate::gui::chessapp_struct::End::*;
-use crate::gui::chessapp_struct::WinDia;
-use crate::gui::desktop_ui::desktop_buttons::draw_resign_undo::WinDia::DrawRequest;
+use crate::gui::hooks::WinDia;
+use crate::gui::hooks::WinDia::*;
+// use crate::gui::desktop_ui::desktop_buttons::draw_resign_undo::WinDia::DrawRequest;
 
 use crate::ChessApp;
 

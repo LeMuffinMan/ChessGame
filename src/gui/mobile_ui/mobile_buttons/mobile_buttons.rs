@@ -1,7 +1,7 @@
 use crate::ChessApp;
 use crate::gui::chessapp_struct::AppMode;
 use crate::gui::chessapp_struct::AppMode::Replay;
-use crate::gui::chessapp_struct::WinDia::*;
+use crate::gui::hooks::WinDia::*;
 
 impl ChessApp {
     pub fn settings_button(&mut self, ui: &mut egui::Ui) {
@@ -9,7 +9,7 @@ impl ChessApp {
             .add_enabled(self.mobile_win.is_none(), egui::Button::new("Settings"))
             .clicked()
         {
-            self.mobile_win = Some(Options);
+            self.mobile_win = Some(Settings);
         }
     }
 

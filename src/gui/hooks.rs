@@ -4,9 +4,19 @@ use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
 use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::chessapp_struct::End;
-use crate::gui::chessapp_struct::WinDia::*;
 use crate::gui::hooks::End::Draw;
 use egui::RichText;
+
+//Hooks ?
+pub enum WinDia {
+    Settings,
+    Promote,
+    DrawRequest,
+    Resign,
+    Timer,
+    Undo,
+    Pgn,
+}
 
 impl ChessApp {
     pub fn mobile_replay_step(&mut self, ctx: &egui::Context) {
@@ -30,25 +40,25 @@ impl ChessApp {
     pub fn hook_win(&mut self, ctx: &egui::Context) {
         if let Some(win) = &self.mobile_win {
             match win {
-                Options => {
+                WinDia::Settings => {
                     self.settings_win(ctx);
                 }
-                Resign => {
+                WinDia::Resign => {
                     self.resign_win(ctx);
                 }
-                DrawRequest => {
+                WinDia::DrawRequest => {
                     self.offer_draw_win(ctx);
                 }
-                Promote => {
+                WinDia::Promote => {
                     self.promote_win(ctx);
                 }
-                Timer => {
+                WinDia::Timer => {
                     self.set_timer(ctx);
                 }
-                Undo => {
+                WinDia::Undo => {
                     self.ask_undo(ctx);
                 }
-                Pgn => {
+                WinDia::Pgn => {
                     self.pgn_win(ctx);
                 }
             }
