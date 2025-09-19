@@ -38,7 +38,6 @@ impl ChessApp {
             self.app_mode = Versus(None);
             self.mobile_timer.active = true;
             self.mobile_timer.start_of_turn.1 = Some(White);
-            self.replay_infos.index += 1;
             //Setup les timers ici ?
         }
         //it triggers a draw if true, before update board for pawn detection in case of promotion

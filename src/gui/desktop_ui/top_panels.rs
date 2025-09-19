@@ -1,6 +1,9 @@
 use crate::ChessApp;
+use crate::gui::desktop_ui::bot_panels::format_time;
+use crate::gui::chessapp_struct::MobileGameMode::NoTime;
 
 use egui::TextEdit;
+use egui::RichText;
 
 impl ChessApp {
     pub fn top_title_panel(&self, ctx: &egui::Context) {
@@ -17,34 +20,30 @@ impl ChessApp {
     //Shows Black player name and its timer
     pub fn top_black_panel(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::top("spacer_top").show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                let now = ctx.input(|i| i.time);
-                //set timer if needed
-                // if self.widgets.timer.is_none() {
-                //     self.widgets.timer = Timer::build(self.widgets.game_mode);
-                // }
-
-                // if let Some(timer) = &self.widgets.timer {
-                //     let rem = {
-                //         if let Some(start) = timer.black.0 {
-                //             timer.black.1 - (now - start)
-                //         } else {
-                //             timer.black.1
-                //         }
-                //     }
-                //     .max(0.0);
-                //     if rem == 0.0 {
-                //         self.current.end = Some(TimeOut);
-                //         self.history_san.push_str("1-0");
-                //         self.app_mode = Lobby;
-                //     }
-                //     ui.heading(format_time(rem));
-                // }
+            ui.vertical(|ui| {
                 if self.history.is_empty() || self.current.end.is_some() {
-                    ui.add(TextEdit::singleline(&mut self.black_name));
+                        ui.text_edit_singleline(&mut self.black_name);
                 } else {
-                    ui.heading(&self.black_name);
+                    ui.label(&self.black_name);
                 }
+                if self.mobile_timer.mode != NoTime {
+                    if self.mobile_timer.increment == 0.0 {
+                        ui.label(
+                            RichText::new(format_time(self.mobile_timer.white_time) + " ⏱")
+                                .size(30.0),
+                        );
+                    } else {
+                        ui.label(
+                            RichText::new(
+                                format_time(self.mobile_timer.white_time)
+                                    + " ⏱ + "
+                                    + &format_time(self.mobile_timer.increment).to_string(),
+                            )
+                            .size(30.0),
+                        );
+                    }
+                }
+
             });
         });
     }
