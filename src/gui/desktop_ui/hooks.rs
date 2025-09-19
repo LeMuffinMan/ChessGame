@@ -12,7 +12,7 @@ impl ChessApp {
             if now >= next_time {
                 if self.widgets.replay_index + 1 < self.history.len() {
                     self.widgets.replay_index += 1;
-                        self.replay_infos.index += 1;
+                    self.replay_infos.index += 1;
                     // log::debug!("Replay index = {}", self.widgets.replay_index);
                     self.current = self.history[self.widgets.replay_index].clone();
                     let delay = self.widgets.replay_speed;

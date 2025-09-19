@@ -5,8 +5,8 @@ use crate::gui::chessapp_struct::MobileGameMode::*;
 use crate::gui::chessapp_struct::WinDia::*;
 use crate::gui::desktop_ui::top_bot_panels::bot_panels::format_time;
 
-use egui::RichText;
 use egui::Label;
+use egui::RichText;
 use egui::Sense;
 
 //a remplacer
@@ -67,7 +67,7 @@ impl ChessApp {
                         }
                         ui.add_space(100.0);
                         self.speed_replay_slider(ui);
-                        self.display_bottom_buttons(ui);                      
+                        self.display_bottom_buttons(ui);
                     },
                 );
             });
@@ -75,20 +75,18 @@ impl ChessApp {
     }
 
     pub fn display_bottom_buttons(&mut self, ui: &mut egui::Ui) {
-        ui.horizontal_centered(|ui| {
-            match &self.app_mode {
-                AppMode::Replay => {
-                    self.replay_buttons(ui);
-                }
-                AppMode::Lobby => {
-                    self.lobby_buttons(ui);
-                }
-                AppMode::Versus(Some(_end)) => {
-                    self.draw_endgame_buttons(ui);
-                }
-                AppMode::Versus(None) => {
-                    self.draw_resign_undo_buttons(ui);
-                }
+        ui.horizontal_centered(|ui| match &self.app_mode {
+            AppMode::Replay => {
+                self.replay_buttons(ui);
+            }
+            AppMode::Lobby => {
+                self.lobby_buttons(ui);
+            }
+            AppMode::Versus(Some(_end)) => {
+                self.draw_endgame_buttons(ui);
+            }
+            AppMode::Versus(None) => {
+                self.draw_resign_undo_buttons(ui);
             }
         });
     }
@@ -135,10 +133,7 @@ impl ChessApp {
                 .rev()
                 .collect();
 
-            let response = ui.add(
-                Label::new(displayed_text)
-                    .sense(Sense::click())
-            );
+            let response = ui.add(Label::new(displayed_text).sense(Sense::click()));
 
             if response.clicked() {
                 self.mobile_win = Some(Pgn);
@@ -153,12 +148,18 @@ impl ChessApp {
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 if self.mobile_timer.mode != NoTime {
                     if self.mobile_timer.increment == 0.0 {
-                        ui.label(RichText::new(format_time(self.mobile_timer.black_time) + " ⏱").size(50.0));
+                        ui.label(
+                            RichText::new(format_time(self.mobile_timer.black_time) + " ⏱")
+                                .size(50.0),
+                        );
                     } else {
-                        ui.label(RichText::new(
-                            format_time(self.mobile_timer.black_time)
-                                + " ⏱ + "
-                                + &format_time(self.mobile_timer.increment).to_string()).size(50.0),
+                        ui.label(
+                            RichText::new(
+                                format_time(self.mobile_timer.black_time)
+                                    + " ⏱ + "
+                                    + &format_time(self.mobile_timer.increment).to_string(),
+                            )
+                            .size(50.0),
                         );
                     }
                 }
@@ -172,14 +173,19 @@ impl ChessApp {
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 if self.mobile_timer.mode != NoTime {
                     if self.mobile_timer.increment == 0.0 {
-                        ui.label(RichText::new(format_time(self.mobile_timer.white_time) + " ⏱").size(50.0));
+                        ui.label(
+                            RichText::new(format_time(self.mobile_timer.white_time) + " ⏱")
+                                .size(50.0),
+                        );
                     } else {
-                        ui.label(RichText::new(
-                            format_time(self.mobile_timer.white_time)
-                                + " ⏱ + "
-                                + &format_time(self.mobile_timer.increment).to_string(),
-                        ).size(50.0),
-                    );
+                        ui.label(
+                            RichText::new(
+                                format_time(self.mobile_timer.white_time)
+                                    + " ⏱ + "
+                                    + &format_time(self.mobile_timer.increment).to_string(),
+                            )
+                            .size(50.0),
+                        );
                     }
                 }
             });

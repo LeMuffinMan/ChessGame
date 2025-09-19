@@ -8,7 +8,6 @@ use crate::gui::mobile_ui::hooks::End::TimeOut;
 use egui::RichText;
 
 impl ChessApp {
-
     pub fn mobile_replay_step(&mut self, ctx: &egui::Context) {
         if let Some(next_step) = self.replay_infos.next_step {
             let now = ctx.input(|i| i.time);
@@ -72,14 +71,12 @@ impl ChessApp {
         }
     }
 
-
-
     pub fn hook_win_diag(&mut self, ctx: &egui::Context) {
         if let Some(win) = &self.mobile_win {
             match win {
                 Options => {
                     self.settings_win(ctx);
-                },
+                }
                 Resign => {
                     self.resign_win(ctx);
                 }
@@ -113,19 +110,19 @@ impl ChessApp {
                 style.spacing.icon_spacing = 8.0; // espace entre checkbox et texte
 
                 ui.add_space(20.0);
-                    ui.horizontal(|ui| {
-                        // ui.add_space(60.0);
-                        ui.vertical_centered(|ui| {
-                            ui.label(&self.history_san);
-                            ui.add_space(20.0);
-                            ui.text_edit_singleline(&mut self.widgets.file_name);
-                            if ui.button(RichText::new("Download").size(30.0)).clicked() {
-                                let _ = self.export_pgn(); //Todo : handle error 
-                                self.mobile_win = None;
-                            }
-                            ui.add_space(40.0);
-                        });
+                ui.horizontal(|ui| {
+                    // ui.add_space(60.0);
+                    ui.vertical_centered(|ui| {
+                        ui.label(&self.history_san);
+                        ui.add_space(20.0);
+                        ui.text_edit_singleline(&mut self.widgets.file_name);
+                        if ui.button(RichText::new("Download").size(30.0)).clicked() {
+                            let _ = self.export_pgn(); //Todo : handle error 
+                            self.mobile_win = None;
+                        }
+                        ui.add_space(40.0);
                     });
+                });
                 ui.vertical_centered(|ui| {
                     if ui.button("Cancel").clicked() {
                         self.mobile_win = None;
@@ -134,9 +131,8 @@ impl ChessApp {
                 //ajouter le nombre de undo max par joueur
                 ui.add_space(20.0);
             });
-
     }
-    
+
     pub fn settings_win(&mut self, ctx: &egui::Context) {
         egui::Window::new("Settings")
             .collapsible(false)
@@ -150,9 +146,9 @@ impl ChessApp {
                 ui.add_space(20.0);
                 self.highlight_checkboxes(ui);
                 ui.add_space(20.0);
-                if !self.history.is_empty() {
-                    self.mobile_save_button(ui);
-                }
+                // if !self.history.is_empty() {
+                //     self.mobile_save_button(ui);
+                // }
                 ui.vertical_centered(|ui| {
                     if ui.button("Save options").clicked() {
                         self.mobile_win = None;
@@ -161,9 +157,6 @@ impl ChessApp {
                 //ajouter le nombre de undo max par joueur
                 ui.add_space(20.0);
             });
-    }
-
-    pub fn mobile_save_button(&mut self, ui: &mut egui::Ui) {
     }
 
     pub fn highlight_checkboxes(&mut self, ui: &mut egui::Ui) {
@@ -220,8 +213,7 @@ impl ChessApp {
 
     pub fn offer_draw_win(&mut self, ctx: &egui::Context) {
         egui::Window::new(
-            RichText::new(format!("{:?} offer a Draw", self.current.opponent))
-                .size(50.0), // taille plus petite
+            RichText::new(format!("{:?} offer a Draw", self.current.opponent)).size(50.0), // taille plus petite
         )
         .collapsible(false)
         .resizable(false)
@@ -246,7 +238,7 @@ impl ChessApp {
         });
     }
 
-    pub fn promote_win(&mut self, ctx: &egui::Context ) {
+    pub fn promote_win(&mut self, ctx: &egui::Context) {
         egui::Window::new("Pawn to promote")
             .collapsible(false)
             .resizable(false)
@@ -257,26 +249,10 @@ impl ChessApp {
                 ui.horizontal(|ui| {
                     ui.add_space(40.0);
                     ui.vertical(|ui| {
-                        ui.radio_value(
-                            &mut self.current.board.promote,
-                            Some(Queen),
-                            "Queen",
-                        );
-                        ui.radio_value(
-                            &mut self.current.board.promote,
-                            Some(Bishop),
-                            "Bishop",
-                        );
-                        ui.radio_value(
-                            &mut self.current.board.promote,
-                            Some(Knight),
-                            "Knight",
-                        );
-                        ui.radio_value(
-                            &mut self.current.board.promote,
-                            Some(Rook),
-                            "Rook",
-                        );
+                        ui.radio_value(&mut self.current.board.promote, Some(Queen), "Queen");
+                        ui.radio_value(&mut self.current.board.promote, Some(Bishop), "Bishop");
+                        ui.radio_value(&mut self.current.board.promote, Some(Knight), "Knight");
+                        ui.radio_value(&mut self.current.board.promote, Some(Rook), "Rook");
                     });
                     if ui.button("Promote").clicked() {
                         self.current.end = Some(End::Resign);
@@ -292,5 +268,4 @@ impl ChessApp {
                 ui.add_space(40.0);
             });
     }
-
 }

@@ -6,6 +6,6 @@ pub mod chessapp_struct;
 // pub mod top_bot_panels;
 // pub mod widgets;
 // pub mod windows_dialog;
+pub mod buttons;
 pub mod desktop_ui;
 pub mod mobile_ui;
-pub mod buttons;

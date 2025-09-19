@@ -1,4 +1,3 @@
-
 use crate::ChessApp;
 
 use egui::FontId;
