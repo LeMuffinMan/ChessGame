@@ -64,7 +64,7 @@ impl ChessApp {
                             if ui
                                 .add_enabled(
                                     self.mobile_win.is_none(),
-                                    egui::Button::new("Options"),
+                                    egui::Button::new("Settings"),
                                 )
                                 .clicked()
                             {

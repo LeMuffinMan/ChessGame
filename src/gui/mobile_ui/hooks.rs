@@ -56,7 +56,7 @@ impl ChessApp {
         if let Some(win) = &self.mobile_win {
             match win {
                 Options => {
-                    egui::Window::new("Options")
+                    egui::Window::new("Settings")
                         .collapsible(false)
                         .resizable(false)
                         .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
@@ -66,29 +66,37 @@ impl ChessApp {
                             style.spacing.icon_spacing = 8.0; // espace entre checkbox et texte
 
                             ui.add_space(20.0);
-                            ui.checkbox(
-                                &mut self.widgets.show_coordinates,
-                                RichText::new("Coordinates").size(30.0),
-                            );
-                            ui.checkbox(
-                                &mut self.widgets.show_legals_moves,
-                                RichText::new("Legals moves").size(30.0),
-                            );
-                            ui.checkbox(
-                                &mut self.widgets.show_threaten_cells,
-                                RichText::new("Threaten cells").size(30.0),
-                            );
-                            ui.checkbox(
-                                &mut self.widgets.show_last_move,
-                                RichText::new("Last move").size(30.0),
-                            );
-
+                            ui.horizontal(|ui| {
+                                ui.add_space(50.0);
+                                ui.vertical(|ui| {
+                                    ui.checkbox(
+                                        &mut self.widgets.show_coordinates,
+                                        RichText::new("Coordinates").size(30.0),
+                                    );
+                            ui.add_space(20.0);
+                                    ui.checkbox(
+                                        &mut self.widgets.show_legals_moves,
+                                        RichText::new("Legals moves").size(30.0),
+                                    );
+                            ui.add_space(20.0);
+                                    ui.checkbox(
+                                        &mut self.widgets.show_threaten_cells,
+                                        RichText::new("Threaten cells").size(30.0),
+                                    );
+                            ui.add_space(20.0);
+                                    ui.checkbox(
+                                        &mut self.widgets.show_last_move,
+                                        RichText::new("Last move").size(30.0),
+                                    );
+                                });
+                            });
                             ui.add_space(20.0);
                             ui.vertical_centered(|ui| {
                                 if ui.button("Save options").clicked() {
                                     self.mobile_win = None;
                                 }
                             });
+                            ui.add_space(20.0);
                         });
                 }
                 Resign => {
