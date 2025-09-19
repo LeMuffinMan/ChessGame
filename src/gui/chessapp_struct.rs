@@ -4,6 +4,7 @@ use crate::Coord;
 use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::update_timer::MobileGameMode;
 use crate::gui::update_timer::Timer;
+use crate::gui::hooks::WinDia;
 
 use eframe::{App, egui};
 use egui::Pos2;
@@ -11,6 +12,7 @@ use egui::Pos2;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+//Draw -> Gamestate methdoes
 #[derive(Clone, PartialEq)]
 pub enum DrawRule {
     TripleRepetition,
@@ -51,6 +53,7 @@ pub struct GameState {
     pub turn: u32,
 }
 
+//methdoe gamestate
 pub struct LateDraw {
     pub board_hashs: HashMap<u64, usize>,
     pub draw_option: Option<DrawOption>,
@@ -58,6 +61,7 @@ pub struct LateDraw {
     pub draw_hash: Option<u64>,
 }
 
+//regrouper highlight et widgets -> VisualSettings
 pub struct Highlight {
     pub from_cell: Option<Coord>,
     pub drag_from: Option<Coord>,
@@ -75,15 +79,6 @@ pub struct Widgets {
     pub file_name: String,
 }
 
-pub enum WinDia {
-    Options,
-    Promote,
-    DrawRequest,
-    Resign,
-    Timer,
-    Undo,
-    Pgn,
-}
 
 #[derive(PartialEq)]
 pub enum AppMode {

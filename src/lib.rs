@@ -63,7 +63,6 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 
 //Todo
 //      -error handling
-//      - readme / release
 //
 //      - pgn decoder
 //          - load
@@ -73,6 +72,13 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //      - save as pgn
 //          - finir les metadonnees et les 80 chars
 //      - undo avec promotion
+//      - pgn win desktop
+//      - replayer panel desktop
+//      - timer off button desktop
+//
+//      - Refacto Draw + triple R
+//
+//      - Mobile : Flip / autoflip
 //
 //Tests :
 //      - unit

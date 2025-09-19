@@ -1,7 +1,7 @@
 use crate::ChessApp;
 use crate::gui::chessapp_struct::AppMode;
 use crate::gui::chessapp_struct::AppMode::*;
-use crate::gui::chessapp_struct::WinDia::*;
+use crate::gui::hooks::WinDia::*;
 use crate::gui::desktop_ui::bot_panels::format_time;
 use crate::gui::update_timer::MobileGameMode::*;
 
