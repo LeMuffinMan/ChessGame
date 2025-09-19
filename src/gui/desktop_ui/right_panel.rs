@@ -3,7 +3,7 @@ use egui::Context;
 
 impl ChessApp {
     //shows the checkbox for visual settings, replay buttons and the san history
-    pub fn right_panel_ui(&mut self, ctx: &Context) {
+    pub fn right_panel_desktop(&mut self, ctx: &Context) {
         egui::SidePanel::right("right_panel")
             .default_width(180.0)
             .show(ctx, |ui| {

@@ -1,7 +1,7 @@
 use crate::ChessApp;
-use crate::gui::chessapp_struct::MobileGameMode;
-use crate::gui::chessapp_struct::MobileGameMode::*;
-use crate::gui::chessapp_struct::MobileTimer;
+use crate::gui::update_timer::MobileGameMode;
+use crate::gui::update_timer::MobileGameMode::*;
+use crate::gui::update_timer::Timer;
 
 use egui::RichText;
 
@@ -40,7 +40,7 @@ impl ChessApp {
                                 ui.add_space(20.0);
                                 ui.selectable_value(
                                     &mut self.mobile_timer,
-                                    MobileTimer {
+                                    Timer {
                                         start: 20.0,
                                         increment: 1.0,
                                         active: false,
@@ -53,7 +53,7 @@ impl ChessApp {
                                 );
                                 ui.selectable_value(
                                     &mut self.mobile_timer,
-                                    MobileTimer {
+                                    Timer {
                                         start: 30.0,
                                         increment: 0.0,
                                         active: false,
@@ -66,7 +66,7 @@ impl ChessApp {
                                 );
                                 ui.selectable_value(
                                     &mut self.mobile_timer,
-                                    MobileTimer {
+                                    Timer {
                                         start: 60.0,
                                         increment: 0.0,
                                         active: false,
@@ -79,7 +79,7 @@ impl ChessApp {
                                 );
                                 ui.selectable_value(
                                     &mut self.mobile_timer,
-                                    MobileTimer {
+                                    Timer {
                                         start: 60.0,
                                         increment: 1.0,
                                         active: false,
@@ -102,7 +102,7 @@ impl ChessApp {
                                 ui.add_space(20.0);
                                 ui.selectable_value(
                                     &mut self.mobile_timer,
-                                    MobileTimer {
+                                    Timer {
                                         start: 180.0,
                                         increment: 2.0,
                                         active: false,
@@ -115,7 +115,7 @@ impl ChessApp {
                                 );
                                 ui.selectable_value(
                                     &mut self.mobile_timer,
-                                    MobileTimer {
+                                    Timer {
                                         start: 300.0,
                                         increment: 0.0,
                                         active: false,
@@ -128,7 +128,7 @@ impl ChessApp {
                                 );
                                 ui.selectable_value(
                                     &mut self.mobile_timer,
-                                    MobileTimer {
+                                    Timer {
                                         start: 300.0,
                                         increment: 5.0,
                                         active: false,
@@ -151,7 +151,7 @@ impl ChessApp {
                                 ui.add_space(20.0);
                                 ui.selectable_value(
                                     &mut self.mobile_timer,
-                                    MobileTimer {
+                                    Timer {
                                         start: 600.0,
                                         increment: 0.0,
                                         active: false,
@@ -164,7 +164,7 @@ impl ChessApp {
                                 );
                                 ui.selectable_value(
                                     &mut self.mobile_timer,
-                                    MobileTimer {
+                                    Timer {
                                         start: 600.0,
                                         increment: 5.0,
                                         active: false,
@@ -177,7 +177,7 @@ impl ChessApp {
                                 );
                                 ui.selectable_value(
                                     &mut self.mobile_timer,
-                                    MobileTimer {
+                                    Timer {
                                         start: 900.0,
                                         increment: 10.0,
                                         active: false,
@@ -190,7 +190,7 @@ impl ChessApp {
                                 );
                                 ui.selectable_value(
                                     &mut self.mobile_timer,
-                                    MobileTimer {
+                                    Timer {
                                         start: 1800.0,
                                         increment: 0.0,
                                         active: false,

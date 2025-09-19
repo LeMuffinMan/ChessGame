@@ -2,7 +2,8 @@ use crate::Board;
 use crate::Color;
 use crate::Coord;
 use crate::gui::chessapp_struct::AppMode::*;
-use crate::gui::chessapp_struct::DrawOption::*;
+use crate::gui::update_timer::MobileGameMode;
+use crate::gui::update_timer::Timer;
 
 use eframe::{App, egui};
 use egui::Pos2;
@@ -18,6 +19,7 @@ pub enum DrawRule {
 
 #[derive(Clone, PartialEq)]
 pub enum DrawOption {
+    //faire une option
     Request,
     Available(DrawRule),
 }
@@ -76,31 +78,11 @@ pub struct Widgets {
 pub enum WinDia {
     Options,
     Promote,
-    Draw,
+    DrawRequest,
     Resign,
     Timer,
     Undo,
     Pgn,
-}
-
-#[derive(PartialEq)]
-pub enum MobileGameMode {
-    Rapid,
-    Blitz,
-    Bullet,
-    Custom,
-    NoTime,
-}
-
-#[derive(PartialEq)]
-pub struct MobileTimer {
-    pub start: f64,
-    pub increment: f64,
-    pub active: bool,
-    pub mode: MobileGameMode,
-    pub white_time: f64,
-    pub black_time: f64,
-    pub start_of_turn: (f64, Option<Color>),
 }
 
 #[derive(PartialEq)]
@@ -118,7 +100,7 @@ pub struct ReplayInfos {
 
 pub struct ChessApp {
     pub mobile: bool,
-    pub mobile_timer: MobileTimer,
+    pub mobile_timer: Timer,
     pub mobile_win: Option<WinDia>,
     pub app_mode: AppMode,
     pub replay_infos: ReplayInfos,
@@ -144,15 +126,7 @@ impl Default for ChessApp {
     fn default() -> Self {
         Self {
             mobile: false,
-            mobile_timer: MobileTimer {
-                start: 0.0,
-                increment: 0.0,
-                active: false,
-                mode: MobileGameMode::NoTime,
-                white_time: 0.0,
-                black_time: 0.0,
-                start_of_turn: (0.0, None),
-            },
+            mobile_timer: Timer::new(),
             mobile_win: None,
             app_mode: Lobby,
             replay_infos: ReplayInfos {
@@ -193,6 +167,7 @@ impl Default for ChessApp {
             },
             promoteinfo: None,
             // file_dialog: FileDialog::new(),
+            // struct pgn
             file_path: None,
             white_name: "White".to_string(),
             black_name: "Black".to_string(),
@@ -204,15 +179,7 @@ impl ChessApp {
     pub fn new(mobile: bool) -> Self {
         Self {
             mobile,
-            mobile_timer: MobileTimer {
-                start: 0.0,
-                increment: 0.0,
-                active: false,
-                mode: MobileGameMode::NoTime,
-                white_time: 0.0,
-                black_time: 0.0,
-                start_of_turn: (0.0, None),
-            },
+            mobile_timer: Timer::new(),
             mobile_win: None,
             app_mode: Lobby,
             replay_infos: ReplayInfos {
@@ -262,71 +229,62 @@ impl ChessApp {
 
 //This App trait runs the eframe : fn update is the main loop, run for each frame
 impl App for ChessApp {
-    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-        self.hook_win_diag(ctx);
-        if self.mobile_timer.mode != MobileGameMode::NoTime && self.mobile_timer.active {
-            self.mobile_update_timer(ctx);
-            ctx.request_repaint();
-        }
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        self.hooks(ctx);
         if self.mobile {
-            self.ui_mobile(ctx, frame);
+            self.apply_styles(ctx);
+
+            self.top_title_panel(ctx);
+            self.central_panel_mobile(ctx);
         } else {
-            self.ui_desktop(ctx);
+            self.apply_desktop_styles(ctx);
+
+            self.top_title_panel(ctx);
+            self.bot_source_code_panel_desktop(ctx);
+
+            self.left_panel_desktop(ctx);
+            self.right_panel_desktop(ctx);
+
+            self.top_black_panel_desktop(ctx);
+            self.bot_white_panel_desktop(ctx);
+
+            self.central_panel_desktop(ctx);
         }
     }
 }
 
 impl ChessApp {
-    // pub fn ui_timer_win(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
-    //     egui::Window::new("Timer")
-    //         .collapsible(false)
-    //         .resizable(false)
-    //         .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
-    //         .show(ctx, |ui| {
-    //             self.ui_mobile_timers(ui);
-    //         });
-    // }
-    pub fn ui_desktop(&mut self, ctx: &egui::Context) {
-        // self.update_timer(ctx);
-
-        self.apply_desktop_styles(ctx);
-        //Promotion
-        if self.replay_infos.index == self.history.len()
+    pub fn hooks(&mut self, ctx: &egui::Context) {
+        self.hook_win(ctx);
+        if self.mobile_timer.mode != MobileGameMode::NoTime && self.mobile_timer.active {
+            if self
+                .mobile_timer
+                .update_timer(ctx, &self.current.active_player)
+            {
+                self.current.end = Some(End::TimeOut);
+            }
+            ctx.request_repaint();
+        }
+        if matches!(self.app_mode, AppMode::Versus(_))
+            && self.replay_infos.index == self.history.len()
             && self.current.board.pawn_to_promote.is_some()
         {
             self.get_promotion_input(ctx);
         }
-        //Undo confirmation
-        // if self.win_undo {
-        //     self.ask_to_undo(ctx);
-        // }
-        //resign confirmation
-        // if self.win_resign {
-        //     self.resign_confirm(ctx);
-        // }
-        //draw_offer
-        if let Some(rq) = &self.draw.draw_option // a faire pour mobile
-            && *rq == Request
-        {
-            self.offer_draw(ctx);
-        }
-        //save menu
-        // if self.win_save {
-        //     self.save_game(ctx);
-        // }
-
-        self.top_title_panel(ctx);
-        self.bot_source_code_panel(ctx);
-
-        self.left_panel_ui(ctx);
-        self.right_panel_ui(ctx);
-
-        self.top_black_panel(ctx);
-        self.bot_white_panel(ctx);
-
-        self.central_panel_ui(ctx);
     }
 
+    pub fn top_title_panel(&self, ctx: &egui::Context) {
+        egui::TopBottomPanel::top("title").show(ctx, |ui| {
+            ui.with_layout(
+                egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
+                |ui| {
+                    ui.heading("ChessGame");
+                },
+            );
+        });
+    }
+
+    //Gamestate fct
     pub fn is_active_player_piece(&mut self, coord: &Coord) -> bool {
         let cell = self.current.board.get(coord);
         cell.is_color(&self.current.active_player)

@@ -136,7 +136,7 @@ impl ChessApp {
         self.settings_button(ui);
         ui.add_space(150.0);
         if ui.button("Draw").clicked() {
-            self.mobile_win = Some(Draw);
+            self.mobile_win = Some(DrawRequest);
         }
         ui.add_space(20.0);
         if ui.button("Resign").clicked() {

@@ -1,9 +1,9 @@
 use crate::ChessApp;
 use crate::gui::chessapp_struct::AppMode;
 use crate::gui::chessapp_struct::AppMode::*;
-use crate::gui::chessapp_struct::MobileGameMode::*;
 use crate::gui::chessapp_struct::WinDia::*;
 use crate::gui::desktop_ui::bot_panels::format_time;
+use crate::gui::update_timer::MobileGameMode::*;
 
 use egui::Label;
 use egui::RichText;
@@ -12,18 +12,7 @@ use egui::Sense;
 //a remplacer
 
 impl ChessApp {
-    pub fn ui_mobile(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        self.apply_styles(ctx);
-
-        if matches!(self.app_mode, AppMode::Versus(_))
-            && self.replay_infos.index == self.history.len()
-            && self.current.board.pawn_to_promote.is_some()
-        {
-            self.get_promotion_input(ctx);
-        }
-
-        self.top_title_panel(ctx);
-
+    pub fn central_panel_mobile(&mut self, ctx: &egui::Context) {
         egui::CentralPanel::default().show(ctx, |ui| {
             if self.app_mode == Replay {
                 self.mobile_replay_step(ctx);

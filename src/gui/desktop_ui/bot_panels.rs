@@ -1,12 +1,11 @@
 use crate::ChessApp;
-use crate::gui::chessapp_struct::MobileGameMode::NoTime;
+use crate::gui::update_timer::MobileGameMode::NoTime;
 use egui::RichText;
 use egui::TextEdit;
 
-
 impl ChessApp {
     //The bot pannels show the white player name and its timer
-    pub fn bot_white_panel(&mut self, ctx: &egui::Context) {
+    pub fn bot_white_panel_desktop(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::bottom("spacer_bottom").show(ctx, |ui| {
             ui.vertical(|ui| {
                 // let now = ctx.input(|i| i.time);
@@ -38,7 +37,7 @@ impl ChessApp {
         });
     }
 
-    pub fn bot_source_code_panel(&self, ctx: &egui::Context) {
+    pub fn bot_source_code_panel_desktop(&self, ctx: &egui::Context) {
         egui::TopBottomPanel::bottom("source code").show(ctx, |ui| {
             ui.with_layout(
                 egui::Layout::centered_and_justified(egui::Direction::LeftToRight),

@@ -9,7 +9,7 @@ impl ChessApp {
         style.text_styles = [
             (
                 TextStyle::Heading,
-                FontId::new(70.0, egui::FontFamily::Proportional),
+                FontId::new(50.0, egui::FontFamily::Proportional),
             ),
             (
                 TextStyle::Body,

@@ -1,11 +1,11 @@
 use crate::ChessApp;
-use crate::board::cell::Cell;
 use crate::Color::*;
+use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
 use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::chessapp_struct::End;
 use crate::gui::chessapp_struct::WinDia::*;
-use crate::gui::chessapp_struct::End::TimeOut;
+use crate::gui::hooks::End::Draw;
 use egui::RichText;
 
 impl ChessApp {
@@ -27,52 +27,7 @@ impl ChessApp {
         ctx.request_repaint();
     }
 
-    pub fn mobile_update_timer(&mut self, ctx: &egui::Context) {
-        let now = ctx.input(|i| i.time);
-
-        // Initialisation si jamais None
-        if self.mobile_timer.start_of_turn.1.is_none() {
-            self.mobile_timer.start_of_turn.1 = Some(self.current.active_player);
-            self.mobile_timer.start_of_turn.0 = now;
-        }
-
-        // Si changement de joueur
-        if self.mobile_timer.start_of_turn.1 != Some(self.current.active_player) {
-            // Ajout de l'incrément
-            match self.mobile_timer.start_of_turn.1 {
-                Some(White) => self.mobile_timer.white_time += self.mobile_timer.increment,
-                Some(Black) => self.mobile_timer.black_time += self.mobile_timer.increment,
-                None => {}
-            }
-            // Switch
-            self.mobile_timer.start_of_turn.1 = Some(self.current.active_player);
-            self.mobile_timer.start_of_turn.0 = now;
-        }
-
-        // Calcul du delta depuis la dernière update
-        let delta = now - self.mobile_timer.start_of_turn.0;
-        self.mobile_timer.start_of_turn.0 = now; // reset pour le prochain tick
-
-        // Décrémentation du joueur actif
-        match self.current.active_player {
-            White => {
-                self.mobile_timer.white_time -= delta;
-                if self.mobile_timer.white_time <= 0.0 {
-                    self.mobile_timer.white_time = 0.0;
-                    self.current.end = Some(TimeOut);
-                }
-            }
-            Black => {
-                self.mobile_timer.black_time -= delta;
-                if self.mobile_timer.black_time <= 0.0 {
-                    self.mobile_timer.black_time = 0.0;
-                    self.current.end = Some(TimeOut);
-                }
-            }
-        }
-    }
-
-    pub fn hook_win_diag(&mut self, ctx: &egui::Context) {
+    pub fn hook_win(&mut self, ctx: &egui::Context) {
         if let Some(win) = &self.mobile_win {
             match win {
                 Options => {
@@ -81,7 +36,7 @@ impl ChessApp {
                 Resign => {
                     self.resign_win(ctx);
                 }
-                Draw => {
+                DrawRequest => {
                     self.offer_draw_win(ctx);
                 }
                 Promote => {
@@ -98,6 +53,38 @@ impl ChessApp {
                 }
             }
         }
+    }
+
+    pub fn get_promotion_input(&mut self, ctx: &egui::Context) {
+        egui::Window::new("Promotion")
+            .collapsible(false)
+            .resizable(false)
+            .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    ui.add_space(140.0);
+                    ui.vertical(|ui| {
+                        ui.add_space(20.0);
+                        ui.selectable_value(&mut self.current.board.promote, Some(Queen), "Queen");
+                        ui.add_space(20.0);
+                        ui.selectable_value(
+                            &mut self.current.board.promote,
+                            Some(Bishop),
+                            "Bishop",
+                        );
+                        ui.add_space(20.0);
+                        ui.selectable_value(
+                            &mut self.current.board.promote,
+                            Some(Knight),
+                            "Knight",
+                        );
+                        ui.add_space(20.0);
+                        ui.selectable_value(&mut self.current.board.promote, Some(Rook), "Rook");
+                    });
+                });
+                ui.add_space(20.0);
+            });
+        self.update_promote();
     }
 
     pub fn ask_undo(&mut self, ctx: &egui::Context) {
@@ -165,8 +152,8 @@ impl ChessApp {
             .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
             .show(ctx, |ui| {
                 let style = ui.style_mut();
-                style.spacing.icon_width = 40.0; // largeur de la checkbox
-                style.spacing.icon_spacing = 8.0; // espace entre checkbox et texte
+                style.spacing.icon_width = 40.0;
+                style.spacing.icon_spacing = 8.0;
 
                 ui.add_space(20.0);
                 self.highlight_checkboxes(ui);
@@ -216,53 +203,98 @@ impl ChessApp {
     }
 
     pub fn resign_win(&mut self, ctx: &egui::Context) {
-        egui::Window::new("Resignation ?")
-            .collapsible(false)
-            .resizable(false)
-            .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
-            .show(ctx, |ui| {
-                ui.add_space(40.0);
-                ui.horizontal(|ui| {
+        if self.mobile {
+            egui::Window::new("Resignation ?")
+                .collapsible(false)
+                .resizable(false)
+                .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
+                .show(ctx, |ui| {
                     ui.add_space(40.0);
-                    if ui.button("Accept").clicked() {
-                        self.current.end = Some(End::Resign);
-                        self.mobile_win = None;
-                        self.app_mode = Versus(Some(End::Resign));
-                    }
-                    ui.add_space(120.0);
-                    if ui.button("Decline").clicked() {
-                        self.mobile_win = None;
-                    }
+                    ui.horizontal(|ui| {
+                        ui.add_space(40.0);
+                        if ui.button("Accept").clicked() {
+                            self.current.end = Some(End::Resign);
+                            self.mobile_win = None;
+                            self.app_mode = Versus(Some(End::Resign));
+                        }
+                        ui.add_space(120.0);
+                        if ui.button("Decline").clicked() {
+                            self.mobile_win = None;
+                        }
+                        ui.add_space(40.0);
+                    });
                     ui.add_space(40.0);
                 });
-                ui.add_space(40.0);
-            });
+        } else {
+            egui::Window::new("Resignation ?")
+                .collapsible(false)
+                .resizable(false)
+                .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
+                .show(ctx, |ui| {
+                    ui.add_space(30.0);
+                    ui.horizontal(|ui| {
+                        ui.add_space(20.0);
+                        if ui.button(RichText::new("Accept").size(40.0)).clicked() {
+                            self.current.end = Some(End::Resign);
+                            self.mobile_win = None;
+                        }
+                        ui.add_space(60.0);
+                        if ui.button(RichText::new("Decline").size(40.0)).clicked() {
+                            self.mobile_win = None;
+                        }
+                        ui.add_space(20.0);
+                    });
+                    ui.add_space(30.0);
+                });
+        }
     }
 
     pub fn offer_draw_win(&mut self, ctx: &egui::Context) {
-        egui::Window::new(
-            RichText::new(format!("{:?} offer a Draw", self.current.opponent)).size(50.0), // taille plus petite
-        )
-        .collapsible(false)
-        .resizable(false)
-        .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
-        .show(ctx, |ui| {
-            ui.add_space(40.0);
-            ui.horizontal(|ui| {
-                ui.add_space(40.0);
-                if ui.button("Accept").clicked() {
-                    self.current.end = Some(End::Draw);
-                    self.mobile_win = None;
-                    self.app_mode = Versus(Some(End::Draw));
-                }
-                ui.add_space(120.0);
-                if ui.button("Decline").clicked() {
-                    self.mobile_win = None;
-                }
-                ui.add_space(40.0);
-            });
-            ui.add_space(40.0);
-        });
+        if self.mobile {
+            egui::Window::new(RichText::new("Draw offer").size(50.0))
+                .collapsible(false)
+                .resizable(false)
+                .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
+                .show(ctx, |ui| {
+                    ui.add_space(40.0);
+                    ui.horizontal(|ui| {
+                        ui.add_space(40.0);
+                        if ui.button("Accept").clicked() {
+                            self.current.end = Some(End::Draw);
+                            self.mobile_win = None;
+                            self.app_mode = Versus(Some(End::Draw));
+                        }
+                        ui.add_space(120.0);
+                        if ui.button("Decline").clicked() {
+                            self.mobile_win = None;
+                        }
+                        ui.add_space(40.0);
+                    });
+                    ui.add_space(40.0);
+                });
+        } else {
+            egui::Window::new(RichText::new("Draw offer").size(50.0))
+                .collapsible(false)
+                .resizable(false)
+                .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
+                .show(ctx, |ui| {
+                    ui.add_space(40.0);
+                    ui.horizontal(|ui| {
+                        ui.add_space(40.0);
+                        if ui.button(RichText::new("Accept").size(40.0)).clicked() {
+                            self.current.end = Some(Draw);
+                            self.mobile_win = None;
+                            //window dialog
+                        }
+                        ui.add_space(100.0);
+                        if ui.button(RichText::new("Decline").size(40.0)).clicked() {
+                            self.mobile_win = None;
+                        }
+                        ui.add_space(40.0);
+                    });
+                    ui.add_space(40.0);
+                });
+        }
     }
 
     pub fn promote_win(&mut self, ctx: &egui::Context) {
