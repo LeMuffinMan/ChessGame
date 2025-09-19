@@ -8,6 +8,25 @@ use crate::gui::mobile_ui::hooks::End::TimeOut;
 use egui::RichText;
 
 impl ChessApp {
+
+    pub fn mobile_replay_step(&mut self, ctx: &egui::Context) {
+        if let Some(next_step) = self.replay_infos.next_step {
+            let now = ctx.input(|i| i.time);
+            if now >= next_step {
+                if self.replay_infos.index + 1 < self.history.len() {
+                    self.replay_infos.index += 1;
+                    self.current = self.history[self.replay_infos.index].clone();
+                    let delay = self.replay_infos.sec_per_frame;
+                    self.replay_infos.next_step = Some(now + delay);
+                } else {
+                    self.replay_infos.index = self.history.len();
+                    self.replay_infos.next_step = None;
+                }
+            }
+        }
+        ctx.request_repaint();
+    }
+
     pub fn mobile_update_timer(&mut self, ctx: &egui::Context) {
         let now = ctx.input(|i| i.time);
 
@@ -113,7 +132,7 @@ impl ChessApp {
                                 if ui.button("Accept").clicked() {
                                     self.current.end = Some(End::Resign);
                                     self.mobile_win = None;
-                                    self.app_mode = Lobby;
+                                    self.app_mode = Versus(Some(End::Resign));
                                 }
                                 ui.add_space(120.0);
                                 if ui.button("Decline").clicked() {
@@ -140,7 +159,7 @@ impl ChessApp {
                             if ui.button("Accept").clicked() {
                                 self.current.end = Some(End::Draw);
                                 self.mobile_win = None;
-                                self.app_mode = Lobby;
+                                self.app_mode = Versus(Some(End::Draw));
                             }
                             ui.add_space(120.0);
                             if ui.button("Decline").clicked() {
@@ -186,7 +205,7 @@ impl ChessApp {
                                 if ui.button("Promote").clicked() {
                                     self.current.end = Some(End::Resign);
                                     self.mobile_win = None;
-                                    self.app_mode = Lobby;
+                                    self.app_mode = Versus(Some(End::Resign));
                                 }
                                 ui.add_space(120.0);
                                 if ui.button("Decline").clicked() {

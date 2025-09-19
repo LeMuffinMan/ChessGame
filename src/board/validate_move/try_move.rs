@@ -39,9 +39,10 @@ impl ChessApp {
                 timer.black.0 = None;
             };
             //for mobile test
-            self.app_mode = Versus;
+            self.app_mode = Versus(None);
             self.mobile_timer.active = true;
             self.mobile_timer.start_of_turn.1 = Some(White);
+            self.replay_infos.index += 1;
             //Setup les timers ici ?
         }
         //it triggers a draw if true, before update board for pawn detection in case of promotion
@@ -53,7 +54,7 @@ impl ChessApp {
         //it triggers a draw if the board match an impossible mat situation
         if self.impossible_mate_check() {
             self.current.end = Some(Draw);
-            self.app_mode = Lobby;
+            self.app_mode = Versus(Some(Draw));
         }
         //update castles bool state for both player
         self.update_castles(&to);
@@ -87,6 +88,7 @@ impl ChessApp {
             //if there were no promotion, we add the actual board in history, and inc the index
             self.history.push(self.current.clone());
             self.widgets.replay_index += 1;
+            self.replay_infos.index += 1;
             self.encode_move_to_san(&from, &to, &prev_board);
         }
     }
@@ -132,10 +134,10 @@ impl ChessApp {
             if let Some(coord) = king_cell {
                 if self.current.board.threaten_cells.contains(&coord) {
                     self.current.end = Some(Checkmate);
-                    self.app_mode = Lobby;
+                    self.app_mode = Versus(Some(Checkmate));
                 } else {
                     self.current.end = Some(Pat);
-                    self.app_mode = Lobby;
+                    self.app_mode = Versus(Some(Pat));
                 }
             }
         }
