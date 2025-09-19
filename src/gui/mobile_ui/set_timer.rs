@@ -1,6 +1,4 @@
 use crate::ChessApp;
-use crate::Color::*;
-// use crate::gui::chessapp_struct::GameMode::*;
 use crate::gui::chessapp_struct::MobileGameMode;
 use crate::gui::chessapp_struct::MobileGameMode::*;
 use crate::gui::chessapp_struct::MobileTimer;

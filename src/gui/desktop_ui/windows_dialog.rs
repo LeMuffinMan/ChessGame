@@ -153,9 +153,17 @@ impl ChessApp {
                         ui.add_space(20.0);
                         ui.selectable_value(&mut self.current.board.promote, Some(Queen), "Queen");
                         ui.add_space(20.0);
-                        ui.selectable_value(&mut self.current.board.promote, Some(Bishop), "Bishop");
+                        ui.selectable_value(
+                            &mut self.current.board.promote,
+                            Some(Bishop),
+                            "Bishop",
+                        );
                         ui.add_space(20.0);
-                        ui.selectable_value(&mut self.current.board.promote, Some(Knight), "Knight");
+                        ui.selectable_value(
+                            &mut self.current.board.promote,
+                            Some(Knight),
+                            "Knight",
+                        );
                         ui.add_space(20.0);
                         ui.selectable_value(&mut self.current.board.promote, Some(Rook), "Rook");
                     });

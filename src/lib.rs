@@ -52,7 +52,7 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
                 canvas,
                 eframe::WebOptions::default(),
                 //added move to build the mobile/desktop app
-                Box::new(move |_cc| Ok(Box::new(ChessApp::new(true)))),
+                Box::new(move |_cc| Ok(Box::new(ChessApp::new(is_mobile)))),
             )
             .await
             .unwrap();

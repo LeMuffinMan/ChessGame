@@ -1,6 +1,5 @@
 use crate::Board;
 use crate::Color;
-use crate::Color::*;
 use crate::Coord;
 use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::chessapp_struct::DrawOption::*;
@@ -224,7 +223,7 @@ impl Default for ChessApp {
 impl ChessApp {
     pub fn new(mobile: bool) -> Self {
         Self {
-            mobile: mobile,
+            mobile,
             mobile_timer: MobileTimer {
                 start: 0.0,
                 increment: 0.0,
