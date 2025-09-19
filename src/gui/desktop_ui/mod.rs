@@ -1,6 +1,6 @@
-pub mod central_panel;
-pub mod draw_rules;
-pub mod side_panels;
-pub mod top_bot_panels;
-pub mod widgets;
 pub mod windows_dialog;
+pub mod central_panel_ui;
+pub mod left_panel;
+pub mod right_panel;
+pub mod top_panels;
+pub mod bot_panels;

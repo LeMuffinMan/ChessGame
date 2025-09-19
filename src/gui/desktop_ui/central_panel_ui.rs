@@ -13,9 +13,9 @@ impl ChessApp {
 
             //we draw a big rectangle as background
             let rect = response.rect;
-            let board_rect = centered_square(rect);
+            let board_rect = ChessApp::centered_square(rect);
             let inner = if self.widgets.show_coordinates {
-                render_border(&painter, board_rect);
+                ChessApp::render_border(&painter, board_rect);
                 board_rect.shrink(16.0)
             } else {
                 board_rect
@@ -45,12 +45,4 @@ impl ChessApp {
     }
 }
 
-pub fn centered_square(rect: egui::Rect) -> egui::Rect {
-    let side = rect.width().min(rect.height());
-    egui::Rect::from_center_size(rect.center(), egui::vec2(side, side))
-}
 
-pub fn render_border(p: &egui::Painter, rect: egui::Rect) {
-    let border_color = egui::Color32::from_rgb(50, 50, 50);
-    p.rect_filled(rect, 0.0, border_color);
-}
