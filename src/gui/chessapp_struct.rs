@@ -291,7 +291,7 @@ impl ChessApp {
 impl App for ChessApp {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         self.hook_win_diag(ctx);
-        if self.mobile_timer.active {
+        if self.mobile_timer.mode != MobileGameMode::NoTime && self.mobile_timer.active {
             self.mobile_update_timer(ctx);
             ctx.request_repaint();
         }

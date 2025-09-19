@@ -140,13 +140,13 @@ impl ChessApp {
                         });
                         ui.add_space(40.0);
 
-                        if !self.mobile_timer.active {
+                        // if !self.mobile_timer.active {
                             ui.separator();
                             ui.add_space(40.0);
-                            self.turn_infos(ui);
+                            self.mobile_turn_infos(ui);
                             ui.add_space(40.0);
                             ui.separator();
-                        }
+                        // }
                         // ui.separator();
                         ui.add_space(40.0);
                         ui.horizontal(|ui| {
@@ -225,6 +225,7 @@ impl ChessApp {
                                     {
                                         self.history.clear();
                                         self.history_san.clear();
+                                        self.widgets.replay_index = 0;
                                         self.current = GameState {
                                             // faire un builder
                                             board: Board::init_board(),

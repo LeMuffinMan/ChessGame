@@ -53,6 +53,7 @@ impl ChessApp {
         //it triggers a draw if the board match an impossible mat situation
         if self.impossible_mate_check() {
             self.current.end = Some(Draw);
+            self.app_mode = Lobby;
         }
         //update castles bool state for both player
         self.update_castles(&to);
@@ -131,8 +132,10 @@ impl ChessApp {
             if let Some(coord) = king_cell {
                 if self.current.board.threaten_cells.contains(&coord) {
                     self.current.end = Some(Checkmate);
+                    self.app_mode = Lobby;
                 } else {
                     self.current.end = Some(Pat);
+                    self.app_mode = Lobby;
                 }
             }
         }
