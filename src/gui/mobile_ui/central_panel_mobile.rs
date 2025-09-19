@@ -10,6 +10,7 @@ use crate::gui::desktop_ui::top_bot_panels::bot_panels::format_time;
 
 use egui::FontId;
 use egui::TextStyle;
+use egui::RichText;
 
 //a remplacer
 use crate::gui::desktop_ui::central_panel::central_panel_ui::render_border;
@@ -286,16 +287,16 @@ impl ChessApp {
     //impl pour mobile_timer
     pub fn black_panel(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
-            ui.label("Black");
+            ui.label(RichText::new("White").size(50.0));
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 if self.mobile_timer.mode != NoTime {
                     if self.mobile_timer.increment == 0.0 {
-                        ui.label(format_time(self.mobile_timer.black_time) + " ⏱");
+                        ui.label(RichText::new(format_time(self.mobile_timer.black_time) + " ⏱").size(50.0));
                     } else {
-                        ui.label(
+                        ui.label(RichText::new(
                             format_time(self.mobile_timer.black_time)
                                 + " ⏱ + "
-                                + &format_time(self.mobile_timer.increment).to_string(),
+                                + &format_time(self.mobile_timer.increment).to_string()).size(50.0),
                         );
                     }
                 }
@@ -305,17 +306,18 @@ impl ChessApp {
 
     pub fn white_panel(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
-            ui.label("White");
+            ui.label(RichText::new("White").size(50.0));
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 if self.mobile_timer.mode != NoTime {
                     if self.mobile_timer.increment == 0.0 {
-                        ui.label(format_time(self.mobile_timer.white_time) + " ⏱");
+                        ui.label(RichText::new(format_time(self.mobile_timer.white_time) + " ⏱").size(50.0));
                     } else {
-                        ui.label(
+                        ui.label(RichText::new(
                             format_time(self.mobile_timer.white_time)
                                 + " ⏱ + "
                                 + &format_time(self.mobile_timer.increment).to_string(),
-                        );
+                        ).size(50.0),
+                    );
                     }
                 }
             });
@@ -331,7 +333,7 @@ impl ChessApp {
             ),
             (
                 TextStyle::Body,
-                FontId::new(50.0, egui::FontFamily::Proportional),
+                FontId::new(30.0, egui::FontFamily::Proportional),
             ),
             (
                 TextStyle::Monospace,

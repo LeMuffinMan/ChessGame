@@ -72,149 +72,22 @@ impl ChessApp {
         }
     }
 
+
+
     pub fn hook_win_diag(&mut self, ctx: &egui::Context) {
         if let Some(win) = &self.mobile_win {
             match win {
                 Options => {
-                    egui::Window::new("Settings")
-                        .collapsible(false)
-                        .resizable(false)
-                        .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
-                        .show(ctx, |ui| {
-                            let style = ui.style_mut();
-                            style.spacing.icon_width = 40.0; // largeur de la checkbox
-                            style.spacing.icon_spacing = 8.0; // espace entre checkbox et texte
-
-                            ui.add_space(20.0);
-                            ui.horizontal(|ui| {
-                                ui.add_space(50.0);
-                                ui.vertical(|ui| {
-                                    ui.checkbox(
-                                        &mut self.widgets.show_coordinates,
-                                        RichText::new("Coordinates").size(30.0),
-                                    );
-                                    ui.add_space(20.0);
-                                    ui.checkbox(
-                                        &mut self.widgets.show_legals_moves,
-                                        RichText::new("Legals moves").size(30.0),
-                                    );
-                                    ui.add_space(20.0);
-                                    ui.checkbox(
-                                        &mut self.widgets.show_threaten_cells,
-                                        RichText::new("Threaten cells").size(30.0),
-                                    );
-                                    ui.add_space(20.0);
-                                    ui.checkbox(
-                                        &mut self.widgets.show_last_move,
-                                        RichText::new("Last move").size(30.0),
-                                    );
-                                });
-                            });
-                            ui.add_space(20.0);
-                            ui.vertical_centered(|ui| {
-                                if ui.button("Save options").clicked() {
-                                    self.mobile_win = None;
-                                }
-                            });
-                            ui.add_space(20.0);
-                        });
-                }
+                    self.settings_win(ctx);
+                },
                 Resign => {
-                    egui::Window::new("Resignation ?")
-                        .collapsible(false)
-                        .resizable(false)
-                        .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
-                        .show(ctx, |ui| {
-                            self.win_dialog = true;
-                            ui.add_space(40.0);
-                            ui.horizontal(|ui| {
-                                ui.add_space(40.0);
-                                if ui.button("Accept").clicked() {
-                                    self.current.end = Some(End::Resign);
-                                    self.mobile_win = None;
-                                    self.app_mode = Versus(Some(End::Resign));
-                                }
-                                ui.add_space(120.0);
-                                if ui.button("Decline").clicked() {
-                                    self.mobile_win = None;
-                                }
-                                ui.add_space(40.0);
-                            });
-                            ui.add_space(40.0);
-                        });
+                    self.resign_win(ctx);
                 }
                 Draw => {
-                    egui::Window::new(
-                        RichText::new(format!("{:?} offer a Draw", self.current.opponent))
-                            .size(50.0), // taille plus petite
-                    )
-                    .collapsible(false)
-                    .resizable(false)
-                    .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
-                    .show(ctx, |ui| {
-                        self.win_dialog = true;
-                        ui.add_space(40.0);
-                        ui.horizontal(|ui| {
-                            ui.add_space(40.0);
-                            if ui.button("Accept").clicked() {
-                                self.current.end = Some(End::Draw);
-                                self.mobile_win = None;
-                                self.app_mode = Versus(Some(End::Draw));
-                            }
-                            ui.add_space(120.0);
-                            if ui.button("Decline").clicked() {
-                                self.mobile_win = None;
-                            }
-                            ui.add_space(40.0);
-                        });
-                        ui.add_space(40.0);
-                    });
+                    self.offer_draw_win(ctx);
                 }
                 Promote => {
-                    egui::Window::new("Pawn to promote")
-                        .collapsible(false)
-                        .resizable(false)
-                        .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
-                        .show(ctx, |ui| {
-                            self.win_dialog = true;
-                            ui.add_space(40.0);
-                            ui.horizontal(|ui| {
-                                ui.add_space(40.0);
-                                ui.vertical(|ui| {
-                                    ui.radio_value(
-                                        &mut self.current.board.promote,
-                                        Some(Queen),
-                                        "Queen",
-                                    );
-                                    ui.radio_value(
-                                        &mut self.current.board.promote,
-                                        Some(Bishop),
-                                        "Bishop",
-                                    );
-                                    ui.radio_value(
-                                        &mut self.current.board.promote,
-                                        Some(Knight),
-                                        "Knight",
-                                    );
-                                    ui.radio_value(
-                                        &mut self.current.board.promote,
-                                        Some(Rook),
-                                        "Rook",
-                                    );
-                                });
-                                if ui.button("Promote").clicked() {
-                                    self.current.end = Some(End::Resign);
-                                    self.mobile_win = None;
-                                    self.app_mode = Versus(Some(End::Resign));
-                                }
-                                ui.add_space(120.0);
-                                if ui.button("Decline").clicked() {
-                                    self.mobile_win = None;
-                                }
-                                ui.add_space(40.0);
-                            });
-                            ui.add_space(40.0);
-                        });
+                    self.promote_win(ctx);
                 }
                 Timer => {
                     self.set_timer(ctx);
@@ -222,4 +95,172 @@ impl ChessApp {
             }
         }
     }
+    
+    pub fn settings_win(&mut self, ctx: &egui::Context) {
+        egui::Window::new("Settings")
+            .collapsible(false)
+            .resizable(false)
+            .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
+            .show(ctx, |ui| {
+                let style = ui.style_mut();
+                style.spacing.icon_width = 40.0; // largeur de la checkbox
+                style.spacing.icon_spacing = 8.0; // espace entre checkbox et texte
+
+                ui.add_space(20.0);
+                self.highlight_checkboxes(ui);
+                ui.add_space(20.0);
+                if !self.history.is_empty() {
+                    self.mobile_save_button(ui);
+                }
+                ui.vertical_centered(|ui| {
+                    if ui.button("Save options").clicked() {
+                        self.mobile_win = None;
+                    }
+                });
+                ui.add_space(20.0);
+            });
+    }
+
+    pub fn mobile_save_button(&mut self, ui: &mut egui::Ui) {
+        ui.horizontal(|ui| {
+            // ui.add_space(60.0);
+            ui.vertical_centered(|ui| {
+                ui.add_space(20.0);
+                ui.text_edit_singleline(&mut self.widgets.file_name);
+                if ui.button(RichText::new("Download").size(30.0)).clicked() {
+                    let _ = self.export_pgn(); //Todo : handle error 
+                    self.mobile_win = None;
+                }
+                ui.add_space(40.0);
+            });
+        });
+    }
+
+    pub fn highlight_checkboxes(&mut self, ui: &mut egui::Ui) {
+        ui.horizontal(|ui| {
+            ui.add_space(50.0);
+            ui.vertical(|ui| {
+                ui.checkbox(
+                    &mut self.widgets.show_coordinates,
+                    RichText::new("Coordinates").size(30.0),
+                );
+                ui.add_space(20.0);
+                ui.checkbox(
+                    &mut self.widgets.show_legals_moves,
+                    RichText::new("Legals moves").size(30.0),
+                );
+                ui.add_space(20.0);
+                ui.checkbox(
+                    &mut self.widgets.show_threaten_cells,
+                    RichText::new("Threaten cells").size(30.0),
+                );
+                ui.add_space(20.0);
+                ui.checkbox(
+                    &mut self.widgets.show_last_move,
+                    RichText::new("Last move").size(30.0),
+                );
+            });
+        });
+    }
+
+    pub fn resign_win(&mut self, ctx: &egui::Context) {
+        egui::Window::new("Resignation ?")
+            .collapsible(false)
+            .resizable(false)
+            .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
+            .show(ctx, |ui| {
+                self.win_dialog = true;
+                ui.add_space(40.0);
+                ui.horizontal(|ui| {
+                    ui.add_space(40.0);
+                    if ui.button("Accept").clicked() {
+                        self.current.end = Some(End::Resign);
+                        self.mobile_win = None;
+                        self.app_mode = Versus(Some(End::Resign));
+                    }
+                    ui.add_space(120.0);
+                    if ui.button("Decline").clicked() {
+                        self.mobile_win = None;
+                    }
+                    ui.add_space(40.0);
+                });
+                ui.add_space(40.0);
+            });
+    }
+
+    pub fn offer_draw_win(&mut self, ctx: &egui::Context) {
+        egui::Window::new(
+            RichText::new(format!("{:?} offer a Draw", self.current.opponent))
+                .size(50.0), // taille plus petite
+        )
+        .collapsible(false)
+        .resizable(false)
+        .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
+        .show(ctx, |ui| {
+            self.win_dialog = true;
+            ui.add_space(40.0);
+            ui.horizontal(|ui| {
+                ui.add_space(40.0);
+                if ui.button("Accept").clicked() {
+                    self.current.end = Some(End::Draw);
+                    self.mobile_win = None;
+                    self.app_mode = Versus(Some(End::Draw));
+                }
+                ui.add_space(120.0);
+                if ui.button("Decline").clicked() {
+                    self.mobile_win = None;
+                }
+                ui.add_space(40.0);
+            });
+            ui.add_space(40.0);
+        });
+    }
+
+    pub fn promote_win(&mut self, ctx: &egui::Context ) {
+        egui::Window::new("Pawn to promote")
+            .collapsible(false)
+            .resizable(false)
+            .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
+            .show(ctx, |ui| {
+                self.win_dialog = true;
+                ui.add_space(40.0);
+                ui.horizontal(|ui| {
+                    ui.add_space(40.0);
+                    ui.vertical(|ui| {
+                        ui.radio_value(
+                            &mut self.current.board.promote,
+                            Some(Queen),
+                            "Queen",
+                        );
+                        ui.radio_value(
+                            &mut self.current.board.promote,
+                            Some(Bishop),
+                            "Bishop",
+                        );
+                        ui.radio_value(
+                            &mut self.current.board.promote,
+                            Some(Knight),
+                            "Knight",
+                        );
+                        ui.radio_value(
+                            &mut self.current.board.promote,
+                            Some(Rook),
+                            "Rook",
+                        );
+                    });
+                    if ui.button("Promote").clicked() {
+                        self.current.end = Some(End::Resign);
+                        self.mobile_win = None;
+                        self.app_mode = Versus(Some(End::Resign));
+                    }
+                    ui.add_space(120.0);
+                    if ui.button("Decline").clicked() {
+                        self.mobile_win = None;
+                    }
+                    ui.add_space(40.0);
+                });
+                ui.add_space(40.0);
+            });
+    }
+
 }
