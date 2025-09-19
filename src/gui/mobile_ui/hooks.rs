@@ -116,7 +116,31 @@ impl ChessApp {
                         });
                 }
                 Draw => {
-                    self.offer_draw(ctx);
+                    egui::Window::new(
+                        RichText::new(format!("{:?} offer a Draw", self.current.opponent))
+                            .size(50.0) // taille plus petite
+                    )
+                    .collapsible(false)
+                    .resizable(false)
+                    .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
+                    .show(ctx, |ui| {
+                        self.win_dialog = true;
+                        ui.add_space(40.0);
+                        ui.horizontal(|ui| {
+                            ui.add_space(40.0);
+                            if ui.button("Accept").clicked() {
+                                self.current.end = Some(End::Draw);
+                                self.mobile_win = None;
+                                self.app_mode = Lobby;
+                            }
+                            ui.add_space(120.0);
+                            if ui.button("Decline").clicked() {
+                                self.mobile_win = None;
+                            }
+                            ui.add_space(40.0);
+                        });
+                        ui.add_space(40.0);
+                    });
                 }
                 Promote => {
                     self.get_promotion_input(ctx);
