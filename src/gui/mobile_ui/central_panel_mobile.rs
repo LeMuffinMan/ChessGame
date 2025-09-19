@@ -17,7 +17,7 @@ impl ChessApp {
         self.apply_styles(ctx);
 
         if matches!(self.app_mode, AppMode::Versus(_))
-            && self.widgets.replay_index == self.history.len()
+            && self.replay_infos.index == self.history.len()
             && self.current.board.pawn_to_promote.is_some()
         {
             self.get_promotion_input(ctx);

@@ -3,25 +3,12 @@ use crate::Color;
 use crate::Coord;
 use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::chessapp_struct::DrawOption::*;
-use crate::gui::chessapp_struct::GameMode::NoTime;
-use crate::gui::desktop_ui::widgets::replay::Timer;
 
 use eframe::{App, egui};
 use egui::Pos2;
 
 use std::collections::HashMap;
 use std::path::PathBuf;
-
-//a file for enums ?
-#[derive(Clone, Copy, PartialEq)]
-pub enum GameMode {
-    Bullet(f64, f64), //(timer, increment)
-    Blitz(f64, f64),
-    Rapid(f64, f64),
-    Custom(f64, f64),
-    NoTime(f64, f64),
-    Replay(f64, f64),
-}
 
 #[derive(Clone, PartialEq)]
 pub enum DrawRule {
@@ -81,14 +68,8 @@ pub struct Widgets {
     pub show_legals_moves: bool,
     pub show_last_move: bool,
     pub show_threaten_cells: bool,
-    pub custom_timer: bool,
-    pub next_replay_time: Option<f64>,
     pub flip: bool,
     pub autoflip: bool,
-    pub replay_speed: f64,
-    pub replay_index: usize,
-    pub timer: Option<Timer>,
-    pub game_mode: GameMode,
     pub file_name: String,
 }
 
@@ -156,13 +137,6 @@ pub struct ChessApp {
     pub draw: LateDraw,
     pub promoteinfo: Option<PromoteInfo>,
 
-    //Window dialog for special events
-    //used to block any inputs and force user to choose an option
-    pub win_dialog: bool,
-    pub win_resign: bool,
-    pub win_undo: bool,
-    pub win_save: bool,
-
     pub file_path: Option<PathBuf>,
 }
 
@@ -201,14 +175,8 @@ impl Default for ChessApp {
                 show_legals_moves: true,
                 show_last_move: true,
                 show_threaten_cells: false,
-                custom_timer: false,
-                next_replay_time: None,
                 flip: true,
                 autoflip: false,
-                replay_speed: 1.0,
-                replay_index: 0,
-                timer: None,
-                game_mode: NoTime(0.0, 0.0),
                 file_name: "chessgame.pgn".to_string(),
             },
             highlight: Highlight {
@@ -228,10 +196,6 @@ impl Default for ChessApp {
             file_path: None,
             white_name: "White".to_string(),
             black_name: "Black".to_string(),
-            win_dialog: false,
-            win_resign: false,
-            win_undo: false,
-            win_save: false,
         }
     }
 }
@@ -271,14 +235,8 @@ impl ChessApp {
                 show_legals_moves: true,
                 show_last_move: true,
                 show_threaten_cells: false,
-                custom_timer: false,
-                next_replay_time: None,
                 flip: true,
                 autoflip: false,
-                replay_speed: 1.0,
-                replay_index: 0,
-                timer: None,
-                game_mode: NoTime(0.0, 0.0),
                 file_name: "chessgame.pgn".to_string(),
             },
             highlight: Highlight {
@@ -298,11 +256,6 @@ impl ChessApp {
             file_path: None,
             white_name: "White".to_string(),
             black_name: "Black".to_string(),
-            win_dialog: false,
-            win_resign: false,
-            win_undo: false,
-            win_save: false,
-            // init de ton état
         }
     }
 }
@@ -334,32 +287,32 @@ impl ChessApp {
     //         });
     // }
     pub fn ui_desktop(&mut self, ctx: &egui::Context) {
-        self.update_timer(ctx);
+        // self.update_timer(ctx);
 
         //Promotion
-        if self.widgets.replay_index == self.history.len()
+        if self.replay_infos.index == self.history.len()
             && self.current.board.pawn_to_promote.is_some()
         {
             self.get_promotion_input(ctx);
         }
         //Undo confirmation
-        if self.win_undo {
-            self.ask_to_undo(ctx);
-        }
+        // if self.win_undo {
+        //     self.ask_to_undo(ctx);
+        // }
         //resign confirmation
-        if self.win_resign {
-            self.resign_confirm(ctx);
-        }
+        // if self.win_resign {
+        //     self.resign_confirm(ctx);
+        // }
         //draw_offer
-        if let Some(rq) = &self.draw.draw_option
+        if let Some(rq) = &self.draw.draw_option // a faire pour mobile
             && *rq == Request
         {
             self.offer_draw(ctx);
         }
         //save menu
-        if self.win_save {
-            self.save_game(ctx);
-        }
+        // if self.win_save {
+        //     self.save_game(ctx);
+        // }
 
         self.top_title_panel(ctx);
         self.bot_source_code_panel(ctx);

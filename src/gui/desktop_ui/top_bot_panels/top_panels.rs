@@ -1,8 +1,4 @@
 use crate::ChessApp;
-use crate::gui::chessapp_struct::End::TimeOut;
-use crate::gui::chessapp_struct::GameMode::Replay;
-use crate::gui::desktop_ui::top_bot_panels::bot_panels::format_time;
-use crate::gui::desktop_ui::widgets::replay::Timer;
 
 use egui::TextEdit;
 
@@ -24,27 +20,26 @@ impl ChessApp {
             ui.horizontal(|ui| {
                 let now = ctx.input(|i| i.time);
                 //set timer if needed
-                if self.widgets.timer.is_none() {
-                    self.widgets.timer = Timer::build(self.widgets.game_mode);
-                }
+                // if self.widgets.timer.is_none() {
+                //     self.widgets.timer = Timer::build(self.widgets.game_mode);
+                // }
 
-                if let Some(timer) = &self.widgets.timer {
-                    let rem = {
-                        if let Some(start) = timer.black.0 {
-                            timer.black.1 - (now - start)
-                        } else {
-                            timer.black.1
-                        }
-                    }
-                    .max(0.0);
-                    if rem == 0.0 {
-                        self.current.end = Some(TimeOut);
-                        self.history_san.push_str("1-0");
-                        self.widgets.timer = None;
-                        self.widgets.game_mode = Replay(0.0, 0.0);
-                    }
-                    ui.heading(format_time(rem));
-                }
+                // if let Some(timer) = &self.widgets.timer {
+                //     let rem = {
+                //         if let Some(start) = timer.black.0 {
+                //             timer.black.1 - (now - start)
+                //         } else {
+                //             timer.black.1
+                //         }
+                //     }
+                //     .max(0.0);
+                //     if rem == 0.0 {
+                //         self.current.end = Some(TimeOut);
+                //         self.history_san.push_str("1-0");
+                //         self.app_mode = Lobby;
+                //     }
+                //     ui.heading(format_time(rem));
+                // }
                 if self.history.is_empty() || self.current.end.is_some() {
                     ui.add(TextEdit::singleline(&mut self.black_name));
                 } else {

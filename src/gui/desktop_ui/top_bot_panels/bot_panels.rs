@@ -1,7 +1,6 @@
 use crate::ChessApp;
-use crate::gui::chessapp_struct::End::TimeOut;
-use crate::gui::chessapp_struct::GameMode::Replay;
 use egui::TextEdit;
+
 
 impl ChessApp {
     //The bot pannels show the white player name and its timer
@@ -10,23 +9,23 @@ impl ChessApp {
             ui.horizontal(|ui| {
                 let now = ctx.input(|i| i.time);
                 //fonction panel_timer : revoir la structure timer
-                if let Some(timer) = &self.widgets.timer {
-                    let rem = {
-                        if let Some(start) = timer.white.0 {
-                            timer.white.1 - (now - start)
-                        } else {
-                            timer.white.1
-                        }
-                    }
-                    .max(0.0);
-                    if rem == 0.0 {
-                        self.current.end = Some(TimeOut);
-                        self.history_san.push_str("0-1");
-                        self.widgets.timer = None;
-                        self.widgets.game_mode = Replay(0.0, 0.0);
-                    }
-                    ui.heading(format_time(rem));
-                }
+                // if let Some(timer) = &self.widgets.timer {
+                //     let rem = {
+                //         if let Some(start) = timer.white.0 {
+                //             timer.white.1 - (now - start)
+                //         } else {
+                //             timer.white.1
+                //         }
+                //     }
+                //     .max(0.0);
+                //     if rem == 0.0 {
+                //         self.current.end = Some(TimeOut);
+                //         self.history_san.push_str("0-1");
+                //         // self.widgets.timer = None;
+                //         self.app_mode = Lobby;
+                //     }
+                //     ui.heading(format_time(rem));
+                // }
                 if self.history.is_empty() || self.current.end.is_some() {
                     ui.add(TextEdit::singleline(&mut self.white_name));
                 } else {

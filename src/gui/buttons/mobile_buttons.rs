@@ -76,10 +76,10 @@ impl ChessApp {
                 self.replay_infos.next_step = Some(now + delay);
             }
         } else if ui
-            .add_enabled(!self.win_dialog, egui::Button::new("⏸"))
+            .add_enabled(self.mobile_win.is_none(), egui::Button::new("⏸"))
             .clicked()
         {
-            self.widgets.next_replay_time = None;
+            self.replay_infos.next_step = None;
         }
         ui.add_space(25.0);
         if ui

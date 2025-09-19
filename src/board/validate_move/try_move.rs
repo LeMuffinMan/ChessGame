@@ -33,11 +33,7 @@ impl ChessApp {
         //if it's the very first move, we setup the history and timers if needed
         if self.history.is_empty() {
             self.history.push(self.current.clone());
-            self.widgets.replay_index += 1;
-            if let Some(timer) = &mut self.widgets.timer {
-                timer.white.0 = None;
-                timer.black.0 = None;
-            };
+            self.replay_infos.index += 1;
             //for mobile test
             self.app_mode = Versus(None);
             self.mobile_timer.active = true;
@@ -77,7 +73,7 @@ impl ChessApp {
 
         //since we must end this function to allow gui to ask for promotion input, we store infos
         //needed here, and we skip the "normal end" so the gui will do it after getting the input
-        let prev_board = self.history[self.widgets.replay_index - 1].board.clone();
+        let prev_board = self.history[self.replay_infos.index - 1].board.clone();
         if self.current.board.pawn_to_promote.is_some() {
             self.promoteinfo = Some(PromoteInfo {
                 from,
@@ -87,7 +83,6 @@ impl ChessApp {
         } else {
             //if there were no promotion, we add the actual board in history, and inc the index
             self.history.push(self.current.clone());
-            self.widgets.replay_index += 1;
             self.replay_infos.index += 1;
             self.encode_move_to_san(&from, &to, &prev_board);
         }
