@@ -1,10 +1,11 @@
 use crate::Board;
 use crate::Color;
+use crate::Color::*;
 use crate::Coord;
-use crate::gui::chessapp_struct::DrawOption::*;
-use crate::gui::desktop_ui::widgets::replay::Timer;
-use crate::gui::chessapp_struct::GameMode::NoTime;
 use crate::gui::chessapp_struct::AppMode::*;
+use crate::gui::chessapp_struct::DrawOption::*;
+use crate::gui::chessapp_struct::GameMode::NoTime;
+use crate::gui::desktop_ui::widgets::replay::Timer;
 
 use eframe::{App, egui};
 use egui::Pos2;
@@ -113,7 +114,10 @@ pub struct MobileTimer {
     pub start: f64,
     pub increment: f64,
     pub active: bool,
-    pub mode: MobileGameMode, 
+    pub mode: MobileGameMode,
+    pub white_time: f64,
+    pub black_time: f64,
+    pub start_of_turn: (f64, Option<Color>),
 }
 
 #[derive(PartialEq)]
@@ -124,7 +128,6 @@ pub enum AppMode {
 }
 
 pub struct ChessApp {
-
     pub mobile: bool,
     pub mobile_timer: MobileTimer,
     pub mobile_win: Option<WinDia>,
@@ -162,6 +165,9 @@ impl Default for ChessApp {
                 increment: 0.0,
                 active: false,
                 mode: MobileGameMode::NoTime,
+                white_time: 0.0,
+                black_time: 0.0,
+                start_of_turn: (0.0, None),
             },
             mobile_win: None,
             app_mode: Lobby,
@@ -224,6 +230,9 @@ impl ChessApp {
                 increment: 0.0,
                 active: false,
                 mode: MobileGameMode::NoTime,
+                white_time: 0.0,
+                black_time: 0.0,
+                start_of_turn: (0.0, None),
             },
             mobile_win: None,
             app_mode: Lobby,
@@ -282,6 +291,10 @@ impl ChessApp {
 impl App for ChessApp {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         self.hook_win_diag(ctx);
+        if self.mobile_timer.active {
+            self.mobile_update_timer(ctx);
+            ctx.request_repaint();
+        }
         if self.mobile {
             self.ui_mobile(ctx, frame);
         } else {
@@ -291,7 +304,6 @@ impl App for ChessApp {
 }
 
 impl ChessApp {
-
     // pub fn ui_timer_win(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
     //     egui::Window::new("Timer")
     //         .collapsible(false)
@@ -302,7 +314,6 @@ impl ChessApp {
     //         });
     // }
     pub fn ui_desktop(&mut self, ctx: &egui::Context) {
-
         self.update_timer(ctx);
 
         //Promotion

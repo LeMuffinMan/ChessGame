@@ -24,16 +24,14 @@ impl Timer {
     //build a timer folowwing the Gamemode provided or a default one
     pub fn build(game_mode: GameMode) -> Option<Self> {
         match game_mode {
-            Bullet(time, inc)
-            |Blitz(time, inc)
-            |Rapid(time, inc)
-            |Custom(time, inc) => Some(Self {
-                white: (None, time),
-                black: (None, time),
-                increment: inc,
-            }),
-            NoTime(_, _) 
-            | Replay (_, _) => None,
+            Bullet(time, inc) | Blitz(time, inc) | Rapid(time, inc) | Custom(time, inc) => {
+                Some(Self {
+                    white: (None, time),
+                    black: (None, time),
+                    increment: inc,
+                })
+            }
+            NoTime(_, _) | Replay(_, _) => None,
         }
     }
 }

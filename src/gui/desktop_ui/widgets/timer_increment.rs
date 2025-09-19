@@ -19,77 +19,33 @@ impl ChessApp {
         ui.label("Bullet");
         ui.horizontal(|ui| {
             ui.vertical(|ui| {
-                ui.selectable_value(
-                    &mut self.widgets.game_mode,
-                    Bullet(20.0, 1.0),
-                    "0:20 + 1",
-                );
-                ui.selectable_value(
-                    &mut self.widgets.game_mode,
-                    Bullet(30.0, 0.0),
-                    "0:30 + 0",
-                );
+                ui.selectable_value(&mut self.widgets.game_mode, Bullet(20.0, 1.0), "0:20 + 1");
+                ui.selectable_value(&mut self.widgets.game_mode, Bullet(30.0, 0.0), "0:30 + 0");
             });
             ui.vertical(|ui| {
-                ui.selectable_value(
-                    &mut self.widgets.game_mode,
-                    Bullet(60.0, 0.0),
-                    " 1:00 + 0",
-                );
-                ui.selectable_value(
-                    &mut self.widgets.game_mode,
-                    Bullet(60.0, 1.0),
-                    " 1:00 + 1",
-                );
+                ui.selectable_value(&mut self.widgets.game_mode, Bullet(60.0, 0.0), " 1:00 + 0");
+                ui.selectable_value(&mut self.widgets.game_mode, Bullet(60.0, 1.0), " 1:00 + 1");
             });
         });
         ui.separator();
         ui.label("Blitz");
         ui.horizontal(|ui| {
             ui.vertical(|ui| {
-                ui.selectable_value(
-                    &mut self.widgets.game_mode,
-                    Blitz(180.0, 0.0),
-                    "3:00 + 0",
-                );
-                ui.selectable_value(
-                    &mut self.widgets.game_mode,
-                    Blitz(180.0, 2.0),
-                    "3:00 + 2",
-                );
+                ui.selectable_value(&mut self.widgets.game_mode, Blitz(180.0, 0.0), "3:00 + 0");
+                ui.selectable_value(&mut self.widgets.game_mode, Blitz(180.0, 2.0), "3:00 + 2");
             });
             ui.vertical(|ui| {
-                ui.selectable_value(
-                    &mut self.widgets.game_mode,
-                    Blitz(300.0, 0.0),
-                    "5:00 + 0",
-                );
-                ui.selectable_value(
-                    &mut self.widgets.game_mode,
-                    Blitz(300.0, 5.0),
-                    "5:00 + 5",
-                );
+                ui.selectable_value(&mut self.widgets.game_mode, Blitz(300.0, 0.0), "5:00 + 0");
+                ui.selectable_value(&mut self.widgets.game_mode, Blitz(300.0, 5.0), "5:00 + 5");
             });
         });
-        ui.selectable_value(
-            &mut self.widgets.game_mode,
-            Blitz(300.0, 2.0),
-            "5:00 + 2",
-        );
+        ui.selectable_value(&mut self.widgets.game_mode, Blitz(300.0, 2.0), "5:00 + 2");
         ui.separator();
         ui.label("Rapid");
         ui.horizontal(|ui| {
             ui.vertical(|ui| {
-                ui.selectable_value(
-                    &mut self.widgets.game_mode,
-                    Rapid(600.0, 0.0),
-                    " 10:00 + 0",
-                );
-                ui.selectable_value(
-                    &mut self.widgets.game_mode,
-                    Rapid(600.0, 5.0),
-                    " 10:00 + 5",
-                );
+                ui.selectable_value(&mut self.widgets.game_mode, Rapid(600.0, 0.0), " 10:00 + 0");
+                ui.selectable_value(&mut self.widgets.game_mode, Rapid(600.0, 5.0), " 10:00 + 5");
                 ui.selectable_value(
                     &mut self.widgets.game_mode,
                     Rapid(900.0, 10.0),
@@ -97,33 +53,16 @@ impl ChessApp {
                 );
             });
             ui.vertical(|ui| {
-                ui.selectable_value(
-                    &mut self.widgets.game_mode,
-                    Rapid(1200.0, 0.0),
-                    "20:00 + 0",
-                );
-                ui.selectable_value(
-                    &mut self.widgets.game_mode,
-                    Rapid(1800.0, 0.0),
-                    "30:00 + 0",
-                );
-                ui.selectable_value(
-                    &mut self.widgets.game_mode,
-                    Rapid(3600.0, 5.0),
-                    "60:00 + 0",
-                );
+                ui.selectable_value(&mut self.widgets.game_mode, Rapid(1200.0, 0.0), "20:00 + 0");
+                ui.selectable_value(&mut self.widgets.game_mode, Rapid(1800.0, 0.0), "30:00 + 0");
+                ui.selectable_value(&mut self.widgets.game_mode, Rapid(3600.0, 5.0), "60:00 + 0");
             });
         });
         ui.separator();
         // ui.horizontal(|ui| {
-        ui.selectable_value(
-            &mut self.widgets.game_mode,
-            Custom(600.0, 0.0),
-            "Custom",
-        );
+        ui.selectable_value(&mut self.widgets.game_mode, Custom(600.0, 0.0), "Custom");
         self.widgets.timer = None;
-        if let GameMode::Custom(mut time, mut inc) = self.widgets.game_mode 
-        {
+        if let GameMode::Custom(mut time, mut inc) = self.widgets.game_mode {
             ui.horizontal(|ui| {
                 ui.label("Time :");
                 ui.menu_button(format!("{:.0} min", (time / 60.0).floor(),), |ui| {

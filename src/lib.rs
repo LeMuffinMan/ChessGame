@@ -7,7 +7,6 @@ use crate::board::cell::Color;
 use crate::board::cell::Coord;
 use board::Board;
 
-
 #[cfg(target_arch = "wasm32")]
 use eframe::WebRunner;
 #[cfg(target_arch = "wasm32")]
@@ -40,9 +39,10 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
         .expect("Failed to cast canvas");
 
     let is_mobile = {
-    let ua = window.navigator().user_agent().unwrap_or_default();
+        let ua = window.navigator().user_agent().unwrap_or_default();
         //this line detects a mobile or desktop environment
-    ua.to_lowercase().contains("mobi") || window.inner_width().unwrap().as_f64().unwrap_or(1024.0) < 800.0
+        ua.to_lowercase().contains("mobi")
+            || window.inner_width().unwrap().as_f64().unwrap_or(1024.0) < 800.0
     };
 
     //execute through the js our chessapp

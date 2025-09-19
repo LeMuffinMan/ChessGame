@@ -1,39 +1,96 @@
 use crate::ChessApp;
-use crate::gui::chessapp_struct::End;
+use crate::Color::*;
 use crate::gui::chessapp_struct::AppMode::*;
+use crate::gui::chessapp_struct::End;
 use crate::gui::chessapp_struct::WinDia::*;
+use crate::gui::mobile_ui::hooks::End::TimeOut;
 use egui::RichText;
 
 impl ChessApp {
+    pub fn mobile_update_timer(&mut self, ctx: &egui::Context) {
+        let now = ctx.input(|i| i.time);
+
+        // Initialisation si jamais None
+        if self.mobile_timer.start_of_turn.1.is_none() {
+            self.mobile_timer.start_of_turn.1 = Some(self.current.active_player);
+            self.mobile_timer.start_of_turn.0 = now;
+        }
+
+        // Si changement de joueur
+        if self.mobile_timer.start_of_turn.1 != Some(self.current.active_player) {
+            // Ajout de l'incrément
+            match self.mobile_timer.start_of_turn.1 {
+                Some(White) => self.mobile_timer.white_time += self.mobile_timer.increment,
+                Some(Black) => self.mobile_timer.black_time += self.mobile_timer.increment,
+                None => {}
+            }
+            // Switch
+            self.mobile_timer.start_of_turn.1 = Some(self.current.active_player);
+            self.mobile_timer.start_of_turn.0 = now;
+        }
+
+        // Calcul du delta depuis la dernière update
+        let delta = now - self.mobile_timer.start_of_turn.0;
+        self.mobile_timer.start_of_turn.0 = now; // reset pour le prochain tick
+
+        // Décrémentation du joueur actif
+        match self.current.active_player {
+            White => {
+                self.mobile_timer.white_time -= delta;
+                if self.mobile_timer.white_time <= 0.0 {
+                    self.mobile_timer.white_time = 0.0;
+                    self.current.end = Some(TimeOut);
+                }
+            }
+            Black => {
+                self.mobile_timer.black_time -= delta;
+                if self.mobile_timer.black_time <= 0.0 {
+                    self.mobile_timer.black_time = 0.0;
+                    self.current.end = Some(TimeOut);
+                }
+            }
+        }
+    }
 
     pub fn hook_win_diag(&mut self, ctx: &egui::Context) {
         if let Some(win) = &self.mobile_win {
             match win {
                 Options => {
                     egui::Window::new("Options")
-                    .collapsible(false)
-                    .resizable(false)
+                        .collapsible(false)
+                        .resizable(false)
                         .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
-                    .show(ctx, |ui| {
-                        let style = ui.style_mut();
-                        style.spacing.icon_width = 40.0; // largeur de la checkbox
-                        style.spacing.icon_spacing = 8.0; // espace entre checkbox et texte
+                        .show(ctx, |ui| {
+                            let style = ui.style_mut();
+                            style.spacing.icon_width = 40.0; // largeur de la checkbox
+                            style.spacing.icon_spacing = 8.0; // espace entre checkbox et texte
 
-                        ui.add_space(20.0);
-                        // Checkboxes avec texte réduit
-                        ui.checkbox(&mut self.widgets.show_coordinates, RichText::new("Coordinates").size(30.0));
-                        ui.checkbox(&mut self.widgets.show_legals_moves, RichText::new("Legals moves").size(30.0));
-                        ui.checkbox(&mut self.widgets.show_threaten_cells, RichText::new("Threaten cells").size(30.0));
-                        ui.checkbox(&mut self.widgets.show_last_move, RichText::new("Last move").size(30.0));
+                            ui.add_space(20.0);
+                            ui.checkbox(
+                                &mut self.widgets.show_coordinates,
+                                RichText::new("Coordinates").size(30.0),
+                            );
+                            ui.checkbox(
+                                &mut self.widgets.show_legals_moves,
+                                RichText::new("Legals moves").size(30.0),
+                            );
+                            ui.checkbox(
+                                &mut self.widgets.show_threaten_cells,
+                                RichText::new("Threaten cells").size(30.0),
+                            );
+                            ui.checkbox(
+                                &mut self.widgets.show_last_move,
+                                RichText::new("Last move").size(30.0),
+                            );
 
-                        ui.add_space(20.0);
-                        ui.vertical_centered(|ui| {
-                            if ui.button("Save options").clicked() {
-                                self.mobile_win = None;
-                            }
+                            ui.add_space(20.0);
+                            ui.vertical_centered(|ui| {
+                                if ui.button("Save options").clicked() {
+                                    self.mobile_win = None;
+                                }
+                            });
                         });
-                    });
-                },
+                }
                 Resign => {
                     egui::Window::new("Resignation ?")
                         .collapsible(false)
@@ -56,19 +113,18 @@ impl ChessApp {
                                 ui.add_space(40.0);
                             });
                             ui.add_space(40.0);
-                    });
-                },
+                        });
+                }
                 Draw => {
                     self.offer_draw(ctx);
-                },
+                }
                 Promote => {
                     self.get_promotion_input(ctx);
-                },
+                }
                 Timer => {
                     self.set_timer(ctx);
                 }
             }
         }
     }
-
 }
