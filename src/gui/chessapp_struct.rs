@@ -98,6 +98,7 @@ pub enum WinDia {
     Draw,
     Resign,
     Timer,
+    Undo,
 }
 #[derive(PartialEq)]
 pub enum MobileGameMode {

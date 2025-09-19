@@ -6,6 +6,8 @@ use crate::gui::chessapp_struct::AppMode::Replay;
 
 impl ChessApp {
 
+
+
     pub fn settings_button(&mut self, ui: &mut egui::Ui) {
         if ui
             .add_enabled(
@@ -42,23 +44,21 @@ impl ChessApp {
 
     }
 
-    pub fn display_bottom_buttons(&mut self, ui: &mut egui::Ui) {
-        ui.horizontal_centered(|ui| {
-            match &self.app_mode {
-                AppMode::Replay => {
-                    self.replay_buttons(ui);
-                }
-                AppMode::Lobby => {
-                    self.lobby_buttons(ui);
-                }
-                AppMode::Versus(Some(_end)) => {
-                    self.draw_endgame_buttons(ui);
-                }
-                AppMode::Versus(None) => {
-                    self.draw_resign_buttons(ui);
-                }
-            }
-        });
+
+    pub fn speed_replay_slider(&mut self, ui: &mut egui::Ui) {
+            if matches!(self.app_mode, AppMode::Replay) {
+            ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                ui.add_space(385.0);
+                ui.add(
+                    egui::Slider::new(&mut self.replay_infos.sec_per_frame, 0.1..=5.0)
+                        .text("sec/move")
+                        .logarithmic(true)
+                );
+            });
+            ui.add_space(20.0);
+        } else {
+            ui.add_space(40.0);
+        }
     }
 
     pub fn replay_buttons(&mut self, ui: &mut egui::Ui) {
@@ -144,15 +144,26 @@ impl ChessApp {
         self.new_game_button(ui);
     }
 
-    pub fn draw_resign_buttons(&mut self, ui: &mut egui::Ui) {
+    pub fn draw_resign_undo_buttons(&mut self, ui: &mut egui::Ui) {
+        ui.add_space(60.0);
         self.settings_button(ui);
-        ui.add_space(400.0);
+        ui.add_space(150.0);
         if ui.button("Draw").clicked() {
             self.mobile_win = Some(Draw);
         }
-        ui.add_space(40.0);
+        ui.add_space(20.0);
         if ui.button("Resign").clicked() {
             self.mobile_win = Some(Resign);
+        }
+        ui.add_space(150.0);
+        if ui
+            .add_enabled(
+                self.mobile_win.is_none(),
+                egui::Button::new("Undo"),
+            )
+            .clicked()
+        {
+            self.mobile_win = Some(Undo);
         }
     }
 }

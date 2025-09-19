@@ -92,6 +92,9 @@ impl ChessApp {
                 Timer => {
                     self.set_timer(ctx);
                 }
+                Undo => {
+                    self.ask_undo(ctx);
+                }
             }
         }
     }
@@ -117,6 +120,7 @@ impl ChessApp {
                         self.mobile_win = None;
                     }
                 });
+                //ajouter le nombre de undo max par joueur
                 ui.add_space(20.0);
             });
     }
