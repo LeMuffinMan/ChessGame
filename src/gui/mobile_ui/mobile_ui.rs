@@ -15,33 +15,7 @@ use egui::TextStyle;
 use crate::gui::desktop_ui::central_panel::central_panel_ui::render_border;
 
 impl ChessApp {
-    pub fn apply_styles(&mut self, ctx: &egui::Context) {
-        let mut style = (*ctx.style()).clone();
-        style.text_styles = [
-            (
-                TextStyle::Heading,
-                FontId::new(70.0, egui::FontFamily::Proportional),
-            ),
-            (
-                TextStyle::Body,
-                FontId::new(50.0, egui::FontFamily::Proportional),
-            ),
-            (
-                TextStyle::Monospace,
-                FontId::new(22.0, egui::FontFamily::Monospace),
-            ),
-            (
-                TextStyle::Button,
-                FontId::new(40.0, egui::FontFamily::Proportional),
-            ),
-            (
-                TextStyle::Small,
-                FontId::new(18.0, egui::FontFamily::Proportional),
-            ),
-        ]
-        .into();
-        ctx.set_style(style);
-    }
+
 
     pub fn ui_mobile(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.apply_styles(ctx);
@@ -171,6 +145,7 @@ impl ChessApp {
         if ui.button(">|").clicked() {
         }
     }
+
     pub fn lobby_buttons(&mut self, ui: &mut egui::Ui) {
             ui.add_space(180.0);
         if ui
@@ -216,6 +191,7 @@ impl ChessApp {
         }
     }
     
+    //impl pour mobile_timer
     pub fn black_panel(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             ui.label("Black");
@@ -264,5 +240,33 @@ impl ChessApp {
                 },
             );
         });
+    }
+
+    pub fn apply_styles(&mut self, ctx: &egui::Context) {
+        let mut style = (*ctx.style()).clone();
+        style.text_styles = [
+            (
+                TextStyle::Heading,
+                FontId::new(70.0, egui::FontFamily::Proportional),
+            ),
+            (
+                TextStyle::Body,
+                FontId::new(50.0, egui::FontFamily::Proportional),
+            ),
+            (
+                TextStyle::Monospace,
+                FontId::new(22.0, egui::FontFamily::Monospace),
+            ),
+            (
+                TextStyle::Button,
+                FontId::new(40.0, egui::FontFamily::Proportional),
+            ),
+            (
+                TextStyle::Small,
+                FontId::new(18.0, egui::FontFamily::Proportional),
+            ),
+        ]
+        .into();
+        ctx.set_style(style);
     }
 }
