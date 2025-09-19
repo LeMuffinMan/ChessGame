@@ -289,6 +289,7 @@ impl ChessApp {
     pub fn ui_desktop(&mut self, ctx: &egui::Context) {
         // self.update_timer(ctx);
 
+        self.apply_desktop_styles(ctx);
         //Promotion
         if self.replay_infos.index == self.history.len()
             && self.current.board.pawn_to_promote.is_some()

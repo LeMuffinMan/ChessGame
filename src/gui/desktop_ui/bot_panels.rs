@@ -1,4 +1,6 @@
 use crate::ChessApp;
+use crate::gui::chessapp_struct::MobileGameMode::NoTime;
+use egui::RichText;
 use egui::TextEdit;
 
 
@@ -6,30 +8,31 @@ impl ChessApp {
     //The bot pannels show the white player name and its timer
     pub fn bot_white_panel(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::bottom("spacer_bottom").show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                let now = ctx.input(|i| i.time);
-                //fonction panel_timer : revoir la structure timer
-                // if let Some(timer) = &self.widgets.timer {
-                //     let rem = {
-                //         if let Some(start) = timer.white.0 {
-                //             timer.white.1 - (now - start)
-                //         } else {
-                //             timer.white.1
-                //         }
-                //     }
-                //     .max(0.0);
-                //     if rem == 0.0 {
-                //         self.current.end = Some(TimeOut);
-                //         self.history_san.push_str("0-1");
-                //         // self.widgets.timer = None;
-                //         self.app_mode = Lobby;
-                //     }
-                //     ui.heading(format_time(rem));
-                // }
+            ui.vertical(|ui| {
+                // let now = ctx.input(|i| i.time);
+
+                if self.mobile_timer.mode != NoTime {
+                    if self.mobile_timer.increment == 0.0 {
+                        ui.label(
+                            RichText::new(format_time(self.mobile_timer.black_time) + " ⏱")
+                                .size(30.0),
+                        );
+                    } else {
+                        ui.label(
+                            RichText::new(
+                                format_time(self.mobile_timer.black_time)
+                                    + " ⏱ + "
+                                    + &format_time(self.mobile_timer.increment).to_string(),
+                            )
+                            .size(30.0),
+                        );
+                    }
+                }
+
                 if self.history.is_empty() || self.current.end.is_some() {
                     ui.add(TextEdit::singleline(&mut self.white_name));
                 } else {
-                    ui.heading(&self.white_name);
+                    ui.label(&self.white_name);
                 }
             });
         });
