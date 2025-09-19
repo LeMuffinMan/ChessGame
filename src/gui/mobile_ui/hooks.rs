@@ -1,4 +1,5 @@
 use crate::ChessApp;
+use crate::board::cell::Piece::*;
 use crate::Color::*;
 use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::chessapp_struct::End;
@@ -73,17 +74,17 @@ impl ChessApp {
                                         &mut self.widgets.show_coordinates,
                                         RichText::new("Coordinates").size(30.0),
                                     );
-                            ui.add_space(20.0);
+                                    ui.add_space(20.0);
                                     ui.checkbox(
                                         &mut self.widgets.show_legals_moves,
                                         RichText::new("Legals moves").size(30.0),
                                     );
-                            ui.add_space(20.0);
+                                    ui.add_space(20.0);
                                     ui.checkbox(
                                         &mut self.widgets.show_threaten_cells,
                                         RichText::new("Threaten cells").size(30.0),
                                     );
-                            ui.add_space(20.0);
+                                    ui.add_space(20.0);
                                     ui.checkbox(
                                         &mut self.widgets.show_last_move,
                                         RichText::new("Last move").size(30.0),
@@ -151,7 +152,34 @@ impl ChessApp {
                     });
                 }
                 Promote => {
-                    self.get_promotion_input(ctx);
+                    egui::Window::new("Pawn to promote")
+                        .collapsible(false)
+                        .resizable(false)
+                        .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
+                        .show(ctx, |ui| {
+                            self.win_dialog = true;
+                            ui.add_space(40.0);
+                            ui.horizontal(|ui| {
+                                ui.add_space(40.0);
+                                    ui.vertical(|ui| {
+                                        ui.radio_value(&mut self.current.board.promote, Some(Queen), "Queen");
+                                        ui.radio_value(&mut self.current.board.promote, Some(Bishop), "Bishop");
+                                        ui.radio_value(&mut self.current.board.promote, Some(Knight), "Knight");
+                                        ui.radio_value(&mut self.current.board.promote, Some(Rook), "Rook");
+                                    });
+                                    if ui.button("Promote").clicked() {
+                                        self.current.end = Some(End::Resign);
+                                        self.mobile_win = None;
+                                        self.app_mode = Lobby;
+                                    }
+                                ui.add_space(120.0);
+                                if ui.button("Decline").clicked() {
+                                    self.mobile_win = None;
+                                }
+                                ui.add_space(40.0);
+                            });
+                            ui.add_space(40.0);
+                        });
                 }
                 Timer => {
                     self.set_timer(ctx);
