@@ -5,22 +5,22 @@ impl ChessApp {
     pub fn replay_buttons(&mut self, ui: &mut egui::Ui) {
         match &self.ui_type {
             UiType::Mobile => {
-            ui.add_space(60.0);
-            self.settings_button(ui);
-            ui.add_space(50.0);
+                ui.add_space(60.0);
+                self.settings_button(ui);
+                ui.add_space(50.0);
 
-            self.first_state(ui);
-            ui.add_space(25.0);
-            self.prev_state(ui);
-            ui.add_space(25.0);
-            self.play_pause(ui);
-            ui.add_space(25.0);
-            self.next_state(ui);
-            ui.add_space(25.0);
-            self.last_state(ui);
-            ui.add_space(50.0);
-            self.new_game_button(ui);
-            }, 
+                self.first_state(ui);
+                ui.add_space(25.0);
+                self.prev_state(ui);
+                ui.add_space(25.0);
+                self.play_pause(ui);
+                ui.add_space(25.0);
+                self.next_state(ui);
+                ui.add_space(25.0);
+                self.last_state(ui);
+                ui.add_space(50.0);
+                self.new_game_button(ui);
+            }
             UiType::Desktop => {
                 ui.horizontal(|ui| {
                     self.first_state(ui);
@@ -70,7 +70,7 @@ impl ChessApp {
         {
             self.replay_infos.next_step = None;
         }
-    } 
+    }
 
     fn next_state(&mut self, ui: &mut egui::Ui) {
         if ui
@@ -97,8 +97,5 @@ impl ChessApp {
             self.replay_infos.index = self.history.len() - 1;
             self.current = self.history[self.replay_infos.index].clone();
         }
-
-
     }
 }
-

@@ -11,5 +11,5 @@ pub mod hooks;
 pub mod inputs;
 pub mod mobile_ui;
 pub mod render;
-pub mod update_timer;
 pub mod replay;
+pub mod update_timer;
