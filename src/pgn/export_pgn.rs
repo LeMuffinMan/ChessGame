@@ -4,7 +4,7 @@ use chrono::Utc;
 use js_sys::Array;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
-use web_sys::{Blob, HtmlAnchorElement, Url, window, HtmlElement};
+use web_sys::{Blob, HtmlAnchorElement, HtmlElement, Url, window};
 
 impl ChessApp {
     //error handling todo
@@ -37,7 +37,7 @@ impl ChessApp {
         link.set_download("chessgame.pgn");
 
         //hide the link we created
-        let elem: &HtmlElement = link.unchecked_ref();   // cast en HtmlElement
+        let elem: &HtmlElement = link.unchecked_ref(); // cast en HtmlElement
         elem.style().set_property("display", "none")?;
         //put the element in the DOM
         doc.body().unwrap().append_child(&link)?;

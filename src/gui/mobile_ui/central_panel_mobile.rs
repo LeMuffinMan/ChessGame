@@ -1,7 +1,7 @@
 use crate::ChessApp;
 use crate::gui::chessapp_struct::AppMode;
-use crate::gui::hooks::WinDia::*;
 use crate::gui::desktop_ui::bot_panels::format_time;
+use crate::gui::hooks::WinDia::*;
 use crate::gui::update_timer::MobileGameMode::*;
 
 use egui::Label;
@@ -13,7 +13,6 @@ use egui::Sense;
 impl ChessApp {
     pub fn central_panel_mobile(&mut self, ctx: &egui::Context) {
         egui::CentralPanel::default().show(ctx, |ui| {
-
             let available_width = ui.available_width();
 
             let bar_height = 40.0;

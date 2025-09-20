@@ -1,7 +1,7 @@
 pub mod gui;
 mod pgn;
-use crate::gui::chessapp_struct::UiType;
 use crate::gui::chessapp_struct::ChessApp;
+use crate::gui::chessapp_struct::UiType;
 
 mod board;
 use crate::board::cell::Color;
@@ -79,7 +79,7 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //      - mobile windows
 //      - mobile replay pause
 //
-//      - promote bug desktop 
+//      - promote bug desktop
 //
 //      - include in legal move for triple repetition
 //      - save as pgn

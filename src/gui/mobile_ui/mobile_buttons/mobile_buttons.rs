@@ -1,7 +1,7 @@
 use crate::ChessApp;
-use crate::gui::chessapp_struct::UiType::Mobile;
 use crate::gui::chessapp_struct::AppMode;
 use crate::gui::chessapp_struct::AppMode::Replay;
+use crate::gui::chessapp_struct::UiType::Mobile;
 use crate::gui::hooks::WinDia::*;
 
 impl ChessApp {
