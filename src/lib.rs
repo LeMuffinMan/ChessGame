@@ -1,5 +1,6 @@
 pub mod gui;
 mod pgn;
+use crate::gui::chessapp_struct::UiType;
 use crate::gui::chessapp_struct::ChessApp;
 
 mod board;
@@ -44,6 +45,7 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
         ua.to_lowercase().contains("mobi")
             || window.inner_width().unwrap().as_f64().unwrap_or(1024.0) < 800.0
     };
+
     let ui_type = if is_mobile {
         UiType::Mobile
     } else {
@@ -73,6 +75,10 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //          - load
 //
 //Fix :
+//      - mobile windows
+//      - mobile custome time selection
+//      - mobile replay pause
+//
 //      - promote bug desktop 
 //
 //      - include in legal move for triple repetition
