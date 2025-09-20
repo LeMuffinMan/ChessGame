@@ -313,7 +313,7 @@ impl ChessApp {
                             if ui.button("Accept").clicked() {
                                 self.current.end = Some(End::Resign);
                                 self.mobile_win = None;
-                                self.mobile_timer.active = false;
+                                self.timer.active = false;
                                 self.app_mode = Versus(Some(End::Resign));
                             }
                             ui.add_space(120.0);
@@ -336,7 +336,7 @@ impl ChessApp {
                             ui.add_space(20.0);
                             if ui.button(RichText::new("Accept").size(40.0)).clicked() {
                                 self.current.end = Some(End::Resign);
-                                self.mobile_timer.active = false;
+                                self.timer.active = false;
                                 self.mobile_win = None;
                             }
                             ui.add_space(60.0);
@@ -364,7 +364,7 @@ impl ChessApp {
                             ui.add_space(40.0);
                             if ui.button("Accept").clicked() {
                                 self.current.end = Some(End::Draw);
-                                self.mobile_timer.active = false;
+                                self.timer.active = false;
                                 self.mobile_win = None;
                                 self.app_mode = Versus(Some(End::Draw));
                             }
@@ -388,7 +388,7 @@ impl ChessApp {
                             ui.add_space(40.0);
                             if ui.button(RichText::new("Accept").size(40.0)).clicked() {
                                 self.current.end = Some(Draw);
-                                self.mobile_timer.active = false;
+                                self.timer.active = false;
                                 self.mobile_win = None;
                                 //window dialog
                             }
