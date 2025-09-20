@@ -67,34 +67,68 @@ impl ChessApp {
     }
 
     pub fn get_promotion_input(&mut self, ctx: &egui::Context) {
-        egui::Window::new("Promotion")
-            .collapsible(false)
-            .resizable(false)
-            .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
-            .show(ctx, |ui| {
-                ui.horizontal(|ui| {
-                    ui.add_space(140.0);
-                    ui.vertical(|ui| {
+        match self.ui_type {
+            Mobile => {
+                egui::Window::new("Promotion")
+                    .collapsible(false)
+                    .resizable(false)
+                    .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
+                    .show(ctx, |ui| {
+                        ui.horizontal(|ui| {
+                            ui.add_space(140.0);
+                            ui.vertical(|ui| {
+                                ui.add_space(20.0);
+                                ui.selectable_value(&mut self.current.board.promote, Some(Queen), "Queen");
+                                ui.add_space(20.0);
+                                ui.selectable_value(
+                                    &mut self.current.board.promote,
+                                    Some(Bishop),
+                                    "Bishop",
+                                );
+                                ui.add_space(20.0);
+                                ui.selectable_value(
+                                    &mut self.current.board.promote,
+                                    Some(Knight),
+                                    "Knight",
+                                );
+                                ui.add_space(20.0);
+                                ui.selectable_value(&mut self.current.board.promote, Some(Rook), "Rook");
+                            });
+                        });
                         ui.add_space(20.0);
-                        ui.selectable_value(&mut self.current.board.promote, Some(Queen), "Queen");
-                        ui.add_space(20.0);
-                        ui.selectable_value(
-                            &mut self.current.board.promote,
-                            Some(Bishop),
-                            "Bishop",
-                        );
-                        ui.add_space(20.0);
-                        ui.selectable_value(
-                            &mut self.current.board.promote,
-                            Some(Knight),
-                            "Knight",
-                        );
-                        ui.add_space(20.0);
-                        ui.selectable_value(&mut self.current.board.promote, Some(Rook), "Rook");
                     });
-                });
-                ui.add_space(20.0);
-            });
+            }, 
+            Desktop => {
+                egui::Window::new("Promotion")
+                    .collapsible(false)
+                    .resizable(false)
+                    .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
+                    .show(ctx, |ui| {
+                        ui.horizontal(|ui| {
+                            ui.add_space(100.0);
+                            ui.vertical(|ui| {
+                                ui.add_space(20.0);
+                                ui.selectable_value(&mut self.current.board.promote, Some(Queen), "Queen");
+                                ui.add_space(20.0);
+                                ui.selectable_value(
+                                    &mut self.current.board.promote,
+                                    Some(Bishop),
+                                    "Bishop",
+                                );
+                                ui.add_space(20.0);
+                                ui.selectable_value(
+                                    &mut self.current.board.promote,
+                                    Some(Knight),
+                                    "Knight",
+                                );
+                                ui.add_space(20.0);
+                                ui.selectable_value(&mut self.current.board.promote, Some(Rook), "Rook");
+                            });
+                        });
+                        ui.add_space(20.0);
+                    });
+            }
+        }
         self.update_promote();
     }
 

@@ -33,10 +33,10 @@ impl ChessApp {
         } else {
             // ui.horizontal(|ui| {
             if self.current.board.check.is_some() {
-                ui.label(RichText::new("Check !").size(40.0));
+                ui.label(RichText::new(format!("Check ! {:?} to move", self.current.active_player)).size(40.0));
+            } else {
+                ui.label(RichText::new(format!("{:?} to move", self.current.active_player)).size(40.0));
             }
-            ui.label(RichText::new(format!("{:?} to move", self.current.active_player)).size(40.0));
-            // });
         }
     }
 }

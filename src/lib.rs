@@ -71,25 +71,24 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //Todo
 //      -error handling
 //
+//      - Undo button
+//          - limit
+//
+//
 //      - pgn decoder
 //          - load
 //
+//      Mobile
+//      - definir nom perso
+//
 //Fix :
-//
-//      - definir nom perso mobile
-//
-//      - check qui decale l'interface 
-//
-//      - Undo button
-//          - limit
-//          - promotion
-//          - add to desktop
 //
 //      - save as pgn
 //          - finir les metadonnees et les 80 chars
 //
 //      - Refacto Draw + triple R
-    //      - include in legal move for triple repetition
+//          - supprimer les hashs en cas de undo
+//           - include in legal move for triple repetition
 //
 //
 //Tests :

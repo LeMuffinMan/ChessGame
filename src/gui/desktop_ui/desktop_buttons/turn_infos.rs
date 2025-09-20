@@ -20,10 +20,10 @@ impl ChessApp {
                 )),
             };
         } else {
+            if self.current.board.check.is_some() {
+                ui.label("Check !");
+            }
             ui.horizontal(|ui| {
-                if self.current.board.check.is_some() {
-                    ui.label("Check !");
-                }
                 ui.label(format!("{:?} to move", self.current.active_player));
             });
         }
