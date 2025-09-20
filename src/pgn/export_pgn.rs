@@ -1,4 +1,6 @@
 use crate::ChessApp;
+use crate::gui::update_timer::GameMode;
+use crate::gui::desktop_ui::bot_panels::format_time;
 
 use chrono::Utc;
 use js_sys::Array;
@@ -54,9 +56,6 @@ impl ChessApp {
 
     fn generate_pgn_content(&mut self) -> String {
         let mut pgn = String::new();
-        //ajouter type de game et rounds
-        //time control
-        //termination ?
         pgn.push_str("[Event \"Casual Game\"]\n[Site \"https://lemuffinman.github.io/ChessGame/\"]\n[UTCDate \"");
         pgn.push_str(Utc::now().format("%Y.%m.%d").to_string().as_str());
         pgn.push_str("\"]\n[UTCTime \"");
@@ -78,9 +77,61 @@ impl ChessApp {
             }
             pgn.push_str("\"]\n");
         }
+        pgn.push_str("[TimeControl \"");
+        match &self.timer.mode {
+            GameMode::NoTime => {
+                pgn.push_str("No time\"]\n");
+            }, 
+            GameMode::Rapid => {
+                pgn.push_str(&format!(
+                    "Rapid: {} + {}\"]\n",
+                    format_time(self.timer.start),
+                    self.timer.increment
+                ));
+
+            }, 
+            GameMode::Blitz => {
+                pgn.push_str(&format!(
+                    "Blitz: {} + {}\"]\n",
+                    format_time(self.timer.start),
+                    self.timer.increment
+                ));
+
+            },
+            GameMode::Bullet => {
+                pgn.push_str(&format!(
+                    "Bullet: {} + {}\"]\n",
+                    format_time(self.timer.start),
+                    self.timer.increment
+                ));
+
+            }
+            GameMode::Custom => {
+                pgn.push_str(&format!(
+                    "Custom: {} + {}\"]\n",
+                    format_time(self.timer.start),
+                    self.timer.increment
+                ));
+            }
+        }
+        pgn.push_str("[Termination \"");
+        if self.timer.white_time == 0.0 || self.timer.black_time == 0.0 {
+            pgn.push_str("Time forfeit\"]\n");
+        } else if !pgn.contains('#') && !pgn.contains("1/2 - 1/2") {
+            pgn.push_str("Abandoned\"]\n");
+        } else {
+            pgn.push_str("Normal\"]\n");
+        }
         pgn.push('\n');
-        pgn.push_str(&self.history_san);
-        //ici split l'history en plusieurs lignes de 80 chars
+        let mut wrapped = String::new();
+        for (i, c) in self.history_san.chars().enumerate() {
+            if i > 0 && i % 80 == 0 {
+                wrapped.push('\n');
+            }
+            wrapped.push(c);
+        }
+
+        pgn.push_str(&wrapped);
         pgn.push('\n');
 
         pgn
