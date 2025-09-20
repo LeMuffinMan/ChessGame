@@ -2,6 +2,7 @@ use crate::Board;
 use crate::Color;
 use crate::Coord;
 use crate::gui::chessapp_struct::AppMode::*;
+use crate::gui::chessapp_struct::UiType::Desktop;
 use crate::gui::update_timer::MobileGameMode;
 use crate::gui::update_timer::Timer;
 use crate::gui::hooks::WinDia;
@@ -94,8 +95,13 @@ pub struct ReplayInfos {
     pub next_step: Option<f64>,
 }
 
+pub enum UiType {
+    Desktop,
+    Mobile,
+}
+
 pub struct ChessApp {
-    pub mobile: bool,
+    pub ui_type: UiType,
     pub mobile_timer: Timer,
     pub mobile_win: Option<WinDia>,
     pub app_mode: AppMode,
@@ -121,7 +127,7 @@ pub struct ChessApp {
 impl Default for ChessApp {
     fn default() -> Self {
         Self {
-            mobile: false,
+            ui_type: Desktop,
             mobile_timer: Timer::new(),
             mobile_win: None,
             app_mode: Lobby,
@@ -172,9 +178,9 @@ impl Default for ChessApp {
 }
 
 impl ChessApp {
-    pub fn new(mobile: bool) -> Self {
+    pub fn new(ui_type: UiType) -> Self {
         Self {
-            mobile,
+            ui_type,
             mobile_timer: Timer::new(),
             mobile_win: None,
             app_mode: Lobby,
@@ -227,24 +233,22 @@ impl ChessApp {
 impl App for ChessApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.hooks(ctx);
-        if self.mobile {
-            self.apply_styles(ctx);
-
-            self.top_title_panel(ctx);
-            self.central_panel_mobile(ctx);
-        } else {
-            self.apply_desktop_styles(ctx);
-
-            self.top_title_panel(ctx);
-            self.bot_source_code_panel_desktop(ctx);
-
-            self.left_panel_desktop(ctx);
-            self.right_panel_desktop(ctx);
-
-            self.top_black_panel_desktop(ctx);
-            self.bot_white_panel_desktop(ctx);
-
-            self.central_panel_desktop(ctx);
+        match &self.ui_type {
+            UiType::Mobile => {
+                self.apply_styles(ctx);
+                self.top_title_panel(ctx);
+                self.central_panel_mobile(ctx);
+            },
+            UiType::Desktop => {
+                self.apply_desktop_styles(ctx);
+                self.top_title_panel(ctx);
+                self.bot_source_code_panel_desktop(ctx);
+                self.left_panel_desktop(ctx);
+                self.right_panel_desktop(ctx);
+                self.top_black_panel_desktop(ctx);
+                self.bot_white_panel_desktop(ctx);
+                self.central_panel_desktop(ctx);
+            }
         }
     }
 }

@@ -1,5 +1,4 @@
 use crate::ChessApp;
-use crate::gui::chessapp_struct::AppMode::Replay;
 
 use egui::Context;
 
@@ -29,9 +28,6 @@ impl ChessApp {
                             .changed();
                         ui.add_space(20.0);
                         ui.separator();
-                        if self.app_mode == Replay {
-                            self.replay_panel(ui);
-                        }
                         if !self.history_san.is_empty() {
                             ui.monospace(&self.history_san);
                         }
