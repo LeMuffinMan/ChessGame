@@ -39,7 +39,7 @@ impl ChessApp {
     }
 
     pub fn hook_win(&mut self, ctx: &egui::Context) {
-        if let Some(win) = &self.mobile_win {
+        if let Some(win) = &self.win {
             match win {
                 WinDia::Settings => {
                     self.settings_win(ctx);
@@ -142,7 +142,7 @@ impl ChessApp {
                 ui.horizontal(|ui| {
                     ui.add_space(100.0);
                     if ui.button("Accept").clicked() {
-                        self.mobile_win = None;
+                        self.win = None;
                         self.current = self.history[self.replay_infos.index - 2].clone();
                         if self.replay_infos.index == 2 {
                             self.replay_infos.index -= 2;
@@ -160,7 +160,7 @@ impl ChessApp {
                     }
                     ui.add_space(30.0);
                     if ui.button("Decline").clicked() {
-                        self.mobile_win = None;
+                        self.win = None;
                     }
                     ui.add_space(20.0);
                 });
@@ -189,14 +189,14 @@ impl ChessApp {
                                 ui.text_edit_singleline(&mut self.widgets.file_name);
                                 if ui.button(RichText::new("Download").size(30.0)).clicked() {
                                     let _ = self.export_pgn(); //Todo : handle error 
-                                    self.mobile_win = None;
+                                    self.win = None;
                                 }
                                 ui.add_space(40.0);
                             });
                         });
                         ui.vertical_centered(|ui| {
                             if ui.button("Cancel").clicked() {
-                                self.mobile_win = None;
+                                self.win = None;
                             }
                         });
                         //ajouter le nombre de undo max par joueur
@@ -223,14 +223,14 @@ impl ChessApp {
                                 ui.add_space(20.0);
                                 if ui.button(RichText::new("Download").size(30.0)).clicked() {
                                     let _ = self.export_pgn(); //Todo : handle error 
-                                    self.mobile_win = None;
+                                    self.win = None;
                                 }
                                 ui.add_space(20.0);
                             });
                         });
                         ui.vertical_centered(|ui| {
                             if ui.button("Cancel").clicked() {
-                                self.mobile_win = None;
+                                self.win = None;
                             }
                         });
                         //ajouter le nombre de undo max par joueur
@@ -260,7 +260,7 @@ impl ChessApp {
                     self.side_panel_flip(ui);
                     ui.add_space(20.0);
                     if ui.button("Save options").clicked() {
-                        self.mobile_win = None;
+                        self.win = None;
                     }
                 });
                 ui.vertical_centered(|ui| {
@@ -312,13 +312,13 @@ impl ChessApp {
                             ui.add_space(40.0);
                             if ui.button("Accept").clicked() {
                                 self.current.end = Some(End::Resign);
-                                self.mobile_win = None;
+                                self.win = None;
                                 self.timer.active = false;
                                 self.app_mode = Versus(Some(End::Resign));
                             }
                             ui.add_space(120.0);
                             if ui.button("Decline").clicked() {
-                                self.mobile_win = None;
+                                self.win = None;
                             }
                             ui.add_space(40.0);
                         });
@@ -337,11 +337,11 @@ impl ChessApp {
                             if ui.button(RichText::new("Accept").size(40.0)).clicked() {
                                 self.current.end = Some(End::Resign);
                                 self.timer.active = false;
-                                self.mobile_win = None;
+                                self.win = None;
                             }
                             ui.add_space(60.0);
                             if ui.button(RichText::new("Decline").size(40.0)).clicked() {
-                                self.mobile_win = None;
+                                self.win = None;
                             }
                             ui.add_space(20.0);
                         });
@@ -365,12 +365,12 @@ impl ChessApp {
                             if ui.button("Accept").clicked() {
                                 self.current.end = Some(End::Draw);
                                 self.timer.active = false;
-                                self.mobile_win = None;
+                                self.win = None;
                                 self.app_mode = Versus(Some(End::Draw));
                             }
                             ui.add_space(120.0);
                             if ui.button("Decline").clicked() {
-                                self.mobile_win = None;
+                                self.win = None;
                             }
                             ui.add_space(40.0);
                         });
@@ -389,12 +389,12 @@ impl ChessApp {
                             if ui.button(RichText::new("Accept").size(40.0)).clicked() {
                                 self.current.end = Some(Draw);
                                 self.timer.active = false;
-                                self.mobile_win = None;
+                                self.win = None;
                                 //window dialog
                             }
                             ui.add_space(100.0);
                             if ui.button(RichText::new("Decline").size(40.0)).clicked() {
-                                self.mobile_win = None;
+                                self.win = None;
                             }
                             ui.add_space(40.0);
                         });
@@ -445,7 +445,7 @@ impl ChessApp {
             }
             self.current.board.pawn_to_promote = None;
             self.current.board.promote = None;
-            self.mobile_win = None;
+            self.win = None;
         }
     }
 }

@@ -101,7 +101,7 @@ pub enum UiType {
 pub struct ChessApp {
     pub ui_type: UiType,
     pub timer: Timer,
-    pub mobile_win: Option<WinDia>,
+    pub win: Option<WinDia>,
     pub app_mode: AppMode,
     pub replay_infos: ReplayInfos,
     //snapshots of all gamestates as history
@@ -127,7 +127,7 @@ impl Default for ChessApp {
         Self {
             ui_type: Desktop,
             timer: Timer::new(),
-            mobile_win: None,
+            win: None,
             app_mode: Lobby,
             replay_infos: ReplayInfos {
                 index: 0,
@@ -180,7 +180,7 @@ impl ChessApp {
         Self {
             ui_type,
             timer: Timer::new(),
-            mobile_win: None,
+            win: None,
             app_mode: Lobby,
             replay_infos: ReplayInfos {
                 index: 0,
