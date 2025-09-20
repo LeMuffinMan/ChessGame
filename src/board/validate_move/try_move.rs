@@ -128,10 +128,12 @@ impl ChessApp {
             if let Some(coord) = king_cell {
                 if self.current.board.threaten_cells.contains(&coord) {
                     self.current.end = Some(Checkmate);
+                    self.mobile_timer.active = false;
                     self.app_mode = Versus(Some(Checkmate));
                 } else {
                     self.current.end = Some(Pat);
                     self.app_mode = Versus(Some(Pat));
+                    self.mobile_timer.active = false;
                 }
             }
         }
