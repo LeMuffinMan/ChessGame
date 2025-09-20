@@ -1,6 +1,5 @@
 use crate::ChessApp;
 use crate::gui::chessapp_struct::AppMode;
-use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::hooks::WinDia::*;
 use crate::gui::desktop_ui::bot_panels::format_time;
 use crate::gui::update_timer::MobileGameMode::*;
@@ -139,14 +138,9 @@ impl ChessApp {
                                 .size(50.0),
                         );
                     } else {
-                        let time = if self.mobile_timer.active {
-                            self.mobile_timer.black_time
-                        } else {
-                            self.mobile_timer.start
-                        };
                         ui.label(
                             RichText::new(
-                                format_time(time)
+                                format_time(self.mobile_timer.black_time)
                                     + " ⏱ + "
                                     + &format_time(self.mobile_timer.increment).to_string(),
                             )

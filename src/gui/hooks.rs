@@ -418,7 +418,7 @@ impl ChessApp {
                 let prev_board = promoteinfo.prev_board.clone();
                 self.history.push(self.current.clone());
                 self.replay_infos.index += 1;
-                self.replay_infos.index += 1;
+                // self.replay_infos.index += 1;
                 self.encode_move_to_san(&from, &to, &prev_board);
             }
             self.current.board.pawn_to_promote = None;
