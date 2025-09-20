@@ -1,7 +1,6 @@
 pub mod gui;
 mod pgn;
 use crate::gui::chessapp_struct::ChessApp;
-use crate::gui::chessapp_struct::UiType;
 
 mod board;
 use crate::board::cell::Color;
@@ -80,7 +79,6 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //      - save as pgn
 //          - finir les metadonnees et les 80 chars
 //      - undo avec promotion
-//      - replayer panel desktop
 //
 //      - Refacto Draw + triple R
 //
