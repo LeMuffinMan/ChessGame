@@ -120,7 +120,7 @@ impl ChessApp {
             let response = ui.add(Label::new(displayed_text).sense(Sense::click()));
 
             if response.clicked() {
-                self.mobile_win = Some(Pgn);
+                self.win = Some(Pgn);
             }
         });
     }

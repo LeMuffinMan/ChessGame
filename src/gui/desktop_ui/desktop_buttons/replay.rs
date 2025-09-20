@@ -28,7 +28,7 @@ impl ChessApp {
             .add_enabled(!self.history.is_empty(), egui::Button::new("Save"))
             .clicked()
         {
-            self.mobile_win = Some(Pgn);
+            self.win = Some(Pgn);
         }
     }
 
@@ -45,7 +45,7 @@ impl ChessApp {
     pub fn play_pause_button(&mut self, ui: &mut egui::Ui, can_replay: bool) {
         if can_replay {
             if ui
-                .add_enabled(self.mobile_win.is_some(), egui::Button::new("▶"))
+                .add_enabled(self.win.is_some(), egui::Button::new("▶"))
                 .clicked()
             {
                 self.replay_infos.index = 0;
@@ -57,7 +57,7 @@ impl ChessApp {
             }
         } else if self.replay_infos.next_step.is_some() {
             if ui
-                .add_enabled(self.mobile_win.is_some(), egui::Button::new("⏸"))
+                .add_enabled(self.win.is_some(), egui::Button::new("⏸"))
                 .clicked()
             {
                 self.replay_infos.next_step = None;
@@ -68,7 +68,7 @@ impl ChessApp {
     pub fn rewind(&mut self, ui: &mut egui::Ui, can_undo: bool) {
         if ui
             .add_enabled(
-                can_undo && self.mobile_win.is_some(),
+                can_undo && self.win.is_some(),
                 egui::Button::new("|<"),
             )
             .clicked()
@@ -79,7 +79,7 @@ impl ChessApp {
         }
         if ui
             .add_enabled(
-                can_undo && self.mobile_win.is_some(),
+                can_undo && self.win.is_some(),
                 egui::Button::new("<"),
             )
             .clicked()

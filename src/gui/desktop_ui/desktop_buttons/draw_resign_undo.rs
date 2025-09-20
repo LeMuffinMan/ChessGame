@@ -29,30 +29,30 @@ impl ChessApp {
                 }
             } else if ui
                 .add_enabled(
-                    self.current.end.is_none() && self.mobile_win.is_none(),
+                    self.current.end.is_none() && self.win.is_none(),
                     egui::Button::new("Draw"),
                 )
                 .clicked()
             {
-                self.mobile_win = Some(DrawRequest);
+                self.win = Some(DrawRequest);
             }
             if ui
                 .add_enabled(
-                    self.current.end.is_none() && self.mobile_win.is_none(),
+                    self.current.end.is_none() && self.win.is_none(),
                     egui::Button::new("Resign"),
                 )
                 .clicked()
             {
-                self.mobile_win = Some(WinDia::Resign);
+                self.win = Some(WinDia::Resign);
             }
             if ui
                 .add_enabled(
-                    self.current.end.is_none() && self.mobile_win.is_none() && self.history.len() > 1,
+                    self.current.end.is_none() && self.win.is_none() && self.history.len() > 1,
                     egui::Button::new("Undo"),
                 )
                 .clicked()
             {
-                self.mobile_win = Some(WinDia::Undo);
+                self.win = Some(WinDia::Undo);
             }
         });
     }

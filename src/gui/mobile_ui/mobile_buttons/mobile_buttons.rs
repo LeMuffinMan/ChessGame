@@ -7,10 +7,10 @@ use crate::gui::hooks::WinDia::*;
 impl ChessApp {
     pub fn settings_button(&mut self, ui: &mut egui::Ui) {
         if ui
-            .add_enabled(self.mobile_win.is_none(), egui::Button::new("Settings"))
+            .add_enabled(self.win.is_none(), egui::Button::new("Settings"))
             .clicked()
         {
-            self.mobile_win = Some(Settings);
+            self.win = Some(Settings);
         }
     }
 
@@ -19,7 +19,7 @@ impl ChessApp {
         self.settings_button(ui);
         ui.add_space(180.0);
         if ui
-            .add_enabled(self.mobile_win.is_none(), egui::Button::new("Replay"))
+            .add_enabled(self.win.is_none(), egui::Button::new("Replay"))
             .clicked()
         {
             self.app_mode = Replay;
@@ -27,7 +27,7 @@ impl ChessApp {
         }
         ui.add_space(170.0);
         if ui
-            .add_enabled(self.mobile_win.is_none(), egui::Button::new("New Game"))
+            .add_enabled(self.win.is_none(), egui::Button::new("New Game"))
             .clicked()
         {
             *self = ChessApp::new(Mobile);
@@ -52,7 +52,7 @@ impl ChessApp {
 
     pub fn new_game_button(&mut self, ui: &mut egui::Ui) {
         if ui
-            .add_enabled(self.mobile_win.is_none(), egui::Button::new("New Game"))
+            .add_enabled(self.win.is_none(), egui::Button::new("New Game"))
             .clicked()
         {
             *self = ChessApp::new(Mobile);
@@ -64,10 +64,10 @@ impl ChessApp {
         self.settings_button(ui);
         ui.add_space(180.0);
         if ui
-            .add_enabled(self.mobile_win.is_none(), egui::Button::new("Timer"))
+            .add_enabled(self.win.is_none(), egui::Button::new("Timer"))
             .clicked()
         {
-            self.mobile_win = Some(Timer);
+            self.win = Some(Timer);
         }
         ui.add_space(180.0);
         self.new_game_button(ui);
@@ -78,18 +78,18 @@ impl ChessApp {
         self.settings_button(ui);
         ui.add_space(150.0);
         if ui.button("Draw").clicked() {
-            self.mobile_win = Some(DrawRequest);
+            self.win = Some(DrawRequest);
         }
         ui.add_space(20.0);
         if ui.button("Resign").clicked() {
-            self.mobile_win = Some(Resign);
+            self.win = Some(Resign);
         }
         ui.add_space(150.0);
         if ui
-            .add_enabled(self.mobile_win.is_none() && self.history.len() > 0, egui::Button::new("Undo"))
+            .add_enabled(self.win.is_none() && self.history.len() > 0, egui::Button::new("Undo"))
             .clicked()
         {
-            self.mobile_win = Some(Undo);
+            self.win = Some(Undo);
         }
     }
 }

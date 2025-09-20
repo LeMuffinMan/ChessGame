@@ -54,7 +54,7 @@ impl ChessApp {
     fn play_pause(&mut self, ui: &mut egui::Ui) {
         if self.replay_infos.next_step.is_none() {
             if ui
-                .add_enabled(self.mobile_win.is_none(), egui::Button::new("▶"))
+                .add_enabled(self.win.is_none(), egui::Button::new("▶"))
                 .clicked()
             {
                 self.replay_infos.index = 0;
@@ -65,7 +65,7 @@ impl ChessApp {
                 self.replay_infos.next_step = Some(now + delay);
             }
         } else if ui
-            .add_enabled(self.mobile_win.is_none(), egui::Button::new("⏸"))
+            .add_enabled(self.win.is_none(), egui::Button::new("⏸"))
             .clicked()
         {
             self.replay_infos.next_step = None;

@@ -209,11 +209,11 @@ impl ChessApp {
                     ui.horizontal(|ui| {
                         ui.add_space(230.0);
                         if ui.button("Save timer").clicked() {
-                            self.mobile_win = None;
+                            self.win = None;
                         }
                         if ui.button("Timer OFF").clicked() {
                             self.timer.mode = MobileGameMode::NoTime;
-                            self.mobile_win = None;
+                            self.win = None;
                         }
                         ui.add_space(40.0);
                     });
@@ -358,11 +358,11 @@ impl ChessApp {
                     ui.horizontal(|ui| {
                         ui.add_space(60.0);
                         if ui.button("Save timer").clicked() {
-                            self.mobile_win = None;
+                            self.win = None;
                         }
                         if ui.button("Timer OFF").clicked() {
                             self.timer.mode = MobileGameMode::NoTime;
-                            self.mobile_win = None;
+                            self.win = None;
                         }
                         ui.add_space(40.0);
                     });
