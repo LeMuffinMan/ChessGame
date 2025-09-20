@@ -6,14 +6,14 @@ pub struct Timer {
     pub start: f64,
     pub increment: f64,
     pub active: bool,
-    pub mode: MobileGameMode,
+    pub mode: GameMode,
     pub white_time: f64,
     pub black_time: f64,
     pub start_of_turn: (f64, Option<Color>),
 }
 
 #[derive(PartialEq)]
-pub enum MobileGameMode {
+pub enum GameMode {
     Rapid,
     Blitz,
     Bullet,
@@ -27,7 +27,7 @@ impl Timer {
             start: 0.0,
             increment: 0.0,
             active: false,
-            mode: MobileGameMode::NoTime,
+            mode: GameMode::NoTime,
             white_time: 0.0,
             black_time: 0.0,
             start_of_turn: (0.0, None),

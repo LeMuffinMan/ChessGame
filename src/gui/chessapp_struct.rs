@@ -4,7 +4,7 @@ use crate::Coord;
 use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::chessapp_struct::UiType::Desktop;
 use crate::gui::hooks::WinDia;
-use crate::gui::update_timer::MobileGameMode;
+use crate::gui::update_timer::GameMode;
 use crate::gui::update_timer::Timer;
 
 use eframe::{App, egui};
@@ -257,7 +257,7 @@ impl ChessApp {
         if self.app_mode == Replay {
             self.mobile_replay_step(ctx);
         }
-        if self.timer.mode != MobileGameMode::NoTime && self.timer.active {
+        if self.timer.mode != GameMode::NoTime && self.timer.active {
             if self
                 .timer
                 .update_timer(ctx, &self.current.active_player)

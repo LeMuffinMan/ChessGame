@@ -1,5 +1,5 @@
 use crate::ChessApp;
-use crate::gui::update_timer::MobileGameMode::NoTime;
+use crate::gui::update_timer::GameMode::NoTime;
 use egui::RichText;
 use egui::TextEdit;
 
