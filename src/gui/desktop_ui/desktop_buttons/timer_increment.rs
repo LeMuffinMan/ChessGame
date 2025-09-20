@@ -1,6 +1,6 @@
 use crate::ChessApp;
-use crate::gui::update_timer::MobileGameMode;
-use crate::gui::update_timer::MobileGameMode::*;
+use crate::gui::update_timer::GameMode;
+use crate::gui::update_timer::GameMode::*;
 use crate::gui::update_timer::Timer;
 
 use egui::Context;
@@ -28,7 +28,7 @@ impl ChessApp {
                         start: 20.0,
                         increment: 1.0,
                         active: false,
-                        mode: MobileGameMode::Bullet,
+                        mode: GameMode::Bullet,
                         white_time: 20.0,
                         black_time: 20.0,
                         start_of_turn: (0.0, None),
@@ -41,7 +41,7 @@ impl ChessApp {
                         start: 30.0,
                         increment: 0.0,
                         active: false,
-                        mode: MobileGameMode::Bullet,
+                        mode: GameMode::Bullet,
                         white_time: 30.0,
                         black_time: 30.0,
                         start_of_turn: (0.0, None),
@@ -56,7 +56,7 @@ impl ChessApp {
                         start: 60.0,
                         increment: 0.0,
                         active: false,
-                        mode: MobileGameMode::Bullet,
+                        mode: GameMode::Bullet,
                         white_time: 60.0,
                         black_time: 60.0,
                         start_of_turn: (0.0, None),
@@ -69,7 +69,7 @@ impl ChessApp {
                         start: 60.0,
                         increment: 1.0,
                         active: false,
-                        mode: MobileGameMode::Bullet,
+                        mode: GameMode::Bullet,
                         white_time: 60.0,
                         black_time: 60.0,
                         start_of_turn: (0.0, None),

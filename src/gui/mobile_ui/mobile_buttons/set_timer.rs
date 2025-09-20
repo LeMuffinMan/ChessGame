@@ -1,6 +1,6 @@
 use crate::ChessApp;
-use crate::gui::update_timer::MobileGameMode;
-use crate::gui::update_timer::MobileGameMode::*;
+use crate::gui::update_timer::GameMode;
+use crate::gui::update_timer::GameMode::*;
 use crate::gui::update_timer::Timer;
 
 use egui::RichText;
@@ -18,7 +18,7 @@ impl ChessApp {
                         ui.add_space(355.0);
                         if ui
                             .add_enabled(
-                                self.timer.mode != MobileGameMode::Custom,
+                                self.timer.mode != GameMode::Custom,
                                 egui::Button::new("Custom"),
                             )
                             .clicked()
@@ -44,7 +44,7 @@ impl ChessApp {
                                         start: 20.0,
                                         increment: 1.0,
                                         active: false,
-                                        mode: MobileGameMode::Bullet,
+                                        mode: GameMode::Bullet,
                                         white_time: 20.0,
                                         black_time: 20.0,
                                         start_of_turn: (0.0, None),
@@ -57,7 +57,7 @@ impl ChessApp {
                                         start: 30.0,
                                         increment: 0.0,
                                         active: false,
-                                        mode: MobileGameMode::Bullet,
+                                        mode: GameMode::Bullet,
                                         white_time: 30.0,
                                         black_time: 30.0,
                                         start_of_turn: (0.0, None),
@@ -70,7 +70,7 @@ impl ChessApp {
                                         start: 60.0,
                                         increment: 0.0,
                                         active: false,
-                                        mode: MobileGameMode::Bullet,
+                                        mode: GameMode::Bullet,
                                         white_time: 60.0,
                                         black_time: 60.0,
                                         start_of_turn: (0.0, None),
@@ -83,7 +83,7 @@ impl ChessApp {
                                         start: 60.0,
                                         increment: 1.0,
                                         active: false,
-                                        mode: MobileGameMode::Bullet,
+                                        mode: GameMode::Bullet,
                                         white_time: 60.0,
                                         black_time: 60.0,
                                         start_of_turn: (0.0, None),
@@ -212,7 +212,7 @@ impl ChessApp {
                             self.win = None;
                         }
                         if ui.button("Timer OFF").clicked() {
-                            self.timer.mode = MobileGameMode::NoTime;
+                            self.timer.mode = GameMode::NoTime;
                             self.win = None;
                         }
                         ui.add_space(40.0);
@@ -224,12 +224,12 @@ impl ChessApp {
                         ui.add_space(180.0);
                         if ui
                             .add_enabled(
-                                self.timer.mode == MobileGameMode::Custom,
+                                self.timer.mode == GameMode::Custom,
                                 egui::Button::new("Presets"),
                             )
                             .clicked()
                         {
-                            self.timer.mode = MobileGameMode::NoTime;
+                            self.timer.mode = GameMode::NoTime;
                         }
                     });
                     ui.add_space(60.0);
@@ -361,7 +361,7 @@ impl ChessApp {
                             self.win = None;
                         }
                         if ui.button("Timer OFF").clicked() {
-                            self.timer.mode = MobileGameMode::NoTime;
+                            self.timer.mode = GameMode::NoTime;
                             self.win = None;
                         }
                         ui.add_space(40.0);
