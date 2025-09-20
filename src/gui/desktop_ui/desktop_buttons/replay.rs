@@ -62,8 +62,6 @@ impl ChessApp {
             {
                 self.replay_infos.next_step = None;
             }
-        } else {
-            ui.add_enabled(false, egui::Button::new("▶")).clicked();
         }
     }
 

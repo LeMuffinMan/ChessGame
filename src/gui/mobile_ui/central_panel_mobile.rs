@@ -14,9 +14,7 @@ use egui::Sense;
 impl ChessApp {
     pub fn central_panel_mobile(&mut self, ctx: &egui::Context) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            if self.app_mode == Replay {
-                self.mobile_replay_step(ctx);
-            }
+
             let available_width = ui.available_width();
 
             let bar_height = 40.0;
