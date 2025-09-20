@@ -86,7 +86,7 @@ impl ChessApp {
         }
         ui.add_space(150.0);
         if ui
-            .add_enabled(self.mobile_win.is_none(), egui::Button::new("Undo"))
+            .add_enabled(self.mobile_win.is_none() && self.history.len() > 0, egui::Button::new("Undo"))
             .clicked()
         {
             self.mobile_win = Some(Undo);
