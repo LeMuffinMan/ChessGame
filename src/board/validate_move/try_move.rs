@@ -36,8 +36,8 @@ impl ChessApp {
             self.replay_infos.index += 1;
             //for mobile test
             self.app_mode = Versus(None);
-            self.mobile_timer.active = true;
-            self.mobile_timer.start_of_turn.1 = Some(White);
+            self.timer.active = true;
+            self.timer.start_of_turn.1 = Some(White);
             //Setup les timers ici ?
         }
         //it triggers a draw if true, before update board for pawn detection in case of promotion
@@ -128,12 +128,12 @@ impl ChessApp {
             if let Some(coord) = king_cell {
                 if self.current.board.threaten_cells.contains(&coord) {
                     self.current.end = Some(Checkmate);
-                    self.mobile_timer.active = false;
+                    self.timer.active = false;
                     self.app_mode = Versus(Some(Checkmate));
                 } else {
                     self.current.end = Some(Pat);
                     self.app_mode = Versus(Some(Pat));
-                    self.mobile_timer.active = false;
+                    self.timer.active = false;
                 }
             }
         }

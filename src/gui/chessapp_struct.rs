@@ -100,7 +100,7 @@ pub enum UiType {
 
 pub struct ChessApp {
     pub ui_type: UiType,
-    pub mobile_timer: Timer,
+    pub timer: Timer,
     pub mobile_win: Option<WinDia>,
     pub app_mode: AppMode,
     pub replay_infos: ReplayInfos,
@@ -126,7 +126,7 @@ impl Default for ChessApp {
     fn default() -> Self {
         Self {
             ui_type: Desktop,
-            mobile_timer: Timer::new(),
+            timer: Timer::new(),
             mobile_win: None,
             app_mode: Lobby,
             replay_infos: ReplayInfos {
@@ -179,7 +179,7 @@ impl ChessApp {
     pub fn new(ui_type: UiType) -> Self {
         Self {
             ui_type,
-            mobile_timer: Timer::new(),
+            timer: Timer::new(),
             mobile_win: None,
             app_mode: Lobby,
             replay_infos: ReplayInfos {
@@ -257,9 +257,9 @@ impl ChessApp {
         if self.app_mode == Replay {
             self.mobile_replay_step(ctx);
         }
-        if self.mobile_timer.mode != MobileGameMode::NoTime && self.mobile_timer.active {
+        if self.timer.mode != MobileGameMode::NoTime && self.timer.active {
             if self
-                .mobile_timer
+                .timer
                 .update_timer(ctx, &self.current.active_player)
             {
                 self.current.end = Some(End::TimeOut);

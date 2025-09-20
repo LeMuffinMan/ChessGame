@@ -14,18 +14,18 @@ impl ChessApp {
                 } else {
                     ui.label(&self.black_name);
                 }
-                if self.mobile_timer.mode != NoTime {
-                    if self.mobile_timer.increment == 0.0 {
+                if self.timer.mode != NoTime {
+                    if self.timer.increment == 0.0 {
                         ui.label(
-                            RichText::new(format_time(self.mobile_timer.black_time) + " ⏱")
+                            RichText::new(format_time(self.timer.black_time) + " ⏱")
                                 .size(30.0),
                         );
                     } else {
                         ui.label(
                             RichText::new(
-                                format_time(self.mobile_timer.black_time)
+                                format_time(self.timer.black_time)
                                     + " ⏱ + "
-                                    + &format_time(self.mobile_timer.increment).to_string(),
+                                    + &format_time(self.timer.increment).to_string(),
                             )
                             .size(30.0),
                         );

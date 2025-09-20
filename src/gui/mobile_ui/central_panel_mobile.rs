@@ -125,23 +125,23 @@ impl ChessApp {
         });
     }
 
-    //impl pour mobile_timer
+    //impl pour timer
     pub fn black_panel(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             ui.label(RichText::new("Black").size(50.0));
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if self.mobile_timer.mode != NoTime {
-                    if self.mobile_timer.increment == 0.0 {
+                if self.timer.mode != NoTime {
+                    if self.timer.increment == 0.0 {
                         ui.label(
-                            RichText::new(format_time(self.mobile_timer.black_time) + " ⏱")
+                            RichText::new(format_time(self.timer.black_time) + " ⏱")
                                 .size(50.0),
                         );
                     } else {
                         ui.label(
                             RichText::new(
-                                format_time(self.mobile_timer.black_time)
+                                format_time(self.timer.black_time)
                                     + " ⏱ + "
-                                    + &format_time(self.mobile_timer.increment).to_string(),
+                                    + &format_time(self.timer.increment).to_string(),
                             )
                             .size(50.0),
                         );
@@ -155,18 +155,18 @@ impl ChessApp {
         ui.horizontal(|ui| {
             ui.label(RichText::new("White").size(50.0));
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if self.mobile_timer.mode != NoTime {
-                    if self.mobile_timer.increment == 0.0 {
+                if self.timer.mode != NoTime {
+                    if self.timer.increment == 0.0 {
                         ui.label(
-                            RichText::new(format_time(self.mobile_timer.white_time) + " ⏱")
+                            RichText::new(format_time(self.timer.white_time) + " ⏱")
                                 .size(50.0),
                         );
                     } else {
                         ui.label(
                             RichText::new(
-                                format_time(self.mobile_timer.white_time)
+                                format_time(self.timer.white_time)
                                     + " ⏱ + "
-                                    + &format_time(self.mobile_timer.increment).to_string(),
+                                    + &format_time(self.timer.increment).to_string(),
                             )
                             .size(50.0),
                         );
