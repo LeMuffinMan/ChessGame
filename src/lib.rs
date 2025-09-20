@@ -1,6 +1,7 @@
 pub mod gui;
 mod pgn;
 use crate::gui::chessapp_struct::ChessApp;
+use crate::gui::chessapp_struct::UiType;
 
 mod board;
 use crate::board::cell::Color;
@@ -44,6 +45,11 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
         ua.to_lowercase().contains("mobi")
             || window.inner_width().unwrap().as_f64().unwrap_or(1024.0) < 800.0
     };
+    let ui_type = if is_mobile {
+        UiType::Mobile
+    } else {
+        UiType::Desktop
+    };
 
     //execute through the js our chessapp
     spawn_local(async move {
@@ -52,7 +58,7 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
                 canvas,
                 eframe::WebOptions::default(),
                 //added move to build the mobile/desktop app
-                Box::new(move |_cc| Ok(Box::new(ChessApp::new(is_mobile)))),
+                Box::new(move |_cc| Ok(Box::new(ChessApp::new(ui_type)))),
             )
             .await
             .unwrap();
@@ -68,6 +74,8 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //          - load
 //
 //Fix :
+//      - promote bug desktop 
+//
 //      - include in legal move for triple repetition
 //      - save as pgn
 //          - finir les metadonnees et les 80 chars

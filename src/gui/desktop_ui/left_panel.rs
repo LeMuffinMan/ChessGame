@@ -18,6 +18,10 @@ impl ChessApp {
                 if self.app_mode == Lobby {
                     self.timer_increment(ui, ctx);
                 }
+
+                    if self.app_mode == Replay {
+                        self.replay_buttons(ui);
+                    }
             });
     }
 }
