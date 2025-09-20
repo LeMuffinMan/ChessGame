@@ -76,7 +76,6 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //
 //Fix :
 //      - mobile windows
-//      - mobile custome time selection
 //      - mobile replay pause
 //
 //      - promote bug desktop 
