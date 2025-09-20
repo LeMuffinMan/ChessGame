@@ -256,6 +256,9 @@ impl App for ChessApp {
 impl ChessApp {
     pub fn hooks(&mut self, ctx: &egui::Context) {
         self.hook_win(ctx);
+        if self.app_mode == Replay {
+            self.mobile_replay_step(ctx);
+        }
         if self.mobile_timer.mode != MobileGameMode::NoTime && self.mobile_timer.active {
             if self
                 .mobile_timer

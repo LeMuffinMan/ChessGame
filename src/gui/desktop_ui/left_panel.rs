@@ -21,6 +21,17 @@ impl ChessApp {
 
                     if self.app_mode == Replay {
                         self.replay_buttons(ui);
+                        if matches!(self.app_mode, AppMode::Replay) {
+                            ui.horizontal(|ui| {
+                                ui.add_space(40.0);
+                                ui.vertical(|ui| {
+                                    ui.add(
+                                        egui::Slider::new(&mut self.replay_infos.sec_per_frame, 0.1..=5.0)
+                                            .logarithmic(true),
+                                    );
+                                });
+                            });
+                        }
                     }
             });
     }
