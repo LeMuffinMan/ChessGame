@@ -1,5 +1,6 @@
 use crate::ChessApp;
 
+use egui::RichText;
 use egui::Context;
 
 impl ChessApp {
@@ -27,6 +28,14 @@ impl ChessApp {
                         ui.checkbox(&mut self.widgets.show_last_move, "Last move")
                             .changed();
                         ui.add_space(20.0);
+                        if !self.history.is_empty() {
+                            ui.text_edit_singleline(&mut self.widgets.file_name);
+                            if ui.button(RichText::new("Download").size(20.0)).clicked() {
+                                ui.separator();
+                                let _ = self.export_pgn(); //Todo : handle error 
+                                self.win = None;
+                            }
+                        }
                         ui.separator();
                         if !self.history_san.is_empty() {
                             ui.monospace(&self.history_san);
