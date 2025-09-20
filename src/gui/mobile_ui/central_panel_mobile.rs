@@ -139,9 +139,14 @@ impl ChessApp {
                                 .size(50.0),
                         );
                     } else {
+                        let time = if self.mobile_timer.active {
+                            self.mobile_timer.black_time
+                        } else {
+                            self.mobile_timer.start
+                        };
                         ui.label(
                             RichText::new(
-                                format_time(self.mobile_timer.black_time)
+                                format_time(time)
                                     + " ⏱ + "
                                     + &format_time(self.mobile_timer.increment).to_string(),
                             )

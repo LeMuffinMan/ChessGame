@@ -3,9 +3,9 @@ use crate::Color;
 use crate::Coord;
 use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::chessapp_struct::UiType::Desktop;
+use crate::gui::hooks::WinDia;
 use crate::gui::update_timer::MobileGameMode;
 use crate::gui::update_timer::Timer;
-use crate::gui::hooks::WinDia;
 
 use eframe::{App, egui};
 use egui::Pos2;
@@ -86,8 +86,6 @@ pub struct Widgets {
     pub autoflip: bool,
     pub file_name: String,
 }
-
-
 
 pub struct ReplayInfos {
     pub index: usize,
@@ -238,7 +236,7 @@ impl App for ChessApp {
                 self.apply_styles(ctx);
                 self.top_title_panel(ctx);
                 self.central_panel_mobile(ctx);
-            },
+            }
             UiType::Desktop => {
                 self.apply_desktop_styles(ctx);
                 self.top_title_panel(ctx);
