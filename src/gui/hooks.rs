@@ -51,7 +51,7 @@ impl ChessApp {
                     self.offer_draw_win(ctx);
                 }
                 WinDia::Promote => {
-                    self.promote_win(ctx);
+                    // self.promote_win(ctx);
                 }
                 WinDia::Timer => {
                     self.set_timer(ctx);
@@ -110,7 +110,19 @@ impl ChessApp {
                     if ui.button("Accept").clicked() {
                         self.mobile_win = None;
                         self.current = self.history[self.replay_infos.index - 2].clone();
-                        self.replay_infos.index -= 1;
+                        if self.replay_infos.index == 2 {
+                            self.replay_infos.index -= 2;
+                            self.history.clear();
+                        } else {
+                            self.replay_infos.index -= 1;
+                            self.history.pop();
+                        }
+                        //une promote ajoute 2 indexs a l'historique ! a fix
+                        if self.current.board.pawn_to_promote.is_some() {
+                            self.replay_infos.index -= 1;
+                            self.history.pop();
+                        }
+                        //il faut supprimer les derniers hashs pour la triple repetition
                     }
                     ui.add_space(30.0);
                     if ui.button("Decline").clicked() {
@@ -211,6 +223,8 @@ impl ChessApp {
                 //     self.mobile_save_button(ui);
                 // }
                 ui.vertical_centered(|ui| {
+                    self.side_panel_flip(ui);
+                    ui.add_space(20.0);
                     if ui.button("Save options").clicked() {
                         self.mobile_win = None;
                     }
@@ -354,37 +368,6 @@ impl ChessApp {
                     });
             }
         }
-    }
-
-    pub fn promote_win(&mut self, ctx: &egui::Context) {
-        egui::Window::new("Pawn to promote")
-            .collapsible(false)
-            .resizable(false)
-            .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
-            .show(ctx, |ui| {
-                ui.add_space(40.0);
-                ui.horizontal(|ui| {
-                    ui.add_space(40.0);
-                    ui.vertical(|ui| {
-                        ui.radio_value(&mut self.current.board.promote, Some(Queen), "Queen");
-                        ui.radio_value(&mut self.current.board.promote, Some(Bishop), "Bishop");
-                        ui.radio_value(&mut self.current.board.promote, Some(Knight), "Knight");
-                        ui.radio_value(&mut self.current.board.promote, Some(Rook), "Rook");
-                    });
-                    if ui.button("Promote").clicked() {
-                        self.current.end = Some(End::Resign);
-                        self.mobile_timer.active = false;
-                        self.mobile_win = None;
-                        self.app_mode = Versus(Some(End::Resign));
-                    }
-                    ui.add_space(120.0);
-                    if ui.button("Decline").clicked() {
-                        self.mobile_win = None;
-                    }
-                    ui.add_space(40.0);
-                });
-                ui.add_space(40.0);
-            });
     }
 
     //Desktop hook

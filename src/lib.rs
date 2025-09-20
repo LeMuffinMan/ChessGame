@@ -75,20 +75,22 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //          - load
 //
 //Fix :
-//      - add new game button in replay desktop
-//      - mobile windows
-//      - mobile replay pause
 //
-//      - promote bug desktop
+//      - definir nom perso mobile
 //
-//      - include in legal move for triple repetition
+//      - check qui decale l'interface 
+//
+//      - Undo button
+//          - limit
+//          - promotion
+//          - add to desktop
+//
 //      - save as pgn
 //          - finir les metadonnees et les 80 chars
-//      - undo avec promotion
 //
 //      - Refacto Draw + triple R
+    //      - include in legal move for triple repetition
 //
-//      - Mobile : Flip / autoflip
 //
 //Tests :
 //      - unit

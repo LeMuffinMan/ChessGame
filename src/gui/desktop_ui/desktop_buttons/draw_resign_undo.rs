@@ -17,7 +17,7 @@ impl ChessApp {
                         ui.label("Triple repetition :");
                     }
                     Available(FiftyMoves) => {
-                        ui.label("%50 moves : ");
+                        ui.label("50 moves : ");
                     }
                     //ajouter les situations impossibles
                     _ => {}
@@ -44,6 +44,15 @@ impl ChessApp {
                 .clicked()
             {
                 self.mobile_win = Some(WinDia::Resign);
+            }
+            if ui
+                .add_enabled(
+                    self.current.end.is_none() && self.mobile_win.is_none() && self.history.len() > 1,
+                    egui::Button::new("Undo"),
+                )
+                .clicked()
+            {
+                self.mobile_win = Some(WinDia::Undo);
             }
         });
     }
