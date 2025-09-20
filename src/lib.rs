@@ -75,6 +75,7 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //          - load
 //
 //Fix :
+//      - add new game button in replay desktop
 //      - mobile windows
 //      - mobile replay pause
 //
