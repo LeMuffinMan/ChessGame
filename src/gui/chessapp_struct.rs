@@ -78,6 +78,21 @@ impl Settings {
     }
 }
 
+pub struct History {
+    pub snapshots: Vec<GameState>,
+    //pub coord: Vec<Option<coord>, Option<coord>>,
+    pub history_san: String,
+}
+
+impl History {
+    pub fn new() -> Self {
+        Self {
+            snapshots: Vec::new(),
+            history_san: String::new(),
+        }
+    }
+}
+
 pub struct ChessApp {
     pub ui_type: UiType,
     pub app_mode: AppMode,
@@ -86,8 +101,7 @@ pub struct ChessApp {
     pub timer: Timer,
     pub replay_infos: ReplayInfos,
     pub current: GameState,
-    pub history: Vec<GameState>,
-    pub history_san: String,
+    pub history: History,
     pub promoteinfo: Option<PromoteInfo>,
 }
 
@@ -95,13 +109,12 @@ impl ChessApp {
     pub fn new(ui_type: UiType) -> Self {
         Self {
             ui_type,
+            history: History::new(),
             timer: Timer::new(),
             win: None,
             app_mode: Lobby,
             replay_infos: ReplayInfos::new(),
             current: GameState::new(),
-            history: Vec::new(),
-            history_san: String::new(),
             settings: Settings::new(),
             promoteinfo: None,
         }
@@ -145,7 +158,7 @@ impl ChessApp {
             ctx.request_repaint();
         }
         if matches!(self.app_mode, AppMode::Versus(_))
-            && self.replay_infos.index == self.history.len()
+            && self.replay_infos.index == self.history.snapshots.len()
             && self.current.board.pawn_to_promote.is_some()
         {
             self.get_promotion_input(ctx);

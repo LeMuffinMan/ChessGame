@@ -38,9 +38,10 @@ impl ChessApp {
     pub fn encode_move_to_san(&mut self, from: &Coord, to: &Coord, prev_board: &Board) {
         //on ecrit le dernier coup une fois les checks du tour suivant faits
         if self.current.active_player == Black {
-            self.history_san
+            self.history
+                .history_san
                 .push_str(self.current.turn.to_string().as_str());
-            self.history_san.push_str(". ");
+            self.history.history_san.push_str(". ");
         }
 
         let piece: char = if let Some(p) = prev_board.get(from).get_piece() {
@@ -60,12 +61,12 @@ impl ChessApp {
             self.pawn_san(from, to, prev_board);
         } else if piece == 'K' && (to.col as i8 - from.col as i8).abs() > 1 {
             if (to.col as i8 - from.col as i8) < 0 {
-                self.history_san.push_str("O-O-O");
+                self.history.history_san.push_str("O-O-O");
             } else {
-                self.history_san.push_str("O-O");
+                self.history.history_san.push_str("O-O");
             }
         } else {
-            self.history_san.push(piece);
+            self.history.history_san.push(piece);
             if let Some(piece) = prev_board.get(from).get_piece() {
                 match piece {
                     Pawn => {}
@@ -75,10 +76,10 @@ impl ChessApp {
             }
 
             if !prev_board.get(to).is_empty() {
-                self.history_san.push('x');
+                self.history.history_san.push('x');
             }
-            self.history_san.push((b'a' + to.col) as char);
-            self.history_san.push((b'0' + to.row + 1) as char);
+            self.history.history_san.push((b'a' + to.col) as char);
+            self.history.history_san.push((b'0' + to.row + 1) as char);
         }
 
         //endgame and checks
@@ -87,25 +88,25 @@ impl ChessApp {
             match end {
                 Resign | TimeOut => {
                     match self.current.opponent {
-                        White => self.history_san.push_str("0-1"),
-                        Black => self.history_san.push_str("1-0"),
+                        White => self.history.history_san.push_str("0-1"),
+                        Black => self.history.history_san.push_str("1-0"),
                     };
                 }
                 Checkmate => {
-                    self.history_san.push_str("# ");
+                    self.history.history_san.push_str("# ");
                     match self.current.active_player {
-                        White => self.history_san.push_str("0-1"),
-                        Black => self.history_san.push_str("1-0"),
+                        White => self.history.history_san.push_str("0-1"),
+                        Black => self.history.history_san.push_str("1-0"),
                     };
                 }
-                Pat => self.history_san.push_str(" 1/2 - 1/2"),
-                Draw => self.history_san.push_str(" 1/2 - 1/2"),
+                Pat => self.history.history_san.push_str(" 1/2 - 1/2"),
+                Draw => self.history.history_san.push_str(" 1/2 - 1/2"),
             };
         }
         if self.current.board.check.is_some() && self.current.end.is_none() {
-            self.history_san.push('+');
+            self.history.history_san.push('+');
         }
-        self.history_san.push(' ');
+        self.history.history_san.push(' ');
     }
 
     fn is_en_passant_take(&mut self, from: &Coord, to: &Coord, prev_board: &Board) -> bool {
@@ -134,16 +135,16 @@ impl ChessApp {
 
     fn pawn_san(&mut self, from: &Coord, to: &Coord, prev_board: &Board) {
         if !prev_board.get(to).is_empty() || self.is_en_passant_take(from, to, prev_board) {
-            self.history_san.push((b'a' + from.col) as char);
-            self.history_san.push('x');
+            self.history.history_san.push((b'a' + from.col) as char);
+            self.history.history_san.push('x');
         }
-        self.history_san.push((b'a' + to.col) as char);
-        self.history_san.push((b'0' + to.row + 1) as char);
+        self.history.history_san.push((b'a' + to.col) as char);
+        self.history.history_san.push((b'0' + to.row + 1) as char);
 
         if let Some(piece) = self.current.board.get(to).get_piece()
             && *piece != Pawn
         {
-            self.history_san.push('=');
+            self.history.history_san.push('=');
             let p = match piece {
                 Rook => 'R',
                 Knight => 'N',
@@ -151,15 +152,15 @@ impl ChessApp {
                 Queen => 'Q',
                 _ => '_',
             };
-            self.history_san.push(p);
+            self.history.history_san.push(p);
         }
     }
     // ui.label("♔ ♕ ♖ ♗ ♘ ♙");
     // ui.label("♚ ♛ ♜ ♝ ♞ ♟")
 
     pub fn is_ambiguous_move(&mut self, piece: &Piece, from: &Coord, to: &Coord) {
-        if !self.history.is_empty() && self.replay_infos.index > 0 {
-            let prev_state = &self.history[self.replay_infos.index - 1];
+        if !self.history.snapshots.is_empty() && self.replay_infos.index > 0 {
+            let prev_state = &self.history.snapshots[self.replay_infos.index - 1];
             let prev_legal_moves = prev_state.board.legals_moves.clone();
             for (f, t) in prev_legal_moves.iter() {
                 if t == to
@@ -167,12 +168,12 @@ impl ChessApp {
                     && p == piece
                 {
                     if from.col != f.col {
-                        self.history_san.push((b'a' + from.col) as char);
+                        self.history.history_san.push((b'a' + from.col) as char);
                     } else if from.row != f.row {
-                        self.history_san.push((b'0' + from.row + 1) as char);
+                        self.history.history_san.push((b'0' + from.row + 1) as char);
                     } else {
-                        self.history_san.push((b'a' + from.col) as char);
-                        self.history_san.push((b'0' + from.row + 1) as char);
+                        self.history.history_san.push((b'a' + from.col) as char);
+                        self.history.history_san.push((b'0' + from.row + 1) as char);
                     }
                 }
             }

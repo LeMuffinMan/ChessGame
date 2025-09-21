@@ -47,7 +47,9 @@ impl ChessApp {
             }
             if ui
                 .add_enabled(
-                    self.current.end.is_none() && self.win.is_none() && self.history.len() > 1,
+                    self.current.end.is_none()
+                        && self.win.is_none()
+                        && self.history.snapshots.len() > 1,
                     egui::Button::new("Undo"),
                 )
                 .clicked()

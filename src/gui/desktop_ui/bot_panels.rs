@@ -27,7 +27,7 @@ impl ChessApp {
                     }
                 }
 
-                if self.history.is_empty() || self.current.end.is_some() {
+                if self.history.snapshots.is_empty() || self.current.end.is_some() {
                     ui.add(TextEdit::singleline(&mut self.settings.white_name));
                 } else {
                     ui.label(&self.settings.white_name);
