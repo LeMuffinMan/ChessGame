@@ -37,8 +37,8 @@ impl ChessApp {
                 let min = inner.min + egui::vec2(col as f32 * sq, row as f32 * sq);
                 let cell = egui::Rect::from_min_size(min, egui::vec2(sq, sq));
 
-                let board_row = if self.widgets.flip { 7 - row } else { row };
-                let board_col = if self.widgets.flip { col } else { 7 - col };
+                let board_row = if self.settings.flip { 7 - row } else { row };
+                let board_col = if self.settings.flip { col } else { 7 - col };
                 let coord = Coord {
                     row: board_row,
                     col: board_col,
@@ -59,20 +59,20 @@ impl ChessApp {
                     }
                     continue;
                 }
-                if self.widgets.show_threaten_cells
+                if self.settings.show_threaten_cells
                     && self.current.board.threaten_cells.contains(&coord)
                 {
                     p.rect_filled(cell, 0.0, red[idx as usize]);
-                } else if self.highlight.piece_legals_moves.contains(&coord)
-                    && self.widgets.show_legals_moves
+                } else if self.settings.piece_legals_moves.contains(&coord)
+                    && self.settings.show_legals_moves
                 {
                     p.rect_filled(cell, 0.0, green[idx as usize]);
                 } else if let Some((from, to)) = self.current.last_move
                     && (coord == from || coord == to)
-                    && self.widgets.show_last_move
+                    && self.settings.show_last_move
                 {
                     p.rect_filled(cell, 0.0, blue[idx as usize]);
-                } else if let Some(from) = self.highlight.from_cell
+                } else if let Some(from) = self.settings.from_cell
                     && coord == from
                 {
                     p.rect_filled(cell, 0.0, blue[idx as usize]);
@@ -84,7 +84,7 @@ impl ChessApp {
     }
 
     pub fn render_dragged_piece(&self, painter: &egui::Painter, inner: egui::Rect) {
-        if let (Some(from), Some(pos)) = (self.highlight.drag_from, self.highlight.drag_pos)
+        if let (Some(from), Some(pos)) = (self.settings.drag_from, self.settings.drag_pos)
             && let (Some(piece), Some(color)) = (
                 self.current.board.get(&from).get_piece(),
                 self.current.board.get(&from).get_color(),
@@ -107,13 +107,13 @@ impl ChessApp {
     pub fn render_pieces(&self, p: &egui::Painter, inner: egui::Rect, sq: f32) {
         for row in 0..8 {
             for col in 0..8 {
-                let board_row = if self.widgets.flip { 7 - row } else { row };
-                let board_col = if self.widgets.flip { col } else { 7 - col };
+                let board_row = if self.settings.flip { 7 - row } else { row };
+                let board_col = if self.settings.flip { col } else { 7 - col };
                 let coord = Coord {
                     row: board_row as u8,
                     col: board_col as u8,
                 };
-                if let Some(coord_dragged) = self.highlight.drag_from
+                if let Some(coord_dragged) = self.settings.drag_from
                     && coord == coord_dragged
                 {
                     continue;
@@ -191,11 +191,11 @@ pub fn render_piece_unicode(
 impl ChessApp {
     //To draw the selected piece legals moves
     pub fn get_piece_legal_moves(&mut self) {
-        if let Some(coord) = self.highlight.drag_from {
+        if let Some(coord) = self.settings.drag_from {
             for (from, to) in self.current.board.legals_moves.iter() {
                 if from.row == coord.row && from.col == coord.col {
                     // println!("pushing {:?}", coord);
-                    self.highlight.piece_legals_moves.push(*to);
+                    self.settings.piece_legals_moves.push(*to);
                 }
             }
         }
@@ -232,7 +232,7 @@ impl ChessApp {
             },
             egui::Align2::RIGHT_CENTER,
             &|r| {
-                let idx = if self.widgets.flip { 7 - r + 1 } else { r + 1 };
+                let idx = if self.settings.flip { 7 - r + 1 } else { r + 1 };
                 idx.to_string()
             },
         );
@@ -247,7 +247,7 @@ impl ChessApp {
             },
             egui::Align2::LEFT_CENTER,
             &|r| {
-                let idx = if self.widgets.flip { 7 - r + 1 } else { r + 1 };
+                let idx = if self.settings.flip { 7 - r + 1 } else { r + 1 };
                 idx.to_string()
             },
         );
@@ -262,7 +262,7 @@ impl ChessApp {
             },
             egui::Align2::CENTER_BOTTOM,
             &|c| {
-                let idx = if self.widgets.flip { c } else { 7 - c };
+                let idx = if self.settings.flip { c } else { 7 - c };
                 ((b'A' + idx as u8) as char).to_string()
             },
         );
@@ -277,7 +277,7 @@ impl ChessApp {
             },
             egui::Align2::CENTER_TOP,
             &|c| {
-                let idx = if self.widgets.flip { c } else { 7 - c };
+                let idx = if self.settings.flip { c } else { 7 - c };
                 ((b'A' + idx as u8) as char).to_string()
             },
         );
