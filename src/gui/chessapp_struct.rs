@@ -78,6 +78,12 @@ impl Settings {
     }
 }
 
+impl Default for Settings {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub struct History {
     pub snapshots: Vec<GameState>,
     //pub coord: Vec<Option<coord>, Option<coord>>,
@@ -90,6 +96,12 @@ impl History {
             snapshots: Vec::new(),
             history_san: String::new(),
         }
+    }
+}
+
+impl Default for History {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
