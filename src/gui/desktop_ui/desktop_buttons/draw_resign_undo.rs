@@ -9,33 +9,35 @@ use crate::ChessApp;
 
 impl ChessApp {
     pub fn draw_resign_undo(&mut self, ui: &mut egui::Ui) {
-        ui.horizontal(|ui| {
-            //shows the rule triggering the draw
-            if let Some(draw) = &self.current.draw.draw_option {
-                match draw {
-                    Available(DrawRule::TripleRepetition) => {
-                        ui.label("Triple repetition :");
-                    }
-                    Available(DrawRule::FiftyMoves) => {
-                        ui.label("50 moves : ");
-                    }
-                    //ajouter les situations impossibles
-                    _ => {}
-                };
-                //catch user inputs to ask for resign or draw to opponent using window_dialog
-                if ui.button("Claim draw").clicked() {
-                    self.current.end = Some(Draw);
-                    self.current.draw.draw_option = None;
+        //shows the rule triggering the draw
+        if let Some(draw) = &self.current.draw.draw_option {
+            ui.separator();
+            match draw {
+                Available(DrawRule::TripleRepetition) => {
+                    ui.label("Triple repetition :");
                 }
-            } else if ui
-                .add_enabled(
-                    self.current.end.is_none() && self.win.is_none(),
-                    egui::Button::new("Draw"),
-                )
-                .clicked()
-            {
-                self.win = Some(DrawRequest);
+                Available(DrawRule::FiftyMoves) => {
+                    ui.label("50 moves : ");
+                }
+                //ajouter les situations impossibles
+                _ => {}
+            };
+            //catch user inputs to ask for resign or draw to opponent using window_dialog
+            if ui.button("Claim draw").clicked() {
+                self.current.end = Some(Draw);
+                self.current.draw.draw_option = None;
             }
+        } else if ui
+            .add_enabled(
+                self.current.end.is_none() && self.win.is_none(),
+                egui::Button::new("Draw"),
+            )
+            .clicked()
+        {
+            self.win = Some(DrawRequest);
+        }
+        ui.separator();
+        ui.horizontal(|ui| {
             if ui
                 .add_enabled(
                     self.current.end.is_none() && self.win.is_none(),

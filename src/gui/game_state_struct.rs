@@ -10,7 +10,6 @@ use crate::gui::game_state_struct::DrawRule::*;
 
 use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;
-use std::collections::hash_map::Entry;
 use std::hash::{Hash, Hasher};
 
 #[derive(Clone, PartialEq)]
@@ -107,26 +106,19 @@ impl GameState {
         state.hash(&mut hasher);
         let hash_value = hasher.finish();
 
-        //if the entry is occupied, it means it's a 2nd repetition
-        //the ui will hook on it and seek if the next move could produce a 3rd reptition
-        //if yes, it offers to the opponnent to claim the draw
-        match self.draw.board_hashs.entry(hash_value) {
-            Entry::Vacant(e) => {
-                e.insert(1);
-            }
-            Entry::Occupied(_) => {
-                //si les legals moves permettent la repetition // todo
-                self.draw.draw_option = Some(Available(TripleRepetition));
-                self.draw.draw_hash = Some(hash_value);
-            }
+        let count = self.draw.board_hashs.entry(hash_value).or_insert(0);
+        *count += 1;
+
+        if *count == 3 {
+            self.draw.draw_option = Some(Available(TripleRepetition));
+            self.draw.draw_hash = Some(hash_value);
         }
-        //if the hash we juste made, is the same as the one that could be stored as reproduced
-        //twice, it means the player didnt claim draw, so he loose the all sequence : we delete the
-        //hash made and the one in the hashtable
-        //Since the active player variable is hashed too, it does not delete the other player
-        //entries
+
+        //if the hash we saved was not used : the player can't claim this hash and the 2 previous
         if let Some(h) = self.draw.draw_hash {
-            self.draw.board_hashs.remove(&h);
+            if let Some(count) = self.draw.board_hashs.get_mut(&h) {
+                *count = 0;
+            }
         }
     }
 
