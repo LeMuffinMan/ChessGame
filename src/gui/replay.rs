@@ -17,6 +17,12 @@ impl ReplayInfos {
     }
 }
 
+impl Default for ReplayInfos {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ChessApp {
     pub fn replay_buttons(&mut self, ui: &mut egui::Ui) {
         match &self.ui_type {

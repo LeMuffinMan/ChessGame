@@ -1,3 +1,5 @@
-pub mod mobile_buttons;
+pub mod common_buttons;
+pub mod lobby_buttons;
 pub mod mobile_turn_infos;
-pub mod set_timer;
+pub mod replay_buttons;
+pub mod versus_buttons;
