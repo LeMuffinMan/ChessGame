@@ -71,9 +71,6 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //Todo
 //      -error handling
 //
-//      - Undo button
-//          - limit
-//
 //      - pgn decoder
 //          - load
 //
