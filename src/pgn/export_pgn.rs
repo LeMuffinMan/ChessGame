@@ -61,9 +61,9 @@ impl ChessApp {
         pgn.push_str("\"]\n[UTCTime \"");
         pgn.push_str(Utc::now().format("%H.%M.%S").to_string().as_str());
         pgn.push_str("\"]\n[White \"");
-        pgn.push_str(&self.white_name.to_string());
+        pgn.push_str(&self.settings.white_name.to_string());
         pgn.push_str("\"]\n[Black \"");
-        pgn.push_str(&self.black_name.to_string());
+        pgn.push_str(&self.settings.black_name.to_string());
         pgn.push_str("\"]\n");
         if let Some(result) = self.history_san.split_whitespace().last() {
             pgn.push_str("[Result : \"");
