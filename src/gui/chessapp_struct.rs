@@ -40,7 +40,6 @@ pub struct PromoteInfo {
     pub prev_board: Board,
 }
 
-//regrouper highlight et widgets -> VisualSettings
 pub struct Settings {
     pub from_cell: Option<Coord>,
     pub drag_from: Option<Coord>,
@@ -78,8 +77,6 @@ impl Settings {
         }
     }
 }
-
-
 
 pub struct ChessApp {
     pub ui_type: UiType,
@@ -167,11 +164,5 @@ impl ChessApp {
                 },
             );
         });
-    }
-
-    //Gamestate fct
-    pub fn is_active_player_piece(&mut self, coord: &Coord) -> bool {
-        let cell = self.current.board.get(coord);
-        cell.is_color(&self.current.active_player)
     }
 }
