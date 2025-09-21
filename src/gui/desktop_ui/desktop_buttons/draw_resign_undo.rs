@@ -1,6 +1,6 @@
-use crate::gui::chessapp_struct::DrawOption::*;
-use crate::gui::chessapp_struct::DrawRule::*;
 use crate::gui::chessapp_struct::End::*;
+use crate::gui::game_state_struct::DrawOption::*;
+use crate::gui::game_state_struct::DrawRule;
 use crate::gui::hooks::WinDia;
 use crate::gui::hooks::WinDia::*;
 // use crate::gui::desktop_ui::desktop_buttons::draw_resign_undo::WinDia::DrawRequest;
@@ -11,12 +11,12 @@ impl ChessApp {
     pub fn draw_resign_undo(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             //shows the rule triggering the draw
-            if let Some(draw) = &self.draw.draw_option {
+            if let Some(draw) = &self.current.draw.draw_option {
                 match draw {
-                    Available(TripleRepetition) => {
+                    Available(DrawRule::TripleRepetition) => {
                         ui.label("Triple repetition :");
                     }
-                    Available(FiftyMoves) => {
+                    Available(DrawRule::FiftyMoves) => {
                         ui.label("50 moves : ");
                     }
                     //ajouter les situations impossibles
@@ -25,7 +25,7 @@ impl ChessApp {
                 //catch user inputs to ask for resign or draw to opponent using window_dialog
                 if ui.button("Claim draw").clicked() {
                     self.current.end = Some(Draw);
-                    self.draw.draw_option = None;
+                    self.current.draw.draw_option = None;
                 }
             } else if ui
                 .add_enabled(

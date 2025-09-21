@@ -5,7 +5,6 @@ use crate::board::cell::Piece::*;
 use crate::board::validate_move;
 use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::chessapp_struct::End::*;
-use crate::gui::chessapp_struct::GameState;
 use crate::gui::chessapp_struct::PromoteInfo;
 
 impl ChessApp {
@@ -41,13 +40,13 @@ impl ChessApp {
             //Setup les timers ici ?
         }
         //it triggers a draw if true, before update board for pawn detection in case of promotion
-        self.fifty_moves_draw_check(&from, &to);
+        self.current.fifty_moves_draw_check(&from, &to);
         //This apply the move on the board
         self.current
             .board
             .update_board(&from, &to, &self.current.active_player);
         //it triggers a draw if the board match an impossible mat situation
-        if self.impossible_mate_check() {
+        if self.current.impossible_mate_check() {
             self.current.end = Some(Draw);
             self.app_mode = Versus(Some(Draw));
         }
@@ -56,7 +55,7 @@ impl ChessApp {
         //This add a hash for the 3 repetition draw
         //it takes player on trait, the grid, the castle and en_passant state
         //hash gives us the info if this exact situation happened
-        self.add_hash();
+        self.current.add_hash();
 
         self.current.last_move = Some((from, to));
 
@@ -155,26 +154,3 @@ impl ChessApp {
     }
 }
 
-impl GameState {
-    pub fn switch_players_color(&mut self) {
-        self.active_player = match self.active_player {
-            White => Black,
-            Black => White,
-        };
-        self.opponent = match self.opponent {
-            White => Black,
-            Black => White,
-        };
-    }
-
-    //to rename : easier access to set the tuple of castles bools
-    pub fn switch_castle(&mut self, long: bool, short: bool) {
-        let castle_tuple = if self.active_player == White {
-            &mut self.board.white_castle
-        } else {
-            &mut self.board.black_castle
-        };
-        castle_tuple.0 = long;
-        castle_tuple.1 = short;
-    }
-}

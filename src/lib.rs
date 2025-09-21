@@ -74,7 +74,6 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //      - Undo button
 //          - limit
 //
-//
 //      - pgn decoder
 //          - load
 //
@@ -82,9 +81,6 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //      - definir nom perso
 //
 //Fix :
-//
-//      - save as pgn
-//          - finir les metadonnees et les 80 chars
 //
 //      - Refacto Draw + triple R
 //          - supprimer les hashs en cas de undo
