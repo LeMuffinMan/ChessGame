@@ -40,14 +40,11 @@ pub struct PromoteInfo {
 }
 
 //regrouper highlight et widgets -> VisualSettings
-pub struct Highlight {
+pub struct Settings {
     pub from_cell: Option<Coord>,
     pub drag_from: Option<Coord>,
     pub drag_pos: Option<Pos2>,
     pub piece_legals_moves: Vec<Coord>,
-}
-
-pub struct Widgets {
     pub show_coordinates: bool,
     pub show_legals_moves: bool,
     pub show_last_move: bool,
@@ -80,8 +77,7 @@ pub struct ChessApp {
     pub history_san: String,
 
     //rendering and interface stuff
-    pub widgets: Widgets,
-    pub highlight: Highlight,
+    pub settings: Settings,
     pub white_name: String,
     pub black_name: String,
 
@@ -119,7 +115,7 @@ impl Default for ChessApp {
             },
             history: Vec::new(),
             history_san: String::new(),
-            widgets: Widgets {
+            settings: Settings {
                 show_coordinates: false,
                 show_legals_moves: true,
                 show_last_move: true,
@@ -127,8 +123,6 @@ impl Default for ChessApp {
                 flip: true,
                 autoflip: false,
                 file_name: "chessgame.pgn".to_string(),
-            },
-            highlight: Highlight {
                 from_cell: None,
                 drag_from: None,
                 drag_pos: None,
@@ -172,7 +166,7 @@ impl ChessApp {
             },
             history: Vec::new(),
             history_san: String::new(),
-            widgets: Widgets {
+            settings: Settings {
                 show_coordinates: false,
                 show_legals_moves: true,
                 show_last_move: true,
@@ -180,8 +174,6 @@ impl ChessApp {
                 flip: true,
                 autoflip: false,
                 file_name: "chessgame.pgn".to_string(),
-            },
-            highlight: Highlight {
                 from_cell: None,
                 drag_from: None,
                 drag_pos: None,

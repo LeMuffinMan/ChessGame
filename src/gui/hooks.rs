@@ -186,7 +186,7 @@ impl ChessApp {
                             ui.vertical_centered(|ui| {
                                 ui.label(&self.history_san);
                                 ui.add_space(20.0);
-                                ui.text_edit_singleline(&mut self.widgets.file_name);
+                                ui.text_edit_singleline(&mut self.settings.file_name);
                                 if ui.button(RichText::new("Download").size(30.0)).clicked() {
                                     let _ = self.export_pgn(); //Todo : handle error 
                                     self.win = None;
@@ -219,7 +219,7 @@ impl ChessApp {
                             ui.vertical_centered(|ui| {
                                 ui.label(&self.history_san);
                                 ui.add_space(20.0);
-                                ui.text_edit_singleline(&mut self.widgets.file_name);
+                                ui.text_edit_singleline(&mut self.settings.file_name);
                                 ui.add_space(20.0);
                                 if ui.button(RichText::new("Download").size(30.0)).clicked() {
                                     let _ = self.export_pgn(); //Todo : handle error 
@@ -277,22 +277,22 @@ impl ChessApp {
             ui.add_space(50.0);
             ui.vertical(|ui| {
                 ui.checkbox(
-                    &mut self.widgets.show_coordinates,
+                    &mut self.settings.show_coordinates,
                     RichText::new("Coordinates").size(30.0),
                 );
                 ui.add_space(20.0);
                 ui.checkbox(
-                    &mut self.widgets.show_legals_moves,
+                    &mut self.settings.show_legals_moves,
                     RichText::new("Legals moves").size(30.0),
                 );
                 ui.add_space(20.0);
                 ui.checkbox(
-                    &mut self.widgets.show_threaten_cells,
+                    &mut self.settings.show_threaten_cells,
                     RichText::new("Threaten cells").size(30.0),
                 );
                 ui.add_space(20.0);
                 ui.checkbox(
-                    &mut self.widgets.show_last_move,
+                    &mut self.settings.show_last_move,
                     RichText::new("Last move").size(30.0),
                 );
             });

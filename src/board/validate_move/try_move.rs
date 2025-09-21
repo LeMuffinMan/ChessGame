@@ -59,8 +59,8 @@ impl ChessApp {
 
         self.current.last_move = Some((from, to));
 
-        if self.widgets.autoflip {
-            self.widgets.flip = !self.widgets.flip;
+        if self.settings.autoflip {
+            self.settings.flip = !self.settings.flip;
         }
         self.incremente_turn();
 

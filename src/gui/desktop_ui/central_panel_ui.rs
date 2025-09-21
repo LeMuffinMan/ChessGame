@@ -14,7 +14,7 @@ impl ChessApp {
             //we draw a big rectangle as background
             let rect = response.rect;
             let board_rect = ChessApp::centered_square(rect);
-            let inner = if self.widgets.show_coordinates {
+            let inner = if self.settings.show_coordinates {
                 ChessApp::render_border(&painter, board_rect);
                 board_rect.shrink(16.0)
             } else {
@@ -24,7 +24,7 @@ impl ChessApp {
             //each cell is a square, 8x8 cells is a grid
             let sq = inner.width() / 8.0;
 
-            if self.widgets.show_coordinates {
+            if self.settings.show_coordinates {
                 self.display_coordinates(&painter, inner, sq);
             }
             //render the grid and the cells

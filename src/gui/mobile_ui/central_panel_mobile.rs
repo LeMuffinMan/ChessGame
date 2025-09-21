@@ -83,7 +83,7 @@ impl ChessApp {
         );
 
         let rect = response.rect;
-        let inner = if self.widgets.show_coordinates {
+        let inner = if self.settings.show_coordinates {
             ChessApp::render_border(&painter, rect);
             rect.shrink(16.0)
         } else {
@@ -92,7 +92,7 @@ impl ChessApp {
 
         let sq = inner.width() / 8.0;
 
-        if self.widgets.show_coordinates {
+        if self.settings.show_coordinates {
             self.display_coordinates(&painter, inner, sq);
         }
         self.render_board(&painter, inner, sq);

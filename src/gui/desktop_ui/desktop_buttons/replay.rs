@@ -75,7 +75,7 @@ impl ChessApp {
         {
             self.replay_infos.index = 0;
             self.current = self.history[self.replay_infos.index].clone();
-            self.highlight.piece_legals_moves.clear();
+            self.settings.piece_legals_moves.clear();
         }
         if ui
             .add_enabled(
@@ -89,7 +89,7 @@ impl ChessApp {
             }
             self.replay_infos.index -= 1;
             self.current = self.history[self.replay_infos.index].clone();
-            self.highlight.piece_legals_moves.clear();
+            self.settings.piece_legals_moves.clear();
         }
     }
 
@@ -100,13 +100,13 @@ impl ChessApp {
             if self.replay_infos.index == self.history.len() - 1 {
                 self.replay_infos.index += 1;
             }
-            self.highlight.piece_legals_moves.clear();
+            self.settings.piece_legals_moves.clear();
         }
         if ui.add_enabled(can_redo, egui::Button::new(">|")).clicked() {
             self.replay_infos.index = self.history.len() - 1;
             self.current = self.history[self.replay_infos.index].clone();
             self.replay_infos.index += 1;
-            self.highlight.piece_legals_moves.clear();
+            self.settings.piece_legals_moves.clear();
         }
     }
 }

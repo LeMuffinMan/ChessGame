@@ -15,21 +15,21 @@ impl ChessApp {
                     ui.vertical(|ui| {
                         self.side_panel_flip(ui);
                         ui.add_space(20.0);
-                        ui.checkbox(&mut self.widgets.show_coordinates, "Coordinates")
+                        ui.checkbox(&mut self.settings.show_coordinates, "Coordinates")
                             .changed();
                         ui.add_space(20.0);
                         ui.label("Highlight :");
                         ui.add_space(20.0);
-                        ui.checkbox(&mut self.widgets.show_legals_moves, "Legals moves")
+                        ui.checkbox(&mut self.settings.show_legals_moves, "Legals moves")
                             .changed();
                         ui.add_space(20.0);
-                        ui.checkbox(&mut self.widgets.show_threaten_cells, "Threaten cells");
+                        ui.checkbox(&mut self.settings.show_threaten_cells, "Threaten cells");
                         ui.add_space(20.0);
-                        ui.checkbox(&mut self.widgets.show_last_move, "Last move")
+                        ui.checkbox(&mut self.settings.show_last_move, "Last move")
                             .changed();
                         ui.add_space(20.0);
                         if !self.history.is_empty() {
-                            ui.text_edit_singleline(&mut self.widgets.file_name);
+                            ui.text_edit_singleline(&mut self.settings.file_name);
                             if ui.button(RichText::new("Download").size(20.0)).clicked() {
                                 ui.separator();
                                 let _ = self.export_pgn(); //Todo : handle error 
