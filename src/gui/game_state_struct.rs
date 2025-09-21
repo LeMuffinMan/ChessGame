@@ -1,12 +1,12 @@
-use crate::Coord;
 use crate::Board;
+use crate::Coord;
 use crate::board::cell::Color;
 use crate::board::cell::Color::*;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
-use crate::gui::game_state_struct::DrawRule::*;
-use crate::gui::game_state_struct::DrawOption::*;
 use crate::gui::chessapp_struct::End;
+use crate::gui::game_state_struct::DrawOption::*;
+use crate::gui::game_state_struct::DrawRule::*;
 
 use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;
@@ -24,14 +24,12 @@ pub struct GameState {
     pub draw: LateDraw,
 }
 
-
 #[derive(Clone, PartialEq)]
 pub enum DrawOption {
     //faire une option
     Request,
     Available(DrawRule),
 }
-
 
 #[derive(Clone, PartialEq)]
 pub enum DrawRule {
@@ -48,8 +46,6 @@ pub struct LateDraw {
 }
 
 impl GameState {
-
-
     pub fn new() -> Self {
         Self {
             board: Board::init_board(),
@@ -63,7 +59,7 @@ impl GameState {
                 draw_option: None,
                 draw_moves_count: 0,
                 draw_hash: None,
-            }
+            },
         }
     }
 
@@ -103,10 +99,7 @@ impl GameState {
     pub fn add_hash(&mut self) {
         let mut hasher = DefaultHasher::new();
         let state = (
-            (
-                self.board.white_castle,
-                self.board.black_castle,
-            ),
+            (self.board.white_castle, self.board.black_castle),
             self.board.en_passant,
             self.active_player,
             self.board.grid,

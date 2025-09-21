@@ -1,6 +1,6 @@
 use crate::ChessApp;
-use crate::gui::update_timer::GameMode;
 use crate::gui::desktop_ui::bot_panels::format_time;
+use crate::gui::update_timer::GameMode;
 
 use chrono::Utc;
 use js_sys::Array;
@@ -81,30 +81,27 @@ impl ChessApp {
         match &self.timer.mode {
             GameMode::NoTime => {
                 pgn.push_str("No time\"]\n");
-            }, 
+            }
             GameMode::Rapid => {
                 pgn.push_str(&format!(
                     "Rapid: {} + {}\"]\n",
                     format_time(self.timer.start),
                     self.timer.increment
                 ));
-
-            }, 
+            }
             GameMode::Blitz => {
                 pgn.push_str(&format!(
                     "Blitz: {} + {}\"]\n",
                     format_time(self.timer.start),
                     self.timer.increment
                 ));
-
-            },
+            }
             GameMode::Bullet => {
                 pgn.push_str(&format!(
                     "Bullet: {} + {}\"]\n",
                     format_time(self.timer.start),
                     self.timer.increment
                 ));
-
             }
             GameMode::Custom => {
                 pgn.push_str(&format!(
