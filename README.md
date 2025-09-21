@@ -10,6 +10,7 @@ While the CI/CD pipeline gives me a first experience with modern deployment work
 Try it live on GitHub Pages: [https://lemuffinman.github.io/ChessGame/](https://lemuffinman.github.io/ChessGame/)
 
 <img width="1918" height="1102" alt="250917_00h30m17s_screenshot" src="https://github.com/user-attachments/assets/b4c4dcb6-a7e1-472e-9157-766642b5dc85" />
+<img src="assets/mobile_demo.gif" width="400" alt="Mobile demo gif">
 
 ---
 
