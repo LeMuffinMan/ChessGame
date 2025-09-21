@@ -100,9 +100,9 @@ pub struct ChessApp {
     pub win: Option<WinDia>,
     pub timer: Timer,
     pub replay_infos: ReplayInfos,
+    pub promoteinfo: Option<PromoteInfo>,
     pub current: GameState,
     pub history: History,
-    pub promoteinfo: Option<PromoteInfo>,
 }
 
 impl ChessApp {
