@@ -21,6 +21,12 @@ pub enum GameMode {
     NoTime,
 }
 
+impl Default for Timer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Timer {
     pub fn new() -> Self {
         Self {
@@ -45,7 +51,7 @@ impl Timer {
             self.switch_timer(now, active_player);
         }
 
-        return self.decrement_timer(now, active_player);
+        self.decrement_timer(now, active_player)
     }
 
     pub fn init_timer(&mut self, now: f64, active_player: &Color) {

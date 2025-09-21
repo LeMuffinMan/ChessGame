@@ -1,11 +1,48 @@
 use crate::ChessApp;
+use crate::UiType::*;
+use crate::gui::chessapp_struct::AppMode::*;
+use crate::gui::hooks::WinDia;
 use crate::gui::update_timer::GameMode;
+use crate::gui::update_timer::GameMode::Rapid;
 use crate::gui::update_timer::GameMode::*;
 use crate::gui::update_timer::Timer;
 
 use egui::RichText;
 
 impl ChessApp {
+    pub fn lobby_buttons(&mut self, ui: &mut egui::Ui) {
+        ui.add_space(60.0);
+        self.settings_button(ui);
+        ui.add_space(180.0);
+        if ui
+            .add_enabled(self.win.is_none(), egui::Button::new("Timer"))
+            .clicked()
+        {
+            self.win = Some(WinDia::Timer);
+        }
+        ui.add_space(180.0);
+        self.new_game_button(ui);
+    }
+    pub fn draw_endgame_buttons(&mut self, ui: &mut egui::Ui) {
+        ui.add_space(60.0);
+        self.settings_button(ui);
+        ui.add_space(180.0);
+        if ui
+            .add_enabled(self.win.is_none(), egui::Button::new("Replay"))
+            .clicked()
+        {
+            self.app_mode = Replay;
+            self.current = self.history.snapshots[self.replay_infos.index - 1].clone();
+        }
+        ui.add_space(170.0);
+        if ui
+            .add_enabled(self.win.is_none(), egui::Button::new("New Game"))
+            .clicked()
+        {
+            *self = ChessApp::new(Mobile);
+        }
+    }
+
     pub fn set_timer(&mut self, ctx: &egui::Context) {
         egui::Window::new("Timer")
             .collapsible(false)
