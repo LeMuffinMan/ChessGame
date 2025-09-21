@@ -82,9 +82,6 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //
 //Fix :
 //
-//      - Refacto Draw + triple R
-//          - supprimer les hashs en cas de undo
-//           - include in legal move for triple repetition
 //
 //
 //Tests :

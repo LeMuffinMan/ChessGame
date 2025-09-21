@@ -1,7 +1,10 @@
 use crate::ChessApp;
 use crate::gui::chessapp_struct::AppMode;
 use crate::gui::chessapp_struct::AppMode::Replay;
+use crate::gui::chessapp_struct::End::Draw;
 use crate::gui::chessapp_struct::UiType::Mobile;
+use crate::gui::game_state_struct::DrawOption;
+use crate::gui::game_state_struct::DrawOption::Available;
 use crate::gui::hooks::WinDia::*;
 
 impl ChessApp {
@@ -77,14 +80,31 @@ impl ChessApp {
         ui.add_space(60.0);
         self.settings_button(ui);
         ui.add_space(150.0);
-        if ui.button("Draw").clicked() {
-            self.win = Some(DrawRequest);
+        if let Some(option) = &self.current.draw.draw_option {
+            match option {
+                Available(_) => {
+                    if ui.button("Claim draw").clicked() {
+                        self.current.end = Some(Draw);
+                    }
+                }
+                _ => {}
+            };
+        } else {
+            if ui.button("Draw").clicked() {
+                self.win = Some(DrawRequest);
+            }
         }
         ui.add_space(20.0);
         if ui.button("Resign").clicked() {
             self.win = Some(Resign);
         }
-        ui.add_space(150.0);
+        if let Some(option) = &self.current.draw.draw_option
+            && let DrawOption::Available(_) = option
+        {
+            ui.add_space(60.0);
+        } else {
+            ui.add_space(150.0);
+        }
         if ui
             .add_enabled(
                 self.win.is_none() && self.history.snapshots.len() > 0,
