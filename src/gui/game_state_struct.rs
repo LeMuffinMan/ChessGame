@@ -1,17 +1,75 @@
-use crate::ChessApp;
 use crate::Coord;
+use crate::Board;
 use crate::board::cell::Color;
 use crate::board::cell::Color::*;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
-use crate::gui::chessapp_struct::DrawOption::*;
-use crate::gui::chessapp_struct::DrawRule::*;
+use crate::gui::game_state_struct::DrawRule::*;
+use crate::gui::game_state_struct::DrawOption::*;
+use crate::gui::chessapp_struct::End;
 
+use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;
 use std::collections::hash_map::Entry;
 use std::hash::{Hash, Hasher};
 
-impl ChessApp {
+#[derive(Clone, PartialEq)]
+pub struct GameState {
+    pub board: Board,
+    pub active_player: Color,
+    pub opponent: Color,
+    pub end: Option<End>,
+    pub last_move: Option<(Coord, Coord)>,
+    pub turn: u32,
+    pub draw: LateDraw,
+}
+
+
+#[derive(Clone, PartialEq)]
+pub enum DrawOption {
+    //faire une option
+    Request,
+    Available(DrawRule),
+}
+
+
+#[derive(Clone, PartialEq)]
+pub enum DrawRule {
+    TripleRepetition,
+    FiftyMoves,
+}
+
+#[derive(Clone, PartialEq)]
+pub struct LateDraw {
+    pub board_hashs: HashMap<u64, usize>,
+    pub draw_option: Option<DrawOption>,
+    pub draw_moves_count: u32,
+    pub draw_hash: Option<u64>,
+}
+
+impl GameState {
+    pub fn switch_players_color(&mut self) {
+        self.active_player = match self.active_player {
+            White => Black,
+            Black => White,
+        };
+        self.opponent = match self.opponent {
+            White => Black,
+            Black => White,
+        };
+    }
+
+    //to rename : easier access to set the tuple of castles bools
+    pub fn switch_castle(&mut self, long: bool, short: bool) {
+        let castle_tuple = if self.active_player == White {
+            &mut self.board.white_castle
+        } else {
+            &mut self.board.black_castle
+        };
+        castle_tuple.0 = long;
+        castle_tuple.1 = short;
+    }
+
     //for the 3 repetition draw, we need to check only if the a same situation happenned 2 times
     //and if the player can legaly reproduce a 3rd repetition
     //the situation to compare include castle state, en passant state, grid and active player
@@ -22,12 +80,12 @@ impl ChessApp {
         let mut hasher = DefaultHasher::new();
         let state = (
             (
-                self.current.board.white_castle,
-                self.current.board.black_castle,
+                self.board.white_castle,
+                self.board.black_castle,
             ),
-            self.current.board.en_passant,
-            self.current.active_player,
-            self.current.board.grid,
+            self.board.en_passant,
+            self.active_player,
+            self.board.grid,
         );
         state.hash(&mut hasher);
         let hash_value = hasher.finish();
@@ -58,7 +116,7 @@ impl ChessApp {
     //after 50 moves without pawn moves or capture, it triggers a draw
     pub fn fifty_moves_draw_check(&mut self, from: &Coord, to: &Coord) {
         //if a pawn moved, wthe counter reset
-        if let Some(p) = self.current.board.get(from).get_piece()
+        if let Some(p) = self.board.get(from).get_piece()
             && p == &Pawn
         {
             self.draw.draw_moves_count = 0;
@@ -66,7 +124,7 @@ impl ChessApp {
         }
         //if a capture occured, we reset the counter
         //this is why we need to call this fct before updating the baord
-        if !self.current.board.get(to).is_empty() {
+        if !self.board.get(to).is_empty() {
             self.draw.draw_moves_count = 0;
             return;
         }
@@ -86,8 +144,8 @@ impl ChessApp {
         let mut vec = Vec::new();
         for x in 0..8 {
             for y in 0..7 {
-                if let Some(piece) = self.current.board.grid[x][y].get_piece()
-                    && let Some(color) = self.current.board.grid[x][y].get_color()
+                if let Some(piece) = self.board.grid[x][y].get_piece()
+                    && let Some(color) = self.board.grid[x][y].get_color()
                 {
                     let cell_color = if (x + y) % 2 == 0 { White } else { Black };
                     vec.push((*piece, *color, cell_color));

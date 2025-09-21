@@ -13,3 +13,4 @@ pub mod mobile_ui;
 pub mod render;
 pub mod replay;
 pub mod update_timer;
+pub mod game_state_struct;

@@ -6,6 +6,8 @@ use crate::gui::chessapp_struct::UiType::Desktop;
 use crate::gui::hooks::WinDia;
 use crate::gui::update_timer::GameMode;
 use crate::gui::update_timer::Timer;
+use crate::gui::game_state_struct::GameState;
+use crate::gui::game_state_struct::LateDraw;
 
 use eframe::{App, egui};
 use egui::Pos2;
@@ -13,19 +15,6 @@ use egui::Pos2;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-//Draw -> Gamestate methdoes
-#[derive(Clone, PartialEq)]
-pub enum DrawRule {
-    TripleRepetition,
-    FiftyMoves,
-}
-
-#[derive(Clone, PartialEq)]
-pub enum DrawOption {
-    //faire une option
-    Request,
-    Available(DrawRule),
-}
 
 #[derive(Clone, PartialEq)]
 pub enum End {
@@ -48,25 +37,6 @@ pub struct PromoteInfo {
     pub from: Coord,
     pub to: Coord,
     pub prev_board: Board,
-}
-
-//fichier a part ?
-#[derive(Clone, PartialEq)]
-pub struct GameState {
-    pub board: Board,
-    pub active_player: Color,
-    pub opponent: Color,
-    pub end: Option<End>,
-    pub last_move: Option<(Coord, Coord)>,
-    pub turn: u32,
-}
-
-//methdoe gamestate
-pub struct LateDraw {
-    pub board_hashs: HashMap<u64, usize>,
-    pub draw_option: Option<DrawOption>,
-    pub draw_moves_count: u32,
-    pub draw_hash: Option<u64>,
 }
 
 //regrouper highlight et widgets -> VisualSettings
@@ -116,7 +86,6 @@ pub struct ChessApp {
     pub black_name: String,
 
     //info to transmit to board / to move in board
-    pub draw: LateDraw,
     pub promoteinfo: Option<PromoteInfo>,
 
     pub file_path: Option<PathBuf>,
@@ -141,6 +110,12 @@ impl Default for ChessApp {
                 end: None,
                 last_move: None,
                 turn: 1,
+                draw: LateDraw {
+                    board_hashs: HashMap::new(),
+                    draw_option: None,
+                    draw_moves_count: 0,
+                    draw_hash: None,
+                },
             },
             history: Vec::new(),
             history_san: String::new(),
@@ -158,12 +133,6 @@ impl Default for ChessApp {
                 drag_from: None,
                 drag_pos: None,
                 piece_legals_moves: Vec::new(),
-            },
-            draw: LateDraw {
-                board_hashs: HashMap::new(),
-                draw_option: None,
-                draw_moves_count: 0,
-                draw_hash: None,
             },
             promoteinfo: None,
             // file_dialog: FileDialog::new(),
@@ -194,6 +163,12 @@ impl ChessApp {
                 end: None,
                 last_move: None,
                 turn: 1,
+                draw: LateDraw {
+                    board_hashs: HashMap::new(),
+                    draw_option: None,
+                    draw_moves_count: 0,
+                    draw_hash: None,
+                },
             },
             history: Vec::new(),
             history_san: String::new(),
@@ -211,12 +186,6 @@ impl ChessApp {
                 drag_from: None,
                 drag_pos: None,
                 piece_legals_moves: Vec::new(),
-            },
-            draw: LateDraw {
-                board_hashs: HashMap::new(),
-                draw_option: None,
-                draw_moves_count: 0,
-                draw_hash: None,
             },
             promoteinfo: None,
             // file_dialog: FileDialog::new(),
