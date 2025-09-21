@@ -55,6 +55,10 @@ pub struct Settings {
     pub white_name: String,
     pub black_name: String,
     pub file_path: Option<PathBuf>,
+    pub allow_undo: bool,
+    pub white_undo: u8,
+    pub black_undo: u8,
+    pub undo_limit: u8,
 }
 
 impl Settings {
@@ -74,6 +78,10 @@ impl Settings {
             white_name: "White".to_string(),
             black_name: "Black".to_string(),
             file_path: None,
+            allow_undo: false,
+            white_undo: 0,
+            black_undo: 0,
+            undo_limit: 0,
         }
     }
 }

@@ -272,15 +272,25 @@ impl ChessApp {
                 // if !self.history.is_empty() {
                 //     self.mobile_save_button(ui);
                 // }
+                //
+                ui.horizontal(|ui| {
+                    if self.settings.allow_undo {
+                        ui.add_space(20.0);
+                    } else {
+                        ui.add_space(40.0);
+                    }
+                    self.undo_limit(ui);
+                });
+                ui.add_space(20.0);
                 ui.vertical_centered(|ui| {
                     self.side_panel_flip(ui);
-                    ui.add_space(20.0);
-                    if ui.button("Save options").clicked() {
+                    ui.add_space(40.0);
+                    if ui.button("Save settings").clicked() {
                         self.win = None;
                     }
                 });
                 ui.vertical_centered(|ui| {
-                    ui.add_space(20.0);
+                    ui.add_space(30.0);
                     ui.hyperlink_to("Source code", "https://github.com/LeMuffinMan/ChessGame");
                 });
                 //ajouter le nombre de undo max par joueur

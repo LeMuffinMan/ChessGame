@@ -1,3 +1,4 @@
+use crate::Color::*;
 use crate::gui::chessapp_struct::End::*;
 use crate::gui::game_state_struct::DrawOption::*;
 use crate::gui::game_state_struct::DrawRule;
@@ -47,16 +48,33 @@ impl ChessApp {
             {
                 self.win = Some(WinDia::Resign);
             }
-            if ui
-                .add_enabled(
-                    self.current.end.is_none()
-                        && self.win.is_none()
-                        && self.history.snapshots.len() > 1,
-                    egui::Button::new("Undo"),
-                )
-                .clicked()
+            #[allow(clippy::collapsible_if)]
+            if self.settings.allow_undo
+                && (self.settings.white_undo > 0 || self.settings.black_undo > 0)
             {
-                self.win = Some(WinDia::Undo);
+                #[allow(clippy::collapsible_if)]
+                if ui
+                    .add_enabled(
+                        self.current.end.is_none()
+                            && self.can_undo()
+                            && self.win.is_none()
+                            && (self.history.snapshots.len() > 1
+                                || self.history.snapshots.len() == 2
+                                    && self.current.active_player == White),
+                        egui::Button::new("Undo"),
+                    )
+                    .clicked()
+                {
+                    self.win = Some(WinDia::Undo);
+                    match self.current.opponent {
+                        White => {
+                            self.settings.white_undo -= 1;
+                        }
+                        Black => {
+                            self.settings.black_undo -= 1;
+                        }
+                    }
+                }
             }
         });
     }
