@@ -6,7 +6,7 @@ impl ChessApp {
         if response.drag_started()
             && let Some(pos) = response.interact_pointer_pos()
             && let Some(c) = ui_to_board(inner, sq, self.settings.flip, pos)
-            && self.is_active_player_piece(&c)
+            && self.current.is_active_player_piece(&c)
             && self.current.end.is_none()
             && let None = self.current.board.pawn_to_promote
             && self.replay_infos.index == self.history.len()

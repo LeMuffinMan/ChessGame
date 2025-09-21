@@ -49,6 +49,7 @@ pub struct LateDraw {
 
 impl GameState {
 
+
     pub fn new() -> Self {
         Self {
             board: Board::init_board(),
@@ -64,6 +65,11 @@ impl GameState {
                 draw_hash: None,
             }
         }
+    }
+
+    pub fn is_active_player_piece(&mut self, coord: &Coord) -> bool {
+        let cell = self.board.get(coord);
+        cell.is_color(&self.active_player)
     }
 
     pub fn switch_players_color(&mut self) {
