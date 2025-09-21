@@ -23,6 +23,12 @@ pub struct GameState {
     pub draw: LateDraw,
 }
 
+impl Default for GameState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Clone, PartialEq)]
 pub enum DrawOption {
     //faire une option
@@ -115,10 +121,10 @@ impl GameState {
         }
 
         //if the hash we saved was not used : the player can't claim this hash and the 2 previous
-        if let Some(h) = self.draw.draw_hash {
-            if let Some(count) = self.draw.board_hashs.get_mut(&h) {
-                *count = 0;
-            }
+        if let Some(h) = self.draw.draw_hash
+            && let Some(count) = self.draw.board_hashs.get_mut(&h)
+        {
+            *count = 0;
         }
     }
 
