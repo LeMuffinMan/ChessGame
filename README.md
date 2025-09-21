@@ -11,7 +11,7 @@ Try it live on GitHub Pages: [https://lemuffinman.github.io/ChessGame/](https://
 
 <p align="center">
   <img src="assets/mobile_demo.gif" width="300" alt="Mobile demo gif" />
-  <img width="600" alt="250917_00h30m17s_screenshot" src="https://github.com/user-attachments/assets/b4c4dcb6-a7e1-472e-9157-766642b5dc85" />
+  <img width="900" alt="250917_00h30m17s_screenshot" src="https://github.com/user-attachments/assets/b4c4dcb6-a7e1-472e-9157-766642b5dc85" />
 </p>
 
 ---
