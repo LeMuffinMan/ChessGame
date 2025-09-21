@@ -133,8 +133,7 @@ impl ChessApp {
                 if self.timer.mode != NoTime {
                     if self.timer.increment == 0.0 {
                         ui.label(
-                            RichText::new(format_time(self.timer.black_time) + " ⏱")
-                                .size(50.0),
+                            RichText::new(format_time(self.timer.black_time) + " ⏱").size(50.0),
                         );
                     } else {
                         ui.label(
@@ -158,8 +157,7 @@ impl ChessApp {
                 if self.timer.mode != NoTime {
                     if self.timer.increment == 0.0 {
                         ui.label(
-                            RichText::new(format_time(self.timer.white_time) + " ⏱")
-                                .size(50.0),
+                            RichText::new(format_time(self.timer.white_time) + " ⏱").size(50.0),
                         );
                     } else {
                         ui.label(

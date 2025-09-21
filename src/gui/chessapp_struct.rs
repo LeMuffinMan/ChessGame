@@ -1,11 +1,11 @@
 use crate::Board;
 use crate::Coord;
 use crate::gui::chessapp_struct::AppMode::*;
+use crate::gui::game_state_struct::GameState;
 use crate::gui::hooks::WinDia;
+use crate::gui::replay::ReplayInfos;
 use crate::gui::update_timer::GameMode;
 use crate::gui::update_timer::Timer;
-use crate::gui::game_state_struct::GameState;
-use crate::gui::replay::ReplayInfos;
 
 use eframe::{App, egui};
 use egui::Pos2;
@@ -139,10 +139,7 @@ impl ChessApp {
             self.mobile_replay_step(ctx);
         }
         if self.timer.mode != GameMode::NoTime && self.timer.active {
-            if self
-                .timer
-                .update_timer(ctx, &self.current.active_player)
-            {
+            if self.timer.update_timer(ctx, &self.current.active_player) {
                 self.current.end = Some(End::TimeOut);
             }
             ctx.request_repaint();

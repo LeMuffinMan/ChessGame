@@ -8,7 +8,7 @@ pub struct ReplayInfos {
 }
 
 impl ReplayInfos {
-    pub fn new() -> Self { 
+    pub fn new() -> Self {
         Self {
             index: 0,
             sec_per_frame: 1.0,

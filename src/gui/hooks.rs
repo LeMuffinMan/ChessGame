@@ -78,7 +78,11 @@ impl ChessApp {
                             ui.add_space(140.0);
                             ui.vertical(|ui| {
                                 ui.add_space(20.0);
-                                ui.selectable_value(&mut self.current.board.promote, Some(Queen), "Queen");
+                                ui.selectable_value(
+                                    &mut self.current.board.promote,
+                                    Some(Queen),
+                                    "Queen",
+                                );
                                 ui.add_space(20.0);
                                 ui.selectable_value(
                                     &mut self.current.board.promote,
@@ -92,12 +96,16 @@ impl ChessApp {
                                     "Knight",
                                 );
                                 ui.add_space(20.0);
-                                ui.selectable_value(&mut self.current.board.promote, Some(Rook), "Rook");
+                                ui.selectable_value(
+                                    &mut self.current.board.promote,
+                                    Some(Rook),
+                                    "Rook",
+                                );
                             });
                         });
                         ui.add_space(20.0);
                     });
-            }, 
+            }
             Desktop => {
                 egui::Window::new("Promotion")
                     .collapsible(false)
@@ -108,7 +116,11 @@ impl ChessApp {
                             ui.add_space(100.0);
                             ui.vertical(|ui| {
                                 ui.add_space(20.0);
-                                ui.selectable_value(&mut self.current.board.promote, Some(Queen), "Queen");
+                                ui.selectable_value(
+                                    &mut self.current.board.promote,
+                                    Some(Queen),
+                                    "Queen",
+                                );
                                 ui.add_space(20.0);
                                 ui.selectable_value(
                                     &mut self.current.board.promote,
@@ -122,7 +134,11 @@ impl ChessApp {
                                     "Knight",
                                 );
                                 ui.add_space(20.0);
-                                ui.selectable_value(&mut self.current.board.promote, Some(Rook), "Rook");
+                                ui.selectable_value(
+                                    &mut self.current.board.promote,
+                                    Some(Rook),
+                                    "Rook",
+                                );
                             });
                         });
                         ui.add_space(20.0);

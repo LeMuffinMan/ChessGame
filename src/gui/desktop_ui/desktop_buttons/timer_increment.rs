@@ -10,10 +10,7 @@ impl ChessApp {
     //This shows the list a presets for timings
     pub fn timer_increment(&mut self, ui: &mut egui::Ui, _ctx: &Context) {
         if ui
-            .add_enabled(
-                self.timer.mode != NoTime,
-                egui::Button::new("Timer OFF"),
-            )
+            .add_enabled(self.timer.mode != NoTime, egui::Button::new("Timer OFF"))
             .clicked()
         {
             self.timer.mode = NoTime;

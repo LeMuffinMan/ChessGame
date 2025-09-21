@@ -17,8 +17,7 @@ impl ChessApp {
                 if self.timer.mode != NoTime {
                     if self.timer.increment == 0.0 {
                         ui.label(
-                            RichText::new(format_time(self.timer.black_time) + " ⏱")
-                                .size(30.0),
+                            RichText::new(format_time(self.timer.black_time) + " ⏱").size(30.0),
                         );
                     } else {
                         ui.label(

@@ -306,51 +306,15 @@ impl ChessApp {
                         ui.vertical(|ui| {
                             ui.label(RichText::new(" Increment").size(40.0));
                             ui.add_space(20.0);
-                            ui.selectable_value(
-                                &mut self.timer.increment,
-                                0.0,
-                                "     0 sec",
-                            );
-                            ui.selectable_value(
-                                &mut self.timer.increment,
-                                1.0,
-                                "     1 sec",
-                            );
-                            ui.selectable_value(
-                                &mut self.timer.increment,
-                                2.0,
-                                "     2 sec",
-                            );
-                            ui.selectable_value(
-                                &mut self.timer.increment,
-                                3.0,
-                                "     3 sec",
-                            );
-                            ui.selectable_value(
-                                &mut self.timer.increment,
-                                5.0,
-                                "     5 sec",
-                            );
-                            ui.selectable_value(
-                                &mut self.timer.increment,
-                                10.0,
-                                "    10 sec",
-                            );
-                            ui.selectable_value(
-                                &mut self.timer.increment,
-                                20.0,
-                                "    15 sec",
-                            );
-                            ui.selectable_value(
-                                &mut self.timer.increment,
-                                30.0,
-                                "    30 sec",
-                            );
-                            ui.selectable_value(
-                                &mut self.timer.increment,
-                                45.0,
-                                "    30 sec",
-                            );
+                            ui.selectable_value(&mut self.timer.increment, 0.0, "     0 sec");
+                            ui.selectable_value(&mut self.timer.increment, 1.0, "     1 sec");
+                            ui.selectable_value(&mut self.timer.increment, 2.0, "     2 sec");
+                            ui.selectable_value(&mut self.timer.increment, 3.0, "     3 sec");
+                            ui.selectable_value(&mut self.timer.increment, 5.0, "     5 sec");
+                            ui.selectable_value(&mut self.timer.increment, 10.0, "    10 sec");
+                            ui.selectable_value(&mut self.timer.increment, 20.0, "    15 sec");
+                            ui.selectable_value(&mut self.timer.increment, 30.0, "    30 sec");
+                            ui.selectable_value(&mut self.timer.increment, 45.0, "    30 sec");
                         });
                         ui.add_space(60.0);
                     });

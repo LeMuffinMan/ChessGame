@@ -1,7 +1,7 @@
 use crate::ChessApp;
 
-use egui::RichText;
 use egui::Context;
+use egui::RichText;
 
 impl ChessApp {
     //shows the checkbox for visual settings, replay buttons and the san history
