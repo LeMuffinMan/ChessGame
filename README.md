@@ -9,8 +9,10 @@ While the CI/CD pipeline gives me a first experience with modern deployment work
 
 Try it live on GitHub Pages: [https://lemuffinman.github.io/ChessGame/](https://lemuffinman.github.io/ChessGame/)
 
-<img width="1918" height="1102" alt="250917_00h30m17s_screenshot" src="https://github.com/user-attachments/assets/b4c4dcb6-a7e1-472e-9157-766642b5dc85" />
-<img src="assets/mobile_demo.gif" width="400" alt="Mobile demo gif">
+<p align="center">
+  <img width="600" alt="250917_00h30m17s_screenshot" src="https://github.com/user-attachments/assets/b4c4dcb6-a7e1-472e-9157-766642b5dc85" />
+  <img src="assets/mobile_demo.gif" width="300" alt="Mobile demo gif" />
+</p>
 
 ---
 
@@ -88,26 +90,6 @@ By adding this yml file in a folder .github/workflows/deploy.yml, and pushing it
 - Release dist folder on github pages.
 
 Once deployed, you can visit your app with your favourite browser following this link base : [username].github.io/[Project_name]
-
----
-
-## Project Structure
-
-```text
-src
-├── board
-│   └── //include the board data structures and functions to operate on or update it
-├── gui
-│   └── //the graphical user interface : panels, components ...
-├── lib.rs // in webassembly we need a endpoint to run the app, not a main.rs
-├── pgn 
-│   └── //include a pgn encoding and soon a basic decoding module
-├── threat
-│   └── //map the threats on the board
-└── validate_move
-    └── // validation procedure for a move in input
-```
-
 
 ---
 
