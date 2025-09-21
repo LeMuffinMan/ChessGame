@@ -48,6 +48,24 @@ pub struct LateDraw {
 }
 
 impl GameState {
+
+    pub fn new() -> Self {
+        Self {
+            board: Board::init_board(),
+            active_player: Color::White,
+            opponent: Color::Black,
+            end: None,
+            last_move: None,
+            turn: 1,
+            draw: LateDraw {
+                board_hashs: HashMap::new(),
+                draw_option: None,
+                draw_moves_count: 0,
+                draw_hash: None,
+            }
+        }
+    }
+
     pub fn switch_players_color(&mut self) {
         self.active_player = match self.active_player {
             White => Black,

@@ -1,5 +1,4 @@
 use crate::Board;
-use crate::Color;
 use crate::Coord;
 use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::chessapp_struct::UiType::Desktop;
@@ -7,12 +6,10 @@ use crate::gui::hooks::WinDia;
 use crate::gui::update_timer::GameMode;
 use crate::gui::update_timer::Timer;
 use crate::gui::game_state_struct::GameState;
-use crate::gui::game_state_struct::LateDraw;
 
 use eframe::{App, egui};
 use egui::Pos2;
 
-use std::collections::HashMap;
 use std::path::PathBuf;
 
 
@@ -52,12 +49,46 @@ pub struct Settings {
     pub flip: bool,
     pub autoflip: bool,
     pub file_name: String,
+    pub white_name: String,
+    pub black_name: String,
+    pub file_path: Option<PathBuf>,
+}
+
+impl Settings {
+    pub fn new() -> Self {
+        Self {
+            show_coordinates: false,
+            show_legals_moves: true,
+            show_last_move: true,
+            show_threaten_cells: false,
+            flip: true,
+            autoflip: false,
+            file_name: "chessgame.pgn".to_string(),
+            from_cell: None,
+            drag_from: None,
+            drag_pos: None,
+            piece_legals_moves: Vec::new(),
+            white_name: "White".to_string(),
+            black_name: "Black".to_string(),
+            file_path: None,
+        }
+    }
 }
 
 pub struct ReplayInfos {
     pub index: usize,
     pub sec_per_frame: f64,
     pub next_step: Option<f64>,
+}
+
+impl ReplayInfos {
+    pub fn new() -> Self { 
+        Self {
+            index: 0,
+            sec_per_frame: 1.0,
+            next_step: None,
+        }
+    }
 }
 
 pub enum UiType {
@@ -67,24 +98,15 @@ pub enum UiType {
 
 pub struct ChessApp {
     pub ui_type: UiType,
-    pub timer: Timer,
-    pub win: Option<WinDia>,
     pub app_mode: AppMode,
+    pub settings: Settings,
+    pub win: Option<WinDia>,
+    pub timer: Timer,
     pub replay_infos: ReplayInfos,
-    //snapshots of all gamestates as history
     pub current: GameState,
     pub history: Vec<GameState>,
     pub history_san: String,
-
-    //rendering and interface stuff
-    pub settings: Settings,
-    pub white_name: String,
-    pub black_name: String,
-
-    //info to transmit to board / to move in board
     pub promoteinfo: Option<PromoteInfo>,
-
-    pub file_path: Option<PathBuf>,
 }
 
 impl Default for ChessApp {
@@ -94,46 +116,12 @@ impl Default for ChessApp {
             timer: Timer::new(),
             win: None,
             app_mode: Lobby,
-            replay_infos: ReplayInfos {
-                index: 0,
-                sec_per_frame: 1.0,
-                next_step: None,
-            },
-            current: GameState {
-                board: Board::init_board(),
-                active_player: Color::White,
-                opponent: Color::Black,
-                end: None,
-                last_move: None,
-                turn: 1,
-                draw: LateDraw {
-                    board_hashs: HashMap::new(),
-                    draw_option: None,
-                    draw_moves_count: 0,
-                    draw_hash: None,
-                },
-            },
+            replay_infos: ReplayInfos::new(),
+            current: GameState::new(),
             history: Vec::new(),
             history_san: String::new(),
-            settings: Settings {
-                show_coordinates: false,
-                show_legals_moves: true,
-                show_last_move: true,
-                show_threaten_cells: false,
-                flip: true,
-                autoflip: false,
-                file_name: "chessgame.pgn".to_string(),
-                from_cell: None,
-                drag_from: None,
-                drag_pos: None,
-                piece_legals_moves: Vec::new(),
-            },
+            settings: Settings::new(),
             promoteinfo: None,
-            // file_dialog: FileDialog::new(),
-            // struct pgn
-            file_path: None,
-            white_name: "White".to_string(),
-            black_name: "Black".to_string(),
         }
     }
 }
@@ -145,45 +133,12 @@ impl ChessApp {
             timer: Timer::new(),
             win: None,
             app_mode: Lobby,
-            replay_infos: ReplayInfos {
-                index: 0,
-                sec_per_frame: 1.0,
-                next_step: None,
-            },
-            current: GameState {
-                board: Board::init_board(),
-                active_player: Color::White,
-                opponent: Color::Black,
-                end: None,
-                last_move: None,
-                turn: 1,
-                draw: LateDraw {
-                    board_hashs: HashMap::new(),
-                    draw_option: None,
-                    draw_moves_count: 0,
-                    draw_hash: None,
-                },
-            },
+            replay_infos: ReplayInfos::new(),
+            current: GameState::new(),
             history: Vec::new(),
             history_san: String::new(),
-            settings: Settings {
-                show_coordinates: false,
-                show_legals_moves: true,
-                show_last_move: true,
-                show_threaten_cells: false,
-                flip: true,
-                autoflip: false,
-                file_name: "chessgame.pgn".to_string(),
-                from_cell: None,
-                drag_from: None,
-                drag_pos: None,
-                piece_legals_moves: Vec::new(),
-            },
+            settings: Settings::new(),
             promoteinfo: None,
-            // file_dialog: FileDialog::new(),
-            file_path: None,
-            white_name: "White".to_string(),
-            black_name: "Black".to_string(),
         }
     }
 }

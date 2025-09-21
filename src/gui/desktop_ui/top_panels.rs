@@ -10,9 +10,9 @@ impl ChessApp {
         egui::TopBottomPanel::top("spacer_top").show(ctx, |ui| {
             ui.vertical(|ui| {
                 if self.history.is_empty() || self.current.end.is_some() {
-                    ui.text_edit_singleline(&mut self.black_name);
+                    ui.text_edit_singleline(&mut self.settings.black_name);
                 } else {
-                    ui.label(&self.black_name);
+                    ui.label(&self.settings.black_name);
                 }
                 if self.timer.mode != NoTime {
                     if self.timer.increment == 0.0 {
