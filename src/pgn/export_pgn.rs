@@ -65,7 +65,7 @@ impl ChessApp {
         pgn.push_str("\"]\n[Black \"");
         pgn.push_str(&self.settings.black_name.to_string());
         pgn.push_str("\"]\n");
-        if let Some(result) = self.history_san.split_whitespace().last() {
+        if let Some(result) = self.history.history_san.split_whitespace().last() {
             pgn.push_str("[Result : \"");
             match result {
                 "0-1" | "1-0" | "1/2 - 1/2" => {
@@ -121,7 +121,7 @@ impl ChessApp {
         }
         pgn.push('\n');
         let mut wrapped = String::new();
-        for (i, c) in self.history_san.chars().enumerate() {
+        for (i, c) in self.history.history_san.chars().enumerate() {
             if i > 0 && i % 80 == 0 {
                 wrapped.push('\n');
             }

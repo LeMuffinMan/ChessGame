@@ -9,7 +9,10 @@ impl ChessApp {
             #[allow(clippy::collapsible_if)] // needed to hid new game button when unecessary
             if self.current.end.is_some() || self.app_mode == Replay {
                 if ui
-                    .add_enabled(!self.history.is_empty(), egui::Button::new("New game"))
+                    .add_enabled(
+                        !self.history.snapshots.is_empty(),
+                        egui::Button::new("New game"),
+                    )
                     .clicked()
                 {
                     //todo : separate replay / game_on / game_end : new game ne regenere pas tout !

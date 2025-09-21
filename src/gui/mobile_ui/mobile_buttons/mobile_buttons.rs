@@ -23,7 +23,7 @@ impl ChessApp {
             .clicked()
         {
             self.app_mode = Replay;
-            self.current = self.history[self.replay_infos.index - 1].clone();
+            self.current = self.history.snapshots[self.replay_infos.index - 1].clone();
         }
         ui.add_space(170.0);
         if ui
@@ -87,7 +87,7 @@ impl ChessApp {
         ui.add_space(150.0);
         if ui
             .add_enabled(
-                self.win.is_none() && self.history.len() > 0,
+                self.win.is_none() && self.history.snapshots.len() > 0,
                 egui::Button::new("Undo"),
             )
             .clicked()

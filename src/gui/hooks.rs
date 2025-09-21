@@ -24,13 +24,13 @@ impl ChessApp {
         if let Some(next_step) = self.replay_infos.next_step {
             let now = ctx.input(|i| i.time);
             if now >= next_step {
-                if self.replay_infos.index + 1 < self.history.len() {
+                if self.replay_infos.index + 1 < self.history.snapshots.len() {
                     self.replay_infos.index += 1;
-                    self.current = self.history[self.replay_infos.index].clone();
+                    self.current = self.history.snapshots[self.replay_infos.index].clone();
                     let delay = self.replay_infos.sec_per_frame;
                     self.replay_infos.next_step = Some(now + delay);
                 } else {
-                    self.replay_infos.index = self.history.len();
+                    self.replay_infos.index = self.history.snapshots.len();
                     self.replay_infos.next_step = None;
                 }
             }
@@ -159,18 +159,18 @@ impl ChessApp {
                     ui.add_space(100.0);
                     if ui.button("Accept").clicked() {
                         self.win = None;
-                        self.current = self.history[self.replay_infos.index - 2].clone();
+                        self.current = self.history.snapshots[self.replay_infos.index - 2].clone();
                         if self.replay_infos.index == 2 {
                             self.replay_infos.index -= 2;
-                            self.history.clear();
+                            self.history.snapshots.clear();
                         } else {
                             self.replay_infos.index -= 1;
-                            self.history.pop();
+                            self.history.snapshots.pop();
                         }
                         //une promote ajoute 2 indexs a l'historique ! a fix
                         if self.current.board.pawn_to_promote.is_some() {
                             self.replay_infos.index -= 1;
-                            self.history.pop();
+                            self.history.snapshots.pop();
                         }
                         //il faut supprimer les derniers hashs pour la triple repetition
                     }
@@ -200,7 +200,7 @@ impl ChessApp {
                         ui.horizontal(|ui| {
                             // ui.add_space(60.0);
                             ui.vertical_centered(|ui| {
-                                ui.label(&self.history_san);
+                                ui.label(&self.history.history_san);
                                 ui.add_space(20.0);
                                 ui.text_edit_singleline(&mut self.settings.file_name);
                                 if ui.button(RichText::new("Download").size(30.0)).clicked() {
@@ -233,7 +233,7 @@ impl ChessApp {
                         ui.horizontal(|ui| {
                             // ui.add_space(60.0);
                             ui.vertical_centered(|ui| {
-                                ui.label(&self.history_san);
+                                ui.label(&self.history.history_san);
                                 ui.add_space(20.0);
                                 ui.text_edit_singleline(&mut self.settings.file_name);
                                 ui.add_space(20.0);
@@ -425,7 +425,7 @@ impl ChessApp {
     pub fn update_promote(&mut self) {
         if let Some(piece) = self.current.board.promote
             && let Some(coord) = self.current.board.pawn_to_promote
-            && self.replay_infos.index == self.history.len()
+            && self.replay_infos.index == self.history.snapshots.len()
         {
             //methods get opponent color
             let color = if self.current.active_player == White {
@@ -454,7 +454,7 @@ impl ChessApp {
                 let from = promoteinfo.from;
                 let to = promoteinfo.to;
                 let prev_board = promoteinfo.prev_board.clone();
-                self.history.push(self.current.clone());
+                self.history.snapshots.push(self.current.clone());
                 self.replay_infos.index += 1;
                 // self.replay_infos.index += 1;
                 self.encode_move_to_san(&from, &to, &prev_board);

@@ -28,7 +28,7 @@ impl ChessApp {
                         ui.checkbox(&mut self.settings.show_last_move, "Last move")
                             .changed();
                         ui.add_space(20.0);
-                        if !self.history.is_empty() {
+                        if !self.history.snapshots.is_empty() {
                             ui.text_edit_singleline(&mut self.settings.file_name);
                             if ui.button(RichText::new("Download").size(20.0)).clicked() {
                                 ui.separator();
@@ -37,8 +37,8 @@ impl ChessApp {
                             }
                         }
                         ui.separator();
-                        if !self.history_san.is_empty() {
-                            ui.monospace(&self.history_san);
+                        if !self.history.history_san.is_empty() {
+                            ui.monospace(&self.history.history_san);
                         }
                     });
                 });

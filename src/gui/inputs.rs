@@ -9,7 +9,7 @@ impl ChessApp {
             && self.current.is_active_player_piece(&c)
             && self.current.end.is_none()
             && let None = self.current.board.pawn_to_promote
-            && self.replay_infos.index == self.history.len()
+            && self.replay_infos.index == self.history.snapshots.len()
         {
             self.settings.drag_from = Some(c);
             self.settings.from_cell = Some(c);
@@ -47,7 +47,7 @@ impl ChessApp {
             && self.current.end.is_none()
             && self.current.board.pawn_to_promote.is_none()
             && let Some(pos) = response.interact_pointer_pos()
-            && self.replay_infos.index == self.history.len()
+            && self.replay_infos.index == self.history.snapshots.len()
         {
             if let Some(clicked) = ui_to_board(inner, sq, self.settings.flip, pos) {
                 match self.settings.from_cell {

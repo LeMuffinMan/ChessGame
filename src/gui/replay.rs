@@ -56,14 +56,14 @@ impl ChessApp {
     fn first_state(&mut self, ui: &mut egui::Ui) {
         if ui.button("|<").clicked() {
             self.replay_infos.index = 0;
-            self.current = self.history[0].clone();
+            self.current = self.history.snapshots[0].clone();
         }
     }
 
     fn prev_state(&mut self, ui: &mut egui::Ui) {
         if ui.button("<").clicked() && self.replay_infos.index > 0 {
             self.replay_infos.index -= 1;
-            self.current = self.history[self.replay_infos.index].clone();
+            self.current = self.history.snapshots[self.replay_infos.index].clone();
         }
     }
 
@@ -74,7 +74,7 @@ impl ChessApp {
                 .clicked()
             {
                 self.replay_infos.index = 0;
-                self.current = self.history[0].clone();
+                self.current = self.history.snapshots[0].clone();
 
                 let now = ui.input(|i| i.time);
                 let delay = self.replay_infos.sec_per_frame;
@@ -91,27 +91,27 @@ impl ChessApp {
     fn next_state(&mut self, ui: &mut egui::Ui) {
         if ui
             .add_enabled(
-                self.replay_infos.index < self.history.len() - 1,
+                self.replay_infos.index < self.history.snapshots.len() - 1,
                 egui::Button::new(">"),
             )
             .clicked()
-            && self.replay_infos.index < self.history.len() - 1
+            && self.replay_infos.index < self.history.snapshots.len() - 1
         {
             self.replay_infos.index += 1;
-            self.current = self.history[self.replay_infos.index].clone();
+            self.current = self.history.snapshots[self.replay_infos.index].clone();
         }
     }
 
     fn last_state(&mut self, ui: &mut egui::Ui) {
         if ui
             .add_enabled(
-                self.replay_infos.index < self.history.len() - 1,
+                self.replay_infos.index < self.history.snapshots.len() - 1,
                 egui::Button::new(">|"),
             )
             .clicked()
         {
-            self.replay_infos.index = self.history.len() - 1;
-            self.current = self.history[self.replay_infos.index].clone();
+            self.replay_infos.index = self.history.snapshots.len() - 1;
+            self.current = self.history.snapshots[self.replay_infos.index].clone();
         }
     }
 }
