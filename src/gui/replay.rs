@@ -1,6 +1,22 @@
 use crate::ChessApp;
 use crate::gui::chessapp_struct::UiType;
 
+pub struct ReplayInfos {
+    pub index: usize,
+    pub sec_per_frame: f64,
+    pub next_step: Option<f64>,
+}
+
+impl ReplayInfos {
+    pub fn new() -> Self { 
+        Self {
+            index: 0,
+            sec_per_frame: 1.0,
+            next_step: None,
+        }
+    }
+}
+
 impl ChessApp {
     pub fn replay_buttons(&mut self, ui: &mut egui::Ui) {
         match &self.ui_type {

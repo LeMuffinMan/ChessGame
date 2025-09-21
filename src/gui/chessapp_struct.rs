@@ -1,17 +1,15 @@
 use crate::Board;
 use crate::Coord;
 use crate::gui::chessapp_struct::AppMode::*;
-use crate::gui::chessapp_struct::UiType::Desktop;
 use crate::gui::hooks::WinDia;
 use crate::gui::update_timer::GameMode;
 use crate::gui::update_timer::Timer;
 use crate::gui::game_state_struct::GameState;
+use crate::gui::replay::ReplayInfos;
 
 use eframe::{App, egui};
 use egui::Pos2;
-
 use std::path::PathBuf;
-
 
 #[derive(Clone, PartialEq)]
 pub enum End {
@@ -27,6 +25,12 @@ pub enum AppMode {
     Versus(Option<End>),
     Replay,
     Lobby,
+}
+
+#[derive(Clone, PartialEq)]
+pub enum UiType {
+    Desktop,
+    Mobile,
 }
 
 #[derive(Clone)]
@@ -75,26 +79,7 @@ impl Settings {
     }
 }
 
-pub struct ReplayInfos {
-    pub index: usize,
-    pub sec_per_frame: f64,
-    pub next_step: Option<f64>,
-}
 
-impl ReplayInfos {
-    pub fn new() -> Self { 
-        Self {
-            index: 0,
-            sec_per_frame: 1.0,
-            next_step: None,
-        }
-    }
-}
-
-pub enum UiType {
-    Desktop,
-    Mobile,
-}
 
 pub struct ChessApp {
     pub ui_type: UiType,
@@ -107,23 +92,6 @@ pub struct ChessApp {
     pub history: Vec<GameState>,
     pub history_san: String,
     pub promoteinfo: Option<PromoteInfo>,
-}
-
-impl Default for ChessApp {
-    fn default() -> Self {
-        Self {
-            ui_type: Desktop,
-            timer: Timer::new(),
-            win: None,
-            app_mode: Lobby,
-            replay_infos: ReplayInfos::new(),
-            current: GameState::new(),
-            history: Vec::new(),
-            history_san: String::new(),
-            settings: Settings::new(),
-            promoteinfo: None,
-        }
-    }
 }
 
 impl ChessApp {
