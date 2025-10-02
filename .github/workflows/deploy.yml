@@ -18,6 +18,9 @@ jobs:
       - name: Add wasm target
         run: rustup target add wasm32-unknown-unknown
 
+      - name: Install cargo fmt
+        run: rustup component add rustfmt
+
       - name: Format test
         run: cargo fmt --all -- --check
 
