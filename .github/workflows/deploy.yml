@@ -27,6 +27,9 @@ jobs:
       - name: Cargo check 
         run: cargo check --target wasm32-unknown-unknown
 
+      - name: Install Clippy
+        run: rustup component add clippy
+
       - name: Cargo clippy
         run: cargo clippy --target wasm32-unknown-unknown -- -D warnings
 
