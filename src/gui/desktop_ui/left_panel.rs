@@ -61,7 +61,7 @@ impl ChessApp {
             if self.settings.allow_undo {
                 ui.menu_button(format!("{}", &self.settings.undo_limit), |ui| {
                     if ui
-                        .selectable_value(&mut self.settings.undo_limit, 0, "No limit")
+                        .selectable_value(&mut self.settings.undo_limit, 0, "0")
                         .clicked()
                     {
                         self.settings.white_undo = 0;

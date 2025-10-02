@@ -18,6 +18,9 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
             if piece_color != *color {
                 return false;
             }
+            if board.get(to).is_color(color) {
+                return false;
+            }
             match piece {
                 Pawn => pawn_case(from, to, color, board),
                 Rook => rook_case(from, to, color, board),

@@ -71,6 +71,9 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 //Todo
 //      -error handling
 //
+//      - some check not detected
+//
+//
 //      - pgn decoder
 //          - load
 //
