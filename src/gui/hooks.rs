@@ -1,5 +1,4 @@
 use crate::ChessApp;
-use crate::pgn::import_pgn;
 use crate::Color::*;
 use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
@@ -190,18 +189,12 @@ impl ChessApp {
     }
 
     pub fn import_pgn_win(&mut self, ctx: &egui::Context) {
-        match self.ui_type {
-            Mobile => {
-
-            },
-            Desktop => {
                 egui::Window::new("Import PGN")
                     .collapsible(false)
                     .resizable(false)
                     .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
                     .show(ctx, |ui| {
                         egui::ScrollArea::vertical().show(ui, |ui| {
-                            let style = ui.style_mut();
                             ui.add_space(20.0);
                             ui.horizontal(|ui| {
                                 ui.vertical_centered(|ui| {
@@ -212,18 +205,16 @@ impl ChessApp {
                             });
                             ui.add_space(40.0);
                             ui.vertical_centered(|ui| {
-                                if ui.button("Cancel").clicked() {
+                                if ui.button("Import").clicked() {
+                                    self.import_pgn();
                                     self.win = None;
                                 }
-                                if ui.button("Import").clicked() {
-                                    //Todo
+                                if ui.button("Cancel").clicked() {
                                     self.win = None;
                                 }
                             });
                         });
                 });
-            }
-        }
     }
 
     pub fn export_pgn_win(&mut self, ctx: &egui::Context) {
