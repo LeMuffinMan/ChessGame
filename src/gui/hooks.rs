@@ -1,4 +1,5 @@
 use crate::ChessApp;
+use crate::pgn::import_pgn;
 use crate::Color::*;
 use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
@@ -16,7 +17,8 @@ pub enum WinDia {
     Resign,
     Timer,
     Undo,
-    Pgn,
+    ExportPgn,
+    ImportPgn,
 }
 
 impl ChessApp {
@@ -59,8 +61,11 @@ impl ChessApp {
                 WinDia::Undo => {
                     self.ask_undo(ctx);
                 }
-                WinDia::Pgn => {
-                    self.pgn_win(ctx);
+                WinDia::ExportPgn => {
+                    self.export_pgn_win(ctx);
+                }
+                WinDia::ImportPgn => {
+                    self.import_pgn_win(ctx);
                 }
             }
         }
@@ -184,10 +189,47 @@ impl ChessApp {
             });
     }
 
-    pub fn pgn_win(&mut self, ctx: &egui::Context) {
+    pub fn import_pgn_win(&mut self, ctx: &egui::Context) {
         match self.ui_type {
             Mobile => {
-                egui::Window::new("PGN")
+
+            },
+            Desktop => {
+                egui::Window::new("Import PGN")
+                    .collapsible(false)
+                    .resizable(false)
+                    .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
+                    .show(ctx, |ui| {
+                        egui::ScrollArea::vertical().show(ui, |ui| {
+                            let style = ui.style_mut();
+                            ui.add_space(20.0);
+                            ui.horizontal(|ui| {
+                                ui.vertical_centered(|ui| {
+                                    ui.label("Copy and past PGN code here");
+                                    ui.add_space(20.0);
+                                    ui.text_edit_multiline(&mut self.pgn_input);
+                                });
+                            });
+                            ui.add_space(40.0);
+                            ui.vertical_centered(|ui| {
+                                if ui.button("Cancel").clicked() {
+                                    self.win = None;
+                                }
+                                if ui.button("Import").clicked() {
+                                    //Todo
+                                    self.win = None;
+                                }
+                            });
+                        });
+                });
+            }
+        }
+    }
+
+    pub fn export_pgn_win(&mut self, ctx: &egui::Context) {
+        match self.ui_type {
+            Mobile => {
+                egui::Window::new("Export PGN")
                     .collapsible(false)
                     .resizable(false)
                     .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])

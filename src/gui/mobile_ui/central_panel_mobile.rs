@@ -121,7 +121,7 @@ impl ChessApp {
             let response = ui.add(Label::new(displayed_text).sense(Sense::click()));
 
             if response.clicked() {
-                self.win = Some(Pgn);
+                self.win = Some(ExportPgn);
             }
         });
     }

@@ -123,6 +123,7 @@ pub struct ChessApp {
     pub promoteinfo: Option<PromoteInfo>,
     pub current: GameState,
     pub history: History,
+    pub pgn_input: String,
 }
 
 impl ChessApp {
@@ -137,6 +138,7 @@ impl ChessApp {
             current: GameState::new(),
             settings: Settings::new(),
             promoteinfo: None,
+            pgn_input: String::new(),
         }
     }
 }
