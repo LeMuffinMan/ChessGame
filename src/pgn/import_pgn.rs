@@ -14,12 +14,11 @@ impl ChessApp {
     pub fn import_pgn(&mut self) {
         let history = History::new(); 
         let lines: Vec<String> = self.pgn_input.split('\n').collect();
-        if lines.iter().any(|l| l == "\n") {
-            match history.parse_headers(lines) {
-                Err(e) => log::debug!("parse_headers : e"),
-                _ => {},
-            };
-            match history.parse_moves(lines) {
+        if let Some(nl) = v.iter().position(|l| l == "\n") {
+            for i in 0..nl {
+                history.headers.push(l);
+            }
+            match history.parse_moves(lines, nl) {
                 Err(e) => log::debug!("parse_move : e"),
                 _ => {},
             };
@@ -30,7 +29,7 @@ impl ChessApp {
 }
 
 impl History {
-    fn parse_headers(&mut self, lines: Vec<String>) {
-
+    fn parse_moves(&mut self, lines: Vec<String>, nl: usize) {
+        log::debug!("lines = {:?}", lines);
     }
 }
