@@ -1,43 +1,53 @@
 use crate::ChessApp;
+use crate::Board;
+use crate::Coord;
 use crate::gui::chessapp_struct::History;
-// use crate::gui::desktop_ui::bot_panels::format_time;
-// use crate::gui::update_timer::GameMode;
-
-// use chrono::Utc;
-// use js_sys::Array;
-// use wasm_bindgen::JsCast;
-// use wasm_bindgen::JsValue;
-// use web_sys::{Blob, HtmlAnchorElement, HtmlElement, Url, window};
 
 impl ChessApp {
 
-    pub fn import_pgn(&mut self) {
-        let history = History::new(); 
-        let lines: Vec<String> = self.pgn_input.split('\n').collect();
-        if let Some(nl) = v.iter().position(|l| l == "\n") {
+    pub fn import_pgn(&mut self) -> Result<(), String> {
+        let mut history = History::new(); 
+        let lines: Vec<String> = self
+            .pgn_input
+            .split('\n')
+            .map(|s| s.to_string())
+            .collect();
+        if let Some(nl) = lines.iter().position(|l| l == "\n") {
             for i in 0..nl {
-                history.headers.push(l);
-}
-            if let Some(e) = history.parse_moves(lines, nl) {
-                log::debug!("parse_move : {e}"),
-            };
+                history.headers.push(lines[i].clone());
+            }
+            history.parse_moves(lines, nl)?;
         } else {
-            log ::debug!("No new line found to separate headers and san code");
+            return Err(format!("No new line found to separate headers and san code"));
         }
+        Ok(())
     }
 }
 
 impl History {
-    fn parse_moves(&mut self, lines: Vec<String>, nl: usize) {
-        log::debug!("lines = {:?}", lines);
-        //on recupere tout en une ligne
-        self.san = lines.collect();
-        let moves = san.split(". ");
+
+
+    fn parse_moves(&mut self, lines: Vec<String>, nl: usize) -> Result<(), String> {
+        self.history_san = lines.into_iter().collect();
+
+        let moves: Vec<String> = self
+            .history_san
+            .split(". ")
+            .map(|s| s.to_string())
+            .collect();
+
         for m in moves {
-            if let Some(gamestate) = snapshots.last() {
-                if let Some((from, to)) = get_move(m, gamestate) {
-                    match gamestate.try_move(from, to) {
-                        Ok() => {
+            let mv = {
+                let gamestate = self.snapshots.last()
+                    .ok_or("No gamestate available")?;
+                self.get_move_from_san(&m, gamestate)
+            };
+
+            if let Some((from, to)) = mv {
+                if let Some(gamestate) = self.snapshots.last_mut() {
+                    if let Err(e) = gamestate.try_move(&from, &to) {
+                        log::debug!("Illegal move: {}", e);
+                    } else {
                             //creer le snapshot si inexistant
                             //check draw
                             //update board
@@ -48,14 +58,15 @@ impl History {
                             //increment turn
                             //events_checks
                             //prev board pour promote
-                        },
-                        Err(e) => log::debug!("Illegal move : e"),
-                    };
-                };
+                    }
+                }
             }
-            if let Some(from, to) = get_move(m, snapshots.last()) {
-                match snapshots
-            }   
         }
+
+        Ok(())
+    }
+
+    fn get_move_from_san(&self, chess_move: &str, gamestate: &Board) -> Option<(Coord, Coord)> {
+        None 
     }
 }

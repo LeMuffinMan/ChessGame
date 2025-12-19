@@ -1,37 +1,7 @@
 use crate::Board;
-use crate::Color;
 use crate::Coord;
 use crate::board::cell::Cell;
-use crate::board::cell::Piece::*;
-use crate::board::validate_move::piece_case::{
-    bishop_case, king_case, knight_case, pawn_case, queen_case, rook_case,
-};
 
-///check if the piece on from coords, can move to the "to" coords, and if there is an
-///obstacle on way
-pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
-    let cell = board.get(from);
-    match cell {
-        Cell::Free => false,
-        //ici soit je vire color soit je change de nom de variable
-        Cell::Occupied(piece, piece_color) => {
-            if piece_color != *color {
-                return false;
-            }
-            if board.get(to).is_color(color) {
-                return false;
-            }
-            match piece {
-                Pawn => pawn_case(from, to, color, board),
-                Rook => rook_case(from, to, color, board),
-                Knight => knight_case(from, to, color, board),
-                Bishop => bishop_case(from, to, color, board),
-                Queen => queen_case(from, to, color, board),
-                King => king_case(from, to, color, board),
-            }
-        }
-    }
-}
 
 ///recursively search in line or diagonal if any Cell has a piece on it
 ///Getting the direction to go with diff
@@ -83,16 +53,4 @@ pub fn find_obstacle(from: &Coord, to: &Coord, board: &Board) -> bool {
     find_obstacle(&next, to, board)
 }
 
-//Makes a copy of the board, and update it with the legal move to verify is the active player king
-//is in check position or does not solve a previous check position
-pub fn is_king_exposed(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
-    let mut new_board = board.clone();
-    new_board.update_board(from, to, color);
-    new_board.update_threatens_cells(color);
-    if let Some(coord) = new_board.get_king(color) {
-        new_board.threaten_cells.contains(&coord)
-    } else {
-        println!("Error : {:?} king not found", color);
-        false
-    }
-}
+

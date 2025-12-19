@@ -9,7 +9,7 @@ impl ChessApp {
     pub fn top_black_panel_desktop(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::top("spacer_top").show(ctx, |ui| {
             ui.vertical(|ui| {
-                if self.history.snapshots.is_empty() || self.current.end.is_some() {
+                if self.history.snapshots.is_empty() || self.board.end.is_some() {
                     ui.text_edit_singleline(&mut self.settings.black_name);
                 } else {
                     ui.label(&self.settings.black_name);

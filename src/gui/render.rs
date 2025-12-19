@@ -3,7 +3,7 @@ use crate::Color;
 use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Piece;
-use crate::gui::chessapp_struct::End::*;
+use crate::board::board_struct::End::*;
 
 impl ChessApp {
     pub fn centered_square(rect: egui::Rect) -> egui::Rect {
@@ -44,13 +44,13 @@ impl ChessApp {
                     col: board_col,
                 };
                 let idx = (row + col) % 2;
-                if let Some(_) = &self.current.board.check
-                    && let Some(k) = self.current.board.get_king(&self.current.active_player)
+                if let Some(_) = &self.board.check
+                    && let Some(k) = self.board.get_king(&self.board.active_player)
                     && k.row == board_row
                     && k.col == board_col
-                    && self.current.board.threaten_cells.contains(&k)
+                    && self.board.threaten_cells.contains(&k)
                 {
-                    if let Some(end) = &self.current.end
+                    if let Some(end) = &self.board.end
                         && *end == Checkmate
                     {
                         p.rect_filled(cell, 0.0, egui::Color32::from_rgb(255, 100, 100));
@@ -60,14 +60,14 @@ impl ChessApp {
                     continue;
                 }
                 if self.settings.show_threaten_cells
-                    && self.current.board.threaten_cells.contains(&coord)
+                    && self.board.threaten_cells.contains(&coord)
                 {
                     p.rect_filled(cell, 0.0, red[idx as usize]);
                 } else if self.settings.piece_legals_moves.contains(&coord)
                     && self.settings.show_legals_moves
                 {
                     p.rect_filled(cell, 0.0, green[idx as usize]);
-                } else if let Some((from, to)) = self.current.last_move
+                } else if let Some((from, to)) = self.board.last_move
                     && (coord == from || coord == to)
                     && self.settings.show_last_move
                 {
@@ -86,8 +86,8 @@ impl ChessApp {
     pub fn render_dragged_piece(&self, painter: &egui::Painter, inner: egui::Rect) {
         if let (Some(from), Some(pos)) = (self.settings.drag_from, self.settings.drag_pos)
             && let (Some(piece), Some(color)) = (
-                self.current.board.get(&from).get_piece(),
-                self.current.board.get(&from).get_color(),
+                self.board.get(&from).get_piece(),
+                self.board.get(&from).get_color(),
             )
         {
             let ch: char = piece_char(*color, piece);
@@ -118,8 +118,8 @@ impl ChessApp {
                 {
                     continue;
                 }
-                if let Some(color) = self.current.board.get(&coord).get_color()
-                    && let Some(piece) = self.current.board.get(&coord).get_piece()
+                if let Some(color) = self.board.get(&coord).get_color()
+                    && let Some(piece) = self.board.get(&coord).get_piece()
                 {
                     let ch = piece_char(*color, piece);
                     let min = inner.min + egui::vec2(col as f32 * sq, row as f32 * sq);
@@ -192,7 +192,7 @@ impl ChessApp {
     //To draw the selected piece legals moves
     pub fn get_piece_legal_moves(&mut self) {
         if let Some(coord) = self.settings.drag_from {
-            for (from, to) in self.current.board.legals_moves.iter() {
+            for (from, to) in self.board.legals_moves.iter() {
                 if from.row == coord.row && from.col == coord.col {
                     // println!("pushing {:?}", coord);
                     self.settings.piece_legals_moves.push(*to);

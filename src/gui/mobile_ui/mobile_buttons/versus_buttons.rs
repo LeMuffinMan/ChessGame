@@ -1,10 +1,10 @@
 use crate::ChessApp;
 use crate::Color::*;
-use crate::gui::chessapp_struct::End::Draw;
-use crate::gui::game_state_struct::DrawOption;
+use crate::board::board_struct::End::Draw;
+use crate::board::board_struct::DrawOption::*;
 use crate::gui::hooks::WinDia;
 use crate::gui::hooks::WinDia::*;
-use crate::gui::mobile_ui::mobile_buttons::versus_buttons::DrawOption::Available;
+use crate::board::board_struct::DrawOption;
 
 impl ChessApp {
     pub fn draw_resign_undo_buttons(&mut self, ui: &mut egui::Ui) {
@@ -12,12 +12,12 @@ impl ChessApp {
         self.settings_button(ui);
         ui.add_space(150.0);
         #[allow(clippy::collapsible_else_if)]
-        if let Some(option) = &self.current.draw.draw_option {
+        if let Some(option) = &self.board.draw.draw_option {
             #[allow(clippy::collapsible_else_if)]
             if let Available(_) = option {
                 #[allow(clippy::collapsible_else_if)]
                 if ui.button("Claim draw").clicked() {
-                    self.current.end = Some(Draw);
+                    self.board.end = Some(Draw);
                 }
             };
         } else {
@@ -29,7 +29,7 @@ impl ChessApp {
         if ui.button("Resign").clicked() {
             self.win = Some(Resign);
         }
-        if let Some(option) = &self.current.draw.draw_option
+        if let Some(option) = &self.board.draw.draw_option
             && let DrawOption::Available(_) = option
         {
             ui.add_space(60.0);
@@ -43,18 +43,18 @@ impl ChessApp {
             #[allow(clippy::collapsible_if)]
             if ui
                 .add_enabled(
-                    self.current.end.is_none()
+                    self.board.end.is_none()
                         && self.can_undo()
                         && self.win.is_none()
                         && (self.history.snapshots.len() > 1
                             || self.history.snapshots.len() == 2
-                                && self.current.active_player == White),
+                                && self.board.active_player == White),
                     egui::Button::new("Undo"),
                 )
                 .clicked()
             {
                 self.win = Some(WinDia::Undo);
-                match self.current.opponent {
+                match self.board.opponent {
                     White => {
                         self.settings.white_undo -= 1;
                     }

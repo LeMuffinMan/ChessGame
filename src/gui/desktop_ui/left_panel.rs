@@ -109,7 +109,7 @@ impl ChessApp {
     }
 
     pub fn can_undo(&mut self) -> bool {
-        match self.current.opponent {
+        match self.board.opponent {
             White => self.settings.white_undo > 0,
             Black => self.settings.black_undo > 0,
         }

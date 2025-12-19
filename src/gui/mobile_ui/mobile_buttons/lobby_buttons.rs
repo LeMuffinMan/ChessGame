@@ -32,7 +32,7 @@ impl ChessApp {
             .clicked()
         {
             self.app_mode = Replay;
-            self.current = self.history.snapshots[self.replay_infos.index - 1].clone();
+            self.board = self.history.snapshots[self.replay_infos.index - 1].clone();
         }
         ui.add_space(170.0);
         if ui

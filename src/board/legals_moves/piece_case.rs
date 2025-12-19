@@ -1,218 +1,213 @@
 use crate::Board;
-use crate::Color;
 use crate::Color::*;
 use crate::Coord;
 
-// For each piece, a fct testing respective allowed moves
-pub fn update_pawn_legals_moves(
-    from: &Coord,
-    color: &Color,
-    board: &mut Board,
-) -> Vec<(Coord, Coord)> {
-    let dir: i8 = if *color == White { 1 } else { -1 };
-    let mut ret = Vec::new();
-    //2 diagonales
-    if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8 + 1)
-        && let Some((_, _)) = board.test_and_push(from, &to, color)
-    {
-        ret.push((*from, to));
-    }
-    if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8 - 1)
-        && let Some((_, _)) = board.test_and_push(from, &to, color)
-    {
-        ret.push((*from, to));
-    }
-    //2 straight forward
-    if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8)
-        && let Some((_, _)) = board.test_and_push(from, &to, color)
-    {
-        ret.push((*from, to));
-    }
-    if let Some(to) = Board::checked_coord(from.row as i8 + dir + dir, from.col as i8)
-        && let Some((_, _)) = board.test_and_push(from, &to, color)
-    {
-        ret.push((*from, to));
-    }
-    ret
-}
 
-pub fn update_rook_legals_moves(
-    from: &Coord,
-    color: &Color,
-    board: &mut Board,
-) -> Vec<(Coord, Coord)> {
-    let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
-    let mut ret = Vec::new();
-
-    for (dr, dc) in directions {
-        let mut r = from.row as i8 + dr;
-        let mut c = from.col as i8 + dc;
-
-        while let Some(to) = Board::checked_coord(r, c) {
-            let target = board.get(&to);
-
-            if target.is_color(color) {
-                break;
-            }
-            if let Some((_, _)) = board.test_and_push(from, &to, color) {
-                ret.push((*from, to));
-            }
-
-            r += dr;
-            c += dc;
-        }
-    }
-    ret
-}
-
-pub fn update_knight_legals_moves(
-    from: &Coord,
-    color: &Color,
-    board: &mut Board,
-) -> Vec<(Coord, Coord)> {
-    let cells: [(i8, i8); 8] = [
-        (2, 1),
-        (2, -1),
-        (-2, 1),
-        (-2, -1),
-        (1, 2),
-        (1, -2),
-        (-1, 2),
-        (-1, -2),
-    ];
-    let mut ret = Vec::new();
-
-    for (dr, dc) in cells {
-        let new_row = from.row as i8 + dr;
-        let new_col = from.col as i8 + dc;
-        if let Some(to) = Board::checked_coord(new_row, new_col)
-            && let Some((_, _)) = board.test_and_push(from, &to, color)
+impl Board {
+    // For each piece, a fct testing respective allowed moves
+    pub fn update_pawn_legals_moves(&mut self,
+        from: &Coord,
+    ) -> Vec<(Coord, Coord)> {
+        let dir: i8 = if self.active_player == White { 1 } else { -1 };
+        let mut ret = Vec::new();
+        //2 diagonales
+        if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8 + 1)
+            && let Some((_, _)) = self.test_and_push(from, &to)
         {
             ret.push((*from, to));
         }
-    }
-    ret
-}
-
-pub fn update_bishop_legals_moves(
-    from: &Coord,
-    color: &Color,
-    board: &mut Board,
-) -> Vec<(Coord, Coord)> {
-    let directions = [(1, 1), (-1, -1), (-1, 1), (1, -1)];
-    let mut ret = Vec::new();
-
-    for (dr, dc) in directions {
-        let mut r = from.row as i8 + dr;
-        let mut c = from.col as i8 + dc;
-
-        while let Some(to) = Board::checked_coord(r, c) {
-            let target = board.get(&to);
-
-            if target.is_color(color) {
-                break;
-            }
-            if let Some((_, _)) = board.test_and_push(from, &to, color) {
-                ret.push((*from, to));
-            }
-
-            r += dr;
-            c += dc;
-        }
-    }
-    ret
-}
-
-pub fn update_queen_legals_moves(
-    from: &Coord,
-    color: &Color,
-    board: &mut Board,
-) -> Vec<(Coord, Coord)> {
-    let directions = [(1, 1), (-1, -1), (-1, 1), (1, -1)];
-    let mut ret = Vec::new();
-
-    for (dr, dc) in directions {
-        let mut r = from.row as i8 + dr;
-        let mut c = from.col as i8 + dc;
-
-        while let Some(to) = Board::checked_coord(r, c) {
-            let target = board.get(&to);
-
-            if target.is_color(color) {
-                break;
-            }
-            if let Some((_, _)) = board.test_and_push(from, &to, color) {
-                ret.push((*from, to));
-            }
-
-            r += dr;
-            c += dc;
-        }
-    }
-    let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
-
-    for (dr, dc) in directions {
-        let mut r = from.row as i8 + dr;
-        let mut c = from.col as i8 + dc;
-
-        while let Some(to) = Board::checked_coord(r, c) {
-            let target = board.get(&to);
-
-            if target.is_color(color) {
-                break;
-            }
-            if let Some((_, _)) = board.test_and_push(from, &to, color) {
-                ret.push((*from, to));
-            }
-
-            r += dr;
-            c += dc;
-        }
-    }
-    ret
-}
-
-//tester les roques
-pub fn update_king_legals_moves(
-    from: &Coord,
-    color: &Color,
-    board: &mut Board,
-) -> Vec<(Coord, Coord)> {
-    let cells: [(i8, i8); 8] = [
-        (-1, 1),
-        (0, 1),
-        (1, 1),
-        (-1, 0),
-        (1, 0),
-        (-1, -1),
-        (0, -1),
-        (1, -1),
-    ];
-    let mut ret = Vec::new();
-
-    for (dr, dc) in cells {
-        let new_row = from.row as i8 + dr;
-        let new_col = from.col as i8 + dc;
-        if let Some(to) = Board::checked_coord(new_row, new_col)
-            && let Some((_, _)) = board.test_and_push(from, &to, color)
+        if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8 - 1)
+            && let Some((_, _)) = self.test_and_push(from, &to)
         {
             ret.push((*from, to));
         }
-    }
-    //castle
-    if board.check.is_none() {
-        let little_castle = from.col as i8 + 2;
-        let long_castle = from.col as i8 - 2;
-        if let Some(to) = Board::checked_coord(from.row as i8, little_castle)
-            && let Some((_, _)) = board.test_and_push(from, &to, color)
+        //2 straight forward
+        if let Some(to) = Board::checked_coord(from.row as i8 + dir, from.col as i8)
+            && let Some((_, _)) = self.test_and_push(from, &to)
         {
             ret.push((*from, to));
         }
-        if let Some(to) = Board::checked_coord(from.row as i8, long_castle)
-            && let Some((_, _)) = board.test_and_push(from, &to, color)
+        if let Some(to) = Board::checked_coord(from.row as i8 + dir + dir, from.col as i8)
+            && let Some((_, _)) = self.test_and_push(from, &to)
         {
             ret.push((*from, to));
         }
+        ret
     }
-    ret
+
+    pub fn update_rook_legals_moves(
+        &mut self,
+        from: &Coord,
+    ) -> Vec<(Coord, Coord)> {
+        let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+        let mut ret = Vec::new();
+
+        for (dr, dc) in directions {
+            let mut r = from.row as i8 + dr;
+            let mut c = from.col as i8 + dc;
+
+            while let Some(to) = Board::checked_coord(r, c) {
+                let target = self.get(&to);
+
+                if target.is_color(&self.active_player) {
+                    break;
+                }
+                if let Some((_, _)) = self.test_and_push(from, &to) {
+                    ret.push((*from, to));
+                }
+
+                r += dr;
+                c += dc;
+            }
+        }
+        ret
+    }
+
+    pub fn update_knight_legals_moves(
+        &mut self,
+        from: &Coord,
+    ) -> Vec<(Coord, Coord)> {
+        let cells: [(i8, i8); 8] = [
+            (2, 1),
+            (2, -1),
+            (-2, 1),
+            (-2, -1),
+            (1, 2),
+            (1, -2),
+            (-1, 2),
+            (-1, -2),
+        ];
+        let mut ret = Vec::new();
+
+        for (dr, dc) in cells {
+            let new_row = from.row as i8 + dr;
+            let new_col = from.col as i8 + dc;
+            if let Some(to) = Board::checked_coord(new_row, new_col)
+                && let Some((_, _)) = self.test_and_push(from, &to)
+            {
+                ret.push((*from, to));
+            }
+        }
+        ret
+    }
+
+    pub fn update_bishop_legals_moves(
+        &mut self,
+        from: &Coord,
+    ) -> Vec<(Coord, Coord)> {
+        let directions = [(1, 1), (-1, -1), (-1, 1), (1, -1)];
+        let mut ret = Vec::new();
+
+        for (dr, dc) in directions {
+            let mut r = from.row as i8 + dr;
+            let mut c = from.col as i8 + dc;
+
+            while let Some(to) = Board::checked_coord(r, c) {
+                let target = self.get(&to);
+
+                if target.is_color(&self.active_player) {
+                    break;
+                }
+                if let Some((_, _)) = self.test_and_push(from, &to) {
+                    ret.push((*from, to));
+                }
+
+                r += dr;
+                c += dc;
+            }
+        }
+        ret
+    }
+
+    pub fn update_queen_legals_moves(
+        &mut self,
+        from: &Coord,
+    ) -> Vec<(Coord, Coord)> {
+        let directions = [(1, 1), (-1, -1), (-1, 1), (1, -1)];
+        let mut ret = Vec::new();
+
+        for (dr, dc) in directions {
+            let mut r = from.row as i8 + dr;
+            let mut c = from.col as i8 + dc;
+
+            while let Some(to) = Board::checked_coord(r, c) {
+                let target = self.get(&to);
+
+                if target.is_color(&self.active_player) {
+                    break;
+                }
+                if let Some((_, _)) = self.test_and_push(from, &to) {
+                    ret.push((*from, to));
+                }
+
+                r += dr;
+                c += dc;
+            }
+        }
+        let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+
+        for (dr, dc) in directions {
+            let mut r = from.row as i8 + dr;
+            let mut c = from.col as i8 + dc;
+
+            while let Some(to) = Board::checked_coord(r, c) {
+                let target = self.get(&to);
+
+                if target.is_color(&self.active_player) {
+                    break;
+                }
+                if let Some((_, _)) = self.test_and_push(from, &to) {
+                    ret.push((*from, to));
+                }
+
+                r += dr;
+                c += dc;
+            }
+        }
+        ret
+    }
+
+    //tester les roques
+    pub fn update_king_legals_moves(
+        &mut self,
+        from: &Coord,
+    ) -> Vec<(Coord, Coord)> {
+        let cells: [(i8, i8); 8] = [
+            (-1, 1),
+            (0, 1),
+            (1, 1),
+            (-1, 0),
+            (1, 0),
+            (-1, -1),
+            (0, -1),
+            (1, -1),
+        ];
+        let mut ret = Vec::new();
+
+        for (dr, dc) in cells {
+            let new_row = from.row as i8 + dr;
+            let new_col = from.col as i8 + dc;
+            if let Some(to) = Board::checked_coord(new_row, new_col)
+                && let Some((_, _)) = self.test_and_push(from, &to)
+            {
+                ret.push((*from, to));
+            }
+        }
+        //castle
+        if self.check.is_none() {
+            let little_castle = from.col as i8 + 2;
+            let long_castle = from.col as i8 - 2;
+            if let Some(to) = Board::checked_coord(from.row as i8, little_castle)
+                && let Some((_, _)) = self.test_and_push(from, &to)
+            {
+                ret.push((*from, to));
+            }
+            if let Some(to) = Board::checked_coord(from.row as i8, long_castle)
+                && let Some((_, _)) = self.test_and_push(from, &to)
+            {
+                ret.push((*from, to));
+            }
+        }
+        ret
+    }
 }

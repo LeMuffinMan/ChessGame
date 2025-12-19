@@ -6,9 +6,9 @@ impl ChessApp {
         if response.drag_started()
             && let Some(pos) = response.interact_pointer_pos()
             && let Some(c) = ui_to_board(inner, sq, self.settings.flip, pos)
-            && self.current.is_active_player_piece(&c)
-            && self.current.end.is_none()
-            && let None = self.current.board.pawn_to_promote
+            && self.board.is_active_player_piece(&c)
+            && self.board.end.is_none()
+            && let None = self.board.pawn_to_promote
             && self.replay_infos.index == self.history.snapshots.len()
         {
             self.settings.drag_from = Some(c);
@@ -30,7 +30,10 @@ impl ChessApp {
             && let Some(dst) = ui_to_board(inner, sq, self.settings.flip, pos)
             && from != dst
         {
-            self.try_move(from, dst);
+            if let Err(e) = self.board.try_move(&from, &dst) {
+                log::debug!("try move : {e}");
+            };
+            self.apply_move(&from, &dst);
             self.settings.piece_legals_moves.clear();
             self.settings.from_cell = None;
         }
@@ -44,8 +47,8 @@ impl ChessApp {
 
     pub fn left_click(&mut self, inner: egui::Rect, sq: f32, response: &egui::Response) {
         if response.clicked()
-            && self.current.end.is_none()
-            && self.current.board.pawn_to_promote.is_none()
+            && self.board.end.is_none()
+            && self.board.pawn_to_promote.is_none()
             && let Some(pos) = response.interact_pointer_pos()
             && self.replay_infos.index == self.history.snapshots.len()
         {
@@ -53,13 +56,12 @@ impl ChessApp {
                 match self.settings.from_cell {
                     None => {
                         if self
-                            .current
                             .board
                             .get(&clicked)
-                            .is_color(&self.current.active_player)
+                            .is_color(&self.board.active_player)
                         {
                             self.settings.piece_legals_moves.clear();
-                            for (from, to) in self.current.board.legals_moves.iter() {
+                            for (from, to) in self.board.legals_moves.iter() {
                                 if from.row == clicked.row && from.col == clicked.col {
                                     // println!("pushing {:?}", clicked);
                                     self.settings.piece_legals_moves.push(*to);
@@ -71,9 +73,11 @@ impl ChessApp {
                     Some(from) => {
                         self.settings.piece_legals_moves.clear();
                         if from != clicked {
-                            self.try_move(from, clicked);
+                            if let Err(e) = self.board.try_move(&from, &clicked) {
+                                log::debug!("try move : {e}");
+                            };
+                            self.apply_move(&from ,&clicked);
                         }
-                        self.settings.from_cell = None;
                     }
                 }
             } else {

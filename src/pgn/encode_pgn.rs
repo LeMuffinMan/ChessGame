@@ -8,7 +8,7 @@ use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
-use crate::gui::chessapp_struct::End::*;
+use crate::board::board_struct::End::*;
 
 // pub fn export_pgn(san: &str, path: &Path) {
 //     let mut pgn = String::new();
@@ -37,10 +37,10 @@ impl ChessApp {
     //a reacto
     pub fn encode_move_to_san(&mut self, from: &Coord, to: &Coord, prev_board: &Board) {
         //on ecrit le dernier coup une fois les checks du tour suivant faits
-        if self.current.active_player == Black {
+        if self.board.active_player == Black {
             self.history
                 .history_san
-                .push_str(self.current.turn.to_string().as_str());
+                .push_str(self.board.turn.to_string().as_str());
             self.history.history_san.push_str(". ");
         }
 
@@ -84,17 +84,17 @@ impl ChessApp {
 
         //endgame and checks
         //
-        if let Some(end) = &self.current.end {
+        if let Some(end) = &self.board.end {
             match end {
                 Resign | TimeOut => {
-                    match self.current.opponent {
+                    match self.board.opponent {
                         White => self.history.history_san.push_str("0-1"),
                         Black => self.history.history_san.push_str("1-0"),
                     };
                 }
                 Checkmate => {
                     self.history.history_san.push_str("# ");
-                    match self.current.active_player {
+                    match self.board.active_player {
                         White => self.history.history_san.push_str("0-1"),
                         Black => self.history.history_san.push_str("1-0"),
                     };
@@ -103,19 +103,19 @@ impl ChessApp {
                 Draw => self.history.history_san.push_str(" 1/2 - 1/2"),
             };
         }
-        if self.current.board.check.is_some() && self.current.end.is_none() {
+        if self.board.check.is_some() && self.board.end.is_none() {
             self.history.history_san.push('+');
         }
         self.history.history_san.push(' ');
     }
 
     fn is_en_passant_take(&mut self, from: &Coord, to: &Coord, prev_board: &Board) -> bool {
-        let row_en_passant = if self.current.active_player == White {
+        let row_en_passant = if self.board.active_player == White {
             5
         } else {
             4
         };
-        let diff: i8 = if self.current.active_player == White {
+        let diff: i8 = if self.board.active_player == White {
             -1
         } else {
             1
@@ -126,7 +126,7 @@ impl ChessApp {
                 row: new_row as u8,
                 col: to.col,
             };
-            if self.current.board.get(&coord).get_piece() != prev_board.get(&coord).get_piece() {
+            if self.board.get(&coord).get_piece() != prev_board.get(&coord).get_piece() {
                 return true;
             }
         }
@@ -141,7 +141,7 @@ impl ChessApp {
         self.history.history_san.push((b'a' + to.col) as char);
         self.history.history_san.push((b'0' + to.row + 1) as char);
 
-        if let Some(piece) = self.current.board.get(to).get_piece()
+        if let Some(piece) = self.board.get(to).get_piece()
             && *piece != Pawn
         {
             self.history.history_san.push('=');
@@ -160,11 +160,11 @@ impl ChessApp {
 
     pub fn is_ambiguous_move(&mut self, piece: &Piece, from: &Coord, to: &Coord) {
         if !self.history.snapshots.is_empty() && self.replay_infos.index > 0 {
-            let prev_state = &self.history.snapshots[self.replay_infos.index - 1];
-            let prev_legal_moves = prev_state.board.legals_moves.clone();
+            let prev_board = &self.history.snapshots[self.replay_infos.index - 1];
+            let prev_legal_moves = prev_board.legals_moves.clone();
             for (f, t) in prev_legal_moves.iter() {
                 if t == to
-                    && let Some(p) = self.current.board.get(f).get_piece()
+                    && let Some(p) = self.board.get(f).get_piece()
                     && p == piece
                 {
                     if from.col != f.col {

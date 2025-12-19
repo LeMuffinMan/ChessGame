@@ -7,7 +7,7 @@ impl ChessApp {
     pub fn new_save_load(&mut self, ui: &mut egui::Ui, _ctx: &Context) {
         ui.horizontal(|ui| {
             #[allow(clippy::collapsible_if)] // needed to hid new game button when unecessary
-            if self.current.end.is_some() || self.app_mode == Replay {
+            if self.board.end.is_some() || self.app_mode == Replay {
                 if ui
                     .add_enabled(
                         !self.history.snapshots.is_empty(),

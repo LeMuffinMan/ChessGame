@@ -1,7 +1,9 @@
 use crate::Board;
 use crate::Coord;
+use crate::Color::*;
 use crate::gui::chessapp_struct::AppMode::*;
-use crate::gui::game_state_struct::GameState;
+use crate::board::board_struct::End;
+use crate::board::board_struct::End::*;
 use crate::gui::hooks::WinDia;
 use crate::gui::replay::ReplayInfos;
 use crate::gui::update_timer::GameMode;
@@ -10,15 +12,6 @@ use crate::gui::update_timer::Timer;
 use eframe::{App, egui};
 use egui::Pos2;
 use std::path::PathBuf;
-
-#[derive(Clone, PartialEq)]
-pub enum End {
-    Checkmate,
-    TimeOut,
-    Pat,
-    Draw,
-    Resign,
-}
 
 #[derive(PartialEq)]
 pub enum AppMode {
@@ -93,14 +86,16 @@ impl Default for Settings {
 }
 
 pub struct History {
-    pub snapshots: Vec<GameState>,
+    pub snapshots: Vec<Board>,
+    pub headers: Vec<String>,
     //pub coord: Vec<Option<coord>, Option<coord>>,
     pub history_san: String,
 }
 
 impl History {
-    pub fn new() -> Self {
-        Self {
+    pub fn new() -> History {
+        History {
+            headers: Vec::new(),
             snapshots: Vec::new(),
             history_san: String::new(),
         }
@@ -121,7 +116,7 @@ pub struct ChessApp {
     pub timer: Timer,
     pub replay_infos: ReplayInfos,
     pub promoteinfo: Option<PromoteInfo>,
-    pub current: GameState,
+    pub board: Board,
     pub history: History,
     pub pgn_input: String,
 }
@@ -135,7 +130,7 @@ impl ChessApp {
             win: None,
             app_mode: Lobby,
             replay_infos: ReplayInfos::new(),
-            current: GameState::new(),
+            board: Board::new(),
             settings: Settings::new(),
             promoteinfo: None,
             pgn_input: String::new(),
@@ -174,14 +169,14 @@ impl ChessApp {
             self.mobile_replay_step(ctx);
         }
         if self.timer.mode != GameMode::NoTime && self.timer.active {
-            if self.timer.update_timer(ctx, &self.current.active_player) {
-                self.current.end = Some(End::TimeOut);
+            if self.timer.update_timer(ctx, &self.board.active_player) {
+                self.board.end = Some(End::TimeOut);
             }
             ctx.request_repaint();
         }
         if matches!(self.app_mode, AppMode::Versus(_))
             && self.replay_infos.index == self.history.snapshots.len()
-            && self.current.board.pawn_to_promote.is_some()
+            && self.board.pawn_to_promote.is_some()
         {
             self.get_promotion_input(ctx);
         }
@@ -197,4 +192,116 @@ impl ChessApp {
             );
         });
     }
+
+    pub fn apply_move(&mut self, from: &Coord, to: &Coord) {
+        self.update_history();
+        //it triggers a draw if true, before update board for pawn detection in case of promotion
+        self.board.fifty_moves_draw_check(&from, &to);
+        //This apply the move on the board
+        self.board
+            .update_board(&from, &to);
+        //it triggers a draw if the board match an impossible mat situation
+        if self.board.impossible_mate_check() {
+            self.board.end = Some(Draw);
+            self.app_mode = Versus(Some(Draw));
+        }
+        //update castles bool state for both player
+        self.board.update_castles(&to);
+        //This add a hash for the 3 repetition draw
+        //it takes player on trait, the grid, the castle and en_passant state
+        //hash gives us the info if this exact situation happened
+        self.board.add_hash();
+
+        self.board.last_move = Some((*from, *to));
+
+        if self.settings.autoflip {
+            self.settings.flip = !self.settings.flip;
+        }
+        self.incremente_turn();
+
+        //checks for promotion
+        //switch player color
+        //check for mate, or pat and finaly for check situation
+        self.events_check();
+
+        //since we must end this function to allow gui to ask for promotion input, we store infos
+        //needed here, and we skip the "normal end" so the gui will do it after getting the input
+        let prev_board = self.history.snapshots[self.replay_infos.index - 1]
+            .clone();
+        if self.board.pawn_to_promote.is_some() {
+            self.promoteinfo = Some(PromoteInfo {
+                from : *from,
+                to : *to,
+                prev_board: prev_board.clone(),
+            });
+        } else {
+            //if there were no promotion, we add the actual board in history, and inc the index
+            self.history.snapshots.push(self.board.clone());
+            self.replay_infos.index += 1;
+            self.encode_move_to_san(&from, &to, &prev_board);
+        }
+        self.settings.from_cell = None;
+    }
+
+    pub fn update_history(&mut self) {
+        //if it's the very first move, we setup the history and timers if needed
+        if self.history.snapshots.is_empty() {
+            self.history.snapshots.push(self.board.clone());
+            self.replay_infos.index += 1;
+            //for mobile test
+            self.app_mode = Versus(None);
+            self.timer.active = true;
+            self.timer.start_of_turn.1 = Some(White);
+            //Setup les timers ici ?
+        }
+    }
+
+    fn incremente_turn(&mut self) {
+        if self.board.active_player == Black {
+            self.board.turn += 1;
+        }
+    }
+
+ 
+    //update threats and legals moves to determine if it's a draw or a mat
+    pub fn check_endgame(&mut self) {
+        self.board
+            .update_threatens_cells();
+        self.board
+            .update_legals_moves();
+        //if there is no legal moves : it's a endgame
+        //  if the king is threaten : its a mat
+        //  else its a pat
+        if self.board.legals_moves.is_empty() {
+            self.board.print(); //souvenir of the cli version ..
+            let king_cell = self.board.get_king(&self.board.active_player);
+            if let Some(coord) = king_cell {
+                if self.board.threaten_cells.contains(&coord) {
+                    self.board.end = Some(Checkmate);
+                    self.timer.active = false;
+                    self.app_mode = Versus(Some(Checkmate));
+                } else {
+                    self.board.end = Some(Pat);
+                    self.app_mode = Versus(Some(Pat));
+                    self.timer.active = false;
+                }
+            }
+        }
+    }
+
+    fn events_check(&mut self) {
+        self.board.promote_pawn();
+        self.board.switch_players_color();
+        self.check_endgame();
+        // println!("{:?} to move", self.board.active_player);
+
+        if let Some(k) = self.board.get_king(&self.board.active_player)
+            && self.board.threaten_cells.contains(&k)
+            && let Some(k) = self.board.get_king(&self.board.active_player)
+        {
+            self.board.check = Some(k);
+            // println!("Check !");
+        }
+    }
+
 }

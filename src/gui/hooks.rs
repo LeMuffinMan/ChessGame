@@ -3,7 +3,7 @@ use crate::Color::*;
 use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
 use crate::gui::chessapp_struct::AppMode::*;
-use crate::gui::chessapp_struct::End;
+use crate::board::board_struct::End;
 use crate::gui::chessapp_struct::UiType::*;
 use crate::gui::hooks::End::Draw;
 use egui::RichText;
@@ -27,7 +27,7 @@ impl ChessApp {
             if now >= next_step {
                 if self.replay_infos.index + 1 < self.history.snapshots.len() {
                     self.replay_infos.index += 1;
-                    self.current = self.history.snapshots[self.replay_infos.index].clone();
+                    self.board = self.history.snapshots[self.replay_infos.index].clone();
                     let delay = self.replay_infos.sec_per_frame;
                     self.replay_infos.next_step = Some(now + delay);
                 } else {
@@ -83,25 +83,25 @@ impl ChessApp {
                             ui.vertical(|ui| {
                                 ui.add_space(20.0);
                                 ui.selectable_value(
-                                    &mut self.current.board.promote,
+                                    &mut self.board.promote,
                                     Some(Queen),
                                     "Queen",
                                 );
                                 ui.add_space(20.0);
                                 ui.selectable_value(
-                                    &mut self.current.board.promote,
+                                    &mut self.board.promote,
                                     Some(Bishop),
                                     "Bishop",
                                 );
                                 ui.add_space(20.0);
                                 ui.selectable_value(
-                                    &mut self.current.board.promote,
+                                    &mut self.board.promote,
                                     Some(Knight),
                                     "Knight",
                                 );
                                 ui.add_space(20.0);
                                 ui.selectable_value(
-                                    &mut self.current.board.promote,
+                                    &mut self.board.promote,
                                     Some(Rook),
                                     "Rook",
                                 );
@@ -121,25 +121,25 @@ impl ChessApp {
                             ui.vertical(|ui| {
                                 ui.add_space(20.0);
                                 ui.selectable_value(
-                                    &mut self.current.board.promote,
+                                    &mut self.board.promote,
                                     Some(Queen),
                                     "Queen",
                                 );
                                 ui.add_space(20.0);
                                 ui.selectable_value(
-                                    &mut self.current.board.promote,
+                                    &mut self.board.promote,
                                     Some(Bishop),
                                     "Bishop",
                                 );
                                 ui.add_space(20.0);
                                 ui.selectable_value(
-                                    &mut self.current.board.promote,
+                                    &mut self.board.promote,
                                     Some(Knight),
                                     "Knight",
                                 );
                                 ui.add_space(20.0);
                                 ui.selectable_value(
-                                    &mut self.current.board.promote,
+                                    &mut self.board.promote,
                                     Some(Rook),
                                     "Rook",
                                 );
@@ -163,7 +163,7 @@ impl ChessApp {
                     ui.add_space(100.0);
                     if ui.button("Accept").clicked() {
                         self.win = None;
-                        self.current = self.history.snapshots[self.replay_infos.index - 2].clone();
+                        self.board = self.history.snapshots[self.replay_infos.index - 2].clone();
                         if self.replay_infos.index == 2 {
                             self.replay_infos.index -= 2;
                             self.history.snapshots.clear();
@@ -172,7 +172,7 @@ impl ChessApp {
                             self.history.snapshots.pop();
                         }
                         //une promote ajoute 2 indexs a l'historique ! a fix
-                        if self.current.board.pawn_to_promote.is_some() {
+                        if self.board.pawn_to_promote.is_some() {
                             self.replay_infos.index -= 1;
                             self.history.snapshots.pop();
                         }
@@ -188,36 +188,44 @@ impl ChessApp {
             });
     }
 
-    pub fn import_pgn_win(&mut self, ctx: &egui::Context) {
-                egui::Window::new("Import PGN")
-                    .collapsible(false)
-                    .resizable(false)
-                    .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
-                    .show(ctx, |ui| {
-                        egui::ScrollArea::vertical().show(ui, |ui| {
+    pub fn import_pgn_win(&mut self, ctx: &egui::Context){
+        egui::Window::new("Import PGN")
+            .collapsible(false)
+            .resizable(false)
+            .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
+            .show(ctx, |ui| {
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    ui.add_space(20.0);
+                    ui.horizontal(|ui| {
+                        ui.vertical_centered(|ui| {
+                            ui.label("Copy and past PGN code here");
                             ui.add_space(20.0);
-                            ui.horizontal(|ui| {
-                                ui.vertical_centered(|ui| {
-                                    ui.label("Copy and past PGN code here");
-                                    ui.add_space(20.0);
-                                    ui.text_edit_multiline(&mut self.pgn_input);
-                                });
-                            });
-                            ui.add_space(40.0);
-                            ui.vertical_centered(|ui| {
-                                if ui.button("Import").clicked() {
-                                    match self.import_pgn() {
-                                        Ok() => self.load_game(),
-                                        Err(e) => self.eroor_win(),
-                                    };
-                                    self.win = None;
-                                }
-                                if ui.button("Cancel").clicked() {
-                                    self.win = None;
-                                }
-                            });
+                            ui.text_edit_multiline(&mut self.pgn_input);
                         });
+                    });
+                    ui.add_space(40.0);
+                    ui.vertical_centered(|ui| {
+                        if ui.button("Import").clicked() {
+                            match self.import_pgn() {
+                                Ok(_) => self.load_game(),
+                                Err(e) => self.error_win(e),
+                            };
+                            self.win = None;
+                        }
+                        if ui.button("Cancel").clicked() {
+                            self.win = None;
+                        }
+                    });
                 });
+        });
+    }
+
+    pub fn load_game(&mut self) {
+
+    }
+
+    pub fn error_win(&mut self, error: String) {
+        log::debug!("{error}");
     }
 
     pub fn export_pgn_win(&mut self, ctx: &egui::Context) {
@@ -373,7 +381,7 @@ impl ChessApp {
                         ui.horizontal(|ui| {
                             ui.add_space(40.0);
                             if ui.button("Accept").clicked() {
-                                self.current.end = Some(End::Resign);
+                                self.board.end = Some(End::Resign);
                                 self.win = None;
                                 self.timer.active = false;
                                 self.app_mode = Versus(Some(End::Resign));
@@ -397,7 +405,7 @@ impl ChessApp {
                         ui.horizontal(|ui| {
                             ui.add_space(20.0);
                             if ui.button(RichText::new("Accept").size(40.0)).clicked() {
-                                self.current.end = Some(End::Resign);
+                                self.board.end = Some(End::Resign);
                                 self.timer.active = false;
                                 self.win = None;
                             }
@@ -425,7 +433,7 @@ impl ChessApp {
                         ui.horizontal(|ui| {
                             ui.add_space(40.0);
                             if ui.button("Accept").clicked() {
-                                self.current.end = Some(End::Draw);
+                                self.board.end = Some(End::Draw);
                                 self.timer.active = false;
                                 self.win = None;
                                 self.app_mode = Versus(Some(End::Draw));
@@ -449,7 +457,7 @@ impl ChessApp {
                         ui.horizontal(|ui| {
                             ui.add_space(40.0);
                             if ui.button(RichText::new("Accept").size(40.0)).clicked() {
-                                self.current.end = Some(Draw);
+                                self.board.end = Some(Draw);
                                 self.timer.active = false;
                                 self.win = None;
                                 //window dialog
@@ -469,30 +477,30 @@ impl ChessApp {
     //Desktop hook
     //if a player promoted a pawn, try_move didnt finished it's work, so we do it here
     pub fn update_promote(&mut self) {
-        if let Some(piece) = self.current.board.promote
-            && let Some(coord) = self.current.board.pawn_to_promote
+        if let Some(piece) = self.board.promote
+            && let Some(coord) = self.board.pawn_to_promote
             && self.replay_infos.index == self.history.snapshots.len()
         {
             //methods get opponent color
-            let color = if self.current.active_player == White {
+            let color = if self.board.active_player == White {
                 Black
             } else {
                 White
             };
-            self.current.board.grid[coord.row as usize][coord.col as usize] =
+            self.board.grid[coord.row as usize][coord.col as usize] =
                 Cell::Occupied(piece, color);
 
             //methods
-            let opponent = if self.current.active_player != White {
+            let opponent = if self.board.active_player != White {
                 White
             } else {
                 Black
             };
-            if let Some(k) = self.current.board.get_king(&opponent)
-                && self.current.board.threaten_cells.contains(&k)
-                && let Some(k) = self.current.board.get_king(&opponent)
+            if let Some(k) = self.board.get_king(&opponent)
+                && self.board.threaten_cells.contains(&k)
+                && let Some(k) = self.board.get_king(&opponent)
             {
-                self.current.board.check = Some(k);
+                self.board.check = Some(k);
                 // println!("Check !");
             }
             self.check_endgame();
@@ -500,13 +508,13 @@ impl ChessApp {
                 let from = promoteinfo.from;
                 let to = promoteinfo.to;
                 let prev_board = promoteinfo.prev_board.clone();
-                self.history.snapshots.push(self.current.clone());
+                self.history.snapshots.push(self.board.clone());
                 self.replay_infos.index += 1;
                 // self.replay_infos.index += 1;
                 self.encode_move_to_san(&from, &to, &prev_board);
             }
-            self.current.board.pawn_to_promote = None;
-            self.current.board.promote = None;
+            self.board.pawn_to_promote = None;
+            self.board.promote = None;
             self.win = None;
         }
     }
