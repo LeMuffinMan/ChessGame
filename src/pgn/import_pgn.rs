@@ -17,10 +17,9 @@ impl ChessApp {
         if let Some(nl) = v.iter().position(|l| l == "\n") {
             for i in 0..nl {
                 history.headers.push(l);
-            }
-            match history.parse_moves(lines, nl) {
-                Err(e) => log::debug!("parse_move : e"),
-                _ => {},
+}
+            if let Some(e) = history.parse_moves(lines, nl) {
+                log::debug!("parse_move : {e}"),
             };
         } else {
             log ::debug!("No new line found to separate headers and san code");
@@ -31,5 +30,32 @@ impl ChessApp {
 impl History {
     fn parse_moves(&mut self, lines: Vec<String>, nl: usize) {
         log::debug!("lines = {:?}", lines);
+        //on recupere tout en une ligne
+        self.san = lines.collect();
+        let moves = san.split(". ");
+        for m in moves {
+            if let Some(gamestate) = snapshots.last() {
+                if let Some((from, to)) = get_move(m, gamestate) {
+                    match gamestate.try_move(from, to) {
+                        Ok() => {
+                            //creer le snapshot si inexistant
+                            //check draw
+                            //update board
+                            //impossible mate check
+                            //update castles
+                            //add hash
+                            //last move
+                            //increment turn
+                            //events_checks
+                            //prev board pour promote
+                        },
+                        Err(e) => log::debug!("Illegal move : e"),
+                    };
+                };
+            }
+            if let Some(from, to) = get_move(m, snapshots.last()) {
+                match snapshots
+            }   
+        }
     }
 }

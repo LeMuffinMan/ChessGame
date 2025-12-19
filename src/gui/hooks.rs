@@ -206,7 +206,10 @@ impl ChessApp {
                             ui.add_space(40.0);
                             ui.vertical_centered(|ui| {
                                 if ui.button("Import").clicked() {
-                                    self.import_pgn();
+                                    match self.import_pgn() {
+                                        Ok() => self.load_game(),
+                                        Err(e) => self.eroor_win(),
+                                    };
                                     self.win = None;
                                 }
                                 if ui.button("Cancel").clicked() {
