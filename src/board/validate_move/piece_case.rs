@@ -130,8 +130,6 @@ pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
         };
         //if the king tries a long castle, we need to check te threats on the cells it go trhough
         if dif_col < 0 && castle_bools.1 {
-            let mut to_dir = *to;
-            to_dir.col += 1;
             let cell_1 = Coord {
                 row: from.row,
                 col: from.col - 1,
@@ -161,8 +159,6 @@ pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
         } else if dif_col > 0 && castle_bools.0 {
             //si le roi et aucune des deux cases qu'il traverse n'est en echec
             //Si toutes les cases entre K et R sont vides
-            let mut to_dir = *to; // *to instead of to.clone() because Coord implement Copy
-            to_dir.col -= 1;
             let cell_1 = Coord {
                 row: from.row,
                 col: from.col + 1,
