@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,16 +13,21 @@
             background-color: black;
             overflow: hidden;
         }
+
         canvas#chessappid {
             display: block;
             width: 100vw;
             height: 100vh;
         }
     </style>
-<link rel="modulepreload" href="/ChessGame/chess_game-ca06d866cbbc2bd8.js" crossorigin="anonymous" integrity="sha384-yk/JrvaM5ORkraxF/Edji/s1RGdBh5y3D8qD95aqtQo68IzazabLn0pYzNu8rsEK"><link rel="preload" href="/ChessGame/chess_game-ca06d866cbbc2bd8_bg.wasm" crossorigin="anonymous" integrity="sha384-LbNsozGCyot5QHcyoTmQkqALQJ23xKLKvBeJV2TqeEpfgT66aDwcA5vrvruBD4Nk" as="fetch" type="application/wasm"></head>
+<link rel="modulepreload" href="/ChessGame/chess_game-ca06d866cbbc2bd8.js" crossorigin="anonymous" integrity="sha384-yk/JrvaM5ORkraxF/Edji/s1RGdBh5y3D8qD95aqtQo68IzazabLn0pYzNu8rsEK"><link rel="preload" href="/ChessGame/chess_game-ca06d866cbbc2bd8_bg.wasm" crossorigin="anonymous" integrity="sha384-DM5zKZJSJbkBYaVJTaAEWnOKtZ0fr3RrRX2r3Gyt6x+2JlyX9tljQ/+NP9/+qJIh" as="fetch" type="application/wasm"></head>
 <body>
     <canvas id="chessappid"></canvas>
-    
+    <script type="module">
+        import init from "./pkg/chessgame.js";
+        init();
+    </script>
+
 <script type="module">
 import init, * as bindings from '/ChessGame/chess_game-ca06d866cbbc2bd8.js';
 const wasm = await init({ module_or_path: '/ChessGame/chess_game-ca06d866cbbc2bd8_bg.wasm' });
@@ -32,6 +38,5 @@ window.wasmBindings = bindings;
 
 dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
 
-</script>
-</body>
+</script></body>
 </html>
