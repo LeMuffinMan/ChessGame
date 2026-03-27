@@ -1,0 +1,52 @@
+# .github/workflows/release.yml
+name: Release Wasm ChessGame
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Add wasm target
+        run: rustup target add wasm32-unknown-unknown
+
+      - name: Install cargo fmt
+        run: rustup component add rustfmt
+
+      - name: Format test
+        run: cargo fmt --all -- --check
+
+      - name: Cargo check
+        run: cargo check --target wasm32-unknown-unknown
+
+      - name: Install Clippy
+        run: rustup component add clippy
+
+      - name: Cargo clippy
+        run: cargo clippy --target wasm32-unknown-unknown -- -D warnings
+
+      - name: Install Trunk
+        run: cargo install --locked trunk
+
+      - name: Build (public-url = /)
+        run: trunk build --release --public-url "/"
+
+      - name: Package dist
+        run: zip -r chessgame-wasm.zip dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: chessgame-wasm.zip
