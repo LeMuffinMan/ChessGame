@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +12,6 @@
             background-color: black;
             overflow: hidden;
         }
-
         canvas#chessappid {
             display: block;
             width: 100vw;
@@ -23,10 +21,6 @@
 </head>
 <body>
     <canvas id="chessappid"></canvas>
-    <script type="module">
-        import init from "./pkg/chessgame.js";
-        init();
-    </script>
+    <link data-trunk rel="rust" data-wasm-opt="z"/>
 </body>
 </html>
-
