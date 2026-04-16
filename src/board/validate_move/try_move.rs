@@ -3,9 +3,9 @@ use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Piece::*;
 use crate::board::validate_move;
-use crate::gui::chessapp_struct::AppMode::*;
-use crate::gui::chessapp_struct::End::*;
-use crate::gui::chessapp_struct::PromoteInfo;
+use crate::gui::types::AppMode::*;
+use crate::gui::types::End::*;
+use crate::gui::components::PromoteInfo;
 
 impl ChessApp {
     //this function takes two cells as the move input from the player

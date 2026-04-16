@@ -1,6 +1,6 @@
 use crate::ChessApp;
 use crate::UiType::*;
-use crate::gui::chessapp_struct::AppMode::*;
+use crate::gui::types::AppMode::*;
 use crate::gui::hooks::WinDia;
 use crate::gui::update_timer::GameMode;
 use crate::gui::update_timer::GameMode::Rapid;

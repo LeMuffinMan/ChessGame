@@ -8,7 +8,7 @@ use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
-use crate::gui::chessapp_struct::End::*;
+use crate::gui::types::End::*;
 
 // pub fn export_pgn(san: &str, path: &Path) {
 //     let mut pgn = String::new();

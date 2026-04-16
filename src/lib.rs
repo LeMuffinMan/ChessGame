@@ -1,7 +1,7 @@
 pub mod gui;
 mod pgn;
-use crate::gui::chessapp_struct::ChessApp;
-use crate::gui::chessapp_struct::UiType;
+use crate::gui::chessapp::ChessApp;
+use crate::gui::types::UiType;
 
 mod board;
 use crate::board::cell::Color;
@@ -17,7 +17,6 @@ use wasm_bindgen_futures::spawn_local;
 #[cfg(target_arch = "wasm32")]
 use web_sys::HtmlCanvasElement;
 
-//Todo : Error handling
 #[wasm_bindgen(start)]
 #[cfg(target_arch = "wasm32")]
 pub fn start() -> Result<(), wasm_bindgen::JsValue> {
@@ -41,7 +40,6 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 
     let is_mobile = {
         let ua = window.navigator().user_agent().unwrap_or_default();
-        //this line detects a mobile or desktop environment
         ua.to_lowercase().contains("mobi")
             || window.inner_width().unwrap().as_f64().unwrap_or(1024.0) < 800.0
     };
@@ -58,7 +56,6 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
             .start(
                 canvas,
                 eframe::WebOptions::default(),
-                //added move to build the mobile/desktop app
                 Box::new(move |_cc| Ok(Box::new(ChessApp::new(ui_type)))),
             )
             .await
@@ -68,28 +65,6 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
     Ok(())
 }
 
-//Todo
-//      -error handling
-//
-//      - some check not detected
-//
-//
-//      - pgn decoder
-//          - load
-//
-//      Mobile
-//      - definir nom perso
-//
-//Fix :
-//
-//
-//
-//Tests :
-//      - unit
-//      - end to end
-//
-//
-//
 // -- Later --
 //
 //

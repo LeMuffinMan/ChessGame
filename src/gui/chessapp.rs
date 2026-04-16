@@ -1,117 +1,17 @@
-use crate::Board;
-use crate::Coord;
-use crate::gui::chessapp_struct::AppMode::*;
+use crate::gui::types::AppMode::*;
 use crate::gui::game_state_struct::GameState;
 use crate::gui::hooks::WinDia;
 use crate::gui::replay::ReplayInfos;
 use crate::gui::update_timer::GameMode;
 use crate::gui::update_timer::Timer;
+use crate::gui::types::AppMode;
+use crate::gui::types::End;
+use crate::UiType;
+use crate::gui::components::Settings;
+use crate::gui::history::History;
+use crate::gui::components::PromoteInfo;
 
-use eframe::{App, egui};
-use egui::Pos2;
-use std::path::PathBuf;
-
-#[derive(Clone, PartialEq)]
-pub enum End {
-    Checkmate,
-    TimeOut,
-    Pat,
-    Draw,
-    Resign,
-}
-
-#[derive(PartialEq)]
-pub enum AppMode {
-    Versus(Option<End>),
-    Replay,
-    Lobby,
-}
-
-#[derive(Clone, PartialEq)]
-pub enum UiType {
-    Desktop,
-    Mobile,
-}
-
-#[derive(Clone)]
-pub struct PromoteInfo {
-    pub from: Coord,
-    pub to: Coord,
-    pub prev_board: Board,
-}
-
-pub struct Settings {
-    pub from_cell: Option<Coord>,
-    pub drag_from: Option<Coord>,
-    pub drag_pos: Option<Pos2>,
-    pub piece_legals_moves: Vec<Coord>,
-    pub show_coordinates: bool,
-    pub show_legals_moves: bool,
-    pub show_last_move: bool,
-    pub show_threaten_cells: bool,
-    pub flip: bool,
-    pub autoflip: bool,
-    pub file_name: String,
-    pub white_name: String,
-    pub black_name: String,
-    pub file_path: Option<PathBuf>,
-    pub allow_undo: bool,
-    pub white_undo: u8,
-    pub black_undo: u8,
-    pub undo_limit: u8,
-}
-
-impl Settings {
-    pub fn new() -> Self {
-        Self {
-            show_coordinates: false,
-            show_legals_moves: true,
-            show_last_move: true,
-            show_threaten_cells: false,
-            flip: true,
-            autoflip: false,
-            file_name: "chessgame.pgn".to_string(),
-            from_cell: None,
-            drag_from: None,
-            drag_pos: None,
-            piece_legals_moves: Vec::new(),
-            white_name: "White".to_string(),
-            black_name: "Black".to_string(),
-            file_path: None,
-            allow_undo: false,
-            white_undo: 0,
-            black_undo: 0,
-            undo_limit: 0,
-        }
-    }
-}
-
-impl Default for Settings {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-pub struct History {
-    pub snapshots: Vec<GameState>,
-    //pub coord: Vec<Option<coord>, Option<coord>>,
-    pub history_san: String,
-}
-
-impl History {
-    pub fn new() -> Self {
-        Self {
-            snapshots: Vec::new(),
-            history_san: String::new(),
-        }
-    }
-}
-
-impl Default for History {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+use eframe::App;
 
 pub struct ChessApp {
     pub ui_type: UiType,

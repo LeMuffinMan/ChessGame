@@ -4,7 +4,7 @@ use crate::board::cell::Color;
 use crate::board::cell::Color::*;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
-use crate::gui::chessapp_struct::End;
+use crate::gui::types::End;
 use crate::gui::game_state_struct::DrawOption::*;
 use crate::gui::game_state_struct::DrawRule::*;
 

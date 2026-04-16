@@ -1,6 +1,6 @@
 use crate::ChessApp;
 use crate::Color::*;
-use crate::gui::chessapp_struct::End::Draw;
+use crate::gui::types::End::Draw;
 use crate::gui::game_state_struct::DrawOption;
 use crate::gui::hooks::WinDia;
 use crate::gui::hooks::WinDia::*;

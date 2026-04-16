@@ -31,6 +31,34 @@ impl ChessApp {
             && from != dst
         {
             self.try_move(from, dst);
+
+            m = board.try_move(origin, dest);
+            if let Some(Illegal) = m.illegal {
+                println!("Illegal move: {m.illegal:?} ")
+                //aficher dans l'ui aussi
+            }
+
+
+
+            // if let m = self.try_move(origin, dest) {
+                // ajouter a l'history le m retourne
+                // History :
+                // - vec<Move>
+                // - history_san
+                //update board
+                // Struct Move:
+                // - illegal: Option<Enum<illegal>> ?
+                // - origin
+                // - dest
+                // - capture
+                // - en_passant
+                // - check
+                // - ...
+
+            } else {
+
+            }
+
             self.settings.piece_legals_moves.clear();
             self.settings.from_cell = None;
         }
