@@ -98,4 +98,73 @@ impl Board {
             }
         }
     }
+
+    pub fn build_move(self, from: Coord, to: Coord) -> Move {
+        let m: Move;
+
+        let piece_moving = self.getPiece(from);
+        let color_moving = self.getcolor(from);
+
+        m.origin = from;
+        m.dest = to;
+        m.capture = self.getPiece(to);
+        m.en_passant = self.en_passant;
+        m.white_castle = self.white_castle;
+        m.black_castle = self.black_castle;
+        m.move_type = match piece_moving {
+            Pawn => {
+                if (to.row - from.row).abs() == 2 {
+                    //un double saut ou une promotion
+                    EnPassant
+                } else {
+                    Regular
+                }
+            }
+            King => {
+                //ca casserai les castles
+                if (from.col - to.col).abs() > 1 {
+                    //if it's a king moving more than 1 cell
+                    if from.col - to.col < 0 {
+                        //if the king is moving right
+                        Castle(Right)
+                    } else {
+                        Castle(Left)
+                    }
+                } else {
+                    Regular
+                }
+            }
+            _ => Regular,
+        }
+    }
+
+    pub fn apply_move(self, m: Move) {
+        self.board.update_board(from, to, color);
+        //refacto update_board et la remplacer par apply_move ?
+    }
+
+    pub fn undo_move(self, m: Move) {
+
+        //Dans quelle situation j'ai besoin de move_type, je peux juste override board avec les datas de move ?
+        // match m.move_type {
+        //     EnPassant => {
+
+        //     },
+        //     Castle(side) => {
+        //         match side {
+        //             Right => {},
+        //             Left => {},
+        //         }
+        //     }
+        //     Regular => {
+
+        //     },
+        // }
+
+        self.board.getPiece(m.origin) = self.board.getPiece(m.dest);
+        self.board.setPiece(m.dest) = m.capture;
+        self.board.en_passant = m.en_passant;
+        self.board.white_castle = m.white_castle;
+        self.board.black_castle = m.black_castle;
+    }
 }
