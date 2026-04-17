@@ -12,6 +12,8 @@ impl ChessApp {
     //it test the move legality, and if it exposes king to a threat
     //If it passes these tests it update the board to end turn
     pub fn try_move(&mut self, from: Coord, to: Coord) {
+        // cette fonction doit returner true false ou <Ok(), Result>
+        //Does th rules allow this move ?
         if !self
             .current
             .board
@@ -20,15 +22,30 @@ impl ChessApp {
             println!("Illegal move: {from:?} -> {to:?}");
             return;
         }
-        if validate_move::is_king_exposed(
-            &from,
-            &to,
-            &self.current.active_player,
-            &self.current.board,
-        ) {
-            println!("King is exposed: illegal move");
+
+        let m = build_move(from, to); //erreur a gerer ?
+
+        self.board.apply_move(m);
+
+        if self.board.is_king_exposed() {
+            self.board.undo_move(m);
+            //Faire remonter l'erreur
+            println!("Illegal move: {from:?} -> {to:?}: king would be threaten");
             return;
         }
+
+        //Doing this move, is the active player king threaten ?
+        // if validate_move::is_king_exposed(
+        //     &from,
+        //     &to,
+        //     &self.current.active_player,
+        //     &self.current.board,
+        // ) {
+        //     println!("King is exposed: illegal move");
+        //     return;
+        // }
+
+        //Tout ca devrait sortir de try move et serait un update app ?
         //if it's the very first move, we setup the history and timers if needed
         if self.history.snapshots.is_empty() {
             self.history.snapshots.push(self.current.clone());
