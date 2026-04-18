@@ -8,6 +8,7 @@ pub struct Move {
     pub dest: Coord,
     pub capture: Cell,
     pub en_passant: Option<Coord>,
+    pub check: Option<Coord>,
     pub white_castle: CastleRights,
     pub black_castle: CastleRights,
     pub move_type: MoveType,

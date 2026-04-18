@@ -116,10 +116,8 @@ impl Board {
         }
     }
 
-    //les fonctions suivantes devraient des des impl de Move ? ou des imples de Board ? ou des fonctions non imp ?
     pub fn build_move(&self, from: Coord, to: Coord, active_player: Color) -> Move {
         let piece_moving = self.grid[from.row as usize][from.col as usize].get_piece();
-        // let color_moving = self.grid[from.row as usize][from.col as usize].get_color();
 
         let m_type = match piece_moving {
             Some(Pawn) => {
@@ -132,7 +130,6 @@ impl Board {
             Some(King) => {
                 if (from.col as i8 - to.col as i8).abs() > 1 {
                     if (from.col as i8 - to.col as i8) < 0 {
-                        //if the king is moving right
                         Castle(Right)
                     } else {
                         Castle(Left)
@@ -150,6 +147,7 @@ impl Board {
                 origin: from,
                 capture: self.grid[to.row as usize][to.col as usize],
                 en_passant: self.en_passant,
+                check: self.check,
                 white_castle: self.white_castle,
                 black_castle: self.black_castle,
                 move_type: m_type,
@@ -160,6 +158,7 @@ impl Board {
                     origin: from,
                     capture: self.grid[(to.row - 1) as usize][to.col as usize],
                     en_passant: self.en_passant,
+                    check: self.check,
                     white_castle: self.white_castle,
                     black_castle: self.black_castle,
                     move_type: m_type,
@@ -169,6 +168,7 @@ impl Board {
                     origin: from,
                     capture: self.grid[(to.row + 1) as usize][to.col as usize],
                     en_passant: self.en_passant,
+                    check: self.check,
                     white_castle: self.white_castle,
                     black_castle: self.black_castle,
                     move_type: m_type,
@@ -179,6 +179,7 @@ impl Board {
                 origin: from,
                 capture: self.grid[to.row as usize][to.col as usize],
                 en_passant: self.en_passant,
+                check: self.check,
                 white_castle: self.white_castle,
                 black_castle: self.black_castle,
                 move_type: m_type,
@@ -281,10 +282,6 @@ impl Board {
                 },
             },
             Regular => {
-                // self.grid[m.origin.row as usize][m.origin.col as usize] = std::mem::replace(
-                //     &mut self.grid[m.dest.row as usize][m.dest.col as usize],
-                //     Cell::Free,
-                // );
                 self.grid[m.origin.row as usize][m.origin.col as usize] = self.get(&m.dest);
                 if self.grid[m.origin.row as usize][m.origin.col as usize].get_piece()
                     == Some(&King)
