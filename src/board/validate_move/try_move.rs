@@ -1,11 +1,12 @@
 use crate::ChessApp;
 use crate::Color::*;
 use crate::Coord;
+use crate::Board;
 use crate::board::cell::Piece::*;
 use crate::board::validate_move;
 use crate::gui::chessapp_struct::AppMode::*;
 use crate::gui::chessapp_struct::End::*;
-use crate::gui::chessapp_struct::PromoteInfo;
+// use crate::gui::chessapp_struct::PromoteInfo;
 
 impl ChessApp {
     //this function takes two cells as the move input from the player
@@ -98,23 +99,19 @@ impl ChessApp {
         }
         self.incremente_turn();
 
-        //checks for promotion
-        //switch player color
-        //check for mate, or pat and finaly for check situation
-        self.events_check();
-
         //since we must end this function to allow gui to ask for promotion input, we store infos
         //needed here, and we skip the "normal end" so the gui will do it after getting the input
         let prev_board = self.history.snapshots[self.replay_infos.index - 1]
             .board
             .clone();
-        if self.current.board.pawn_to_promote.is_some() {
-            self.promoteinfo = Some(PromoteInfo {
-                from,
-                to,
-                prev_board: prev_board.clone(),
-            });
-        } else {
+
+        //checks for promotion
+        //switch player color
+        //check for mate, or pat and finaly for check situation
+        self.events_check(&from, &to, &prev_board);
+
+        //la retouche de ce if a peut etre casse la promotion
+        if ! self.promoteinfo.is_some() {
             //if there were no promotion, we add the actual board in history, and inc the index
             self.history.snapshots.push(self.current.clone());
             self.replay_infos.index += 1;
@@ -177,8 +174,11 @@ impl ChessApp {
         }
     }
 
-    fn events_check(&mut self) {
-        self.current.board.promote_pawn(&self.current.active_player);
+    fn events_check(&mut self, from: &Coord, to: &Coord, prev_board: &Board) {
+        let active_player = self.current.active_player;
+        if let Some(promote_info) = self.promote_pawn(&active_player, from, to, prev_board) {
+            self.promoteinfo = Some(promote_info);
+        }
         self.current.switch_players_color();
         self.check_endgame();
         // println!("{:?} to move", self.current.active_player);

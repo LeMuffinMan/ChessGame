@@ -77,30 +77,32 @@ impl ChessApp {
                         ui.horizontal(|ui| {
                             ui.add_space(140.0);
                             ui.vertical(|ui| {
-                                ui.add_space(20.0);
-                                ui.selectable_value(
-                                    &mut self.current.board.promote,
-                                    Some(Queen),
-                                    "Queen",
-                                );
-                                ui.add_space(20.0);
-                                ui.selectable_value(
-                                    &mut self.current.board.promote,
-                                    Some(Bishop),
-                                    "Bishop",
-                                );
-                                ui.add_space(20.0);
-                                ui.selectable_value(
-                                    &mut self.current.board.promote,
-                                    Some(Knight),
-                                    "Knight",
-                                );
-                                ui.add_space(20.0);
-                                ui.selectable_value(
-                                    &mut self.current.board.promote,
-                                    Some(Rook),
-                                    "Rook",
-                                );
+                                if let Some(ref mut info) = self.promoteinfo {
+                                    ui.add_space(20.0);
+                                    ui.selectable_value(
+                                        &mut info.promote,
+                                        Some(Queen),
+                                        "Queen",
+                                    );
+                                    ui.add_space(20.0);
+                                    ui.selectable_value(
+                                        &mut info.promote,
+                                        Some(Bishop),
+                                        "Bishop",
+                                    );
+                                    ui.add_space(20.0);
+                                    ui.selectable_value(
+                                        &mut info.promote,
+                                        Some(Knight),
+                                        "Knight",
+                                    );
+                                    ui.add_space(20.0);
+                                    ui.selectable_value(
+                                        &mut info.promote,
+                                        Some(Rook),
+                                        "Rook",
+                                    );
+                                }
                             });
                         });
                         ui.add_space(20.0);
@@ -115,30 +117,32 @@ impl ChessApp {
                         ui.horizontal(|ui| {
                             ui.add_space(100.0);
                             ui.vertical(|ui| {
-                                ui.add_space(20.0);
-                                ui.selectable_value(
-                                    &mut self.current.board.promote,
-                                    Some(Queen),
-                                    "Queen",
-                                );
-                                ui.add_space(20.0);
-                                ui.selectable_value(
-                                    &mut self.current.board.promote,
-                                    Some(Bishop),
-                                    "Bishop",
-                                );
-                                ui.add_space(20.0);
-                                ui.selectable_value(
-                                    &mut self.current.board.promote,
-                                    Some(Knight),
-                                    "Knight",
-                                );
-                                ui.add_space(20.0);
-                                ui.selectable_value(
-                                    &mut self.current.board.promote,
-                                    Some(Rook),
-                                    "Rook",
-                                );
+                                if let Some(ref mut info) = self.promoteinfo {
+                                    ui.add_space(20.0);
+                                    ui.selectable_value(
+                                        &mut info.promote,
+                                        Some(Queen),
+                                        "Queen",
+                                    );
+                                    ui.add_space(20.0);
+                                    ui.selectable_value(
+                                        &mut info.promote,
+                                        Some(Bishop),
+                                        "Bishop",
+                                    );
+                                    ui.add_space(20.0);
+                                    ui.selectable_value(
+                                        &mut info.promote,
+                                        Some(Knight),
+                                        "Knight",
+                                    );
+                                    ui.add_space(20.0);
+                                    ui.selectable_value(
+                                        &mut info.promote,
+                                        Some(Rook),
+                                        "Rook",
+                                    );
+                                }
                             });
                         });
                         ui.add_space(20.0);
@@ -168,7 +172,7 @@ impl ChessApp {
                             self.history.snapshots.pop();
                         }
                         //une promote ajoute 2 indexs a l'historique ! a fix
-                        if self.current.board.pawn_to_promote.is_some() {
+                        if self.promoteinfo.is_some() {
                             self.replay_infos.index -= 1;
                             self.history.snapshots.pop();
                         }
@@ -435,8 +439,10 @@ impl ChessApp {
     //Desktop hook
     //if a player promoted a pawn, try_move didnt finished it's work, so we do it here
     pub fn update_promote(&mut self) {
-        if let Some(piece) = self.current.board.promote
-            && let Some(coord) = self.current.board.pawn_to_promote
+
+        if let Some(promote_info) = &self.promoteinfo
+            && let Some(coord) = promote_info.pawn_to_promote
+            && let Some(piece) = promote_info.promote
             && self.replay_infos.index == self.history.snapshots.len()
         {
             //methods get opponent color
@@ -471,8 +477,7 @@ impl ChessApp {
                 // self.replay_infos.index += 1;
                 self.encode_move_to_san(&from, &to, &prev_board);
             }
-            self.current.board.pawn_to_promote = None;
-            self.current.board.promote = None;
+            self.promoteinfo = None;
             self.win = None;
         }
     }
