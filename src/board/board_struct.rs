@@ -13,8 +13,6 @@ pub struct Board {
     pub black_castle: CastleRights,
     pub white_king: Coord,
     pub black_king: Coord,
-    pub threaten_cells: Vec<Coord>,
-    pub legals_moves: Vec<(Coord, Coord)>,
     pub en_passant: Option<Coord>,
     pub check: Option<Coord>,
     pub pawn_to_promote: Option<Coord>,
@@ -51,8 +49,6 @@ impl Board {
             },
             white_king: (Coord { row: 0, col: 4 }),
             black_king: (Coord { row: 7, col: 4 }),
-            threaten_cells: Vec::new(),
-            legals_moves: Vec::new(),
             check: None,
             pawn_to_promote: None,
             promote: None,
@@ -60,8 +56,9 @@ impl Board {
 
         board.fill_side(White);
         board.fill_side(Black);
-        board.update_legals_moves(&White);
-        board.update_threatens_cells(&White);
+        //Ces lignes commentees risque de tout casser !
+        // board.update_legals_moves(&White);
+        // board.update_threatens_cells(&White);
 
         board
     }

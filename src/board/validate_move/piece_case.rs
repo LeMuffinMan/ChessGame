@@ -120,7 +120,13 @@ pub fn pawn_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
 }
 
 //We need to check for a regular move, but also for the castles
-pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
+pub fn king_case(
+    from: &Coord,
+    to: &Coord,
+    color: &Color,
+    threaten_cells: &Vec<Coord>,
+    board: &Board,
+) -> bool {
     let dif_col = to.col as i8 - from.col as i8;
     if dif_col.abs() == 2 {
         let castle_bools = if *color == White {
@@ -149,8 +155,8 @@ pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
             if board.get(&cell_1).is_empty()
                 && board.get(&cell_2).is_empty()
                 && board.get(&cell_3).is_empty()
-                && !board.threaten_cells.contains(&cell_1)
-                && !board.threaten_cells.contains(&cell_2)
+                && !threaten_cells.contains(&cell_1)
+                && !threaten_cells.contains(&cell_2)
                 && board.check.is_none()
             {
                 return true;
@@ -171,8 +177,8 @@ pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
             //Si toutes les cases entre K et R sont vides
             if board.get(&cell_1).is_empty()
                 && board.get(&cell_2).is_empty()
-                && !board.threaten_cells.contains(&cell_1)
-                && !board.threaten_cells.contains(&cell_2)
+                && !threaten_cells.contains(&cell_1)
+                && !threaten_cells.contains(&cell_2)
                 && board.check.is_none()
             {
                 return true;

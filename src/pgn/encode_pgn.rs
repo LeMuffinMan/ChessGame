@@ -161,7 +161,7 @@ impl ChessApp {
     pub fn is_ambiguous_move(&mut self, piece: &Piece, from: &Coord, to: &Coord) {
         if !self.history.snapshots.is_empty() && self.replay_infos.index > 0 {
             let prev_state = &self.history.snapshots[self.replay_infos.index - 1];
-            let prev_legal_moves = prev_state.board.legals_moves.clone();
+            let prev_legal_moves = prev_state.legals_moves.clone();
             for (f, t) in prev_legal_moves.iter() {
                 if t == to
                     && let Some(p) = self.current.board.get(f).get_piece()

@@ -23,6 +23,9 @@ pub struct GameState {
     pub last_move: Option<(Coord, Coord)>,
     pub turn: u32,
     pub draw: LateDraw,
+    //Revoir l'utilisation des vec threats/legals dans le GUI
+    pub threaten_cells: Vec<Coord>,
+    pub legals_moves: Vec<(Coord, Coord)>,
 }
 
 impl Default for GameState {
@@ -67,6 +70,8 @@ impl GameState {
                 draw_moves_count: 0,
                 draw_hash: None,
             },
+            threaten_cells: Vec::new(),
+            legals_moves: Vec::new(),
         }
     }
 

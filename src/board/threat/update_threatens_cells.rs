@@ -18,8 +18,9 @@ use crate::board::threat::get_threaten_cells::*;
 //
 //Est-ce plus coherent d'en faire une impl de Board ?
 impl Board {
-    pub fn update_threatens_cells(&mut self, color: &Color) {
-        self.threaten_cells.clear();
+    pub fn update_threatens_cells(&mut self, color: &Color) -> Vec<Coord> {
+        let mut threaten_cells: Vec<Coord> = Vec::new();
+
         // println!("call here");
         for row in 0..8 {
             for col in 0..8 {
@@ -32,15 +33,15 @@ impl Board {
                     && !cell.is_color(color)
                 {
                     match piece {
-                        Pawn => pawn_threats(&cell, &coord, color, self),
-                        Rook => rook_threats(&coord, row, col, self),
-                        Knight => knight_threats(&coord, color, &cell, self),
-                        Bishop => bishop_threats(&coord, row, col, self),
+                        Pawn => pawn_threats(&cell, &coord, color, &mut threaten_cells),
+                        Rook => rook_threats(&coord, row, col, self, &mut threaten_cells),
+                        Knight => knight_threats(&coord, color, &cell, &mut threaten_cells),
+                        Bishop => bishop_threats(&coord, row, col, self, &mut threaten_cells),
                         Queen => {
-                            rook_threats(&coord, row, col, self);
-                            bishop_threats(&coord, row, col, self);
+                            rook_threats(&coord, row, col, self, &mut threaten_cells);
+                            bishop_threats(&coord, row, col, self, &mut threaten_cells);
                         }
-                        King => king_threats(&coord, self),
+                        King => king_threats(&coord, &mut threaten_cells),
                     }
                 } else {
                     // println!("Skipping cell ({}, {}) -> {:?}", row, col, cell.get_piece());
@@ -48,10 +49,11 @@ impl Board {
                 }
             }
         }
+        threaten_cells
     }
 }
 
-fn pawn_threats(cell: &Cell, coord: &Coord, color: &Color, board: &mut Board) {
+fn pawn_threats(cell: &Cell, coord: &Coord, color: &Color, threaten_cells: &mut Vec<Coord>) {
     let cells: [(i8, i8); 2] = if cell.is_color(&White) {
         [(1, -1), (1, 1)]
     } else {
@@ -65,7 +67,7 @@ fn pawn_threats(cell: &Cell, coord: &Coord, color: &Color, board: &mut Board) {
         if (0..8).contains(&new_row) && (0..8).contains(&new_col) {
             // println!("Pawn in ({}, {}) threats ({}, {})", coord.row, coord.col, new_row, new_col);
             if !cell.is_color(color) {
-                board.threaten_cells.push(Coord {
+                threaten_cells.push(Coord {
                     row: new_row as u8,
                     col: new_col as u8,
                 });
@@ -76,22 +78,28 @@ fn pawn_threats(cell: &Cell, coord: &Coord, color: &Color, board: &mut Board) {
     }
 }
 //                                      i8 or u8 or usize ?   too  many args, impl for board?
-fn rook_threats(coord: &Coord, row: usize, col: usize, board: &mut Board) {
+fn rook_threats(
+    coord: &Coord,
+    row: usize,
+    col: usize,
+    board: &mut Board,
+    threaten_cells: &mut Vec<Coord>,
+) {
     if row < 7 {
-        get_threaten_cells_in_line(coord, row as u8 + 1, col as u8, board);
+        get_threaten_cells_in_line(coord, row as u8 + 1, col as u8, board, threaten_cells);
     }
     if row > 0 {
-        get_threaten_cells_in_line(coord, row as u8 - 1, col as u8, board);
+        get_threaten_cells_in_line(coord, row as u8 - 1, col as u8, board, threaten_cells);
     }
     if col < 7 {
-        get_threaten_cells_in_line(coord, row as u8, col as u8 + 1, board);
+        get_threaten_cells_in_line(coord, row as u8, col as u8 + 1, board, threaten_cells);
     }
     if col > 0 {
-        get_threaten_cells_in_line(coord, row as u8, col as u8 - 1, board);
+        get_threaten_cells_in_line(coord, row as u8, col as u8 - 1, board, threaten_cells);
     }
 }
 
-fn knight_threats(coord: &Coord, color: &Color, cell: &Cell, board: &mut Board) {
+fn knight_threats(coord: &Coord, color: &Color, cell: &Cell, threaten_cells: &mut Vec<Coord>) {
     let cells: [(i8, i8); 8] = [
         (2, 1),
         (2, -1),
@@ -111,7 +119,7 @@ fn knight_threats(coord: &Coord, color: &Color, cell: &Cell, board: &mut Board) 
         if (0..8).contains(&new_row) && (0..8).contains(&new_col) {
             // println!("Pushing Coord  col: {} , row: {} in vec", new_row, new_col);
             if !cell.is_color(color) {
-                board.threaten_cells.push(Coord {
+                threaten_cells.push(Coord {
                     row: new_row as u8,
                     col: new_col as u8,
                 });
@@ -120,22 +128,28 @@ fn knight_threats(coord: &Coord, color: &Color, cell: &Cell, board: &mut Board) 
     }
 }
 
-fn bishop_threats(coord: &Coord, row: usize, col: usize, board: &mut Board) {
+fn bishop_threats(
+    coord: &Coord,
+    row: usize,
+    col: usize,
+    board: &mut Board,
+    threaten_cells: &mut Vec<Coord>,
+) {
     if row < 7 && col < 7 {
-        get_threaten_cells_in_diag(coord, row as u8 + 1, col as u8 + 1, board);
+        get_threaten_cells_in_diag(coord, row as u8 + 1, col as u8 + 1, board, threaten_cells);
     }
     if row < 7 && col > 0 {
-        get_threaten_cells_in_diag(coord, row as u8 + 1, col as u8 - 1, board);
+        get_threaten_cells_in_diag(coord, row as u8 + 1, col as u8 - 1, board, threaten_cells);
     }
     if row > 0 && col < 7 {
-        get_threaten_cells_in_diag(coord, row as u8 - 1, col as u8 + 1, board);
+        get_threaten_cells_in_diag(coord, row as u8 - 1, col as u8 + 1, board, threaten_cells);
     }
     if row > 0 && col > 0 {
-        get_threaten_cells_in_diag(coord, row as u8 - 1, col as u8 - 1, board);
+        get_threaten_cells_in_diag(coord, row as u8 - 1, col as u8 - 1, board, threaten_cells);
     }
 }
 
-fn king_threats(coord: &Coord, board: &mut Board) {
+fn king_threats(coord: &Coord, threaten_cells: &mut Vec<Coord>) {
     let cells: [(i8, i8); 8] = [
         (-1, -1),
         (-1, 0),
@@ -153,7 +167,7 @@ fn king_threats(coord: &Coord, board: &mut Board) {
 
         if (0..8).contains(&new_row) && (0..8).contains(&new_col) {
             // println!("Pushing Coord  col: {} , row: {} in vec", new_row, new_col);
-            board.threaten_cells.push(Coord {
+            threaten_cells.push(Coord {
                 row: new_row as u8,
                 col: new_col as u8,
             });

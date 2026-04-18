@@ -10,7 +10,13 @@ use crate::board::validate_move::piece_case::{
 
 ///check if the piece on from coords, can move to the "to" coords, and if there is an
 ///obstacle on way
-pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
+pub fn is_legal_move(
+    from: &Coord,
+    to: &Coord,
+    color: &Color,
+    threaten_cells: &Vec<Coord>,
+    board: &Board,
+) -> bool {
     let cell = board.get(from);
     match cell {
         Cell::Free => false,
@@ -28,7 +34,7 @@ pub fn is_legal_move(from: &Coord, to: &Coord, color: &Color, board: &Board) -> 
                 Knight => knight_case(from, to, color, board),
                 Bishop => bishop_case(from, to, color, board),
                 Queen => queen_case(from, to, color, board),
-                King => king_case(from, to, color, board),
+                King => king_case(from, to, color, threaten_cells, board),
             }
         }
     }

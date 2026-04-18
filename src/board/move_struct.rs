@@ -1,6 +1,6 @@
 use crate::Coord;
-use crate::board::cell::Cell;
 use crate::board::board_struct::CastleRights;
+use crate::board::cell::Cell;
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct Move {

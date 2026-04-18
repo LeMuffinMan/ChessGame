@@ -48,7 +48,7 @@ impl ChessApp {
                     && let Some(k) = self.current.board.get_king(&self.current.active_player)
                     && k.row == board_row
                     && k.col == board_col
-                    && self.current.board.threaten_cells.contains(&k)
+                    && self.current.threaten_cells.contains(&k)
                 {
                     if let Some(end) = &self.current.end
                         && *end == Checkmate
@@ -59,8 +59,7 @@ impl ChessApp {
                     }
                     continue;
                 }
-                if self.settings.show_threaten_cells
-                    && self.current.board.threaten_cells.contains(&coord)
+                if self.settings.show_threaten_cells && self.current.threaten_cells.contains(&coord)
                 {
                     p.rect_filled(cell, 0.0, red[idx as usize]);
                 } else if self.settings.piece_legals_moves.contains(&coord)
@@ -192,7 +191,7 @@ impl ChessApp {
     //To draw the selected piece legals moves
     pub fn get_piece_legal_moves(&mut self) {
         if let Some(coord) = self.settings.drag_from {
-            for (from, to) in self.current.board.legals_moves.iter() {
+            for (from, to) in self.current.legals_moves.iter() {
                 if from.row == coord.row && from.col == coord.col {
                     // println!("pushing {:?}", coord);
                     self.settings.piece_legals_moves.push(*to);

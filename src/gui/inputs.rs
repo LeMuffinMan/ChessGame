@@ -59,7 +59,7 @@ impl ChessApp {
                             .is_color(&self.current.active_player)
                         {
                             self.settings.piece_legals_moves.clear();
-                            for (from, to) in self.current.board.legals_moves.iter() {
+                            for (from, to) in self.current.legals_moves.iter() {
                                 if from.row == clicked.row && from.col == clicked.col {
                                     // println!("pushing {:?}", clicked);
                                     self.settings.piece_legals_moves.push(*to);
