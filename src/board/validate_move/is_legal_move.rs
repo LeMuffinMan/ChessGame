@@ -108,17 +108,16 @@ pub fn is_king_exposed(board: &Board, active_player: &Color) -> bool {
         Color::Black => board.black_king,
     };
 
-    // 1. Sliding Pieces (Rooks, Bishops, Queens)
-    // Directions: (row_step, col_step)
+    // Rooks, Bishops, Queens directions
     let directions = [
         (1, 0),
         (-1, 0),
         (0, 1),
-        (0, -1), // Orthogonal
+        (0, -1),
         (1, 1),
         (1, -1),
         (-1, 1),
-        (-1, -1), // Diagonal
+        (-1, -1),
     ];
 
     for (dr, dc) in directions {
@@ -133,9 +132,9 @@ pub fn is_king_exposed(board: &Board, active_player: &Color) -> bool {
             let cell = &board.grid[r as usize][c as usize];
             if let (Some(p_type), Some(p_color)) = (cell.get_piece(), cell.get_color()) {
                 if *p_color == *active_player {
-                    break; // Blocked by friendly piece
+                    break; // friendly piece blocking
                 } else {
-                    // Enemy piece found - check if it attacks this line
+                    // opponent piece found is it threats this line ?
                     let is_diag = dr != 0 && dc != 0;
                     match p_type {
                         Piece::Queen => return true,
@@ -143,7 +142,7 @@ pub fn is_king_exposed(board: &Board, active_player: &Color) -> bool {
                         Piece::Bishop if is_diag => return true,
                         Piece::King if dist == 1 => return true,
                         Piece::Pawn if dist == 1 && is_diag => {
-                            // Pawns only attack forward-diagonally
+                            // Pawns threats is diag in front of them
                             let attack_dir = if *active_player == Color::White {
                                 1
                             } else {
@@ -153,15 +152,15 @@ pub fn is_king_exposed(board: &Board, active_player: &Color) -> bool {
                                 return true;
                             }
                         }
-                        _ => break, // Enemy piece doesn't attack this way (e.g., Knight)
+                        _ => break, // no threats : knight for exemple
                     }
-                    break; // Any enemy piece blocks the line further
+                    break; // opponent piece blocks
                 }
             }
         }
     }
 
-    // 2. Knights (They jump, so they aren't "sliding" pieces)
+    // Knights
     let knight_moves = [
         (2, 1),
         (2, -1),
