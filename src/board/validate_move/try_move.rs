@@ -1,7 +1,7 @@
+use crate::Board;
 use crate::ChessApp;
 use crate::Color::*;
 use crate::Coord;
-use crate::Board;
 use crate::board::cell::Piece::*;
 use crate::board::validate_move;
 use crate::gui::chessapp_struct::AppMode::*;
@@ -111,7 +111,7 @@ impl ChessApp {
         self.events_check(&from, &to, &prev_board);
 
         //la retouche de ce if a peut etre casse la promotion
-        if ! self.promoteinfo.is_some() {
+        if !self.promoteinfo.is_some() {
             //if there were no promotion, we add the actual board in history, and inc the index
             self.history.snapshots.push(self.current.clone());
             self.replay_infos.index += 1;

@@ -5,6 +5,7 @@ use crate::board::cell::Cell;
 // use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
 use crate::board::move_struct::{CastleSide::*, Move, MoveType::*};
+use crate::board::validate_move::is_king_exposed;
 
 #[derive(Clone, PartialEq)]
 pub struct Board {
@@ -90,8 +91,6 @@ impl Board {
             }
         }
     }
-
-
 
     pub fn build_move(&self, from: Coord, to: Coord, active_player: Color) -> Move {
         let piece_moving = self.grid[from.row as usize][from.col as usize].get_piece();
@@ -274,5 +273,20 @@ impl Board {
         self.en_passant = m.en_passant;
         self.white_castle = m.white_castle;
         self.black_castle = m.black_castle;
+    }
+    pub fn check_move(
+        &mut self,
+        origin: &Coord,
+        dest: &Coord,
+        active_player: &Color,
+    ) -> Option<Move> {
+        let m = self.build_move(*origin, *dest, *active_player);
+        self.apply_move(&m, *active_player);
+        let exposed = is_king_exposed(self, active_player);
+        self.undo_move(m, *active_player);
+        if !exposed {
+            return Some(m);
+        }
+        None
     }
 }
