@@ -79,29 +79,13 @@ impl ChessApp {
                             ui.vertical(|ui| {
                                 if let Some(ref mut info) = self.promoteinfo {
                                     ui.add_space(20.0);
-                                    ui.selectable_value(
-                                        &mut info.promote,
-                                        Some(Queen),
-                                        "Queen",
-                                    );
+                                    ui.selectable_value(&mut info.promote, Some(Queen), "Queen");
                                     ui.add_space(20.0);
-                                    ui.selectable_value(
-                                        &mut info.promote,
-                                        Some(Bishop),
-                                        "Bishop",
-                                    );
+                                    ui.selectable_value(&mut info.promote, Some(Bishop), "Bishop");
                                     ui.add_space(20.0);
-                                    ui.selectable_value(
-                                        &mut info.promote,
-                                        Some(Knight),
-                                        "Knight",
-                                    );
+                                    ui.selectable_value(&mut info.promote, Some(Knight), "Knight");
                                     ui.add_space(20.0);
-                                    ui.selectable_value(
-                                        &mut info.promote,
-                                        Some(Rook),
-                                        "Rook",
-                                    );
+                                    ui.selectable_value(&mut info.promote, Some(Rook), "Rook");
                                 }
                             });
                         });
@@ -119,29 +103,13 @@ impl ChessApp {
                             ui.vertical(|ui| {
                                 if let Some(ref mut info) = self.promoteinfo {
                                     ui.add_space(20.0);
-                                    ui.selectable_value(
-                                        &mut info.promote,
-                                        Some(Queen),
-                                        "Queen",
-                                    );
+                                    ui.selectable_value(&mut info.promote, Some(Queen), "Queen");
                                     ui.add_space(20.0);
-                                    ui.selectable_value(
-                                        &mut info.promote,
-                                        Some(Bishop),
-                                        "Bishop",
-                                    );
+                                    ui.selectable_value(&mut info.promote, Some(Bishop), "Bishop");
                                     ui.add_space(20.0);
-                                    ui.selectable_value(
-                                        &mut info.promote,
-                                        Some(Knight),
-                                        "Knight",
-                                    );
+                                    ui.selectable_value(&mut info.promote, Some(Knight), "Knight");
                                     ui.add_space(20.0);
-                                    ui.selectable_value(
-                                        &mut info.promote,
-                                        Some(Rook),
-                                        "Rook",
-                                    );
+                                    ui.selectable_value(&mut info.promote, Some(Rook), "Rook");
                                 }
                             });
                         });
@@ -439,7 +407,6 @@ impl ChessApp {
     //Desktop hook
     //if a player promoted a pawn, try_move didnt finished it's work, so we do it here
     pub fn update_promote(&mut self) {
-
         if let Some(promote_info) = &self.promoteinfo
             && let Some(coord) = promote_info.pawn_to_promote
             && let Some(piece) = promote_info.promote

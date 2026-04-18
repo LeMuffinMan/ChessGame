@@ -57,10 +57,17 @@ pub struct LateDraw {
 
 impl GameState {
     pub fn new() -> Self {
+        let mut board = Board::init_board();
+        let active_player = Color::White;
+        let opponent = Color::Black;
+
+        let threaten_cells = board.update_threatens_cells(&active_player);
+        let legals_moves = board.update_legals_moves(&active_player, &threaten_cells);
+
         Self {
-            board: Board::init_board(),
-            active_player: Color::White,
-            opponent: Color::Black,
+            board,
+            active_player,
+            opponent,
             end: None,
             last_move: None,
             turn: 1,
@@ -70,8 +77,8 @@ impl GameState {
                 draw_moves_count: 0,
                 draw_hash: None,
             },
-            threaten_cells: Vec::new(),
-            legals_moves: Vec::new(),
+            threaten_cells,
+            legals_moves,
         }
     }
 
