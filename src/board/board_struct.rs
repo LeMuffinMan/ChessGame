@@ -4,12 +4,15 @@ use crate::Coord;
 use crate::board::cell::Cell;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
+use crate::board::move_struct::{CastleSide::*, Move, MoveType::*};
 
 #[derive(Clone, PartialEq)]
 pub struct Board {
     pub grid: [[Cell; 8]; 8],
     pub white_castle: (bool, bool), //(long, short)
     pub black_castle: (bool, bool),
+    pub white_king: Coord,
+    pub black_king: Coord,
     pub threaten_cells: Vec<Coord>,
     pub legals_moves: Vec<(Coord, Coord)>,
     pub en_passant: Option<Coord>,
@@ -34,6 +37,8 @@ impl Board {
             en_passant: None,
             white_castle: (true, true),
             black_castle: (true, true),
+            white_king: (Coord { row: 0, col: 4 }),
+            black_king: (Coord { row: 7, col: 4 }),
             threaten_cells: Vec::new(),
             legals_moves: Vec::new(),
             check: None,
@@ -99,32 +104,22 @@ impl Board {
         }
     }
 
-    pub fn build_move(self, from: Coord, to: Coord) -> Move {
-        let m: Move;
+    //les fonctions suivantes devraient des des impl de Move ? ou des imples de Board ? ou des fonctions non imp ?
+    pub fn build_move(&self, from: Coord, to: Coord, active_player: Color) -> Move {
+        let piece_moving = self.grid[from.row as usize][from.col as usize].get_piece();
+        // let color_moving = self.grid[from.row as usize][from.col as usize].get_color();
 
-        let piece_moving = self.getPiece(from);
-        let color_moving = self.getcolor(from);
-
-        m.origin = from;
-        m.dest = to;
-        m.capture = self.getPiece(to);
-        m.en_passant = self.en_passant;
-        m.white_castle = self.white_castle;
-        m.black_castle = self.black_castle;
-        m.move_type = match piece_moving {
-            Pawn => {
-                if (to.row - from.row).abs() == 2 {
-                    //un double saut ou une promotion
+        let m_type = match piece_moving {
+            Some(Pawn) => {
+                if to.col != from.col && self.grid[to.row as usize][to.col as usize] == Cell::Free {
                     EnPassant
                 } else {
                     Regular
                 }
             }
-            King => {
-                //ca casserai les castles
-                if (from.col - to.col).abs() > 1 {
-                    //if it's a king moving more than 1 cell
-                    if from.col - to.col < 0 {
+            Some(King) => {
+                if (from.col as i8 - to.col as i8).abs() > 1 {
+                    if (from.col as i8 - to.col as i8) < 0 {
                         //if the king is moving right
                         Castle(Right)
                     } else {
@@ -135,36 +130,163 @@ impl Board {
                 }
             }
             _ => Regular,
+        };
+
+        let m: Move = match m_type {
+            Regular => Move {
+                dest: to,
+                origin: from,
+                capture: self.grid[to.row as usize][to.col as usize],
+                en_passant: self.en_passant,
+                white_castle: self.white_castle,
+                black_castle: self.black_castle,
+                move_type: m_type,
+            },
+            EnPassant => match active_player {
+                White => Move {
+                    dest: to,
+                    origin: from,
+                    capture: self.grid[(to.row - 1) as usize][to.col as usize],
+                    en_passant: self.en_passant,
+                    white_castle: self.white_castle,
+                    black_castle: self.black_castle,
+                    move_type: m_type,
+                },
+                Black => Move {
+                    dest: to,
+                    origin: from,
+                    capture: self.grid[(to.row + 1) as usize][to.col as usize],
+                    en_passant: self.en_passant,
+                    white_castle: self.white_castle,
+                    black_castle: self.black_castle,
+                    move_type: m_type,
+                },
+            },
+            _ => Move {
+                dest: to,
+                origin: from,
+                capture: self.grid[to.row as usize][to.col as usize],
+                en_passant: self.en_passant,
+                white_castle: self.white_castle,
+                black_castle: self.black_castle,
+                move_type: m_type,
+            }, // le cas castle right ou left,
+        };
+        return m;
+    }
+
+    pub fn apply_move(&mut self, m: &Move, active_player: Color) {
+        self.en_passant = None;
+        self.check = None;
+        match self.get(&m.origin).get_piece() {
+            Some(piece) => match piece {
+                Pawn => {
+                    self.update_en_passant(&m.origin, &m.dest);
+                    if m.move_type == EnPassant {
+                        match active_player {
+                            White => {
+                                self.grid[(m.dest.row - 1) as usize][m.dest.col as usize] =
+                                    Cell::Free
+                            }
+                            Black => {
+                                self.grid[(m.dest.row + 1) as usize][m.dest.col as usize] =
+                                    Cell::Free
+                            }
+                        }
+                    }
+                }
+                King => {
+                    self.update_king_castle(&m.origin, &m.dest, &active_player);
+                    match active_player {
+                        White => self.white_king = m.dest,
+                        Black => self.black_king = m.dest,
+                    }
+                }
+                Knight | Rook | Queen | Bishop => {}
+            },
+            None => {
+                println!("Error : update board : from cell empty")
+            }
         }
+        self.grid[m.dest.row as usize][m.dest.col as usize] = std::mem::replace(
+            &mut self.grid[m.origin.row as usize][m.origin.col as usize],
+            Cell::Free,
+        );
     }
 
-    pub fn apply_move(self, m: Move) {
-        self.board.update_board(from, to, color);
-        //refacto update_board et la remplacer par apply_move ?
-    }
-
-    pub fn undo_move(self, m: Move) {
-
+    pub fn undo_move(&mut self, m: Move, active_player: Color) {
         //Dans quelle situation j'ai besoin de move_type, je peux juste override board avec les datas de move ?
-        // match m.move_type {
-        //     EnPassant => {
-
-        //     },
-        //     Castle(side) => {
-        //         match side {
-        //             Right => {},
-        //             Left => {},
-        //         }
-        //     }
-        //     Regular => {
-
-        //     },
-        // }
-
-        self.board.getPiece(m.origin) = self.board.getPiece(m.dest);
-        self.board.setPiece(m.dest) = m.capture;
-        self.board.en_passant = m.en_passant;
-        self.board.white_castle = m.white_castle;
-        self.board.black_castle = m.black_castle;
+        match m.move_type {
+            EnPassant => {
+                self.grid[m.dest.row as usize][m.dest.col as usize] = Cell::Free; // une pris en passant qui mange deux pieces est possible ?
+                match active_player {
+                    White => {
+                        self.grid[(m.dest.row - 1) as usize][m.dest.col as usize] = m.capture;
+                        self.grid[m.origin.row as usize][m.origin.col as usize] =
+                            Cell::Occupied(Pawn, active_player);
+                    }
+                    Black => {
+                        self.grid[(m.dest.row + 1) as usize][m.dest.col as usize] = m.capture;
+                        self.grid[m.origin.row as usize][m.origin.col as usize] =
+                            Cell::Occupied(Pawn, active_player);
+                    }
+                }
+            }
+            Castle(side) => match side {
+                Right => match active_player {
+                    White => {
+                        self.grid[0][4] = Cell::Occupied(King, White);
+                        self.grid[0][5] = Cell::Free;
+                        self.grid[0][6] = Cell::Free;
+                        self.grid[0][7] = Cell::Occupied(Rook, White);
+                        self.white_king = Coord { row: 0, col: 4 };
+                    }
+                    Black => {
+                        self.grid[7][4] = Cell::Occupied(King, Black);
+                        self.grid[7][5] = Cell::Free;
+                        self.grid[7][6] = Cell::Free;
+                        self.grid[7][7] = Cell::Occupied(Rook, Black);
+                        self.black_king = Coord { row: 7, col: 4 };
+                    }
+                },
+                Left => match active_player {
+                    White => {
+                        self.grid[0][4] = Cell::Occupied(King, White);
+                        self.grid[0][3] = Cell::Free;
+                        self.grid[0][2] = Cell::Free;
+                        self.grid[0][1] = Cell::Free;
+                        self.grid[0][0] = Cell::Occupied(Rook, White);
+                        self.white_king = Coord { row: 0, col: 4 };
+                    }
+                    Black => {
+                        self.grid[7][4] = Cell::Occupied(King, Black);
+                        self.grid[7][3] = Cell::Free;
+                        self.grid[7][2] = Cell::Free;
+                        self.grid[7][1] = Cell::Free;
+                        self.grid[7][0] = Cell::Occupied(Rook, Black);
+                        self.black_king = Coord { row: 7, col: 4 };
+                    }
+                },
+            },
+            Regular => {
+                // self.grid[m.origin.row as usize][m.origin.col as usize] = std::mem::replace(
+                //     &mut self.grid[m.dest.row as usize][m.dest.col as usize],
+                //     Cell::Free,
+                // );
+                self.grid[m.origin.row as usize][m.origin.col as usize] = self.get(&m.dest);
+                if self.grid[m.origin.row as usize][m.origin.col as usize].get_piece()
+                    == Some(&King)
+                {
+                    match active_player {
+                        White => self.white_king = m.origin,
+                        Black => self.black_king = m.origin,
+                    }
+                }
+                self.grid[m.dest.row as usize][m.dest.col as usize] = m.capture;
+            }
+        }
+        self.en_passant = m.en_passant;
+        self.white_castle = m.white_castle;
+        self.black_castle = m.black_castle;
     }
 }

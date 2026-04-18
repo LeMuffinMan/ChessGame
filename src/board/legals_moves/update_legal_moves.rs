@@ -64,8 +64,14 @@ impl Board {
         to: &Coord,
         color: &Color,
     ) -> Option<(Coord, Coord)> {
-        if self.is_legal_move(from, to, color) && !is_king_exposed(from, to, color, self) {
-            return Some((*from, *to));
+        if self.is_legal_move(from, to, color) {
+            let m = self.build_move(*from, *to, *color);
+            self.apply_move(&m, *color);
+            let exposed = is_king_exposed(self, color);
+            self.undo_move(m, *color);
+            if !exposed {
+                return Some((*from, *to));
+            }
         }
         None
     }
