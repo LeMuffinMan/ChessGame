@@ -455,7 +455,7 @@ impl ChessApp {
                 Black
             };
             if let Some(k) = self.current.board.get_king(&opponent)
-                && self.current.board.threaten_cells.contains(&k)
+                && self.current.threaten_cells.contains(&k)
                 && let Some(k) = self.current.board.get_king(&opponent)
             {
                 self.current.board.check = Some(k);

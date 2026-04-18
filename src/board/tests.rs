@@ -1,10 +1,10 @@
 use crate::board::Board;
+use crate::board::board_struct::CastleRights;
 use crate::board::cell::Cell::{Free, Occupied};
 use crate::board::cell::Color::{Black, White};
 use crate::board::cell::Coord;
 use crate::board::cell::Piece::{Bishop, King, Knight, Pawn, Queen, Rook};
 use crate::board::validate_move::is_king_exposed;
-use crate::board::board_struct::CastleRights;
 
 fn board_core_eq(a: &Board, b: &Board) -> bool {
     a.grid == b.grid
@@ -292,7 +292,10 @@ fn test_castle_denied_rights_lost() {
     let mut board = Board::init_board();
     board.grid[0][5] = Free;
     board.grid[0][6] = Free;
-    board.white_castle = CastleRights { long: false, short: false };
+    board.white_castle = CastleRights {
+        long: false,
+        short: false,
+    };
     board.update_threatens_cells(&White);
     board.update_legals_moves(&White);
     assert!(!board.legals_moves.contains(&(coord(0, 4), coord(0, 6))));
@@ -310,5 +313,11 @@ fn test_castle_rights_restored_on_undo() {
     // apply_move ne gère pas les droits de roque (géré par ChessApp::update_castles)
     // C'est un probleme ?
     board.undo_move(m, White);
-    assert_eq!(board.white_castle, CastleRights { long: true, short: true });
+    assert_eq!(
+        board.white_castle,
+        CastleRights {
+            long: true,
+            short: true
+        }
+    );
 }

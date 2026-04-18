@@ -144,6 +144,18 @@ impl ChessApp {
 //This App trait runs the eframe : fn update is the main loop, run for each frame
 impl App for ChessApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        if self.current.threaten_cells.is_empty() {
+            self.current.threaten_cells = self
+                .current
+                .board
+                .update_threatens_cells(&self.current.active_player)
+        }
+        if self.current.legals_moves.is_empty() {
+            self.current.legals_moves = self
+                .current
+                .board
+                .update_legals_moves(&self.current.active_player, &self.current.threaten_cells)
+        }
         self.hooks(ctx);
         match &self.ui_type {
             UiType::Mobile => {

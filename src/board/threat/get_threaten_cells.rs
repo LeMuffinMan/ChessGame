@@ -2,13 +2,19 @@ use crate::Board;
 use crate::Coord;
 
 //recursively search in diagonals for empty cells or the first piece it finds
-pub fn get_threaten_cells_in_diag(from: &Coord, row: u8, col: u8, board: &mut Board) {
+pub fn get_threaten_cells_in_diag(
+    from: &Coord,
+    row: u8,
+    col: u8,
+    board: &mut Board,
+    threaten_cells: &mut Vec<Coord>,
+) {
     if row > 7 || col > 7 {
         return;
     }
 
     let target = Coord { row, col };
-    board.threaten_cells.push(target);
+    threaten_cells.push(target);
 
     if !board.get(&target).is_empty() {
         return;
@@ -17,22 +23,22 @@ pub fn get_threaten_cells_in_diag(from: &Coord, row: u8, col: u8, board: &mut Bo
     match (row.cmp(&from.row), col.cmp(&from.col)) {
         (std::cmp::Ordering::Greater, std::cmp::Ordering::Greater) => {
             if row < 7 && col < 7 {
-                get_threaten_cells_in_diag(from, row + 1, col + 1, board);
+                get_threaten_cells_in_diag(from, row + 1, col + 1, board, threaten_cells);
             }
         }
         (std::cmp::Ordering::Greater, std::cmp::Ordering::Less) => {
             if row < 7 && col > 0 {
-                get_threaten_cells_in_diag(from, row + 1, col - 1, board);
+                get_threaten_cells_in_diag(from, row + 1, col - 1, board, threaten_cells);
             }
         }
         (std::cmp::Ordering::Less, std::cmp::Ordering::Greater) => {
             if row > 0 && col < 7 {
-                get_threaten_cells_in_diag(from, row - 1, col + 1, board);
+                get_threaten_cells_in_diag(from, row - 1, col + 1, board, threaten_cells);
             }
         }
         (std::cmp::Ordering::Less, std::cmp::Ordering::Less) => {
             if row > 0 && col > 0 {
-                get_threaten_cells_in_diag(from, row - 1, col - 1, board);
+                get_threaten_cells_in_diag(from, row - 1, col - 1, board, threaten_cells);
             }
         }
         _ => {}
@@ -40,13 +46,19 @@ pub fn get_threaten_cells_in_diag(from: &Coord, row: u8, col: u8, board: &mut Bo
 }
 
 //Same as above, in line
-pub fn get_threaten_cells_in_line(from: &Coord, row: u8, col: u8, board: &mut Board) {
+pub fn get_threaten_cells_in_line(
+    from: &Coord,
+    row: u8,
+    col: u8,
+    board: &mut Board,
+    threaten_cells: &mut Vec<Coord>,
+) {
     if row > 7 || col > 7 {
         return;
     }
 
     let target = Coord { row, col };
-    board.threaten_cells.push(target);
+    threaten_cells.push(target);
 
     if !board.get(&target).is_empty() {
         return;
@@ -55,22 +67,22 @@ pub fn get_threaten_cells_in_line(from: &Coord, row: u8, col: u8, board: &mut Bo
     match (row.cmp(&from.row), col.cmp(&from.col)) {
         (std::cmp::Ordering::Greater, _) => {
             if row < 7 {
-                get_threaten_cells_in_line(from, row + 1, col, board);
+                get_threaten_cells_in_line(from, row + 1, col, board, threaten_cells);
             }
         }
         (std::cmp::Ordering::Less, _) => {
             if row > 0 {
-                get_threaten_cells_in_line(from, row - 1, col, board);
+                get_threaten_cells_in_line(from, row - 1, col, board, threaten_cells);
             }
         }
         (_, std::cmp::Ordering::Greater) => {
             if col < 7 {
-                get_threaten_cells_in_line(from, row, col + 1, board);
+                get_threaten_cells_in_line(from, row, col + 1, board, threaten_cells);
             }
         }
         (_, std::cmp::Ordering::Less) => {
             if col > 0 {
-                get_threaten_cells_in_line(from, row, col - 1, board);
+                get_threaten_cells_in_line(from, row, col - 1, board, threaten_cells);
             }
         }
         _ => {}

@@ -10,9 +10,17 @@ impl Board {
         self.grid[coord.row as usize][coord.col as usize]
     }
 
-    pub fn is_legal_move(&self, from: &Coord, to: &Coord, color: &Color) -> bool {
-        is_legal_move(from, to, color, self)
+    //bizarre ce wrapper, on devrait le virer et reorganiser ?
+    pub fn is_legal_move(
+        &self,
+        from: &Coord,
+        to: &Coord,
+        color: &Color,
+        threaten_cells: &Vec<Coord>,
+    ) -> bool {
+        is_legal_move(from, to, color, threaten_cells, self)
     }
+
     pub fn get_king(&self, color: &Color) -> Option<Coord> {
         for x in 0..8 {
             for y in 0..8 {

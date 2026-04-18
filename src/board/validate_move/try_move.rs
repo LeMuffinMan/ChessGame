@@ -14,11 +14,12 @@ impl ChessApp {
     pub fn try_move(&mut self, from: Coord, to: Coord) {
         // cette fonction doit returner true false ou <Ok(), Result>
         //Does th rules allow this move ?
-        if !self
-            .current
-            .board
-            .is_legal_move(&from, &to, &self.current.active_player)
-        {
+        if !self.current.board.is_legal_move(
+            &from,
+            &to,
+            &self.current.active_player,
+            &self.current.threaten_cells,
+        ) {
             println!("Illegal move: {from:?} -> {to:?}");
             return;
         }
@@ -147,21 +148,23 @@ impl ChessApp {
 
     //update threats and legals moves to determine if it's a draw or a mat
     pub fn check_endgame(&mut self) {
-        self.current
+        self.current.threaten_cells = self
+            .current
             .board
             .update_threatens_cells(&self.current.active_player);
-        self.current
+        self.current.legals_moves = self
+            .current
             .board
-            .update_legals_moves(&self.current.active_player);
+            .update_legals_moves(&self.current.active_player, &self.current.threaten_cells);
 
         //if there is no legal moves : it's a endgame
         //  if the king is threaten : its a mat
         //  else its a pat
-        if self.current.board.legals_moves.is_empty() {
+        if self.current.legals_moves.is_empty() {
             self.current.board.print(); //souvenir of the cli version ..
             let king_cell = self.current.board.get_king(&self.current.active_player);
             if let Some(coord) = king_cell {
-                if self.current.board.threaten_cells.contains(&coord) {
+                if self.current.threaten_cells.contains(&coord) {
                     self.current.end = Some(Checkmate);
                     self.timer.active = false;
                     self.app_mode = Versus(Some(Checkmate));
@@ -179,9 +182,9 @@ impl ChessApp {
         self.current.switch_players_color();
         self.check_endgame();
         // println!("{:?} to move", self.current.active_player);
-
+        // On peut virer le fct get king et acceder drect a la struct plutot ?
         if let Some(k) = self.current.board.get_king(&self.current.active_player)
-            && self.current.board.threaten_cells.contains(&k)
+            && self.current.threaten_cells.contains(&k)
             && let Some(k) = self.current.board.get_king(&self.current.active_player)
         {
             self.current.board.check = Some(k);
