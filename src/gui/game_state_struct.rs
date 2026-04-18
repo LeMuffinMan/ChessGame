@@ -1,9 +1,11 @@
 use crate::Board;
 use crate::Coord;
+use crate::board::cell::Cell;
 use crate::board::cell::Color;
 use crate::board::cell::Color::*;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
+use crate::board::move_struct::Move;
 use crate::gui::chessapp_struct::End;
 use crate::gui::game_state_struct::DrawOption::*;
 use crate::gui::game_state_struct::DrawRule::*;
@@ -129,23 +131,19 @@ impl GameState {
     }
 
     //after 50 moves without pawn moves or capture, it triggers a draw
-    pub fn fifty_moves_draw_check(&mut self, from: &Coord, to: &Coord) {
-        //if a pawn moved, wthe counter reset
-        if let Some(p) = self.board.get(from).get_piece()
+    pub fn fifty_moves_draw_check(&mut self, m: &Move) {
+        //if a pawn moved, the counter reset
+        if let Some(p) = self.board.get(&m.dest).get_piece()
             && p == &Pawn
         {
             self.draw.draw_moves_count = 0;
             return;
         }
-        //if a capture occured, we reset the counter
-        //this is why we need to call this fct before updating the baord
-        if !self.board.get(to).is_empty() {
+        if m.capture != Cell::Free {
             self.draw.draw_moves_count = 0;
             return;
         }
-        //incremente in any other case
         self.draw.draw_moves_count += 1;
-        //triggers the draw if count reached 50
         if self.draw.draw_moves_count >= 50 {
             self.draw.draw_option = Some(Available(FiftyMoves));
         } else {

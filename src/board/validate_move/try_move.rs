@@ -23,12 +23,20 @@ impl ChessApp {
             return;
         }
 
-        let m = build_move(from, to); //erreur a gerer ?
+        let m = self
+            .current
+            .board
+            .build_move(from, to, self.current.active_player); //erreur a gerer ?
 
-        self.board.apply_move(m);
+        let snapshot = self.current.clone();
 
-        if self.board.is_king_exposed() {
-            self.board.undo_move(m);
+        self.current
+            .board
+            .apply_move(&m, self.current.active_player);
+
+        if validate_move::is_king_exposed(&self.current.board, &self.current.active_player) {
+            self.current = snapshot;
+            // self.current.board.undo_move(m, self.current.active_player);
             //Faire remonter l'erreur
             println!("Illegal move: {from:?} -> {to:?}: king would be threaten");
             return;
@@ -48,7 +56,7 @@ impl ChessApp {
         //Tout ca devrait sortir de try move et serait un update app ?
         //if it's the very first move, we setup the history and timers if needed
         if self.history.snapshots.is_empty() {
-            self.history.snapshots.push(self.current.clone());
+            self.history.snapshots.push(snapshot.clone());
             self.replay_infos.index += 1;
             //for mobile test
             self.app_mode = Versus(None);
@@ -56,12 +64,20 @@ impl ChessApp {
             self.timer.start_of_turn.1 = Some(White);
             //Setup les timers ici ?
         }
+        self.history.snapshots.push(snapshot);
+        self.replay_infos.index += 1;
         //it triggers a draw if true, before update board for pawn detection in case of promotion
-        self.current.fifty_moves_draw_check(&from, &to);
+        //a reintegrer
+        self.current.fifty_moves_draw_check(&m);
         //This apply the move on the board
-        self.current
-            .board
-            .update_board(&from, &to, &self.current.active_player);
+        // self.current
+        //     .board
+        //     .update_board(&from, &to, &self.current.active_player);
+
+        // self.current
+        //     .board
+        //     .apply_move(&m, self.current.active_player);
+
         //it triggers a draw if the board match an impossible mat situation
         if self.current.impossible_mate_check() {
             self.current.end = Some(Draw);
@@ -137,6 +153,7 @@ impl ChessApp {
         self.current
             .board
             .update_legals_moves(&self.current.active_player);
+
         //if there is no legal moves : it's a endgame
         //  if the king is threaten : its a mat
         //  else its a pat

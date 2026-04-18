@@ -2,6 +2,7 @@ use crate::Board;
 use crate::Color;
 use crate::Coord;
 use crate::board::cell::Cell;
+use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
 use crate::board::validate_move::piece_case::{
     bishop_case, king_case, knight_case, pawn_case, queen_case, rook_case,
@@ -82,253 +83,101 @@ pub fn find_obstacle(from: &Coord, to: &Coord, board: &Board) -> bool {
 
     find_obstacle(&next, to, board)
 }
-//Makes a copy of the board, and update it with the legal move to verify is the active player king
+//Makes a copy of the board, and update it with the legal move to verify is the active player Some(&King)
 //is in check position or does not solve a previous check position
-// pub fn is_king_exposed(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
+// pub fn is_Some(&King)_exposed(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool {
 //     let mut new_board = board.clone();
 //     new_board.update_board(from, to, color);
 //     new_board.update_threatens_cells(color);
-//     if let Some(coord) = new_board.get_king(color) {
+//     if let Some(coord) = new_board.get_Some(&King)(color) {
 //         new_board.threaten_cells.contains(&coord)
 //     } else {
-//         println!("Error : {:?} king not found", color);
+//         println!("Error : {:?} Some(&King) not found", color);
 //         false
 //     }
 
-pub fn is_king_exposed(self) -> bool {
-    king_pos = board.getKing(board.active_player);
-    // on devrait garder de cote les coords deux rois pour ne pas avoir a les rechercher a chaque fois ?
+pub fn is_king_exposed(board: &Board, active_player: &Color) -> bool {
+    let king_pos = match active_player {
+        Color::White => board.white_king,
+        Color::Black => board.black_king,
+    };
 
-    i = 0;
-    //on cherche en ligne vers la droite
-    while king_pos.row + i < 8 {
-        piece = (
-            board.getPiece(king_pos.row + i, king_pos.col),
-            board.getColor(king_pos.row + i, king_pos.col),
-        );
-        // si on tombe sur une piece aliee, elle protege des tours / queens
-        if piece.1 == board.active_player {
-            break;
-        }
-        if piece.1 != board.active_player && (piece.0 == Rook || piece.0 == Queen) {
-            return true;
-        }
-        if i == 1 && piece.0 == King && piece.1 != board.active_player {
-            return true;
-        }
-        i += 1;
-    }
-    i = 0;
-    //on cherche vers la gauche
-    while king_pos.row + i > 0 {
-        piece = (
-            board.getPiece(king_pos.row + i, king_pos.col),
-            board.getColor(king_pos.row + i, king_pos.col),
-        );
-        // si on tombe sur une piece aliee, elle protege des tours / queens
-        if piece.1 == board.active_player {
-            break;
-        }
-        if piece.1 != board.active_player && (piece.0 == Rook || piece.0 == Queen) {
-            return true;
-        }
-        if i == -1 && piece.0 == King && piece.1 != board.active_player {
-            return true;
-        }
-        i -= 1;
-    }
+    // 1. Sliding Pieces (Rooks, Bishops, Queens)
+    // Directions: (row_step, col_step)
+    let directions = [
+        (1, 0),
+        (-1, 0),
+        (0, 1),
+        (0, -1), // Orthogonal
+        (1, 1),
+        (1, -1),
+        (-1, 1),
+        (-1, -1), // Diagonal
+    ];
 
-    //on cherche vers le bas
-    i = 0;
-    while king_pos.col + i < 8 {
-        piece = (
-            board.getPiece(king_pos.row, king_pos.col + i),
-            board.getColor(king_pos.row, king_pos.col + i),
-        );
-        // si on tombe sur une piece aliee, elle protege des tours / queens
-        if piece.1 == board.active_player {
-            break;
+    for (dr, dc) in directions {
+        for dist in 1..8 {
+            let r = king_pos.row as i32 + dr * dist;
+            let c = king_pos.col as i32 + dc * dist;
+
+            if r < 0 || r >= 8 || c < 0 || c >= 8 {
+                break;
+            }
+
+            let cell = &board.grid[r as usize][c as usize];
+            if let (Some(p_type), Some(p_color)) = (cell.get_piece(), cell.get_color()) {
+                if *p_color == *active_player {
+                    break; // Blocked by friendly piece
+                } else {
+                    // Enemy piece found - check if it attacks this line
+                    let is_diag = dr != 0 && dc != 0;
+                    match p_type {
+                        Piece::Queen => return true,
+                        Piece::Rook if !is_diag => return true,
+                        Piece::Bishop if is_diag => return true,
+                        Piece::King if dist == 1 => return true,
+                        Piece::Pawn if dist == 1 && is_diag => {
+                            // Pawns only attack forward-diagonally
+                            let attack_dir = if *active_player == Color::White {
+                                1
+                            } else {
+                                -1
+                            };
+                            if dr == attack_dir {
+                                return true;
+                            }
+                        }
+                        _ => break, // Enemy piece doesn't attack this way (e.g., Knight)
+                    }
+                    break; // Any enemy piece blocks the line further
+                }
+            }
         }
-        if piece.1 != board.active_player && (piece.0 == Rook || piece.0 == Queen) {
-            return true;
-        }
-        if i == -1 && piece.0 == King && piece.1 != board.active_player {
-            return true;
-        }
-        i -= 1;
-    }
-    // on cherche vers le haut
-    i = 0;
-    while king_pos.col + i > 0 {
-        piece = (
-            board.getPiece(king_pos.row + i, king_pos.col),
-            board.getColor(king_pos.row + i, king_pos.col),
-        );
-        // si on tombe sur une piece aliee, elle protege des tours / queens
-        if piece.1 == board.active_player {
-            break;
-        }
-        if piece.1 != board.active_player && (piece.0 == Rook || piece.0 == Queen) {
-            return true;
-        }
-        if i == 1 && piece.0 == King && piece.1 != board.active_player {
-            return true;
-        }
-        i += 1;
     }
 
-    //diag en haut a gauche x++ et y--
-    i = 0;
-    j = 0;
-    while king_pos.row + i < 8 && king_pos.col + j > 0 {
-        piece = (
-            board.getPiece(king_pos.row + i, king_pos.col + j),
-            board.getColor(king_pos.col + i, king_pos.col + j),
-        );
-        // si on tombe sur une piece aliee, elle protege des tours / queens
-        if piece.1 == board.active_player {
-            break;
-            //si on ne break pas, on est sur une piece adverse
+    // 2. Knights (They jump, so they aren't "sliding" pieces)
+    let knight_moves = [
+        (2, 1),
+        (2, -1),
+        (-2, 1),
+        (-2, -1),
+        (1, 2),
+        (1, -2),
+        (-1, 2),
+        (-1, -2),
+    ];
+
+    for (dr, dc) in knight_moves {
+        let r = king_pos.row as i32 + dr;
+        let c = king_pos.col as i32 + dc;
+
+        if r >= 0 && r < 8 && c >= 0 && c < 8 {
+            let cell = &board.grid[r as usize][c as usize];
+            if cell.get_piece() == Some(&Piece::Knight) && cell.get_color() != Some(active_player) {
+                return true;
+            }
         }
-        //un pion noir en haut a gauche
-        if board.active_color == White && i == 1 && j == -1 && piece.0 == Pawn {
-            return true;
-        }
-        if piece.1 != board.active_player && (piece.0 == Bishop || piece.0 == Queen) {
-            return true;
-        }
-        if i == 1 && piece.0 == King {
-            return true;
-        }
-        i += 1;
-        j -= 1;
-    }
-    //diag en haut a droite x++ et y++
-    i = 0;
-    j = 0;
-    while king_pos.row + i < 8 && king_pos.col + j < 8 {
-        piece = (
-            board.getPiece(king_pos.row + i, king_pos.col + j),
-            board.getColor(king_pos.col + i, king_pos.col + j),
-        );
-        // si on tombe sur une piece aliee, elle protege des tours / queens
-        if piece.1 == board.active_player {
-            break;
-            //si on ne break pas, on est sur une piece adverse
-        }
-        //un pion noir en haut a gauche
-        if board.active_color == White && i == 1 && j == 1 && piece.0 == Pawn {
-            return true;
-        }
-        if piece.1 != board.active_player && (piece.0 == Bishop || piece.0 == Queen) {
-            return true;
-        }
-        if i == 1 && piece.0 == King {
-            return true;
-        }
-        i += 1;
-        j += 1;
-    }
-    //diag en bas a gauche x-- et y--
-    i = 0;
-    j = 0;
-    while king_pos.row + i > 0 && king_pos.col + j > 0 {
-        piece = (
-            board.getPiece(king_pos.row + i, king_pos.col + j),
-            board.getColor(king_pos.col + i, king_pos.col + j),
-        );
-        // si on tombe sur une piece aliee, elle protege des tours / queens
-        if piece.1 == board.active_player {
-            break;
-            //si on ne break pas, on est sur une piece adverse
-        }
-        //un pion noir en haut a gauche
-        if board.active_color == Black && i == -1 && j == -1 && piece.0 == Pawn {
-            return true;
-        }
-        if piece.1 != board.active_player && (piece.0 == Bishop || piece.0 == Queen) {
-            return true;
-        }
-        if i == 1 && piece.0 == King {
-            return true;
-        }
-        i -= 1;
-        j -= 1;
     }
 
-    //diag en bas a droite x-- et y++
-    i = 0;
-    j = 0;
-    while king_pos.row + i > 0 && king_pos.col + j < 8 {
-        piece = (
-            board.getPiece(king_pos.row + i, king_pos.col + j),
-            board.getColor(king_pos.col + i, king_pos.col + j),
-        );
-        // si on tombe sur une piece aliee, elle protege des tours / queens
-        if piece.1 == board.active_player {
-            break;
-            //si on ne break pas, on est sur une piece adverse
-        }
-        //un pion noir en haut a gauche
-        if board.active_color == Black && i == -1 && j == 1 && piece.0 == Pawn {
-            return true;
-        }
-        if piece.1 != board.active_player && (piece.0 == Bishop || piece.0 == Queen) {
-            return true;
-        }
-        if i == 1 && piece.0 == King {
-            return true;
-        }
-        i -= 1;
-        j += 1;
-    }
-    // chercher les 8 positions du cavalier
-    if board.getColor(king_pos.row + 2, king_pos.col + 1) != board.active_color
-        && board.getPiece(king_pos.row + 2, king_pos.col + 1) == Knight
-    {
-        return true;
-    }
-
-    if board.getColor(king_pos.row + 2, king_pos.col - 1) != board.active_color
-        && board.getPiece(king_pos.row + 2, king_pos.col - 1) == Knight
-    {
-        return true;
-    }
-
-    if board.getColor(king_pos.row - 2, king_pos.col + 1) != board.active_color
-        && board.getPiece(king_pos.row - 2, king_pos.col + 1) == Knight
-    {
-        return true;
-    }
-
-    if board.getColor(king_pos.row - 2, king_pos.col - 1) != board.active_color
-        && board.getPiece(king_pos.row - 2, king_pos.col - 1) == Knight
-    {
-        return true;
-    }
-
-    if board.getColor(king_pos.row + 1, king_pos.col + 2) != board.active_color
-        && board.getPiece(king_pos.row + 1, king_pos.col + 2) == Knight
-    {
-        return true;
-    }
-
-    if board.getColor(king_pos.row - 1, king_pos.col + 2) != board.active_color
-        && board.getPiece(king_pos.row - 1, king_pos.col + 2) == Knight
-    {
-        return true;
-    }
-
-    if board.getColor(king_pos.row + 1, king_pos.col - 2) != board.active_color
-        && board.getPiece(king_pos.row + 1, king_pos.col - 2) == Knight
-    {
-        return true;
-    }
-
-    if board.getColor(king_pos.row - 1, king_pos.col - 2) != board.active_color
-        && board.getPiece(king_pos.row - 1, king_pos.col - 2) == Knight
-    {
-        return true;
-    }
-    return false;
+    false
 }
