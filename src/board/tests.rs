@@ -1,15 +1,11 @@
 use crate::board::Board;
-use crate::board::cell::Cell::{self, Free, Occupied};
-use crate::board::cell::Color::{self, Black, White};
-use crate::board::cell::Piece::{self, Bishop, King, Knight, Pawn, Queen, Rook};
+use crate::board::cell::Cell::{Free, Occupied};
+use crate::board::cell::Color::{Black, White};
 use crate::board::cell::Coord;
+use crate::board::cell::Piece::{Bishop, King, Knight, Pawn, Queen, Rook};
 use crate::board::validate_move::is_king_exposed;
+use crate::board::board_struct::CastleRights;
 
-// ─── helper ────────────────────────────────────────────────────────────────
-
-/// Compare les champs d'état significatifs d'un Board.
-/// undo_move ne restaure pas threaten_cells/legals_moves (état dérivé),
-/// donc assert_eq!(board, Board::init_board()) échouerait sur ces Vec.
 fn board_core_eq(a: &Board, b: &Board) -> bool {
     a.grid == b.grid
         && a.en_passant == b.en_passant
@@ -17,20 +13,21 @@ fn board_core_eq(a: &Board, b: &Board) -> bool {
         && a.black_castle == b.black_castle
         && a.white_king == b.white_king
         && a.black_king == b.black_king
+    //Je devrais ajouter plus de comparaisons ?
 }
 
 fn coord(row: u8, col: u8) -> Coord {
     Coord { row, col }
 }
 
-// ─── apply → undo identity ─────────────────────────────────────────────────
+// apply / undo tests
 
 #[test]
 fn test_apply_undo_regular() {
     let initial = Board::init_board();
     let mut board = Board::init_board();
     let from = coord(1, 4); // e2
-    let to = coord(3, 4);   // e4
+    let to = coord(3, 4); // e4
     let m = board.build_move(from, to, White);
     board.apply_move(&m, White);
     board.undo_move(m, White);
@@ -40,14 +37,14 @@ fn test_apply_undo_regular() {
 #[test]
 fn test_apply_undo_capture() {
     let mut board = Board::init_board();
-    // Place un pion noir en d3 pour que le pion blanc e2 puisse capturer
+    // Place a black pawn in d3 so the white pawn in e2 can capture
     board.grid[2][3] = Occupied(Pawn, Black);
     let snapshot = board.clone();
     let from = coord(1, 4); // e2
-    let to = coord(2, 3);   // d3 — capture diagonale
+    let to = coord(2, 3); // d3 capture
     let m = board.build_move(from, to, White);
     board.apply_move(&m, White);
-    // La pièce capturée doit être restaurée
+    //We want to restore the captured piece
     board.undo_move(m, White);
     assert!(board_core_eq(&board, &snapshot));
 }
@@ -55,19 +52,19 @@ fn test_apply_undo_capture() {
 #[test]
 fn test_apply_undo_en_passant() {
     let mut board = Board::init_board();
-    // Pion blanc en e5 (4,4), pion noir en d5 (4,3) vient de faire un double saut
-    board.grid[1][4] = Free; // retire pion blanc de e2
+    // white pawn in e5 (4,4), black pawn in d5 (4,3) just moved 2 cells as first move
+    board.grid[1][4] = Free; // free e2
     board.grid[4][4] = Occupied(Pawn, White); // e5
     board.grid[4][3] = Occupied(Pawn, Black); // d5
-    board.en_passant = Some(coord(5, 3)); // d6 — case cible en passant
+    board.en_passant = Some(coord(5, 3)); // d6 — en passant target
     let snapshot = board.clone();
     let from = coord(4, 4);
     let to = coord(5, 3); // d6
     let m = board.build_move(from, to, White);
     assert_eq!(m.move_type, crate::board::move_struct::MoveType::EnPassant);
     board.apply_move(&m, White);
-    assert_eq!(board.grid[4][3], Free); // pion noir capturé
-    assert_eq!(board.grid[5][3], Occupied(Pawn, White)); // pion blanc en d6
+    assert_eq!(board.grid[4][3], Free); // black pawn capture
+    assert_eq!(board.grid[5][3], Occupied(Pawn, White)); // white pawn in d6
     board.undo_move(m, White);
     assert!(board_core_eq(&board, &snapshot));
 }
@@ -75,16 +72,16 @@ fn test_apply_undo_en_passant() {
 #[test]
 fn test_apply_undo_castle_right() {
     let mut board = Board::init_board();
-    // Vider f1 (0,5) et g1 (0,6)
+    // Free f1 and g1
     board.grid[0][5] = Free;
     board.grid[0][6] = Free;
     let snapshot = board.clone();
     let from = coord(0, 4); // e1
-    let to = coord(0, 6);   // g1
+    let to = coord(0, 6); // g1
     let m = board.build_move(from, to, White);
     board.apply_move(&m, White);
-    assert_eq!(board.grid[0][6], Occupied(King, White)); // roi en g1
-    assert_eq!(board.grid[0][5], Occupied(Rook, White)); // tour en f1
+    assert_eq!(board.grid[0][6], Occupied(King, White)); // king in g1
+    assert_eq!(board.grid[0][5], Occupied(Rook, White)); // rook in f1
     assert_eq!(board.grid[0][4], Free);
     assert_eq!(board.grid[0][7], Free);
     assert_eq!(board.white_king, coord(0, 6));
@@ -95,17 +92,17 @@ fn test_apply_undo_castle_right() {
 #[test]
 fn test_apply_undo_castle_left() {
     let mut board = Board::init_board();
-    // Vider b1 (0,1), c1 (0,2), d1 (0,3)
+    // Empty b1 c1 d1
     board.grid[0][1] = Free;
     board.grid[0][2] = Free;
     board.grid[0][3] = Free;
     let snapshot = board.clone();
     let from = coord(0, 4); // e1
-    let to = coord(0, 2);   // c1
+    let to = coord(0, 2); // c1
     let m = board.build_move(from, to, White);
     board.apply_move(&m, White);
-    assert_eq!(board.grid[0][2], Occupied(King, White)); // roi en c1
-    assert_eq!(board.grid[0][3], Occupied(Rook, White)); // tour en d1
+    assert_eq!(board.grid[0][2], Occupied(King, White)); // king in c1
+    assert_eq!(board.grid[0][3], Occupied(Rook, White)); // rook in d1
     assert_eq!(board.grid[0][4], Free);
     assert_eq!(board.grid[0][0], Free);
     assert_eq!(board.white_king, coord(0, 2));
@@ -113,11 +110,11 @@ fn test_apply_undo_castle_left() {
     assert!(board_core_eq(&board, &snapshot));
 }
 
-// ─── is_king_exposed ───────────────────────────────────────────────────────
+//Is king exposed
 
 fn empty_board_with_kings() -> Board {
     let mut board = Board::init_board();
-    // Vider le board sauf les rois
+    //empty board, except king
     for r in 0..8usize {
         for c in 0..8usize {
             board.grid[r][c] = Free;
@@ -140,12 +137,9 @@ fn test_king_not_exposed_initial() {
 #[test]
 fn test_king_exposed_by_rook() {
     let mut board = empty_board_with_kings();
-    // Tour noire en e8 (7,4) — même colonne que roi blanc e1 (0,4)
-    // Mais le roi noir est en e8 — remplaçons par a8
     board.grid[7][4] = Free;
     board.grid[7][0] = Occupied(King, Black);
     board.black_king = coord(7, 0);
-    // Tour noire en e5 (4,4) — attaque le roi blanc e1 (0,4)
     board.grid[4][4] = Occupied(Rook, Black);
     assert!(is_king_exposed(&board, &White));
 }
@@ -156,7 +150,6 @@ fn test_king_exposed_by_bishop() {
     board.grid[7][4] = Free;
     board.grid[7][0] = Occupied(King, Black);
     board.black_king = coord(7, 0);
-    // Fou noir en d2 (1,3) — diagonale vers e1 (0,4)
     board.grid[1][3] = Occupied(Bishop, Black);
     assert!(is_king_exposed(&board, &White));
 }
@@ -167,7 +160,6 @@ fn test_king_exposed_by_knight() {
     board.grid[7][4] = Free;
     board.grid[7][0] = Occupied(King, Black);
     board.black_king = coord(7, 0);
-    // Cavalier noir en d3 (2,3) — L vers e1 (0,4) : row-2, col+1 ✓
     board.grid[2][3] = Occupied(Knight, Black);
     assert!(is_king_exposed(&board, &White));
 }
@@ -178,7 +170,6 @@ fn test_king_exposed_by_pawn_white() {
     board.grid[7][4] = Free;
     board.grid[7][0] = Occupied(King, Black);
     board.black_king = coord(7, 0);
-    // Pion noir en d2 (1,3) attaque e1 (0,4) — le pion noir attaque vers le bas (dr = -1)
     board.grid[1][3] = Occupied(Pawn, Black);
     assert!(is_king_exposed(&board, &White));
 }
@@ -189,7 +180,6 @@ fn test_king_not_exposed_by_pawn_wrong_direction() {
     board.grid[7][4] = Free;
     board.grid[7][0] = Occupied(King, Black);
     board.black_king = coord(7, 0);
-    // Pion BLANC en d2 (1,3) — ne peut pas attaquer e1 (0,4) vers le bas (les blancs attaquent vers le haut)
     board.grid[1][3] = Occupied(Pawn, White);
     assert!(!is_king_exposed(&board, &White));
 }
@@ -200,19 +190,17 @@ fn test_king_not_exposed_blocked_by_ally() {
     board.grid[7][4] = Free;
     board.grid[7][0] = Occupied(King, Black);
     board.black_king = coord(7, 0);
-    // Tour noire en e5 (4,4) — bloquée par un pion blanc en e3 (2,4)
     board.grid[4][4] = Occupied(Rook, Black);
     board.grid[2][4] = Occupied(Pawn, White);
     assert!(!is_king_exposed(&board, &White));
 }
 
-// ─── régression — count de coups légaux ────────────────────────────────────
+//Legals moves
 
 #[test]
 fn test_legal_moves_initial_white() {
     let mut board = Board::init_board();
     board.update_legals_moves(&White);
-    // 8 pions × 2 coups + 2 cavaliers × 2 coups = 20
     assert_eq!(board.legals_moves.len(), 20);
 }
 
@@ -236,7 +224,7 @@ fn test_legal_moves_after_e4() {
 
 #[test]
 fn test_legal_moves_stalemate() {
-    // Pat classique : roi noir a8 (7,0), dame blanche c7 (6,2), roi blanc c6 (5,2)
+    // classical pat : Black king in a8 / white queen in c7 and white king in c6
     let mut board = Board::init_board();
     for r in 0..8usize {
         for c in 0..8usize {
@@ -250,19 +238,18 @@ fn test_legal_moves_stalemate() {
     board.black_king = coord(7, 0);
     board.update_threatens_cells(&White);
     board.update_legals_moves(&Black);
-    // Pat : 0 coups légaux, roi non en échec
     assert!(board.legals_moves.is_empty());
     assert!(!is_king_exposed(&board, &Black));
 }
 
-// ─── roque ─────────────────────────────────────────────────────────────────
+// Castle
 
 #[test]
 fn test_castle_right_in_legal_moves() {
     let mut board = Board::init_board();
     board.grid[0][5] = Free; // f1
     board.grid[0][6] = Free; // g1
-    board.update_threatens_cells(&White); // arg = joueur actif → collecte menaces adverses (Black)
+    board.update_threatens_cells(&White);
     board.update_legals_moves(&White);
     assert!(board.legals_moves.contains(&(coord(0, 4), coord(0, 6))));
 }
@@ -283,9 +270,8 @@ fn test_castle_denied_through_check() {
     let mut board = Board::init_board();
     board.grid[0][5] = Free; // f1
     board.grid[0][6] = Free; // g1
-    // Tour noire en f2 (1,5) — menace directe sur f1 (0,5), case que le roi traverse
-    board.grid[1][5] = Occupied(Rook, Black); // écrase le pion blanc f2
-    board.update_threatens_cells(&White); // arg = joueur actif → collecte menaces adverses (Black)
+    board.grid[1][5] = Occupied(Rook, Black);
+    board.update_threatens_cells(&White);
     board.update_legals_moves(&White);
     assert!(!board.legals_moves.contains(&(coord(0, 4), coord(0, 6))));
 }
@@ -295,7 +281,6 @@ fn test_castle_denied_king_in_check() {
     let mut board = Board::init_board();
     board.grid[0][5] = Free;
     board.grid[0][6] = Free;
-    // Roi en échec — board.check simule l'état produit par events_check()
     board.check = Some(coord(0, 4));
     board.update_threatens_cells(&White);
     board.update_legals_moves(&White);
@@ -307,7 +292,7 @@ fn test_castle_denied_rights_lost() {
     let mut board = Board::init_board();
     board.grid[0][5] = Free;
     board.grid[0][6] = Free;
-    board.white_castle = (false, false); // droits perdus
+    board.white_castle = CastleRights { long: false, short: false };
     board.update_threatens_cells(&White);
     board.update_legals_moves(&White);
     assert!(!board.legals_moves.contains(&(coord(0, 4), coord(0, 6))));
@@ -323,6 +308,7 @@ fn test_castle_rights_restored_on_undo() {
     let m = board.build_move(from, to, White);
     board.apply_move(&m, White);
     // apply_move ne gère pas les droits de roque (géré par ChessApp::update_castles)
+    // C'est un probleme ?
     board.undo_move(m, White);
-    assert_eq!(board.white_castle, (true, true)); // undo restaure l'état pre-move
+    assert_eq!(board.white_castle, CastleRights { long: true, short: true });
 }
