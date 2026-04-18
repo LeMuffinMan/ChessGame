@@ -2,7 +2,7 @@ use crate::Color;
 use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Cell;
-use crate::board::cell::Piece;
+// use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
 use crate::board::move_struct::{CastleSide::*, Move, MoveType::*};
 
@@ -15,8 +15,8 @@ pub struct Board {
     pub black_king: Coord,
     pub en_passant: Option<Coord>,
     pub check: Option<Coord>,
-    pub pawn_to_promote: Option<Coord>,
-    pub promote: Option<Piece>,
+    // pub pawn_to_promote: Option<Coord>, // appartient a l'UI ?
+    // pub promote: Option<Piece>,
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq)]
@@ -50,8 +50,6 @@ impl Board {
             white_king: (Coord { row: 0, col: 4 }),
             black_king: (Coord { row: 7, col: 4 }),
             check: None,
-            pawn_to_promote: None,
-            promote: None,
         };
 
         board.fill_side(White);
@@ -93,25 +91,7 @@ impl Board {
         }
     }
 
-    //Since we need player input to know in which piece promote a pawn, i need to
-    //store the coord of the pawn to promote and stop the try move process
-    //the GUI will hook on the coord position stored and force player to input a desired promotion
-    //Then this hook process the end of try move we skipped earlier
-    pub fn promote_pawn(&mut self, color: &Color) {
-        let promote_row = if *color == White { 7 } else { 0 };
-        for y in 0..8 {
-            if self.grid[promote_row][y].is_color(color)
-                && let Some(piece) = self.grid[promote_row][y].get_piece()
-                && *piece == Pawn
-            {
-                let coord = Coord {
-                    row: promote_row as u8,
-                    col: y as u8,
-                };
-                self.pawn_to_promote = Some(coord);
-            }
-        }
-    }
+
 
     pub fn build_move(&self, from: Coord, to: Coord, active_player: Color) -> Move {
         let piece_moving = self.grid[from.row as usize][from.col as usize].get_piece();

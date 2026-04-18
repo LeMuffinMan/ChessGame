@@ -6,7 +6,10 @@ use crate::gui::hooks::WinDia;
 use crate::gui::replay::ReplayInfos;
 use crate::gui::update_timer::GameMode;
 use crate::gui::update_timer::Timer;
-
+use crate::board::cell::Piece::*;
+use crate::Color;
+use crate::Color::*;
+use crate::board::cell::Piece;
 use eframe::{App, egui};
 use egui::Pos2;
 use std::path::PathBuf;
@@ -38,6 +41,8 @@ pub struct PromoteInfo {
     pub from: Coord,
     pub to: Coord,
     pub prev_board: Board,
+    pub pawn_to_promote: Option<Coord>,
+    pub promote: Option<Piece>,
 }
 
 pub struct Settings {
@@ -191,7 +196,7 @@ impl ChessApp {
         }
         if matches!(self.app_mode, AppMode::Versus(_))
             && self.replay_infos.index == self.history.snapshots.len()
-            && self.current.board.pawn_to_promote.is_some()
+            && self.promoteinfo.is_some()
         {
             self.get_promotion_input(ctx);
         }
@@ -206,5 +211,31 @@ impl ChessApp {
                 },
             );
         });
+    }
+    //Since we need player input to know in which piece promote a pawn, i need to
+    //store the coord of the pawn to promote and stop the try move process
+    //the GUI will hook on the coord position stored and force player to input a desired promotion
+    //Then this hook process the end of try move we skipped earlier
+    pub fn promote_pawn(&mut self, color: &Color, from: &Coord, to: &Coord, prev_board: &Board) -> Option<PromoteInfo> {
+        let promote_row = if *color == White { 7 } else { 0 };
+        for y in 0..8 {
+            if self.current.board.grid[promote_row][y].is_color(color)
+                && let Some(piece) = self.current.board.grid[promote_row][y].get_piece()
+                && *piece == Pawn
+            {
+                // let coord = Coord {
+                //     row: promote_row as u8,
+                //     col: y as u8,
+                // };
+                return Some(PromoteInfo {
+                    from: *from,
+                    to: *to,
+                    prev_board: prev_board.clone(), //le clone est problematique ici ?
+                    pawn_to_promote: Some(*to),
+                    promote: None, // on attend l'input du user fournie par le hook
+                });
+            }
+        }
+        None
     }
 }
