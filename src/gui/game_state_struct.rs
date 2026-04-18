@@ -93,8 +93,8 @@ impl GameState {
         } else {
             &mut self.board.black_castle
         };
-        castle_tuple.0 = long;
-        castle_tuple.1 = short;
+        castle_tuple.long = long;
+        castle_tuple.short = short;
     }
 
     //for the 3 repetition draw, we need to check only if the a same situation happenned 2 times

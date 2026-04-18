@@ -205,7 +205,7 @@ impl ChessApp {
                                 ui.text_edit_singleline(&mut self.settings.file_name);
                                 if ui.button(RichText::new("Download").size(30.0)).clicked() {
                                     #[cfg(target_arch = "wasm32")]
-                                let _ = self.export_pgn(); //Todo : handle error
+                                    let _ = self.export_pgn(); //Todo : handle error
                                     self.win = None;
                                 }
                                 ui.add_space(40.0);
@@ -240,7 +240,7 @@ impl ChessApp {
                                 ui.add_space(20.0);
                                 if ui.button(RichText::new("Download").size(30.0)).clicked() {
                                     #[cfg(target_arch = "wasm32")]
-                                let _ = self.export_pgn(); //Todo : handle error
+                                    let _ = self.export_pgn(); //Todo : handle error
                                     self.win = None;
                                 }
                                 ui.add_space(20.0);

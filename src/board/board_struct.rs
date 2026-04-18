@@ -9,8 +9,8 @@ use crate::board::move_struct::{CastleSide::*, Move, MoveType::*};
 #[derive(Clone, PartialEq)]
 pub struct Board {
     pub grid: [[Cell; 8]; 8],
-    pub white_castle: (bool, bool), //(long, short)
-    pub black_castle: (bool, bool),
+    pub white_castle: CastleRights,
+    pub black_castle: CastleRights,
     pub white_king: Coord,
     pub black_king: Coord,
     pub threaten_cells: Vec<Coord>,
@@ -19,6 +19,12 @@ pub struct Board {
     pub check: Option<Coord>,
     pub pawn_to_promote: Option<Coord>,
     pub promote: Option<Piece>,
+}
+
+#[derive(Copy, Clone, Debug, Hash, PartialEq)]
+pub struct CastleRights {
+    pub long: bool,
+    pub short: bool,
 }
 
 //cancastle
@@ -35,8 +41,14 @@ impl Board {
         let mut board = Board {
             grid: [[Cell::Free; 8]; 8],
             en_passant: None,
-            white_castle: (true, true),
-            black_castle: (true, true),
+            white_castle: CastleRights {
+                long: true,
+                short: true,
+            },
+            black_castle: CastleRights {
+                long: true,
+                short: true,
+            },
             white_king: (Coord { row: 0, col: 4 }),
             black_king: (Coord { row: 7, col: 4 }),
             threaten_cells: Vec::new(),

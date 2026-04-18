@@ -1,5 +1,6 @@
 use crate::Coord;
 use crate::board::cell::Cell;
+use crate::board::board_struct::CastleRights;
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct Move {
@@ -7,8 +8,8 @@ pub struct Move {
     pub dest: Coord,
     pub capture: Cell,
     pub en_passant: Option<Coord>,
-    pub white_castle: (bool, bool),
-    pub black_castle: (bool, bool),
+    pub white_castle: CastleRights,
+    pub black_castle: CastleRights,
     pub move_type: MoveType,
 }
 

@@ -129,7 +129,7 @@ pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
             board.black_castle
         };
         //if the king tries a long castle, we need to check te threats on the cells it go trhough
-        if dif_col < 0 && castle_bools.1 {
+        if dif_col < 0 && castle_bools.short {
             let cell_1 = Coord {
                 row: from.row,
                 col: from.col - 1,
@@ -156,7 +156,7 @@ pub fn king_case(from: &Coord, to: &Coord, color: &Color, board: &Board) -> bool
                 return true;
             }
             //Same for short castle, it's 1 cell shorter
-        } else if dif_col > 0 && castle_bools.0 {
+        } else if dif_col > 0 && castle_bools.long {
             //si le roi et aucune des deux cases qu'il traverse n'est en echec
             //Si toutes les cases entre K et R sont vides
             let cell_1 = Coord {
