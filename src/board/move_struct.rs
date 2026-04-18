@@ -12,7 +12,7 @@ pub struct Move {
     pub move_type: MoveType,
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum MoveType {
     Regular,
     EnPassant,
@@ -20,7 +20,7 @@ pub enum MoveType {
     // Promotion(Piece), dans mon implementation actuelle je n'ai pas encore recupere l'input pour la promotion
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum CastleSide {
     Left,
     Right,

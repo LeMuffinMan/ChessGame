@@ -156,7 +156,7 @@ impl GameState {
     fn get_pieces_on_board(&mut self) -> Vec<(Piece, Color, Color)> {
         let mut vec = Vec::new();
         for x in 0..8 {
-            for y in 0..7 {
+            for y in 0..8 {
                 if let Some(piece) = self.board.grid[x][y].get_piece()
                     && let Some(color) = self.board.grid[x][y].get_color()
                 {
@@ -201,7 +201,7 @@ impl GameState {
                     let Some(cell_1) = white_bishop_cell_color else {
                         return false;
                     };
-                    let Some(cell_2) = white_bishop_cell_color else {
+                    let Some(cell_2) = black_bishop_cell_color else {
                         return false;
                     };
                     if cell_1 == cell_2 {
