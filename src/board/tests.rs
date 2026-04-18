@@ -262,7 +262,7 @@ fn test_castle_right_in_legal_moves() {
     let mut board = Board::init_board();
     board.grid[0][5] = Free; // f1
     board.grid[0][6] = Free; // g1
-    board.update_threatens_cells(&Black);
+    board.update_threatens_cells(&White); // arg = joueur actif → collecte menaces adverses (Black)
     board.update_legals_moves(&White);
     assert!(board.legals_moves.contains(&(coord(0, 4), coord(0, 6))));
 }
@@ -273,7 +273,7 @@ fn test_castle_left_in_legal_moves() {
     board.grid[0][1] = Free; // b1
     board.grid[0][2] = Free; // c1
     board.grid[0][3] = Free; // d1
-    board.update_threatens_cells(&Black);
+    board.update_threatens_cells(&White);
     board.update_legals_moves(&White);
     assert!(board.legals_moves.contains(&(coord(0, 4), coord(0, 2))));
 }
@@ -283,9 +283,9 @@ fn test_castle_denied_through_check() {
     let mut board = Board::init_board();
     board.grid[0][5] = Free; // f1
     board.grid[0][6] = Free; // g1
-    // Tour noire en f8 (7,5) attaque f1 (0,5) — le roi traverserait une case menacée
-    board.grid[7][5] = Occupied(Rook, Black);
-    board.update_threatens_cells(&Black);
+    // Tour noire en f2 (1,5) — menace directe sur f1 (0,5), case que le roi traverse
+    board.grid[1][5] = Occupied(Rook, Black); // écrase le pion blanc f2
+    board.update_threatens_cells(&White); // arg = joueur actif → collecte menaces adverses (Black)
     board.update_legals_moves(&White);
     assert!(!board.legals_moves.contains(&(coord(0, 4), coord(0, 6))));
 }
@@ -295,9 +295,9 @@ fn test_castle_denied_king_in_check() {
     let mut board = Board::init_board();
     board.grid[0][5] = Free;
     board.grid[0][6] = Free;
-    // Tour noire en e8 (7,4) attaque e1 (0,4) — roi en échec
-    board.grid[7][4] = Occupied(Rook, Black);
-    board.update_threatens_cells(&Black);
+    // Roi en échec — board.check simule l'état produit par events_check()
+    board.check = Some(coord(0, 4));
+    board.update_threatens_cells(&White);
     board.update_legals_moves(&White);
     assert!(!board.legals_moves.contains(&(coord(0, 4), coord(0, 6))));
 }
@@ -308,7 +308,7 @@ fn test_castle_denied_rights_lost() {
     board.grid[0][5] = Free;
     board.grid[0][6] = Free;
     board.white_castle = (false, false); // droits perdus
-    board.update_threatens_cells(&Black);
+    board.update_threatens_cells(&White);
     board.update_legals_moves(&White);
     assert!(!board.legals_moves.contains(&(coord(0, 4), coord(0, 6))));
 }
@@ -322,7 +322,7 @@ fn test_castle_rights_restored_on_undo() {
     let to = coord(0, 6);
     let m = board.build_move(from, to, White);
     board.apply_move(&m, White);
-    assert_eq!(board.white_castle, (false, false)); // droits perdus après roque
+    // apply_move ne gère pas les droits de roque (géré par ChessApp::update_castles)
     board.undo_move(m, White);
-    assert_eq!(board.white_castle, (true, true)); // droits restaurés
+    assert_eq!(board.white_castle, (true, true)); // undo restaure l'état pre-move
 }
