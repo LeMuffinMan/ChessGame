@@ -32,7 +32,8 @@ impl ChessApp {
                             ui.text_edit_singleline(&mut self.settings.file_name);
                             if ui.button(RichText::new("Download").size(20.0)).clicked() {
                                 ui.separator();
-                                let _ = self.export_pgn(); //Todo : handle error 
+                                #[cfg(target_arch = "wasm32")]
+                                let _ = self.export_pgn(); //Todo : handle error
                                 self.win = None;
                             }
                         }

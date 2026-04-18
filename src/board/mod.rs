@@ -7,3 +7,6 @@ pub mod update_board;
 pub mod utils;
 pub mod validate_move;
 pub use board_struct::Board;
+
+#[cfg(test)]
+mod tests;
