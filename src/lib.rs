@@ -1,11 +1,10 @@
+mod board;
 pub mod gui;
 mod pgn;
-use crate::gui::chessapp::ChessApp;
-use crate::gui::chessapp::UiType;
-
-mod board;
 use crate::board::cell::Color;
 use crate::board::cell::Coord;
+use crate::gui::chessapp::ChessApp;
+use crate::gui::chessapp::UiType::*;
 use board::Board;
 
 #[cfg(target_arch = "wasm32")]
@@ -17,12 +16,10 @@ use wasm_bindgen_futures::spawn_local;
 #[cfg(target_arch = "wasm32")]
 use web_sys::HtmlCanvasElement;
 
-//Todo : Error handling
 #[wasm_bindgen(start)]
 #[cfg(target_arch = "wasm32")]
 pub fn start() -> Result<(), wasm_bindgen::JsValue> {
-    //to collect logs and display it in the browser inspect mode
-    eframe::WebLogger::init(log::LevelFilter::Debug).ok(); //error to handle
+    eframe::WebLogger::init(log::LevelFilter::Debug).ok();
 
     //the runner allow to execute our UI in a HTML canva
     let runner = WebRunner::new();
@@ -31,8 +28,6 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
     let window = web_sys::window().expect("no global `window`");
     //this is the html content of the page
     let document = window.document().expect("should have a document");
-    //we seek for our element chessappid in the DOM : we must set it too in the html file at the
-    //root
     let canvas = document
         .get_element_by_id("chessappid")
         .expect("Canvas not found")
@@ -46,19 +41,13 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
             || window.inner_width().unwrap().as_f64().unwrap_or(1024.0) < 800.0
     };
 
-    let ui_type = if is_mobile {
-        UiType::Mobile
-    } else {
-        UiType::Desktop
-    };
+    let ui_type = if is_mobile { Mobile } else { Desktop };
 
-    //execute through the js our chessapp
     spawn_local(async move {
         runner
             .start(
                 canvas,
                 eframe::WebOptions::default(),
-                //added move to build the mobile/desktop app
                 Box::new(move |_cc| Ok(Box::new(ChessApp::new(ui_type)))),
             )
             .await
@@ -67,53 +56,3 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 
     Ok(())
 }
-
-//Todo
-//      -error handling
-//
-//      - some check not detected
-//
-//
-//      - pgn decoder
-//          - load
-//
-//      Mobile
-//      - definir nom perso
-//
-//Fix :
-//
-//
-//
-//Tests :
-//      - unit
-//      - end to end
-//
-//
-//
-// -- Later --
-//
-//
-//Back :
-//      Settings :
-//          - regroupe
-//          - link blitz bullet rapid
-//      Rounds :
-//          - revenge button
-//      AI : minmax et +
-//          - Evaluation
-//          - multithread
-//          - profondeur
-//      UCI compatibility ?
-//      Multiplayer (web socket + serveur web ?)
-//          - matchmaking
-//          - elo
-//      Analyse mode
-//      Didactitiel mode
-//      daily puzzle
-//
-//Front :
-//      Sounds
-//      Animations
-//      Chat
-//      Themes board / pieces
-//

@@ -83,10 +83,8 @@ pub fn generate_pawn_moves(origin: &Coord, active_player: &Color, board: &mut Bo
     let last_rank: u8 = if *active_player == White { 7 } else { 0 };
     let mut ret: Vec<Move> = Vec::new();
 
-    // diagonals — enemy piece or en passant
-    // board.en_passant stores the enemy pawn's position (e.g. e5), not the capture square (e.g. e6)
-    // so we derive the capture square: ep.row + dir (one step in our direction)
-    for dc in [1i8, -1] {
+    // diagonals enemy piece or en passant
+    for dc in [1, -1] {
         if let Some(dest) = Board::checked_coord(origin.row as i8 + dir, origin.col as i8 + dc) {
             let target = board.get(&dest);
             let is_enemy = target.get_piece().is_some() && !target.is_color(active_player);
@@ -100,14 +98,12 @@ pub fn generate_pawn_moves(origin: &Coord, active_player: &Color, board: &mut Bo
         }
     }
 
-    // forward — only on empty square
     if let Some(dest) = Board::checked_coord(origin.row as i8 + dir, origin.col as i8)
         && board.get(&dest) == Cell::Free
     {
         push_pawn_dest(origin, &dest, active_player, board, last_rank, &mut ret);
     }
 
-    // double push — starting rank, both squares empty
     let initial_row = match active_player {
         White => origin.row == 1,
         Black => origin.row == 6,
