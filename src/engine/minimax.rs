@@ -1,14 +1,14 @@
 use crate::Board;
 use crate::board::cell::Color;
 use crate::board::cell::Color::*;
+use crate::board::move_gen::Move;
 use crate::board::move_gen::generate_moves;
-use crate::engine::evaluator::Evaluator;
+use crate::engine::evaluator::{Evaluator, MaterialEvaluation};
 use std::i32;
 
 const MATE_SCORE: i32 = 1_000_000;
-const DEPTH_MAX: u8 = 5;
 
-fn minimax<E: Evaluator>(
+pub(crate) fn minimax<E: Evaluator>(
     board: &mut Board,
     depth: u8,
     maximising: bool,
@@ -50,13 +50,30 @@ fn minimax<E: Evaluator>(
         }
     } else {
         for m in moves.iter() {
-            board.apply_move(m, opponnent);
-            score = minimax(board, depth - 1, true, active_player, eval);
-            board.undo_move(*m, opponnent);
+            board.apply_move(m, active_player);
+            score = minimax(board, depth - 1, true, opponnent, eval);
+            board.undo_move(*m, active_player);
             if score < best {
                 best = score;
             }
         }
     }
     return best;
+}
+
+pub fn find_best_move(board: &mut Board, active_player: Color, depth: u8) -> Option<Move> {
+    let moves = generate_moves(board, &active_player);
+    let opponent = match active_player { White => Black, Black => White };
+    let mut best_move = None;
+    let mut best_score = i32::MIN;
+    for m in moves {
+        board.apply_move(&m, active_player);
+        let score = minimax(board, depth - 1, false, opponent, &MaterialEvaluation);
+        board.undo_move(m, active_player);
+        if score > best_score {
+            best_score = score;
+            best_move = Some(m);
+        }
+    }
+    best_move
 }

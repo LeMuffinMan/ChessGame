@@ -19,14 +19,14 @@ pub trait Evaluator {
 pub struct MaterialEvaluation;
 
 impl Evaluator for MaterialEvaluation {
-    fn evaluate(&self, board: &Board, active_player: &Color) -> i32 {
+    fn evaluate(&self, board: &Board, active_player: Color) -> i32 {
         let mut score = 0;
         for x in 0..8 {
             for y in 0..8 {
                 let cell = board.grid[x][y].get_cell();
                 match cell {
                     Occupied(piece, color) => {
-                        let side = if color == active_player { 1 } else { -1 };
+                        let side = if *color == active_player { 1 } else { -1 };
                         let mut value = 0;
                         match piece {
                             Pawn => value += PAWN_VALUE,
