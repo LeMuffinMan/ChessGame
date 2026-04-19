@@ -1,5 +1,5 @@
 use crate::Coord;
-use crate::gui::bot_difficulty::BotDifficulty::{self, *};
+use crate::gui::bot_difficulty::BotDifficulty::*;
 use crate::gui::player_type::PlayerType;
 use crate::gui::player_type::PlayerType::*;
 use egui::Pos2;

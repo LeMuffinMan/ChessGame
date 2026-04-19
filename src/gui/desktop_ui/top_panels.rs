@@ -30,7 +30,7 @@ impl ChessApp {
                                 .clicked()
                             {
                                 self.settings.black_bot = Human;
-                                ui.close_menu();
+                                // ui.close_menu();
                             }
                             if ui
                                 .selectable_label(
@@ -40,7 +40,7 @@ impl ChessApp {
                                 .clicked()
                             {
                                 self.settings.black_bot = Bot(Easy);
-                                ui.close_menu();
+                                // ui.close_menu();
                             }
                             if ui
                                 .selectable_label(
@@ -50,7 +50,7 @@ impl ChessApp {
                                 .clicked()
                             {
                                 self.settings.black_bot = Bot(Medium);
-                                ui.close_menu();
+                                // ui.close_menu();
                             }
                             if ui
                                 .selectable_label(
@@ -60,7 +60,7 @@ impl ChessApp {
                                 .clicked()
                             {
                                 self.settings.black_bot = Bot(Hard);
-                                ui.close_menu();
+                                // ui.close_menu();
                             }
                         });
                     });
