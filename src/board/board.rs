@@ -2,9 +2,8 @@ use crate::Color;
 use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Cell;
-use crate::board::is_king_exposed::is_king_exposed;
-// use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
+use crate::board::is_king_exposed::is_king_exposed;
 use crate::board::move_gen::{CastleSide::*, Move, MoveType::*};
 
 #[derive(Clone, PartialEq)]
@@ -16,8 +15,6 @@ pub struct Board {
     pub black_king: Coord,
     pub en_passant: Option<Coord>,
     pub check: Option<Coord>,
-    // pub pawn_to_promote: Option<Coord>, // appartient a l'UI ?
-    // pub promote: Option<Piece>,
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq)]
@@ -26,16 +23,7 @@ pub struct CastleRights {
     pub short: bool,
 }
 
-//cancastle
-// left
-// right
-// leftandright
-
 impl Board {
-    //Considering to move from GameState, into board :
-    //  - Active player / opponent color
-    //  - end state
-    //  - turn
     pub fn init_board() -> Board {
         let mut board = Board {
             grid: [[Cell::Free; 8]; 8],
@@ -55,21 +43,15 @@ impl Board {
 
         board.fill_side(White);
         board.fill_side(Black);
-        //Ces lignes commentees risque de tout casser !
-        // board.update_legals_moves(&White);
-        // board.update_threatens_cells(&White);
-
         board
     }
 
-    //Setting up basic chess board
     pub fn fill_side(&mut self, color: Color) {
         let color_idx = match color {
             White => 0,
             Black => 7,
         };
         for x in 0..8 {
-            // fill the base line
             self.grid[color_idx][x] = match x {
                 0 | 7 => Cell::Occupied(Rook, color),
                 1 | 6 => Cell::Occupied(Knight, color),
@@ -78,7 +60,6 @@ impl Board {
                 4 => Cell::Occupied(King, color),
                 _ => unreachable!(),
             };
-            // fill the pawns
             match color_idx {
                 0 => self.grid[color_idx + 1][x] = Cell::Occupied(Pawn, color),
                 7 => self.grid[color_idx - 1][x] = Cell::Occupied(Pawn, color),
@@ -159,7 +140,7 @@ impl Board {
                 white_castle: self.white_castle,
                 black_castle: self.black_castle,
                 move_type: m_type,
-            }, // le cas castle right ou left,
+            }, // castle right / left
         };
         return m;
     }
@@ -208,10 +189,9 @@ impl Board {
     }
 
     pub fn undo_move(&mut self, m: Move, active_player: Color) {
-        //Dans quelle situation j'ai besoin de move_type, je peux juste override board avec les datas de move ?
         match m.move_type {
             EnPassant => {
-                self.grid[m.dest.row as usize][m.dest.col as usize] = Cell::Free; // une pris en passant qui mange deux pieces est possible ?
+                self.grid[m.dest.row as usize][m.dest.col as usize] = Cell::Free;
                 match active_player {
                     White => {
                         self.grid[(m.dest.row - 1) as usize][m.dest.col as usize] = m.capture;

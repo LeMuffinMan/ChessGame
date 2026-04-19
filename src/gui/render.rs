@@ -44,8 +44,11 @@ impl ChessApp {
                     col: board_col,
                 };
                 let idx = (row + col) % 2;
+                let k = match self.current.active_player {
+                    White => self.current.board.white_king,
+                    Black => self.current.board.black_king,
+                };
                 if let Some(_) = &self.current.board.check
-                    && let Some(k) = self.current.board.get_king(&self.current.active_player)
                     && k.row == board_row
                     && k.col == board_col
                     && self.current.threaten_cells.contains(&k)

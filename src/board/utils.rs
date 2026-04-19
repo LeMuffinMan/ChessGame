@@ -1,28 +1,10 @@
 use crate::Board;
-use crate::Color;
 use crate::Coord;
 use crate::board::cell::Cell;
-use crate::board::cell::Piece;
 
 impl Board {
     pub fn get(&self, coord: &Coord) -> Cell {
         self.grid[coord.row as usize][coord.col as usize]
-    }
-
-    pub fn get_king(&self, color: &Color) -> Option<Coord> {
-        for x in 0..8 {
-            for y in 0..8 {
-                if self.grid[x][y].is_color(color)
-                    && let Some(Piece::King) = self.grid[x][y].get_piece()
-                {
-                    return Some(Coord {
-                        row: x as u8,
-                        col: y as u8,
-                    });
-                }
-            }
-        }
-        None
     }
 
     pub fn print(&self) {

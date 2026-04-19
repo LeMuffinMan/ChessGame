@@ -11,12 +11,7 @@ use crate::gui::chessapp::End::*;
 // use crate::gui::chessapp::PromoteInfo;
 
 impl ChessApp {
-    //this function takes two cells as the move input from the player
-    //it test the move legality, and if it exposes king to a threat
-    //If it passes these tests it update the board to end turn
     pub fn try_move(&mut self, from: Coord, to: Coord) {
-        // cette fonction doit returner true false ou <Ok(), Result>
-        //Does th rules allow this move ?
         let legal = generate_moves(&mut self.current.board, &self.current.active_player)
             .iter()
             .any(|m| m.origin == from && m.dest == to);
@@ -44,17 +39,6 @@ impl ChessApp {
             return;
         }
 
-        //Doing this move, is the active player king threaten ?
-        // if validate_move::is_king_exposed(
-        //     &from,
-        //     &to,
-        //     &self.current.active_player,
-        //     &self.current.board,
-        // ) {
-        //     println!("King is exposed: illegal move");
-        //     return;
-        // }
-
         //Tout ca devrait sortir de try move et serait un update app ?
         //if it's the very first move, we setup the history and timers if needed
         if self.history.snapshots.is_empty() {
@@ -71,15 +55,6 @@ impl ChessApp {
         //it triggers a draw if true, before update board for pawn detection in case of promotion
         //a reintegrer
         self.current.fifty_moves_draw_check(&m);
-        //This apply the move on the board
-        // self.current
-        //     .board
-        //     .update_board(&from, &to, &self.current.active_player);
-
-        // self.current
-        //     .board
-        //     .apply_move(&m, self.current.active_player);
-
         //it triggers a draw if the board match an impossible mat situation
         if self.current.impossible_mate_check() {
             self.current.end = Some(Draw);
@@ -110,7 +85,6 @@ impl ChessApp {
         //check for mate, or pat and finaly for check situation
         self.events_check(&from, &to, &prev_board);
 
-        //la retouche de ce if a peut etre casse la promotion
         if !self.promoteinfo.is_some() {
             //if there were no promotion, we add the actual board in history, and inc the index
             self.history.snapshots.push(self.current.clone());
@@ -143,7 +117,6 @@ impl ChessApp {
         };
     }
 
-    //update threats and legals moves to determine if it's a draw or a mat
     pub fn check_endgame(&mut self) {
         self.current.threaten_cells = self
             .current
@@ -157,17 +130,18 @@ impl ChessApp {
         //  else its a pat
         if self.current.legals_moves.is_empty() {
             self.current.board.print(); //souvenir of the cli version ..
-            let king_cell = self.current.board.get_king(&self.current.active_player);
-            if let Some(coord) = king_cell {
-                if self.current.threaten_cells.contains(&coord) {
-                    self.current.end = Some(Checkmate);
-                    self.timer.active = false;
-                    self.app_mode = Versus(Some(Checkmate));
-                } else {
-                    self.current.end = Some(Pat);
-                    self.app_mode = Versus(Some(Pat));
-                    self.timer.active = false;
-                }
+            let king_cell = match self.current.active_player {
+                White => self.current.board.white_king,
+                Black => self.current.board.black_king,
+            };
+            if self.current.threaten_cells.contains(&king_cell) {
+                self.current.end = Some(Checkmate);
+                self.timer.active = false;
+                self.app_mode = Versus(Some(Checkmate));
+            } else {
+                self.current.end = Some(Pat);
+                self.app_mode = Versus(Some(Pat));
+                self.timer.active = false;
             }
         }
     }
@@ -179,12 +153,11 @@ impl ChessApp {
         }
         self.current.switch_players_color();
         self.check_endgame();
-        // println!("{:?} to move", self.current.active_player);
-        // On peut virer le fct get king et acceder drect a la struct plutot ?
-        if let Some(k) = self.current.board.get_king(&self.current.active_player)
-            && self.current.threaten_cells.contains(&k)
-            && let Some(k) = self.current.board.get_king(&self.current.active_player)
-        {
+        let k = match self.current.active_player {
+            White => self.current.board.white_king,
+            Black => self.current.board.black_king,
+        };
+        if self.current.threaten_cells.contains(&k) {
             self.current.board.check = Some(k);
             // println!("Check !");
         }

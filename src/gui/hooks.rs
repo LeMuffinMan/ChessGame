@@ -423,9 +423,11 @@ impl ChessApp {
             // check_endgame first: recalculates threaten_cells with the promoted piece's threats
             self.check_endgame();
             // then detect check using fresh threaten_cells
-            if let Some(k) = self.current.board.get_king(&self.current.active_player)
-                && self.current.threaten_cells.contains(&k)
-            {
+            let k = match self.current.active_player {
+                White => self.current.board.white_king,
+                Black => self.current.board.black_king,
+            };
+            if self.current.threaten_cells.contains(&k) {
                 self.current.board.check = Some(k);
             }
             if let Some(promoteinfo) = &self.promoteinfo {
