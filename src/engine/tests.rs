@@ -7,17 +7,29 @@ use crate::board::cell::Piece::{King, Pawn, Queen, Rook};
 use crate::engine::evaluator::{Evaluator, MaterialEvaluation};
 use crate::engine::minimax::{find_best_move, minimax};
 
-fn coord(row: u8, col: u8) -> Coord { Coord { row, col } }
+fn coord(row: u8, col: u8) -> Coord {
+    Coord { row, col }
+}
 
 fn empty_board(white_king: Coord, black_king: Coord) -> Board {
     let mut board = Board::init_board();
-    for r in 0..8usize { for c in 0..8usize { board.grid[r][c] = Free; } }
+    for r in 0..8usize {
+        for c in 0..8usize {
+            board.grid[r][c] = Free;
+        }
+    }
     board.grid[white_king.row as usize][white_king.col as usize] = Occupied(King, White);
     board.grid[black_king.row as usize][black_king.col as usize] = Occupied(King, Black);
     board.white_king = white_king;
     board.black_king = black_king;
-    board.white_castle = CastleRights { long: false, short: false };
-    board.black_castle = CastleRights { long: false, short: false };
+    board.white_castle = CastleRights {
+        long: false,
+        short: false,
+    };
+    board.black_castle = CastleRights {
+        long: false,
+        short: false,
+    };
     board
 }
 
@@ -67,7 +79,10 @@ fn test_avoids_losing_rook_depth2() {
 
     let mv = find_best_move(&mut board, White, 2).expect("should find a move");
     let is_bad_capture = mv.origin == coord(3, 3) && mv.dest == coord(3, 4);
-    assert!(!is_bad_capture, "bot should not take a pawn defended by a rook");
+    assert!(
+        !is_bad_capture,
+        "bot should not take a pawn defended by a rook"
+    );
 }
 
 // Pat classique : roi noir coincé en a8, dame blanche b6

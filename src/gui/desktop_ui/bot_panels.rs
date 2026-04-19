@@ -1,4 +1,6 @@
 use crate::ChessApp;
+use crate::gui::bot_difficulty::BotDifficulty::*;
+use crate::gui::player_type::PlayerType::*;
 use crate::gui::update_timer::GameMode::NoTime;
 use egui::RichText;
 use egui::TextEdit;
@@ -26,12 +28,60 @@ impl ChessApp {
                         );
                     }
                 }
-
-                if self.history.snapshots.is_empty() || self.current.end.is_some() {
-                    ui.add(TextEdit::singleline(&mut self.settings.white_name));
-                } else {
-                    ui.label(&self.settings.white_name);
-                }
+                ui.horizontal(|ui| {
+                    if self.history.snapshots.is_empty() || self.current.end.is_some() {
+                        ui.add(TextEdit::singleline(&mut self.settings.white_name));
+                    } else {
+                        ui.label(&self.settings.white_name);
+                    }
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        let label = match &self.settings.white_bot {
+                            Human => "Player",
+                            Bot(Easy) => "Bot - Easy",
+                            Bot(Medium) => "Bot - Medium",
+                            Bot(Hard) => "Bot - Hard",
+                        };
+                        ui.menu_button(label, |ui| {
+                            if ui
+                                .selectable_label(self.settings.white_bot == Human, "Player")
+                                .clicked()
+                            {
+                                self.settings.white_bot = Human;
+                                ui.close_menu();
+                            }
+                            if ui
+                                .selectable_label(
+                                    self.settings.white_bot == Bot(Easy),
+                                    "Bot - Easy",
+                                )
+                                .clicked()
+                            {
+                                self.settings.white_bot = Bot(Easy);
+                                ui.close_menu();
+                            }
+                            if ui
+                                .selectable_label(
+                                    self.settings.white_bot == Bot(Medium),
+                                    "Bot - Medium",
+                                )
+                                .clicked()
+                            {
+                                self.settings.white_bot = Bot(Medium);
+                                ui.close_menu();
+                            }
+                            if ui
+                                .selectable_label(
+                                    self.settings.white_bot == Bot(Hard),
+                                    "Bot - Hard",
+                                )
+                                .clicked()
+                            {
+                                self.settings.white_bot = Bot(Hard);
+                                ui.close_menu();
+                            }
+                        });
+                    });
+                });
             });
         });
     }
