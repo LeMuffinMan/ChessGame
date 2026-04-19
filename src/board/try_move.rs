@@ -3,10 +3,12 @@ use crate::ChessApp;
 use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Piece::*;
-use crate::board::validate_move;
-use crate::gui::chessapp_struct::AppMode::*;
-use crate::gui::chessapp_struct::End::*;
-// use crate::gui::chessapp_struct::PromoteInfo;
+use crate::board::is_king_exposed::is_king_exposed;
+use crate::board::move_gen::generate_moves;
+use crate::gui::chessapp::AppMode::*;
+use crate::gui::chessapp::End::*;
+
+// use crate::gui::chessapp::PromoteInfo;
 
 impl ChessApp {
     //this function takes two cells as the move input from the player
@@ -15,12 +17,10 @@ impl ChessApp {
     pub fn try_move(&mut self, from: Coord, to: Coord) {
         // cette fonction doit returner true false ou <Ok(), Result>
         //Does th rules allow this move ?
-        if !self.current.board.is_legal_move(
-            &from,
-            &to,
-            &self.current.active_player,
-            &self.current.threaten_cells,
-        ) {
+        let legal = generate_moves(&mut self.current.board, &self.current.active_player)
+            .iter()
+            .any(|m| m.origin == from && m.dest == to);
+        if !legal {
             println!("Illegal move: {from:?} -> {to:?}");
             return;
         }
@@ -36,7 +36,7 @@ impl ChessApp {
             .board
             .apply_move(&m, self.current.active_player);
 
-        if validate_move::is_king_exposed(&self.current.board, &self.current.active_player) {
+        if is_king_exposed(&self.current.board, &self.current.active_player) {
             self.current = snapshot;
             // self.current.board.undo_move(m, self.current.active_player);
             //Faire remonter l'erreur
@@ -149,10 +149,8 @@ impl ChessApp {
             .current
             .board
             .update_threatens_cells(&self.current.active_player);
-        self.current.legals_moves = self
-            .current
-            .board
-            .update_legals_moves(&self.current.active_player, &self.current.threaten_cells);
+        self.current.legals_moves =
+            generate_moves(&mut self.current.board, &self.current.active_player);
 
         //if there is no legal moves : it's a endgame
         //  if the king is threaten : its a mat

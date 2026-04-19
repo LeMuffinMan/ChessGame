@@ -1,10 +1,13 @@
 use crate::Coord;
+
 use crate::board::Board;
-use crate::board::board_struct::CastleRights;
+use crate::board::board::CastleRights;
 use crate::board::cell::Cell;
 use crate::board::cell::Color;
 use crate::board::cell::Color::*;
+use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
+use crate::board::is_king_exposed::is_king_exposed;
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct Move {
@@ -23,7 +26,7 @@ pub enum MoveType {
     Regular,
     EnPassant,
     Castle(CastleSide),
-    // Promotion(Piece), dans mon implementation actuelle je n'ai pas encore recupere l'input pour la promotion
+    Promotion(Piece),
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -77,30 +80,34 @@ pub fn generate_moves(board: &mut Board, active_player: &Color) -> Vec<Move> {
 
 pub fn generate_pawn_moves(origin: &Coord, active_player: &Color, board: &mut Board) -> Vec<Move> {
     let dir: i8 = if *active_player == White { 1 } else { -1 };
+    let last_rank: u8 = if *active_player == White { 7 } else { 0 };
     let mut ret: Vec<Move> = Vec::new();
 
-    // diagonals
-    for dc in [1, -1] {
+    // diagonals — enemy piece or en passant
+    // board.en_passant stores the enemy pawn's position (e.g. e5), not the capture square (e.g. e6)
+    // so we derive the capture square: ep.row + dir (one step in our direction)
+    for dc in [1i8, -1] {
         if let Some(dest) = Board::checked_coord(origin.row as i8 + dir, origin.col as i8 + dc) {
             let target = board.get(&dest);
             let is_enemy = target.get_piece().is_some() && !target.is_color(active_player);
-            if (is_enemy || board.en_passant == Some(dest))
-                && let Some(m) = board.check_move(&origin, &dest, active_player)
-            {
-                ret.push(m);
+            let is_en_passant = match board.en_passant {
+                None => false,
+                Some(ep) => dest.col == ep.col && dest.row as i8 == ep.row as i8 + dir,
+            };
+            if is_enemy || is_en_passant {
+                push_pawn_dest(origin, &dest, active_player, board, last_rank, &mut ret);
             }
         }
     }
 
-    // move 1 forward
+    // forward — only on empty square
     if let Some(dest) = Board::checked_coord(origin.row as i8 + dir, origin.col as i8)
         && board.get(&dest) == Cell::Free
-        && let Some(m) = board.check_move(&origin, &dest, active_player)
     {
-        ret.push(m);
+        push_pawn_dest(origin, &dest, active_player, board, last_rank, &mut ret);
     }
 
-    // move 2 forward
+    // double push — starting rank, both squares empty
     let initial_row = match active_player {
         White => origin.row == 1,
         Black => origin.row == 6,
@@ -111,13 +118,49 @@ pub fn generate_pawn_moves(origin: &Coord, active_player: &Color, board: &mut Bo
             && board.get(&mid) == Cell::Free
             && board.get(&dest) == Cell::Free
         {
-            if let Some(m) = board.check_move(&origin, &dest, active_player) {
+            if let Some(m) = board.check_move(origin, &dest, active_player) {
                 ret.push(m);
             }
         }
     }
 
     ret
+}
+
+// If a pawn reach the last rank, we want to generate 4 moves for the 4 possible promotions
+fn push_pawn_dest(
+    origin: &Coord,
+    dest: &Coord,
+    active_player: &Color,
+    board: &mut Board,
+    last_rank: u8,
+    ret: &mut Vec<Move>,
+) {
+    if dest.row == last_rank {
+        let base = Move {
+            origin: *origin,
+            dest: *dest,
+            capture: board.get(dest),
+            en_passant: board.en_passant,
+            check: board.check,
+            white_castle: board.white_castle,
+            black_castle: board.black_castle,
+            move_type: MoveType::Promotion(Queen),
+        };
+        board.apply_move(&base, *active_player);
+        let exposed = is_king_exposed(board, active_player);
+        board.undo_move(base, *active_player);
+        if !exposed {
+            for promoted in [Queen, Rook, Bishop, Knight] {
+                ret.push(Move {
+                    move_type: MoveType::Promotion(promoted),
+                    ..base
+                });
+            }
+        }
+    } else if let Some(m) = board.check_move(origin, dest, active_player) {
+        ret.push(m);
+    }
 }
 
 pub fn generate_rook_moves(origin: &Coord, active_player: &Color, board: &mut Board) -> Vec<Move> {
@@ -238,19 +281,29 @@ pub fn generate_king_moves(origin: &Coord, active_player: &Color, board: &mut Bo
             ret.push(m);
         }
     }
-    //castle
+    // castle : king not in check, rights available, path clear and not threaten
     if board.check.is_none() {
-        let little_castle = origin.col as i8 + 2;
-        let long_castle = origin.col as i8 - 2;
-        if let Some(dest) = Board::checked_coord(origin.row as i8, little_castle)
-            && let Some(m) = board.check_move(&origin, &dest, active_player)
-        {
-            ret.push(m);
+        let castle_rights = match active_player {
+            White => board.white_castle,
+            Black => board.black_castle,
+        };
+        if castle_rights.short {
+            if let Some(through) = Board::checked_coord(origin.row as i8, origin.col as i8 + 1)
+                && let Some(dest) = Board::checked_coord(origin.row as i8, origin.col as i8 + 2)
+                && board.check_move(&origin, &through, active_player).is_some()
+                && let Some(m) = board.check_move(&origin, &dest, active_player)
+            {
+                ret.push(m);
+            }
         }
-        if let Some(dest) = Board::checked_coord(origin.row as i8, long_castle)
-            && let Some(m) = board.check_move(&origin, &dest, active_player)
-        {
-            ret.push(m);
+        if castle_rights.long {
+            if let Some(through) = Board::checked_coord(origin.row as i8, origin.col as i8 - 1)
+                && let Some(dest) = Board::checked_coord(origin.row as i8, origin.col as i8 - 2)
+                && board.check_move(&origin, &through, active_player).is_some()
+                && let Some(m) = board.check_move(&origin, &dest, active_player)
+            {
+                ret.push(m);
+            }
         }
     }
     ret

@@ -1,5 +1,5 @@
 // pub mod central_panel;
-pub mod chessapp_struct;
+pub mod chessapp;
 // pub mod draw_rules;
 // pub mod hooks;
 // pub mod side_panels;
@@ -7,7 +7,7 @@ pub mod chessapp_struct;
 // pub mod widgets;
 // pub mod windows_dialog;
 pub mod desktop_ui;
-pub mod game_state_struct;
+pub mod gamestate;
 pub mod hooks;
 pub mod inputs;
 pub mod mobile_ui;

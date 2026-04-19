@@ -59,19 +59,19 @@ impl ChessApp {
                             .is_color(&self.current.active_player)
                         {
                             self.settings.piece_legals_moves.clear();
-                            for (from, to) in self.current.legals_moves.iter() {
-                                if from.row == clicked.row && from.col == clicked.col {
+                            for m in self.current.legals_moves.iter() {
+                                if m.origin.row == clicked.row && m.origin.col == clicked.col {
                                     // println!("pushing {:?}", clicked);
-                                    self.settings.piece_legals_moves.push(*to);
+                                    self.settings.piece_legals_moves.push(m.dest);
                                 }
                             }
                             self.settings.from_cell = Some(clicked);
                         }
                     }
-                    Some(from) => {
+                    Some(origin) => {
                         self.settings.piece_legals_moves.clear();
-                        if from != clicked {
-                            self.try_move(from, clicked);
+                        if origin != clicked {
+                            self.try_move(origin, clicked);
                         }
                         self.settings.from_cell = None;
                     }

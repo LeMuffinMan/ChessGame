@@ -1,5 +1,5 @@
 use crate::ChessApp;
-use crate::gui::chessapp_struct::End;
+use crate::gui::chessapp::End;
 
 impl ChessApp {
     //Inform on the current game state, player to move, check, or endgame

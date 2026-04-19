@@ -3,7 +3,7 @@ use crate::Color;
 use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Piece;
-use crate::gui::chessapp_struct::End::*;
+use crate::gui::chessapp::End::*;
 
 impl ChessApp {
     pub fn centered_square(rect: egui::Rect) -> egui::Rect {
@@ -191,10 +191,10 @@ impl ChessApp {
     //To draw the selected piece legals moves
     pub fn get_piece_legal_moves(&mut self) {
         if let Some(coord) = self.settings.drag_from {
-            for (from, to) in self.current.legals_moves.iter() {
-                if from.row == coord.row && from.col == coord.col {
+            for m in self.current.legals_moves.iter() {
+                if m.origin.row == coord.row && m.origin.col == coord.col {
                     // println!("pushing {:?}", coord);
-                    self.settings.piece_legals_moves.push(*to);
+                    self.settings.piece_legals_moves.push(m.dest);
                 }
             }
         }

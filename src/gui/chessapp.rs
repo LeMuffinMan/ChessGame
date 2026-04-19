@@ -4,8 +4,10 @@ use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
-use crate::gui::chessapp_struct::AppMode::*;
-use crate::gui::game_state_struct::GameState;
+use crate::board::move_gen::generate_moves;
+use crate::gui::chessapp::AppMode::*;
+// use crate::gui::chessapp::AppMode::*;
+use crate::gui::gamestate::GameState;
 use crate::gui::hooks::WinDia;
 use crate::gui::replay::ReplayInfos;
 use crate::gui::update_timer::GameMode;
@@ -156,10 +158,8 @@ impl App for ChessApp {
                 .update_threatens_cells(&self.current.active_player)
         }
         if self.current.legals_moves.is_empty() {
-            self.current.legals_moves = self
-                .current
-                .board
-                .update_legals_moves(&self.current.active_player, &self.current.threaten_cells)
+            self.current.legals_moves =
+                generate_moves(&mut self.current.board, &self.current.active_player);
         }
         self.hooks(ctx);
         match &self.ui_type {

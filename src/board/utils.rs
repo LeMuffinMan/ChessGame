@@ -3,22 +3,10 @@ use crate::Color;
 use crate::Coord;
 use crate::board::cell::Cell;
 use crate::board::cell::Piece;
-use crate::board::validate_move::is_legal_move::is_legal_move;
 
 impl Board {
     pub fn get(&self, coord: &Coord) -> Cell {
         self.grid[coord.row as usize][coord.col as usize]
-    }
-
-    //bizarre ce wrapper, on devrait le virer et reorganiser ?
-    pub fn is_legal_move(
-        &self,
-        from: &Coord,
-        to: &Coord,
-        color: &Color,
-        threaten_cells: &Vec<Coord>,
-    ) -> bool {
-        is_legal_move(from, to, color, threaten_cells, self)
     }
 
     pub fn get_king(&self, color: &Color) -> Option<Coord> {

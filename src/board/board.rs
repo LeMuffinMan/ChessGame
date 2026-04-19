@@ -2,10 +2,10 @@ use crate::Color;
 use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Cell;
+use crate::board::is_king_exposed::is_king_exposed;
 // use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
-use crate::board::move_struct::{CastleSide::*, Move, MoveType::*};
-use crate::board::validate_move::is_king_exposed;
+use crate::board::move_gen::{CastleSide::*, Move, MoveType::*};
 
 #[derive(Clone, PartialEq)]
 pub struct Board {
@@ -201,6 +201,10 @@ impl Board {
             &mut self.grid[m.origin.row as usize][m.origin.col as usize],
             Cell::Free,
         );
+        if let Promotion(promoted) = m.move_type {
+            self.grid[m.dest.row as usize][m.dest.col as usize] =
+                Cell::Occupied(promoted, active_player);
+        }
     }
 
     pub fn undo_move(&mut self, m: Move, active_player: Color) {
@@ -257,6 +261,11 @@ impl Board {
                     }
                 },
             },
+            Promotion(_) => {
+                self.grid[m.origin.row as usize][m.origin.col as usize] =
+                    Cell::Occupied(Pawn, active_player);
+                self.grid[m.dest.row as usize][m.dest.col as usize] = m.capture;
+            }
             Regular => {
                 self.grid[m.origin.row as usize][m.origin.col as usize] = self.get(&m.dest);
                 if self.grid[m.origin.row as usize][m.origin.col as usize].get_piece()
@@ -271,6 +280,7 @@ impl Board {
             }
         }
         self.en_passant = m.en_passant;
+        self.check = m.check;
         self.white_castle = m.white_castle;
         self.black_castle = m.black_castle;
     }
@@ -280,6 +290,9 @@ impl Board {
         dest: &Coord,
         active_player: &Color,
     ) -> Option<Move> {
+        if self.get(dest).is_color(active_player) {
+            return None;
+        }
         let m = self.build_move(*origin, *dest, *active_player);
         self.apply_move(&m, *active_player);
         let exposed = is_king_exposed(self, active_player);
@@ -288,5 +301,44 @@ impl Board {
             return Some(m);
         }
         None
+    }
+
+    pub fn checked_coord(row: i8, col: i8) -> Option<Coord> {
+        if (0..8).contains(&row) && (0..8).contains(&col) {
+            Some(Coord {
+                row: row as u8,
+                col: col as u8,
+            })
+        } else {
+            None
+        }
+    }
+
+    pub fn update_en_passant(&mut self, from: &Coord, to: &Coord) {
+        let dif = from.row as i8 - to.row as i8;
+        if dif.abs() == 2 {
+            self.en_passant = Some(*to);
+        }
+    }
+
+    pub fn update_king_castle(&mut self, from: &Coord, to: &Coord, color: &Color) {
+        let dif_col = to.col as i8 - from.col as i8;
+        let row = match color {
+            White => 0,
+            Black => 7,
+        };
+        if dif_col == -2 {
+            let col = to.col as usize;
+            if col > 0 {
+                self.grid[row][0] = Cell::Free;
+                self.grid[row][col + 1] = Cell::Occupied(Rook, *color);
+            }
+        } else if dif_col == 2 {
+            let col = to.col as usize;
+            if col > 0 {
+                self.grid[row][7] = Cell::Free;
+                self.grid[row][col - 1] = Cell::Occupied(Rook, *color);
+            }
+        }
     }
 }

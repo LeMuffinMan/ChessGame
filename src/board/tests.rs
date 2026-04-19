@@ -1,10 +1,11 @@
 use crate::board::Board;
-use crate::board::board_struct::CastleRights;
+use crate::board::board::CastleRights;
 use crate::board::cell::Cell::{Free, Occupied};
 use crate::board::cell::Color::{Black, White};
 use crate::board::cell::Coord;
 use crate::board::cell::Piece::{Bishop, King, Knight, Pawn, Queen, Rook};
-use crate::board::validate_move::is_king_exposed;
+use crate::board::is_king_exposed::is_king_exposed;
+use crate::board::move_gen::generate_moves;
 
 fn board_core_eq(a: &Board, b: &Board) -> bool {
     a.grid == b.grid
@@ -61,7 +62,7 @@ fn test_apply_undo_en_passant() {
     let from = coord(4, 4);
     let to = coord(5, 3); // d6
     let m = board.build_move(from, to, White);
-    assert_eq!(m.move_type, crate::board::move_struct::MoveType::EnPassant);
+    assert_eq!(m.move_type, crate::board::move_gen::MoveType::EnPassant);
     board.apply_move(&m, White);
     assert_eq!(board.grid[4][3], Free); // black pawn capture
     assert_eq!(board.grid[5][3], Occupied(Pawn, White)); // white pawn in d6
@@ -195,36 +196,31 @@ fn test_king_not_exposed_blocked_by_ally() {
     assert!(!is_king_exposed(&board, &White));
 }
 
-//Legals moves
+// generate_moves — régression
 
 #[test]
-fn test_legal_moves_initial_white() {
+fn test_generate_moves_initial_white() {
     let mut board = Board::init_board();
-    board.update_legals_moves(&White);
-    assert_eq!(board.legals_moves.len(), 20);
+    assert_eq!(generate_moves(&mut board, &White).len(), 20);
 }
 
 #[test]
-fn test_legal_moves_initial_black() {
+fn test_generate_moves_initial_black() {
     let mut board = Board::init_board();
-    board.update_threatens_cells(&Black);
-    board.update_legals_moves(&Black);
-    assert_eq!(board.legals_moves.len(), 20);
+    assert_eq!(generate_moves(&mut board, &Black).len(), 20);
 }
 
 #[test]
-fn test_legal_moves_after_e4() {
+fn test_generate_moves_after_e4_black() {
     let mut board = Board::init_board();
     let m = board.build_move(coord(1, 4), coord(3, 4), White);
     board.apply_move(&m, White);
-    board.update_threatens_cells(&White);
-    board.update_legals_moves(&Black);
-    assert_eq!(board.legals_moves.len(), 20);
+    assert_eq!(generate_moves(&mut board, &Black).len(), 20);
 }
 
 #[test]
-fn test_legal_moves_stalemate() {
-    // classical pat : Black king in a8 / white queen in c7 and white king in c6
+fn test_generate_moves_stalemate() {
+    // pat classique : roi noir en a8, dame blanche en c7, roi blanc en c6
     let mut board = Board::init_board();
     for r in 0..8usize {
         for c in 0..8usize {
@@ -236,44 +232,43 @@ fn test_legal_moves_stalemate() {
     board.grid[5][2] = Occupied(King, White);
     board.white_king = coord(5, 2);
     board.black_king = coord(7, 0);
-    board.update_threatens_cells(&White);
-    board.update_legals_moves(&Black);
-    assert!(board.legals_moves.is_empty());
+    let moves = generate_moves(&mut board, &Black);
+    assert!(moves.is_empty());
     assert!(!is_king_exposed(&board, &Black));
 }
 
-// Castle
+// generate_moves — castle
+
+fn has_move(board: &mut Board, color: &crate::board::cell::Color, from: Coord, to: Coord) -> bool {
+    generate_moves(board, color)
+        .iter()
+        .any(|m| m.origin == from && m.dest == to)
+}
 
 #[test]
 fn test_castle_right_in_legal_moves() {
     let mut board = Board::init_board();
-    board.grid[0][5] = Free; // f1
-    board.grid[0][6] = Free; // g1
-    board.update_threatens_cells(&White);
-    board.update_legals_moves(&White);
-    assert!(board.legals_moves.contains(&(coord(0, 4), coord(0, 6))));
+    board.grid[0][5] = Free;
+    board.grid[0][6] = Free;
+    assert!(has_move(&mut board, &White, coord(0, 4), coord(0, 6)));
 }
 
 #[test]
 fn test_castle_left_in_legal_moves() {
     let mut board = Board::init_board();
-    board.grid[0][1] = Free; // b1
-    board.grid[0][2] = Free; // c1
-    board.grid[0][3] = Free; // d1
-    board.update_threatens_cells(&White);
-    board.update_legals_moves(&White);
-    assert!(board.legals_moves.contains(&(coord(0, 4), coord(0, 2))));
+    board.grid[0][1] = Free;
+    board.grid[0][2] = Free;
+    board.grid[0][3] = Free;
+    assert!(has_move(&mut board, &White, coord(0, 4), coord(0, 2)));
 }
 
 #[test]
 fn test_castle_denied_through_check() {
     let mut board = Board::init_board();
-    board.grid[0][5] = Free; // f1
-    board.grid[0][6] = Free; // g1
-    board.grid[1][5] = Occupied(Rook, Black);
-    board.update_threatens_cells(&White);
-    board.update_legals_moves(&White);
-    assert!(!board.legals_moves.contains(&(coord(0, 4), coord(0, 6))));
+    board.grid[0][5] = Free;
+    board.grid[0][6] = Free;
+    board.grid[1][5] = Occupied(Rook, Black); // tour noire menace f1
+    assert!(!has_move(&mut board, &White, coord(0, 4), coord(0, 6)));
 }
 
 #[test]
@@ -282,9 +277,7 @@ fn test_castle_denied_king_in_check() {
     board.grid[0][5] = Free;
     board.grid[0][6] = Free;
     board.check = Some(coord(0, 4));
-    board.update_threatens_cells(&White);
-    board.update_legals_moves(&White);
-    assert!(!board.legals_moves.contains(&(coord(0, 4), coord(0, 6))));
+    assert!(!has_move(&mut board, &White, coord(0, 4), coord(0, 6)));
 }
 
 #[test]
@@ -296,9 +289,83 @@ fn test_castle_denied_rights_lost() {
         long: false,
         short: false,
     };
-    board.update_threatens_cells(&White);
-    board.update_legals_moves(&White);
-    assert!(!board.legals_moves.contains(&(coord(0, 4), coord(0, 6))));
+    assert!(!has_move(&mut board, &White, coord(0, 4), coord(0, 6)));
+}
+
+// generate_moves — comportements spécifiques (bugs fixés)
+
+#[test]
+fn test_pawn_cannot_move_straight_to_occupied() {
+    let mut board = Board::init_board();
+    // pion noir en e3 bloque le pion blanc en e2
+    board.grid[2][4] = Occupied(Pawn, Black);
+    let moves = generate_moves(&mut board, &White);
+    assert!(
+        !moves
+            .iter()
+            .any(|m| m.origin == coord(1, 4) && m.dest == coord(2, 4))
+    );
+    assert!(
+        !moves
+            .iter()
+            .any(|m| m.origin == coord(1, 4) && m.dest == coord(3, 4))
+    );
+}
+
+#[test]
+fn test_pawn_cannot_move_diagonal_to_empty() {
+    let mut board = Board::init_board();
+    // case d3 est vide : le pion en e2 ne doit pas pouvoir aller en d3
+    board.grid[2][3] = Free;
+    let moves = generate_moves(&mut board, &White);
+    assert!(
+        !moves
+            .iter()
+            .any(|m| m.origin == coord(1, 4) && m.dest == coord(2, 3))
+    );
+}
+
+#[test]
+fn test_pawn_double_push_blocked_by_intermediate() {
+    let mut board = Board::init_board();
+    // pion blanc en e3 bloque la double poussée du pion en e2
+    board.grid[2][4] = Occupied(Pawn, White);
+    board.grid[1][4] = Free;
+    let moves = generate_moves(&mut board, &White);
+    assert!(
+        !moves
+            .iter()
+            .any(|m| m.origin == coord(1, 4) && m.dest == coord(3, 4))
+    );
+}
+
+#[test]
+fn test_rook_stops_after_capture() {
+    let mut board = Board::init_board();
+    // tour blanche en a1, pion noir en a4 — la tour doit s'arrêter à a4
+    for r in 0..8usize {
+        for c in 0..8usize {
+            board.grid[r][c] = Free;
+        }
+    }
+    board.grid[0][4] = Occupied(King, White);
+    board.grid[7][4] = Occupied(King, Black);
+    board.white_king = coord(0, 4);
+    board.black_king = coord(7, 4);
+    board.grid[0][0] = Occupied(Rook, White);
+    board.grid[3][0] = Occupied(Pawn, Black);
+    let moves = generate_moves(&mut board, &White);
+    // la tour peut aller en a2, a3, a4 (capture) mais PAS a5+
+    assert!(
+        moves
+            .iter()
+            .any(|m| m.origin == coord(0, 0) && m.dest == coord(3, 0))
+    );
+    assert!(
+        !moves
+            .iter()
+            .any(|m| m.origin == coord(0, 0) && m.dest == coord(4, 0))
+    );
 }
 
 #[test]
