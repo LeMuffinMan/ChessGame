@@ -49,7 +49,6 @@ impl ChessApp {
                                 .clicked()
                             {
                                 self.settings.white_bot = Human;
-                                ui.close_menu();
                             }
                             if ui
                                 .selectable_label(
@@ -59,7 +58,6 @@ impl ChessApp {
                                 .clicked()
                             {
                                 self.settings.white_bot = Bot(Easy);
-                                ui.close_menu();
                             }
                             if ui
                                 .selectable_label(
@@ -69,7 +67,6 @@ impl ChessApp {
                                 .clicked()
                             {
                                 self.settings.white_bot = Bot(Medium);
-                                ui.close_menu();
                             }
                             if ui
                                 .selectable_label(
@@ -79,7 +76,6 @@ impl ChessApp {
                                 .clicked()
                             {
                                 self.settings.white_bot = Bot(Hard);
-                                ui.close_menu();
                             }
                         });
                         if both_bots && self.history.snapshots.is_empty() {
