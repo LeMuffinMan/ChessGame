@@ -28,6 +28,8 @@ impl ChessApp {
                         );
                     }
                 }
+                let both_bots = matches!(self.settings.white_bot, Bot(_))
+                    && matches!(self.settings.black_bot, Bot(_));
                 ui.horizontal(|ui| {
                     if self.history.snapshots.is_empty() || self.current.end.is_some() {
                         ui.add(TextEdit::singleline(&mut self.settings.white_name));
@@ -80,6 +82,11 @@ impl ChessApp {
                                 ui.close_menu();
                             }
                         });
+                        if both_bots && self.history.snapshots.is_empty() {
+                            if ui.button("▶ Start").clicked() {
+                                self.start_bot_game();
+                            }
+                        }
                     });
                 });
             });

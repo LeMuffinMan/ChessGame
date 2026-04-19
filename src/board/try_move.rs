@@ -86,7 +86,7 @@ impl ChessApp {
             self.replay_infos.index += 1;
             self.encode_move_to_san(&from, &to, &prev_board);
             if self.current.end.is_none() && self.is_bot_turn() {
-                self.play_bot_turn();
+                self.bot_pending = true;
             }
         }
     }

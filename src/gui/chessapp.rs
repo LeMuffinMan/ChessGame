@@ -15,9 +15,9 @@ use crate::gui::settings::Settings;
 use crate::gui::ui_type::UiType;
 // use crate::gui::chessapp::AppMode::*;
 use crate::engine::minimax::find_best_move;
+use crate::gui::bot_difficulty::BotDifficulty;
 use crate::gui::gamestate::GameState;
 use crate::gui::hooks::WinDia;
-use crate::gui::bot_difficulty::BotDifficulty;
 use crate::gui::player_type::PlayerType;
 use crate::gui::player_type::PlayerType::*;
 use crate::gui::replay::ReplayInfos;
@@ -35,6 +35,7 @@ pub struct ChessApp {
     pub promoteinfo: Option<PromoteInfo>,
     pub current: GameState,
     pub history: History,
+    pub bot_pending: bool,
 }
 
 impl ChessApp {
@@ -49,6 +50,7 @@ impl ChessApp {
             current: GameState::new(),
             settings: Settings::new(),
             promoteinfo: None,
+            bot_pending: false,
         }
     }
 }
@@ -67,6 +69,11 @@ impl App for ChessApp {
                 generate_moves(&mut self.current.board, &self.current.active_player);
         }
         self.hooks(ctx);
+        if self.bot_pending && self.current.end.is_none() {
+            self.bot_pending = false;
+            ctx.request_repaint_after(std::time::Duration::from_millis(300));
+            self.play_bot_turn();
+        }
         match &self.ui_type {
             UiType::Mobile => {
                 self.apply_styles(ctx);
@@ -114,9 +121,20 @@ impl ChessApp {
         }
     }
 
+    pub(crate) fn start_bot_game(&mut self) {
+        let snapshot = self.current.clone();
+        self.history.snapshots.push(snapshot);
+        self.replay_infos.index += 1;
+        self.app_mode = Versus(None);
+        self.timer.active = true;
+        self.timer.start_of_turn.1 = Some(White);
+        self.bot_pending = true;
+    }
+
     pub(crate) fn play_bot_turn(&mut self) {
-        let depth = 3; // TODO: dériver de BotDifficulty
-        if let Some(m) = find_best_move(&mut self.current.board, self.current.active_player, depth) {
+        let depth = 4; // TODO: dériver de BotDifficulty
+        if let Some(m) = find_best_move(&mut self.current.board, self.current.active_player, depth)
+        {
             self.try_move(m.origin, m.dest);
         }
     }
