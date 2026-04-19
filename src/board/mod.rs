@@ -1,12 +1,11 @@
-pub mod board_struct;
+pub mod board;
 pub mod cell;
-pub mod legals_moves;
-pub mod move_struct;
+pub mod is_king_exposed;
+pub mod move_gen;
 pub mod threat;
-pub mod update_board;
+pub mod try_move;
 pub mod utils;
-pub mod validate_move;
-pub use board_struct::Board;
+pub use board::Board;
 
 #[cfg(test)]
 mod tests;

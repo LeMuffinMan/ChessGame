@@ -8,7 +8,7 @@ use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
-use crate::gui::chessapp_struct::End::*;
+use crate::gui::chessapp::End::*;
 
 // pub fn export_pgn(san: &str, path: &Path) {
 //     let mut pgn = String::new();
@@ -158,22 +158,26 @@ impl ChessApp {
     // ui.label("♔ ♕ ♖ ♗ ♘ ♙");
     // ui.label("♚ ♛ ♜ ♝ ♞ ♟")
 
-    pub fn is_ambiguous_move(&mut self, piece: &Piece, from: &Coord, to: &Coord) {
+    pub fn is_ambiguous_move(&mut self, piece: &Piece, origin: &Coord, dest: &Coord) {
         if !self.history.snapshots.is_empty() && self.replay_infos.index > 0 {
             let prev_state = &self.history.snapshots[self.replay_infos.index - 1];
             let prev_legal_moves = prev_state.legals_moves.clone();
-            for (f, t) in prev_legal_moves.iter() {
-                if t == to
-                    && let Some(p) = self.current.board.get(f).get_piece()
+            for m in prev_legal_moves.iter() {
+                if &m.dest == dest
+                    && let Some(p) = self.current.board.get(&m.origin).get_piece()
                     && p == piece
                 {
-                    if from.col != f.col {
-                        self.history.history_san.push((b'a' + from.col) as char);
-                    } else if from.row != f.row {
-                        self.history.history_san.push((b'0' + from.row + 1) as char);
+                    if origin.col != m.origin.col {
+                        self.history.history_san.push((b'a' + origin.col) as char);
+                    } else if origin.row != m.origin.row {
+                        self.history
+                            .history_san
+                            .push((b'0' + origin.row + 1) as char);
                     } else {
-                        self.history.history_san.push((b'a' + from.col) as char);
-                        self.history.history_san.push((b'0' + from.row + 1) as char);
+                        self.history.history_san.push((b'a' + origin.col) as char);
+                        self.history
+                            .history_san
+                            .push((b'0' + origin.row + 1) as char);
                     }
                 }
             }

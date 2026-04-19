@@ -1,7 +1,7 @@
 pub mod gui;
 mod pgn;
-use crate::gui::chessapp_struct::ChessApp;
-use crate::gui::chessapp_struct::UiType;
+use crate::gui::chessapp::ChessApp;
+use crate::gui::chessapp::UiType;
 
 mod board;
 use crate::board::cell::Color;

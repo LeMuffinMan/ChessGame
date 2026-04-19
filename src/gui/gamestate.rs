@@ -5,10 +5,12 @@ use crate::board::cell::Color;
 use crate::board::cell::Color::*;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
-use crate::board::move_struct::Move;
-use crate::gui::chessapp_struct::End;
-use crate::gui::game_state_struct::DrawOption::*;
-use crate::gui::game_state_struct::DrawRule::*;
+use crate::board::move_gen::Move;
+use crate::board::move_gen::generate_moves;
+use crate::gui::chessapp::End;
+use crate::gui::gamestate::DrawOption::*;
+use crate::gui::gamestate::DrawRule::FiftyMoves;
+use crate::gui::gamestate::DrawRule::*;
 
 use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;
@@ -25,7 +27,7 @@ pub struct GameState {
     pub draw: LateDraw,
     //Revoir l'utilisation des vec threats/legals dans le GUI
     pub threaten_cells: Vec<Coord>,
-    pub legals_moves: Vec<(Coord, Coord)>,
+    pub legals_moves: Vec<Move>,
 }
 
 impl Default for GameState {
@@ -62,7 +64,7 @@ impl GameState {
         let opponent = Color::Black;
 
         let threaten_cells = board.update_threatens_cells(&active_player);
-        let legals_moves = board.update_legals_moves(&active_player, &threaten_cells);
+        let legals_moves = generate_moves(&mut board, &active_player);
 
         Self {
             board,

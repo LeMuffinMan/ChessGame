@@ -1,7 +1,7 @@
 use crate::Color::*;
-use crate::gui::chessapp_struct::End::*;
-use crate::gui::game_state_struct::DrawOption::*;
-use crate::gui::game_state_struct::DrawRule;
+use crate::gui::chessapp::End::*;
+use crate::gui::gamestate::DrawOption::*;
+use crate::gui::gamestate::DrawRule;
 use crate::gui::hooks::WinDia;
 use crate::gui::hooks::WinDia::*;
 // use crate::gui::desktop_ui::desktop_buttons::draw_resign_undo::WinDia::DrawRequest;

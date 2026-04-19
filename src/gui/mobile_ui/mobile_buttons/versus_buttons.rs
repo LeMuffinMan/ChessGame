@@ -1,7 +1,7 @@
 use crate::ChessApp;
 use crate::Color::*;
-use crate::gui::chessapp_struct::End::Draw;
-use crate::gui::game_state_struct::DrawOption;
+use crate::gui::chessapp::End::Draw;
+use crate::gui::gamestate::DrawOption;
 use crate::gui::hooks::WinDia;
 use crate::gui::hooks::WinDia::*;
 use crate::gui::mobile_ui::mobile_buttons::versus_buttons::DrawOption::Available;

@@ -2,9 +2,9 @@ use crate::ChessApp;
 use crate::Color::*;
 use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
-use crate::gui::chessapp_struct::AppMode::*;
-use crate::gui::chessapp_struct::End;
-use crate::gui::chessapp_struct::UiType::*;
+use crate::gui::chessapp::AppMode::*;
+use crate::gui::chessapp::End;
+use crate::gui::chessapp::UiType::*;
 use crate::gui::hooks::End::Draw;
 use egui::RichText;
 
@@ -412,7 +412,6 @@ impl ChessApp {
             && let Some(piece) = promote_info.promote
             && self.replay_infos.index == self.history.snapshots.len()
         {
-            //methods get opponent color
             let color = if self.current.active_player == White {
                 Black
             } else {
@@ -421,20 +420,14 @@ impl ChessApp {
             self.current.board.grid[coord.row as usize][coord.col as usize] =
                 Cell::Occupied(piece, color);
 
-            //methods
-            let opponent = if self.current.active_player != White {
-                White
-            } else {
-                Black
-            };
-            if let Some(k) = self.current.board.get_king(&opponent)
+            // check_endgame first: recalculates threaten_cells with the promoted piece's threats
+            self.check_endgame();
+            // then detect check using fresh threaten_cells
+            if let Some(k) = self.current.board.get_king(&self.current.active_player)
                 && self.current.threaten_cells.contains(&k)
-                && let Some(k) = self.current.board.get_king(&opponent)
             {
                 self.current.board.check = Some(k);
-                // println!("Check !");
             }
-            self.check_endgame();
             if let Some(promoteinfo) = &self.promoteinfo {
                 let from = promoteinfo.from;
                 let to = promoteinfo.to;
