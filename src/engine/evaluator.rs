@@ -1,5 +1,3 @@
-use std::i32;
-
 use crate::Board;
 use crate::board::cell::Cell::{Free, Occupied};
 use crate::board::cell::Color;

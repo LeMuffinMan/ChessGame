@@ -78,10 +78,11 @@ impl ChessApp {
                                 self.settings.white_bot = Bot(Hard);
                             }
                         });
-                        if both_bots && self.history.snapshots.is_empty() {
-                            if ui.button("▶ Start").clicked() {
-                                self.start_bot_game();
-                            }
+                        if both_bots
+                            && self.history.snapshots.is_empty()
+                            && ui.button("▶ Start").clicked()
+                        {
+                            self.start_bot_game();
                         }
                     });
                 });

@@ -24,7 +24,7 @@ pub fn is_king_exposed(board: &Board, active_player: &Color) -> bool {
             let r = king_pos.row as i32 + dr * dist;
             let c = king_pos.col as i32 + dc * dist;
 
-            if r < 0 || r >= 8 || c < 0 || c >= 8 {
+            if !(0..8).contains(&r) || !(0..8).contains(&c) {
                 break;
             }
 
@@ -72,7 +72,7 @@ pub fn is_king_exposed(board: &Board, active_player: &Color) -> bool {
         let r = king_pos.row as i32 + dr;
         let c = king_pos.col as i32 + dc;
 
-        if r >= 0 && r < 8 && c >= 0 && c < 8 {
+        if (0..8).contains(&r) && (0..8).contains(&c) {
             let cell = &board.grid[r as usize][c as usize];
             if cell.get_piece() == Some(&Piece::Knight) && cell.get_color() != Some(active_player) {
                 return true;

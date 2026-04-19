@@ -4,7 +4,6 @@ use crate::board::cell::Color::*;
 use crate::board::move_gen::Move;
 use crate::board::move_gen::generate_moves;
 use crate::engine::evaluator::{Evaluator, MaterialEvaluation};
-use std::i32;
 
 const MATE_SCORE: i32 = 1_000_000;
 
@@ -58,7 +57,7 @@ pub(crate) fn minimax<E: Evaluator>(
             }
         }
     }
-    return best;
+    best
 }
 
 pub fn find_best_move(board: &mut Board, active_player: Color, depth: u8) -> Option<Move> {
