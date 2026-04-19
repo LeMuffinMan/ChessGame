@@ -1,4 +1,5 @@
 mod board;
+mod engine;
 pub mod gui;
 mod pgn;
 use crate::board::cell::Color;

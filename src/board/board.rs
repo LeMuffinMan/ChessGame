@@ -168,14 +168,45 @@ impl Board {
                 King => {
                     self.update_king_castle(&m.origin, &m.dest, &active_player);
                     match active_player {
-                        White => self.white_king = m.dest,
-                        Black => self.black_king = m.dest,
+                        White => {
+                            self.white_king = m.dest;
+                            self.white_castle = CastleRights {
+                                long: false,
+                                short: false,
+                            };
+                        }
+                        Black => {
+                            self.black_king = m.dest;
+                            self.black_castle = CastleRights {
+                                long: false,
+                                short: false,
+                            };
+                        }
                     }
                 }
-                Knight | Rook | Queen | Bishop => {}
+                Rook => match (active_player, m.origin.col) {
+                    (White, 0) => self.white_castle.long = false,
+                    (White, 7) => self.white_castle.short = false,
+                    (Black, 0) => self.black_castle.long = false,
+                    (Black, 7) => self.black_castle.short = false,
+                    _ => {}
+                },
+                Knight | Queen | Bishop => {}
             },
             None => {
                 println!("Error : update board : from cell empty")
+            }
+        }
+        // If a rook was captured at its starting corner, revoke the opponent's castle right
+        if let Cell::Occupied(Rook, color) = m.capture {
+            let rights = match color {
+                White => &mut self.white_castle,
+                Black => &mut self.black_castle,
+            };
+            match m.dest.col {
+                0 => rights.long = false,
+                7 => rights.short = false,
+                _ => {}
             }
         }
         self.grid[m.dest.row as usize][m.dest.col as usize] = std::mem::replace(

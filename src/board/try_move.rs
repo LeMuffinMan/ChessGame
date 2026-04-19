@@ -2,7 +2,6 @@ use crate::Board;
 use crate::ChessApp;
 use crate::Color::*;
 use crate::Coord;
-use crate::board::cell::Piece::*;
 use crate::board::is_king_exposed::is_king_exposed;
 use crate::board::move_gen::generate_moves;
 use crate::gui::chessapp::AppMode::*;
@@ -60,8 +59,6 @@ impl ChessApp {
             self.current.end = Some(Draw);
             self.app_mode = Versus(Some(Draw));
         }
-        //update castles bool state for both player
-        self.update_castles(&to);
         //This add a hash for the 3 repetition draw
         //it takes player on trait, the grid, the castle and en_passant state
         //hash gives us the info if this exact situation happened
@@ -97,24 +94,6 @@ impl ChessApp {
         if self.current.active_player == Black {
             self.current.turn += 1;
         }
-    }
-
-    fn update_castles(&mut self, to: &Coord) {
-        if let Some(piece) = self.current.board.get(to).get_piece() {
-            match piece {
-                Rook => {
-                    match to.col {
-                        7 => self.current.switch_castle(false, true),
-                        0 => self.current.switch_castle(true, false),
-                        _ => {}
-                    };
-                }
-                King => {
-                    self.current.switch_castle(false, false);
-                }
-                _ => {}
-            }
-        };
     }
 
     pub fn check_endgame(&mut self) {
