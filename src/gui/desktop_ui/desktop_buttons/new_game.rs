@@ -1,5 +1,5 @@
 use crate::ChessApp;
-use crate::gui::chessapp::AppMode::*;
+use crate::gui::appmode::AppMode::*;
 
 use egui::Context;
 

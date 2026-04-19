@@ -1,5 +1,5 @@
 use crate::ChessApp;
-use crate::gui::chessapp::AppMode;
+use crate::gui::appmode::AppMode;
 use crate::gui::desktop_ui::bot_panels::format_time;
 use crate::gui::hooks::WinDia::*;
 use crate::gui::update_timer::GameMode::*;

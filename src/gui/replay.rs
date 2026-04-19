@@ -1,5 +1,5 @@
 use crate::ChessApp;
-use crate::gui::chessapp::UiType;
+use crate::gui::ui_type::UiType;
 
 pub struct ReplayInfos {
     pub index: usize,

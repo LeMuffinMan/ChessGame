@@ -1,6 +1,6 @@
 use crate::ChessApp;
-use crate::gui::chessapp::UiType::Mobile;
 use crate::gui::hooks::WinDia::*;
+use crate::gui::ui_type::UiType::Mobile;
 
 impl ChessApp {
     pub fn settings_button(&mut self, ui: &mut egui::Ui) {

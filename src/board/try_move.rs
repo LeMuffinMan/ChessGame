@@ -4,8 +4,8 @@ use crate::Color::*;
 use crate::Coord;
 use crate::board::is_king_exposed::is_king_exposed;
 use crate::board::move_gen::generate_moves;
-use crate::gui::chessapp::AppMode::*;
-use crate::gui::chessapp::End::*;
+use crate::gui::appmode::AppMode::*;
+use crate::gui::end::End::*;
 
 // use crate::gui::chessapp::PromoteInfo;
 

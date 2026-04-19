@@ -1,5 +1,5 @@
 use crate::Color::*;
-use crate::gui::chessapp::End::*;
+use crate::gui::end::End::*;
 use crate::gui::gamestate::DrawOption::*;
 use crate::gui::gamestate::DrawRule;
 use crate::gui::hooks::WinDia;

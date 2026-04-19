@@ -2,10 +2,15 @@ use crate::Board;
 use crate::Color;
 use crate::Color::*;
 use crate::Coord;
-use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
 use crate::board::move_gen::generate_moves;
-use crate::gui::chessapp::AppMode::*;
+use crate::gui::appmode::AppMode;
+use crate::gui::appmode::AppMode::*;
+use crate::gui::end::End;
+use crate::gui::history::History;
+use crate::gui::promote_info::PromoteInfo;
+use crate::gui::settings::Settings;
+use crate::gui::ui_type::UiType;
 // use crate::gui::chessapp::AppMode::*;
 use crate::gui::gamestate::GameState;
 use crate::gui::hooks::WinDia;
@@ -13,112 +18,6 @@ use crate::gui::replay::ReplayInfos;
 use crate::gui::update_timer::GameMode;
 use crate::gui::update_timer::Timer;
 use eframe::{App, egui};
-use egui::Pos2;
-use std::path::PathBuf;
-
-#[derive(Clone, PartialEq)]
-pub enum End {
-    Checkmate,
-    TimeOut,
-    Pat,
-    Draw,
-    Resign,
-}
-
-#[derive(PartialEq)]
-pub enum AppMode {
-    Versus(Option<End>),
-    Replay,
-    Lobby,
-}
-
-#[derive(Clone, PartialEq)]
-pub enum UiType {
-    Desktop,
-    Mobile,
-}
-
-#[derive(Clone)]
-pub struct PromoteInfo {
-    pub from: Coord,
-    pub to: Coord,
-    pub prev_board: Board,
-    pub pawn_to_promote: Option<Coord>,
-    pub promote: Option<Piece>,
-}
-
-pub struct Settings {
-    pub from_cell: Option<Coord>,
-    pub drag_from: Option<Coord>,
-    pub drag_pos: Option<Pos2>,
-    pub piece_legals_moves: Vec<Coord>,
-    pub show_coordinates: bool,
-    pub show_legals_moves: bool,
-    pub show_last_move: bool,
-    pub show_threaten_cells: bool,
-    pub flip: bool,
-    pub autoflip: bool,
-    pub file_name: String,
-    pub white_name: String,
-    pub black_name: String,
-    pub file_path: Option<PathBuf>,
-    pub allow_undo: bool,
-    pub white_undo: u8,
-    pub black_undo: u8,
-    pub undo_limit: u8,
-}
-
-impl Settings {
-    pub fn new() -> Self {
-        Self {
-            show_coordinates: false,
-            show_legals_moves: true,
-            show_last_move: true,
-            show_threaten_cells: false,
-            flip: true,
-            autoflip: false,
-            file_name: "chessgame.pgn".to_string(),
-            from_cell: None,
-            drag_from: None,
-            drag_pos: None,
-            piece_legals_moves: Vec::new(),
-            white_name: "White".to_string(),
-            black_name: "Black".to_string(),
-            file_path: None,
-            allow_undo: false,
-            white_undo: 0,
-            black_undo: 0,
-            undo_limit: 0,
-        }
-    }
-}
-
-impl Default for Settings {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-pub struct History {
-    pub snapshots: Vec<GameState>,
-    //pub coord: Vec<Option<coord>, Option<coord>>,
-    pub history_san: String,
-}
-
-impl History {
-    pub fn new() -> Self {
-        Self {
-            snapshots: Vec::new(),
-            history_san: String::new(),
-        }
-    }
-}
-
-impl Default for History {
-    fn default() -> Self {
-        Self::new()
-    }
-}
 
 pub struct ChessApp {
     pub ui_type: UiType,
