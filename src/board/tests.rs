@@ -369,6 +369,38 @@ fn test_rook_stops_after_capture() {
 }
 
 #[test]
+fn test_castle_rights_revoked_on_king_move() {
+    let mut board = Board::init_board();
+    board.grid[0][5] = Free;
+    board.grid[0][6] = Free;
+    let m = board.build_move(coord(0, 4), coord(0, 5), White);
+    board.apply_move(&m, White);
+    assert_eq!(
+        board.white_castle,
+        CastleRights {
+            long: false,
+            short: false
+        }
+    );
+}
+
+#[test]
+fn test_castle_rights_revoked_on_rook_move() {
+    let mut board = Board::init_board();
+    board.grid[1][7] = Free; // free the pawn in front of h1 rook
+    board.grid[2][7] = Free;
+    let m = board.build_move(coord(0, 7), coord(2, 7), White);
+    board.apply_move(&m, White);
+    assert_eq!(
+        board.white_castle,
+        CastleRights {
+            long: true,
+            short: false
+        }
+    );
+}
+
+#[test]
 fn test_castle_rights_restored_on_undo() {
     let mut board = Board::init_board();
     board.grid[0][5] = Free;
@@ -377,8 +409,13 @@ fn test_castle_rights_restored_on_undo() {
     let to = coord(0, 6);
     let m = board.build_move(from, to, White);
     board.apply_move(&m, White);
-    // apply_move ne gère pas les droits de roque (géré par ChessApp::update_castles)
-    // C'est un probleme ?
+    assert_eq!(
+        board.white_castle,
+        CastleRights {
+            long: false,
+            short: false
+        }
+    );
     board.undo_move(m, White);
     assert_eq!(
         board.white_castle,

@@ -29,6 +29,9 @@ pub enum Cell {
 }
 
 impl Cell {
+    pub fn get_cell(&self) -> &Cell {
+        self
+    }
     pub fn get_piece(&self) -> Option<&Piece> {
         match self {
             Cell::Occupied(piece, _) => Some(piece),
