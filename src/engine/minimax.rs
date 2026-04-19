@@ -63,7 +63,10 @@ pub(crate) fn minimax<E: Evaluator>(
 
 pub fn find_best_move(board: &mut Board, active_player: Color, depth: u8) -> Option<Move> {
     let moves = generate_moves(board, &active_player);
-    let opponent = match active_player { White => Black, Black => White };
+    let opponent = match active_player {
+        White => Black,
+        Black => White,
+    };
     let mut best_move = None;
     let mut best_score = i32::MIN;
     for m in moves {

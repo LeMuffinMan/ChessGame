@@ -1,4 +1,5 @@
 pub mod appmode;
+pub mod bot_difficulty;
 pub mod chessapp;
 pub mod desktop_ui;
 pub mod end;
@@ -7,6 +8,7 @@ pub mod history;
 pub mod hooks;
 pub mod inputs;
 pub mod mobile_ui;
+pub mod player_type;
 pub mod promote_info;
 pub mod render;
 pub mod replay;

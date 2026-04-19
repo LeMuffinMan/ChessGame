@@ -1,4 +1,7 @@
 use crate::Coord;
+use crate::gui::bot_difficulty::BotDifficulty::{self, *};
+use crate::gui::player_type::PlayerType;
+use crate::gui::player_type::PlayerType::*;
 use egui::Pos2;
 use std::path::PathBuf;
 
@@ -21,6 +24,8 @@ pub struct Settings {
     pub white_undo: u8,
     pub black_undo: u8,
     pub undo_limit: u8,
+    pub white_bot: PlayerType,
+    pub black_bot: PlayerType,
 }
 
 impl Settings {
@@ -44,6 +49,8 @@ impl Settings {
             white_undo: 0,
             black_undo: 0,
             undo_limit: 0,
+            white_bot: Human,
+            black_bot: Bot(Medium),
         }
     }
 }
