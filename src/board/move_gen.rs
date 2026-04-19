@@ -108,16 +108,14 @@ pub fn generate_pawn_moves(origin: &Coord, active_player: &Color, board: &mut Bo
         White => origin.row == 1,
         Black => origin.row == 6,
     };
-    if initial_row {
-        if let Some(mid) = Board::checked_coord(origin.row as i8 + dir, origin.col as i8)
-            && let Some(dest) = Board::checked_coord(origin.row as i8 + dir + dir, origin.col as i8)
-            && board.get(&mid) == Cell::Free
-            && board.get(&dest) == Cell::Free
-        {
-            if let Some(m) = board.check_move(origin, &dest, active_player) {
-                ret.push(m);
-            }
-        }
+    if initial_row
+        && let Some(mid) = Board::checked_coord(origin.row as i8 + dir, origin.col as i8)
+        && let Some(dest) = Board::checked_coord(origin.row as i8 + dir + dir, origin.col as i8)
+        && board.get(&mid) == Cell::Free
+        && board.get(&dest) == Cell::Free
+        && let Some(m) = board.check_move(origin, &dest, active_player)
+    {
+        ret.push(m);
     }
 
     ret
@@ -174,7 +172,7 @@ pub fn generate_rook_moves(origin: &Coord, active_player: &Color, board: &mut Bo
                 break;
             }
             let is_capture = target.get_piece().is_some();
-            if let Some(m) = board.check_move(&origin, &dest, active_player) {
+            if let Some(m) = board.check_move(origin, &dest, active_player) {
                 ret.push(m);
             }
             if is_capture {
@@ -208,7 +206,7 @@ pub fn generate_knight_moves(
         let new_row = origin.row as i8 + dr;
         let new_col = origin.col as i8 + dc;
         if let Some(dest) = Board::checked_coord(new_row, new_col)
-            && let Some(m) = board.check_move(&origin, &dest, active_player)
+            && let Some(m) = board.check_move(origin, &dest, active_player)
         {
             ret.push(m);
         }
@@ -235,7 +233,7 @@ pub fn generate_bishop_moves(
                 break;
             }
             let is_capture = target.get_piece().is_some();
-            if let Some(m) = board.check_move(&origin, &dest, active_player) {
+            if let Some(m) = board.check_move(origin, &dest, active_player) {
                 ret.push(m);
             }
             if is_capture {
@@ -272,7 +270,7 @@ pub fn generate_king_moves(origin: &Coord, active_player: &Color, board: &mut Bo
         let new_row = origin.row as i8 + dr;
         let new_col = origin.col as i8 + dc;
         if let Some(dest) = Board::checked_coord(new_row, new_col)
-            && let Some(m) = board.check_move(&origin, &dest, active_player)
+            && let Some(m) = board.check_move(origin, &dest, active_player)
         {
             ret.push(m);
         }
@@ -283,23 +281,21 @@ pub fn generate_king_moves(origin: &Coord, active_player: &Color, board: &mut Bo
             White => board.white_castle,
             Black => board.black_castle,
         };
-        if castle_rights.short {
-            if let Some(through) = Board::checked_coord(origin.row as i8, origin.col as i8 + 1)
-                && let Some(dest) = Board::checked_coord(origin.row as i8, origin.col as i8 + 2)
-                && board.check_move(&origin, &through, active_player).is_some()
-                && let Some(m) = board.check_move(&origin, &dest, active_player)
-            {
-                ret.push(m);
-            }
+        if castle_rights.short
+            && let Some(through) = Board::checked_coord(origin.row as i8, origin.col as i8 + 1)
+            && let Some(dest) = Board::checked_coord(origin.row as i8, origin.col as i8 + 2)
+            && board.check_move(origin, &through, active_player).is_some()
+            && let Some(m) = board.check_move(origin, &dest, active_player)
+        {
+            ret.push(m);
         }
-        if castle_rights.long {
-            if let Some(through) = Board::checked_coord(origin.row as i8, origin.col as i8 - 1)
-                && let Some(dest) = Board::checked_coord(origin.row as i8, origin.col as i8 - 2)
-                && board.check_move(&origin, &through, active_player).is_some()
-                && let Some(m) = board.check_move(&origin, &dest, active_player)
-            {
-                ret.push(m);
-            }
+        if castle_rights.long
+            && let Some(through) = Board::checked_coord(origin.row as i8, origin.col as i8 - 1)
+            && let Some(dest) = Board::checked_coord(origin.row as i8, origin.col as i8 - 2)
+            && board.check_move(origin, &through, active_player).is_some()
+            && let Some(m) = board.check_move(origin, &dest, active_player)
+        {
+            ret.push(m);
         }
     }
     ret

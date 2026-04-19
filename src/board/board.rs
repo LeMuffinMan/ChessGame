@@ -142,7 +142,7 @@ impl Board {
                 move_type: m_type,
             }, // castle right / left
         };
-        return m;
+        m
     }
 
     pub fn apply_move(&mut self, m: &Move, active_player: Color) {

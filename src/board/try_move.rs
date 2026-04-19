@@ -80,7 +80,7 @@ impl ChessApp {
         //check for mate, or pat and finaly for check situation
         self.events_check(&from, &to, &prev_board);
 
-        if !self.promoteinfo.is_some() {
+        if self.promoteinfo.is_none() {
             //if there were no promotion, we add the actual board in history, and inc the index
             self.history.snapshots.push(self.current.clone());
             self.replay_infos.index += 1;
