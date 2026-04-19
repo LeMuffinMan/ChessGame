@@ -1,7 +1,7 @@
 use crate::ChessApp;
 use crate::Color::*;
-use crate::gui::chessapp::AppMode;
-use crate::gui::chessapp::AppMode::*;
+use crate::gui::appmode::AppMode;
+use crate::gui::appmode::AppMode::*;
 
 use egui::Context;
 

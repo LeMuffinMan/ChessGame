@@ -1,5 +1,5 @@
 use crate::ChessApp;
-use crate::gui::chessapp::End;
+use crate::gui::end::End;
 
 use egui::RichText;
 

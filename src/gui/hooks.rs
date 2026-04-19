@@ -2,10 +2,10 @@ use crate::ChessApp;
 use crate::Color::*;
 use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
-use crate::gui::chessapp::AppMode::*;
-use crate::gui::chessapp::End;
-use crate::gui::chessapp::UiType::*;
+use crate::gui::appmode::AppMode::*;
+use crate::gui::end::End;
 use crate::gui::hooks::End::Draw;
+use crate::gui::ui_type::UiType::*;
 use egui::RichText;
 
 //Hooks ?

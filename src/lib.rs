@@ -5,7 +5,7 @@ mod pgn;
 use crate::board::cell::Color;
 use crate::board::cell::Coord;
 use crate::gui::chessapp::ChessApp;
-use crate::gui::chessapp::UiType::*;
+use crate::gui::ui_type::UiType::*;
 use board::Board;
 
 #[cfg(target_arch = "wasm32")]

@@ -7,7 +7,7 @@ use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
 use crate::board::move_gen::Move;
 use crate::board::move_gen::generate_moves;
-use crate::gui::chessapp::End;
+use crate::gui::end::End;
 use crate::gui::gamestate::DrawOption::*;
 use crate::gui::gamestate::DrawRule::FiftyMoves;
 use crate::gui::gamestate::DrawRule::*;
