@@ -7,8 +7,6 @@ use crate::board::move_gen::generate_moves;
 use crate::gui::appmode::AppMode::*;
 use crate::gui::end::End::*;
 
-// use crate::gui::chessapp::PromoteInfo;
-
 impl ChessApp {
     pub fn try_move(&mut self, from: Coord, to: Coord) {
         let legal = generate_moves(&mut self.current.board, &self.current.active_player)
@@ -87,10 +85,13 @@ impl ChessApp {
             self.history.snapshots.push(self.current.clone());
             self.replay_infos.index += 1;
             self.encode_move_to_san(&from, &to, &prev_board);
+            if self.current.end.is_none() && self.is_bot_turn() {
+                self.play_bot_turn();
+            }
         }
     }
 
-    fn incremente_turn(&mut self) {
+    pub fn incremente_turn(&mut self) {
         if self.current.active_player == Black {
             self.current.turn += 1;
         }
@@ -125,7 +126,7 @@ impl ChessApp {
         }
     }
 
-    fn events_check(&mut self, from: &Coord, to: &Coord, prev_board: &Board) {
+    pub fn events_check(&mut self, from: &Coord, to: &Coord, prev_board: &Board) {
         let active_player = self.current.active_player;
         if let Some(promote_info) = self.promote_pawn(&active_player, from, to, prev_board) {
             self.promoteinfo = Some(promote_info);

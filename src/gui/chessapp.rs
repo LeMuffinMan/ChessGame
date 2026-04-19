@@ -1,4 +1,5 @@
 use crate::Board;
+
 use crate::Color;
 use crate::Color::*;
 use crate::Coord;
@@ -7,13 +8,18 @@ use crate::board::move_gen::generate_moves;
 use crate::gui::appmode::AppMode;
 use crate::gui::appmode::AppMode::*;
 use crate::gui::end::End;
+use crate::gui::end::End::*;
 use crate::gui::history::History;
 use crate::gui::promote_info::PromoteInfo;
 use crate::gui::settings::Settings;
 use crate::gui::ui_type::UiType;
 // use crate::gui::chessapp::AppMode::*;
+use crate::engine::minimax::find_best_move;
 use crate::gui::gamestate::GameState;
 use crate::gui::hooks::WinDia;
+use crate::gui::bot_difficulty::BotDifficulty;
+use crate::gui::player_type::PlayerType;
+use crate::gui::player_type::PlayerType::*;
 use crate::gui::replay::ReplayInfos;
 use crate::gui::update_timer::GameMode;
 use crate::gui::update_timer::Timer;
@@ -98,6 +104,20 @@ impl ChessApp {
             && self.promoteinfo.is_some()
         {
             self.get_promotion_input(ctx);
+        }
+    }
+
+    pub(crate) fn is_bot_turn(&self) -> bool {
+        match self.current.active_player {
+            White => matches!(self.settings.white_bot, Bot(_)),
+            Black => matches!(self.settings.black_bot, Bot(_)),
+        }
+    }
+
+    pub(crate) fn play_bot_turn(&mut self) {
+        let depth = 3; // TODO: dériver de BotDifficulty
+        if let Some(m) = find_best_move(&mut self.current.board, self.current.active_player, depth) {
+            self.try_move(m.origin, m.dest);
         }
     }
 
