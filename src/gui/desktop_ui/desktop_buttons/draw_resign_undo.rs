@@ -15,6 +15,10 @@ impl ChessApp {
             ui.separator();
             match draw {
                 Available(DrawRule::TripleRepetition) => {
+                    if self.is_bot_turn() {
+                        self.current.end = Some(Draw);
+                        self.current.draw.draw_option = None;
+                    }
                     ui.label("Triple repetition :");
                 }
                 Available(DrawRule::FiftyMoves) => {

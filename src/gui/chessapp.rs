@@ -4,6 +4,7 @@ use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
+use crate::board::move_gen::Move;
 use crate::board::move_gen::MoveType::*;
 use crate::board::move_gen::generate_moves;
 use crate::engine::evaluator::MaterialEvaluator;
@@ -14,6 +15,8 @@ use crate::gui::appmode::AppMode::*;
 use crate::gui::bot_difficulty::BotDifficulty::*;
 use crate::gui::end::End;
 use crate::gui::end::End::*;
+use crate::gui::gamestate::DrawOption::Available;
+use crate::gui::gamestate::DrawRule::FiftyMoves;
 use crate::gui::gamestate::GameState;
 use crate::gui::history::History;
 use crate::gui::hooks::WinDia;
@@ -146,47 +149,20 @@ impl ChessApp {
             self.current
                 .board
                 .apply_move(&moves[index], self.current.active_player);
-            if self.history.snapshots.is_empty() {
-                self.history.snapshots.push(snapshot.clone());
-                self.replay_infos.index += 1;
-                self.app_mode = Versus(None);
-                self.timer.active = true;
-                self.timer.start_of_turn.1 = Some(White);
-            }
 
-            self.history.snapshots.push(snapshot);
-            self.replay_infos.index += 1;
-            self.current.fifty_moves_draw_check(&moves[index]);
-
-            if self.current.impossible_mate_check() {
-                self.current.end = Some(Draw);
-                self.app_mode = Versus(Some(Draw));
-            }
-
-            self.current.add_hash();
-
-            self.current.last_move = Some((moves[index].origin, moves[index].dest));
-
-            if self.settings.autoflip {
-                self.settings.flip = !self.settings.flip;
-            }
-            self.incremente_turn();
+            self.commit_move(
+                snapshot,
+                moves[index],
+                moves[index].origin,
+                moves[index].dest,
+            );
 
             if let Promotion(piece) = moves[index].move_type {
                 self.current.board.grid[moves[index].dest.row as usize]
                     [moves[index].dest.col as usize] =
                     Cell::Occupied(piece, self.current.active_player);
             }
-
-            self.current.switch_players_color();
-            self.check_endgame();
-            let k = match self.current.active_player {
-                White => self.current.board.white_king,
-                Black => self.current.board.black_king,
-            };
-            if self.current.threaten_cells.contains(&k) {
-                self.current.board.check = Some(k);
-            }
+            self.switch_turn();
             if self.current.end.is_none() && self.is_bot_turn() {
                 self.bot_pending = true;
             }
@@ -252,5 +228,30 @@ impl ChessApp {
             }
         }
         None
+    }
+    //after 50 moves without pawn moves or capture, it triggers a draw
+    pub fn fifty_moves_draw_check(&mut self, m: &Move) {
+        //if a pawn moved, the counter reset
+        if let Some(p) = self.current.board.get(&m.dest).get_piece()
+            && p == &Pawn
+        {
+            self.current.draw.draw_moves_count = 0;
+            return;
+        }
+        if m.capture != Cell::Free {
+            self.current.draw.draw_moves_count = 0;
+            return;
+        }
+        self.current.draw.draw_moves_count += 1;
+        if self.current.draw.draw_moves_count >= 50 {
+            if self.is_bot_turn() {
+                self.current.end = Some(Draw);
+                self.current.draw.draw_option = None;
+            } else {
+                self.current.draw.draw_option = Some(Available(FiftyMoves));
+            }
+        } else {
+            self.current.draw.draw_option = None;
+        }
     }
 }
