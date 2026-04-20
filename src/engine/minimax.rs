@@ -3,7 +3,7 @@ use crate::board::cell::Color;
 use crate::board::cell::Color::*;
 use crate::board::move_gen::Move;
 use crate::board::move_gen::generate_moves;
-use crate::engine::evaluator::{Evaluator, MaterialEvaluation};
+use crate::engine::evaluator::Evaluator;
 
 const MATE_SCORE: i32 = 1_000_000;
 
@@ -23,7 +23,6 @@ pub(crate) fn minimax<E: Evaluator>(
 
     if moves.is_empty() {
         return if board.check.is_some() {
-            // mated: worse at lower depth (prefer fast mates)
             -MATE_SCORE + depth as i32
         } else {
             0
@@ -50,7 +49,12 @@ pub(crate) fn minimax<E: Evaluator>(
     alpha
 }
 
-pub fn find_best_move(board: &mut Board, active_player: Color, depth: u8) -> Option<Move> {
+pub fn find_best_move<E: Evaluator>(
+    board: &mut Board,
+    active_player: Color,
+    eval: &E,
+    depth: u8,
+) -> Option<Move> {
     let moves = generate_moves(board, &active_player);
     let opponent = match active_player {
         White => Black,
@@ -60,7 +64,7 @@ pub fn find_best_move(board: &mut Board, active_player: Color, depth: u8) -> Opt
     let mut best_score = i32::MIN;
     for m in moves {
         board.apply_move(&m, active_player);
-        let score = -minimax(board, depth - 1, opponent, &MaterialEvaluation, -MATE_SCORE, MATE_SCORE);
+        let score = -minimax(board, depth - 1, opponent, eval, -MATE_SCORE, MATE_SCORE);
         board.undo_move(m, active_player);
         if score > best_score {
             best_score = score;
