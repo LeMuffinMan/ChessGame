@@ -1,26 +1,29 @@
 use crate::Board;
-
 use crate::Color;
 use crate::Color::*;
 use crate::Coord;
+use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
+use crate::board::move_gen::MoveType::*;
 use crate::board::move_gen::generate_moves;
+use crate::engine::minimax::find_best_move;
 use crate::gui::appmode::AppMode;
 use crate::gui::appmode::AppMode::*;
+use crate::gui::bot_difficulty::BotDifficulty::*;
 use crate::gui::end::End;
-use crate::gui::history::History;
-use crate::gui::promote_info::PromoteInfo;
-use crate::gui::settings::Settings;
-use crate::gui::ui_type::UiType;
-// use crate::gui::chessapp::AppMode::*;
-use crate::engine::minimax::find_best_move;
+use crate::gui::end::End::*;
 use crate::gui::gamestate::GameState;
+use crate::gui::history::History;
 use crate::gui::hooks::WinDia;
 use crate::gui::player_type::PlayerType::*;
+use crate::gui::promote_info::PromoteInfo;
 use crate::gui::replay::ReplayInfos;
+use crate::gui::settings::Settings;
+use crate::gui::ui_type::UiType;
 use crate::gui::update_timer::GameMode;
 use crate::gui::update_timer::Timer;
 use eframe::{App, egui};
+use js_sys::Math;
 
 pub struct ChessApp {
     pub ui_type: UiType,
@@ -68,7 +71,7 @@ impl App for ChessApp {
         self.hooks(ctx);
         if self.bot_pending && self.current.end.is_none() {
             self.bot_pending = false;
-            ctx.request_repaint_after(std::time::Duration::from_millis(300));
+            ctx.request_repaint_after(std::time::Duration::from_millis(100));
             self.play_bot_turn();
         }
         match &self.ui_type {
@@ -129,8 +132,72 @@ impl ChessApp {
     }
 
     pub(crate) fn play_bot_turn(&mut self) {
-        let depth = 4; // TODO: dériver de BotDifficulty
-        if let Some(m) = find_best_move(&mut self.current.board, self.current.active_player, depth)
+        let depth = match self.current.active_player {
+            White => match self.settings.white_bot {
+                Bot(Medium) => 3,
+                Bot(Hard) => 4,
+                _ => 0,
+            },
+            Black => match self.settings.black_bot {
+                Bot(Medium) => 3,
+                Bot(Hard) => 4,
+                _ => 0,
+            },
+        };
+        if depth == 0 {
+            let moves = generate_moves(&mut self.current.board, &self.current.active_player);
+            let index = (Math::random() * moves.len() as f64).floor() as usize;
+
+            let snapshot = self.current.clone();
+            self.current
+                .board
+                .apply_move(&moves[index], self.current.active_player);
+            if self.history.snapshots.is_empty() {
+                self.history.snapshots.push(snapshot.clone());
+                self.replay_infos.index += 1;
+                self.app_mode = Versus(None);
+                self.timer.active = true;
+                self.timer.start_of_turn.1 = Some(White);
+            }
+
+            self.history.snapshots.push(snapshot);
+            self.replay_infos.index += 1;
+            self.current.fifty_moves_draw_check(&moves[index]);
+
+            if self.current.impossible_mate_check() {
+                self.current.end = Some(Draw);
+                self.app_mode = Versus(Some(Draw));
+            }
+
+            self.current.add_hash();
+
+            self.current.last_move = Some((moves[index].origin, moves[index].dest));
+
+            if self.settings.autoflip {
+                self.settings.flip = !self.settings.flip;
+            }
+            self.incremente_turn();
+
+            if let Promotion(piece) = moves[index].move_type {
+                self.current.board.grid[moves[index].dest.row as usize]
+                    [moves[index].dest.col as usize] =
+                    Cell::Occupied(piece, self.current.active_player);
+            }
+
+            self.current.switch_players_color();
+            self.check_endgame();
+            let k = match self.current.active_player {
+                White => self.current.board.white_king,
+                Black => self.current.board.black_king,
+            };
+            if self.current.threaten_cells.contains(&k) {
+                self.current.board.check = Some(k);
+            }
+            if self.current.end.is_none() && self.is_bot_turn() {
+                self.bot_pending = true;
+            }
+        } else if let Some(m) =
+            find_best_move(&mut self.current.board, self.current.active_player, depth)
         {
             self.try_move(m.origin, m.dest);
         }
