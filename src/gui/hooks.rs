@@ -434,10 +434,10 @@ impl ChessApp {
                 let from = promoteinfo.from;
                 let to = promoteinfo.to;
                 let prev_board = promoteinfo.prev_board.clone();
-                self.history.snapshots.push(self.current.clone());
-                self.replay_infos.index += 1;
-                // self.replay_infos.index += 1;
-                self.encode_move_to_san(&from, &to, &prev_board);
+                self.add_history_san(&from, &to, &prev_board);
+                if self.current.end.is_none() && self.is_bot_turn() {
+                    self.bot_pending = true;
+                }
             }
             self.promoteinfo = None;
             self.win = None;

@@ -1,6 +1,5 @@
 use crate::Board;
 use crate::Coord;
-use crate::board::cell::Cell;
 use crate::board::cell::Color;
 use crate::board::cell::Color::*;
 use crate::board::cell::Piece;
@@ -9,7 +8,6 @@ use crate::board::move_gen::Move;
 use crate::board::move_gen::generate_moves;
 use crate::gui::end::End;
 use crate::gui::gamestate::DrawOption::*;
-use crate::gui::gamestate::DrawRule::FiftyMoves;
 use crate::gui::gamestate::DrawRule::*;
 
 use std::collections::HashMap;
@@ -141,27 +139,6 @@ impl GameState {
             && let Some(count) = self.draw.board_hashs.get_mut(&h)
         {
             *count = 0;
-        }
-    }
-
-    //after 50 moves without pawn moves or capture, it triggers a draw
-    pub fn fifty_moves_draw_check(&mut self, m: &Move) {
-        //if a pawn moved, the counter reset
-        if let Some(p) = self.board.get(&m.dest).get_piece()
-            && p == &Pawn
-        {
-            self.draw.draw_moves_count = 0;
-            return;
-        }
-        if m.capture != Cell::Free {
-            self.draw.draw_moves_count = 0;
-            return;
-        }
-        self.draw.draw_moves_count += 1;
-        if self.draw.draw_moves_count >= 50 {
-            self.draw.draw_option = Some(Available(FiftyMoves));
-        } else {
-            self.draw.draw_option = None;
         }
     }
 
