@@ -61,7 +61,8 @@ fn test_captures_free_queen() {
     board.grid[3][3] = Occupied(Rook, White);
     board.grid[4][3] = Occupied(Queen, Black);
 
-    let mv = find_best_move(&mut board, White, 2).expect("should find a move");
+    let mv = find_best_move(&mut board, White, &MaterialEvaluator, false, 2)
+        .expect("should find a move");
     assert_eq!(mv.origin, coord(3, 3));
     assert_eq!(mv.dest, coord(4, 3));
 }
@@ -77,7 +78,8 @@ fn test_avoids_losing_rook_depth2() {
     board.black_king = coord(7, 4);
     board.grid[6][4] = Occupied(Rook, Black);
 
-    let mv = find_best_move(&mut board, White, 2).expect("should find a move");
+    let mv = find_best_move(&mut board, White, &MaterialEvaluator, false, 2)
+        .expect("should find a move");
     let is_bad_capture = mv.origin == coord(3, 3) && mv.dest == coord(3, 4);
     assert!(
         !is_bad_capture,
@@ -93,6 +95,20 @@ fn test_stalemate_returns_zero() {
     let mut board = empty_board(coord(5, 0), coord(7, 0));
     board.grid[5][1] = Occupied(Queen, White);
 
-    let score = minimax(&mut board, 1, false, Black, &MaterialEvaluator);
+    let score = minimax(&mut board, 1, Black, &MaterialEvaluator, false, -1_000_000, 1_000_000);
     assert_eq!(score, 0, "stalemate should return 0");
+}
+
+// Mat classique : roi noir en h8, dame blanche en g7, tour blanche en h1
+// Le noir n'a aucun coup légal et est en échec → mat
+#[test]
+fn test_checkmate_returns_mate_score() {
+    // Roi blanc f6 (5,5), Dame blanche g7 (6,6), Tour blanche h1 (0,7), Roi noir h8 (7,7)
+    // Le roi noir est en échec (dame diagonale) et ne peut pas fuir
+    let mut board = empty_board(coord(5, 5), coord(7, 7));
+    board.grid[6][6] = Occupied(Queen, White);
+    board.grid[0][7] = Occupied(Rook, White);
+
+    let score = minimax(&mut board, 1, Black, &MaterialEvaluator, false, -1_000_000, 1_000_000);
+    assert!(score < -100_000, "checkmate should return a large negative score, got {score}");
 }

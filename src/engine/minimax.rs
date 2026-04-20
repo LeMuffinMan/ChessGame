@@ -1,9 +1,16 @@
 use crate::Board;
+use crate::board::cell::Cell::*;
 use crate::board::cell::Color;
 use crate::board::cell::Color::*;
+use crate::board::cell::Piece;
+use crate::board::cell::Piece::*;
+use crate::board::is_king_exposed::is_king_exposed;
 use crate::board::move_gen::Move;
 use crate::board::move_gen::generate_moves;
 use crate::engine::evaluator::Evaluator;
+use crate::engine::evaluator::{
+    BISHOP_VALUE, KING_VALUE, KNIGHT_VALUE, PAWN_VALUE, QUEEN_VALUE, ROOK_VALUE,
+};
 
 const MATE_SCORE: i32 = 1_000_000;
 
@@ -12,6 +19,7 @@ pub(crate) fn minimax<E: Evaluator>(
     depth: u8,
     active_player: Color,
     eval: &E,
+    move_ordering: bool,
     mut alpha: i32,
     beta: i32,
 ) -> i32 {
@@ -19,14 +27,23 @@ pub(crate) fn minimax<E: Evaluator>(
         return eval.evaluate(board, active_player);
     }
 
-    let moves = generate_moves(board, &active_player);
+    let mut moves = generate_moves(board, &active_player);
 
     if moves.is_empty() {
-        return if board.check.is_some() {
+        return if is_king_exposed(board, &active_player) {
             -MATE_SCORE + depth as i32
         } else {
             0
         };
+    }
+
+    if move_ordering {
+        moves.sort_by_key(|m| {
+            move_order_score(
+                &m,
+                board.grid[m.origin.row as usize][m.origin.col as usize].get_piece(),
+            )
+        });
     }
 
     let opponent = match active_player {
@@ -36,7 +53,15 @@ pub(crate) fn minimax<E: Evaluator>(
 
     for m in moves.iter() {
         board.apply_move(m, active_player);
-        let score = -minimax(board, depth - 1, opponent, eval, -beta, -alpha);
+        let score = -minimax(
+            board,
+            depth - 1,
+            opponent,
+            eval,
+            move_ordering,
+            -beta,
+            -alpha,
+        );
         board.undo_move(*m, active_player);
         if score > alpha {
             alpha = score;
@@ -53,9 +78,18 @@ pub fn find_best_move<E: Evaluator>(
     board: &mut Board,
     active_player: Color,
     eval: &E,
+    move_ordering: bool,
     depth: u8,
 ) -> Option<Move> {
-    let moves = generate_moves(board, &active_player);
+    let mut moves = generate_moves(board, &active_player);
+    if move_ordering {
+        moves.sort_by_key(|m| {
+            move_order_score(
+                &m,
+                board.grid[m.origin.row as usize][m.origin.col as usize].get_piece(),
+            )
+        });
+    }
     let opponent = match active_player {
         White => Black,
         Black => White,
@@ -64,7 +98,15 @@ pub fn find_best_move<E: Evaluator>(
     let mut best_score = i32::MIN;
     for m in moves {
         board.apply_move(&m, active_player);
-        let score = -minimax(board, depth - 1, opponent, eval, -MATE_SCORE, MATE_SCORE);
+        let score = -minimax(
+            board,
+            depth - 1,
+            opponent,
+            eval,
+            move_ordering,
+            -MATE_SCORE,
+            MATE_SCORE,
+        );
         board.undo_move(m, active_player);
         if score > best_score {
             best_score = score;
@@ -72,4 +114,29 @@ pub fn find_best_move<E: Evaluator>(
         }
     }
     best_move
+}
+
+pub fn move_order_score(mv: &Move, attacker: Option<&Piece>) -> i32 {
+    let score;
+    let attack_score = match attacker {
+        Some(Pawn) => PAWN_VALUE / 10,
+        Some(Knight) => KNIGHT_VALUE / 10,
+        Some(Bishop) => BISHOP_VALUE / 10,
+        Some(Rook) => ROOK_VALUE / 10,
+        Some(Queen) => QUEEN_VALUE / 10,
+        Some(King) => KING_VALUE / 10,
+        None => unreachable!(),
+    };
+    match mv.capture {
+        Occupied(piece, _) => match piece {
+            Pawn => score = PAWN_VALUE - attack_score,
+            Knight => score = KNIGHT_VALUE - attack_score,
+            Bishop => score = BISHOP_VALUE - attack_score,
+            Rook => score = ROOK_VALUE - attack_score,
+            Queen => score = QUEEN_VALUE - attack_score,
+            King => score = KING_VALUE - attack_score,
+        },
+        Free => score = 0,
+    };
+    -score
 }
