@@ -3,12 +3,12 @@ use crate::board::cell::Cell::{Free, Occupied};
 use crate::board::cell::Color;
 use crate::board::cell::Piece::{Bishop, King, Knight, Pawn, Queen, Rook};
 
-const PAWN_VALUE: i32 = 100;
-const KNIGHT_VALUE: i32 = 320;
-const BISHOP_VALUE: i32 = 330;
-const ROOK_VALUE: i32 = 500;
-const QUEEN_VALUE: i32 = 900;
-const KING_VALUE: i32 = 20000;
+pub const PAWN_VALUE: i32 = 100;
+pub const KNIGHT_VALUE: i32 = 320;
+pub const BISHOP_VALUE: i32 = 330;
+pub const ROOK_VALUE: i32 = 500;
+pub const QUEEN_VALUE: i32 = 900;
+pub const KING_VALUE: i32 = 20000;
 
 pub trait Evaluator {
     fn evaluate(&self, board: &Board, active_player: Color) -> i32;
@@ -113,7 +113,7 @@ impl Evaluator for PositionalEvaluator {
                         Queen => QUEEN_PST[pst_idx],
                         King => KING_PST[pst_idx],
                     };
-                    score += (material + positional) * side;
+                    score += (material as i32 + positional) * side;
                 }
             }
         }
@@ -134,12 +134,12 @@ impl Evaluator for MaterialEvaluator {
                         let side = if *color == active_player { 1 } else { -1 };
                         let mut value = 0;
                         match piece {
-                            Pawn => value += PAWN_VALUE,
-                            Knight => value += KNIGHT_VALUE,
-                            Bishop => value += BISHOP_VALUE,
-                            Rook => value += ROOK_VALUE,
-                            Queen => value += QUEEN_VALUE,
-                            King => value += KING_VALUE,
+                            Pawn => value += PAWN_VALUE as i32,
+                            Knight => value += KNIGHT_VALUE as i32,
+                            Bishop => value += BISHOP_VALUE as i32,
+                            Rook => value += ROOK_VALUE as i32,
+                            Queen => value += QUEEN_VALUE as i32,
+                            King => value += KING_VALUE as i32,
                         }
                         score += value * side;
                     }

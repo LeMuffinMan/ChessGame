@@ -194,14 +194,16 @@ impl ChessApp {
             Bot(Medium) => find_best_move(
                 &mut self.current.board,
                 self.current.active_player,
-                &MaterialEvaluator,
-                3,
+                &PositionalEvaluator,
+                false,
+                2,
             ),
             Bot(Hard) => find_best_move(
                 &mut self.current.board,
                 self.current.active_player,
                 &PositionalEvaluator,
-                4,
+                true,
+                3,
             ),
             _ => unreachable!(),
         } {
