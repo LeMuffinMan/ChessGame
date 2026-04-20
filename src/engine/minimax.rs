@@ -10,54 +10,44 @@ const MATE_SCORE: i32 = 1_000_000;
 pub(crate) fn minimax<E: Evaluator>(
     board: &mut Board,
     depth: u8,
-    maximising: bool,
     active_player: Color,
     eval: &E,
+    mut alpha: i32,
+    beta: i32,
 ) -> i32 {
     if depth == 0 {
         return eval.evaluate(board, active_player);
     }
-    //en faire une impl de board
+
     let moves = generate_moves(board, &active_player);
 
     if moves.is_empty() {
-        if board.check.is_some() {
-            return if maximising {
-                -MATE_SCORE - depth as i32
-            } else {
-                MATE_SCORE - depth as i32
-            };
+        return if board.check.is_some() {
+            // mated: worse at lower depth (prefer fast mates)
+            -MATE_SCORE + depth as i32
         } else {
-            return 0;
-        }
-    };
+            0
+        };
+    }
 
-    let opponnent = match active_player {
+    let opponent = match active_player {
         White => Color::Black,
         Black => Color::White,
     };
-    let mut score;
-    let mut best = if maximising { -MATE_SCORE } else { MATE_SCORE };
-    if maximising {
-        for m in moves.iter() {
-            board.apply_move(m, active_player);
-            score = minimax(board, depth - 1, false, opponnent, eval);
-            board.undo_move(*m, active_player);
-            if score > best {
-                best = score;
-            }
+
+    for m in moves.iter() {
+        board.apply_move(m, active_player);
+        let score = -minimax(board, depth - 1, opponent, eval, -beta, -alpha);
+        board.undo_move(*m, active_player);
+        if score > alpha {
+            alpha = score;
         }
-    } else {
-        for m in moves.iter() {
-            board.apply_move(m, active_player);
-            score = minimax(board, depth - 1, true, opponnent, eval);
-            board.undo_move(*m, active_player);
-            if score < best {
-                best = score;
-            }
+        if alpha >= beta {
+            return alpha;
         }
     }
-    best
+
+    alpha
 }
 
 pub fn find_best_move(board: &mut Board, active_player: Color, depth: u8) -> Option<Move> {
@@ -70,7 +60,7 @@ pub fn find_best_move(board: &mut Board, active_player: Color, depth: u8) -> Opt
     let mut best_score = i32::MIN;
     for m in moves {
         board.apply_move(&m, active_player);
-        let score = minimax(board, depth - 1, false, opponent, &MaterialEvaluation);
+        let score = -minimax(board, depth - 1, opponent, &MaterialEvaluation, -MATE_SCORE, MATE_SCORE);
         board.undo_move(m, active_player);
         if score > best_score {
             best_score = score;
