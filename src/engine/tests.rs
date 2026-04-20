@@ -4,7 +4,7 @@ use crate::board::cell::Cell::{Free, Occupied};
 use crate::board::cell::Color::{Black, White};
 use crate::board::cell::Coord;
 use crate::board::cell::Piece::{King, Pawn, Queen, Rook};
-use crate::engine::evaluator::{Evaluator, MaterialEvaluation};
+use crate::engine::evaluator::{Evaluator, MaterialEvaluator};
 use crate::engine::minimax::{find_best_move, minimax};
 
 fn coord(row: u8, col: u8) -> Coord {
@@ -38,7 +38,7 @@ fn empty_board(white_king: Coord, black_king: Coord) -> Board {
 #[test]
 fn test_evaluate_equal_material() {
     let board = empty_board(coord(0, 0), coord(7, 7));
-    let eval = MaterialEvaluation;
+    let eval = MaterialEvaluator;
     assert_eq!(eval.evaluate(&board, White), 0);
     assert_eq!(eval.evaluate(&board, Black), 0);
 }
@@ -47,7 +47,7 @@ fn test_evaluate_equal_material() {
 fn test_evaluate_white_queen_advantage() {
     let mut board = empty_board(coord(0, 0), coord(7, 7));
     board.grid[3][3] = Occupied(Queen, White);
-    let eval = MaterialEvaluation;
+    let eval = MaterialEvaluator;
     assert_eq!(eval.evaluate(&board, White), 900);
     assert_eq!(eval.evaluate(&board, Black), -900);
 }
@@ -93,6 +93,6 @@ fn test_stalemate_returns_zero() {
     let mut board = empty_board(coord(5, 0), coord(7, 0));
     board.grid[5][1] = Occupied(Queen, White);
 
-    let score = minimax(&mut board, 1, false, Black, &MaterialEvaluation);
+    let score = minimax(&mut board, 1, false, Black, &MaterialEvaluator);
     assert_eq!(score, 0, "stalemate should return 0");
 }

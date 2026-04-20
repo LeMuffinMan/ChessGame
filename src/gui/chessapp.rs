@@ -6,6 +6,8 @@ use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
 use crate::board::move_gen::MoveType::*;
 use crate::board::move_gen::generate_moves;
+use crate::engine::evaluator::MaterialEvaluator;
+use crate::engine::evaluator::PositionalEvaluator;
 use crate::engine::minimax::find_best_move;
 use crate::gui::appmode::AppMode;
 use crate::gui::appmode::AppMode::*;
@@ -132,19 +134,11 @@ impl ChessApp {
     }
 
     pub(crate) fn play_bot_turn(&mut self) {
-        let depth = match self.current.active_player {
-            White => match self.settings.white_bot {
-                Bot(Medium) => 3,
-                Bot(Hard) => 4,
-                _ => 0,
-            },
-            Black => match self.settings.black_bot {
-                Bot(Medium) => 3,
-                Bot(Hard) => 4,
-                _ => 0,
-            },
+        let difficulty = match self.current.active_player {
+            White => &self.settings.white_bot,
+            Black => &self.settings.black_bot,
         };
-        if depth == 0 {
+        if *difficulty == Bot(Easy) {
             let moves = generate_moves(&mut self.current.board, &self.current.active_player);
             let index = (Math::random() * moves.len() as f64).floor() as usize;
 
@@ -196,9 +190,21 @@ impl ChessApp {
             if self.current.end.is_none() && self.is_bot_turn() {
                 self.bot_pending = true;
             }
-        } else if let Some(m) =
-            find_best_move(&mut self.current.board, self.current.active_player, depth)
-        {
+        } else if let Some(m) = match difficulty {
+            Bot(Medium) => find_best_move(
+                &mut self.current.board,
+                self.current.active_player,
+                &MaterialEvaluator,
+                3,
+            ),
+            Bot(Hard) => find_best_move(
+                &mut self.current.board,
+                self.current.active_player,
+                &PositionalEvaluator,
+                4,
+            ),
+            _ => unreachable!(),
+        } {
             self.try_move(m.origin, m.dest);
         }
     }
