@@ -45,7 +45,6 @@ pub struct MoveList {
 
 impl MoveList {
     pub fn new() -> Self {
-        // C'est de l'allocation sur la pile : extrêmement rapide !
         Self {
             moves: [Move::default(); MAX_MOVES],
             count: 0,
