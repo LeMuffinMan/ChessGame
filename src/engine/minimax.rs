@@ -34,7 +34,6 @@ pub(crate) fn minimax<E: Evaluator>(
     let mut move_list = MoveList::new();
     generate_moves(board, &active_player, &mut move_list);
     let moves = &mut move_list.moves[..move_list.count];
-    let mobility = moves.len() as i32 * 10;
     if moves.is_empty() {
         return if is_king_exposed(board, &active_player) {
             -MATE_SCORE + depth as i32
@@ -57,7 +56,7 @@ pub(crate) fn minimax<E: Evaluator>(
 
     for m in moves.iter() {
         board.apply_move(m, active_player);
-        let score = -minimax(board, depth - 1, opponent, eval, -beta, -alpha) * mobility;
+        let score = -minimax(board, depth - 1, opponent, eval, -beta, -alpha);
         board.undo_move(*m, active_player);
         if score > alpha {
             alpha = score;
@@ -93,17 +92,16 @@ pub fn find_best_move<E: Evaluator>(
     };
 
     let mut best_move = None;
-    let mut best_score = i32::MIN;
+    let mut alpha = i32::MIN;
 
     for m in moves.iter() {
-        // .iter() rend l'intention explicite
         board.apply_move(m, active_player);
         let score = -minimax(board, depth - 1, opponent, eval, -MATE_SCORE, MATE_SCORE);
         board.undo_move(*m, active_player);
 
-        if score > best_score {
-            best_score = score;
-            best_move = Some(*m); // On copie la valeur
+        if score > alpha {
+            alpha = score;
+            best_move = Some(*m);
         }
     }
 
