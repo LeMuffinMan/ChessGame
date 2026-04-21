@@ -21,6 +21,16 @@ pub struct Move {
     pub move_type: MoveType,
 }
 
+impl Move {
+    pub fn is_promotion(&self, board: &Board) -> bool {
+        match board.grid[self.origin.row as usize][self.origin.col as usize].get_color() {
+            Some(White) => self.dest.row == 7,
+            Some(Black) => self.dest.row == 0,
+            _ => unreachable!("Move without origin"),
+        }
+    }
+}
+
 #[derive(Copy, Clone, PartialEq, Debug, Default)]
 pub enum MoveType {
     #[default]
