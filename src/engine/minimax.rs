@@ -1,7 +1,6 @@
 use crate::Board;
 use crate::board::cell::Cell::*;
 use crate::board::cell::Color;
-use crate::board::cell::Color::*;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
 use crate::board::is_king_exposed::is_king_exposed;
@@ -20,7 +19,7 @@ const MATE_SCORE: i32 = 1_000_000;
 const MEDIUM_DEPTH: u8 = 3;
 const HARD_DEPTH: u8 = 4;
 
-pub(crate) fn minimax<E: Evaluator>(
+pub fn minimax<E: Evaluator>(
     board: &mut Board,
     depth: u8,
     active_player: Color,
@@ -30,12 +29,15 @@ pub(crate) fn minimax<E: Evaluator>(
     stats: &mut SearchStats,
 ) -> i32 {
     stats.nodes += 1;
+
     if depth == 0 {
         return eval.evaluate(board, active_player);
     }
+
     let mut move_list = MoveList::new();
     generate_moves(board, &active_player, &mut move_list);
     let moves = &mut move_list.moves[..move_list.count];
+
     if moves.is_empty() {
         return if is_king_exposed(board, &active_player) {
             -MATE_SCORE + depth as i32
@@ -44,45 +46,66 @@ pub(crate) fn minimax<E: Evaluator>(
         };
     }
 
-    moves.sort_by_key(|m| {
-        -move_order_score(
-            m,
-            board.grid[m.origin.row as usize][m.origin.col as usize].get_piece(),
-            board,
-            stats.killer_moves[depth as usize]
-                .get(0)
-                .and_then(|x| x.as_ref()),
-            stats.killer_moves[depth as usize]
-                .get(1)
-                .and_then(|x| x.as_ref()),
-        )
-    });
-
     let opponent = match active_player {
-        White => Color::Black,
-        Black => Color::White,
+        Color::White => Color::Black,
+        Color::Black => Color::White,
     };
 
-    for m in moves.iter() {
-        board.apply_move(m, active_player);
+    for i in 0..moves.len() {
+        // 🔍 Sélection du meilleur coup restant (lazy)
+        let mut best_idx = i;
+        let mut best_score = i32::MIN;
+
+        for j in i..moves.len() {
+            let score = move_order_score(
+                &moves[j],
+                board.grid[moves[j].origin.row as usize][moves[j].origin.col as usize].get_piece(),
+                board,
+                stats.killer_moves[depth as usize]
+                    .get(0)
+                    .and_then(|x| x.as_ref()),
+                stats.killer_moves[depth as usize]
+                    .get(1)
+                    .and_then(|x| x.as_ref()),
+            );
+
+            if score > best_score {
+                best_score = score;
+                best_idx = j;
+            }
+        }
+
+        // 🔁 Mettre le meilleur coup en position i
+        moves.swap(i, best_idx);
+        let m = moves[i];
+
+        // ▶️ Jouer le coup
+        board.apply_move(&m, active_player);
+
         let score = -minimax(board, depth - 1, opponent, eval, -beta, -alpha, stats);
-        board.undo_move(*m, active_player);
+
+        board.undo_move(m, active_player);
+
         if score > alpha {
             alpha = score;
         }
+
         if alpha >= beta {
             stats.cutoffs += 1;
+
             if m.capture == Free {
                 let depth_index = depth as usize;
 
-                if stats.killer_moves[depth_index][0] != Some(*m) {
+                if stats.killer_moves[depth_index][0] != Some(m) {
                     stats.killer_moves[depth_index][1] = stats.killer_moves[depth_index][0];
-                    stats.killer_moves[depth_index][0] = Some(*m);
+                    stats.killer_moves[depth_index][0] = Some(m);
                 }
             }
+
             return alpha;
         }
     }
+
     alpha
 }
 
@@ -94,34 +117,51 @@ pub fn find_best_move<E: Evaluator>(
     stats: &mut SearchStats,
 ) -> Option<Move> {
     stats.nodes += 1;
+
     let mut move_list = MoveList::new();
     generate_moves(board, &active_player, &mut move_list);
     let moves = &mut move_list.moves[..move_list.count];
 
-    moves.sort_by_key(|m| {
-        -move_order_score(
-            m,
-            board.grid[m.origin.row as usize][m.origin.col as usize].get_piece(),
-            board,
-            stats.killer_moves[depth as usize]
-                .get(0)
-                .and_then(|x| x.as_ref()),
-            stats.killer_moves[depth as usize]
-                .get(1)
-                .and_then(|x| x.as_ref()),
-        )
-    });
+    if moves.is_empty() {
+        return None;
+    }
 
     let opponent = match active_player {
-        White => Black,
-        Black => White,
+        Color::White => Color::Black,
+        Color::Black => Color::White,
     };
 
     let mut best_move = None;
     let mut alpha = i32::MIN;
 
-    for m in moves.iter() {
-        board.apply_move(m, active_player);
+    for i in 0..moves.len() {
+        let mut best_idx = i;
+        let mut best_score = i32::MIN;
+
+        for j in i..moves.len() {
+            let score = move_order_score(
+                &moves[j],
+                board.grid[moves[j].origin.row as usize][moves[j].origin.col as usize].get_piece(),
+                board,
+                stats.killer_moves[depth as usize]
+                    .get(0)
+                    .and_then(|x| x.as_ref()),
+                stats.killer_moves[depth as usize]
+                    .get(1)
+                    .and_then(|x| x.as_ref()),
+            );
+
+            if score > best_score {
+                best_score = score;
+                best_idx = j;
+            }
+        }
+
+        moves.swap(i, best_idx);
+        let m = moves[i];
+
+        board.apply_move(&m, active_player);
+
         let score = -minimax(
             board,
             depth - 1,
@@ -131,22 +171,26 @@ pub fn find_best_move<E: Evaluator>(
             MATE_SCORE,
             stats,
         );
-        board.undo_move(*m, active_player);
+
+        board.undo_move(m, active_player);
 
         if score > alpha {
             alpha = score;
-            best_move = Some(*m);
+            best_move = Some(m);
+
             stats.cutoffs += 1;
+
             if m.capture == Free {
                 let depth_index = depth as usize;
 
-                if stats.killer_moves[depth_index][0] != Some(*m) {
+                if stats.killer_moves[depth_index][0] != Some(m) {
                     stats.killer_moves[depth_index][1] = stats.killer_moves[depth_index][0];
-                    stats.killer_moves[depth_index][0] = Some(*m);
+                    stats.killer_moves[depth_index][0] = Some(m);
                 }
             }
         }
     }
+
     best_move
 }
 
