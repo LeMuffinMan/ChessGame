@@ -95,7 +95,15 @@ fn test_stalemate_returns_zero() {
     let mut board = empty_board(coord(5, 0), coord(7, 0));
     board.grid[5][1] = Occupied(Queen, White);
 
-    let score = minimax(&mut board, 1, Black, &MaterialEvaluator, false, -1_000_000, 1_000_000);
+    let score = minimax(
+        &mut board,
+        1,
+        Black,
+        &MaterialEvaluator,
+        false,
+        -1_000_000,
+        1_000_000,
+    );
     assert_eq!(score, 0, "stalemate should return 0");
 }
 
@@ -109,6 +117,17 @@ fn test_checkmate_returns_mate_score() {
     board.grid[6][6] = Occupied(Queen, White);
     board.grid[0][7] = Occupied(Rook, White);
 
-    let score = minimax(&mut board, 1, Black, &MaterialEvaluator, false, -1_000_000, 1_000_000);
-    assert!(score < -100_000, "checkmate should return a large negative score, got {score}");
+    let score = minimax(
+        &mut board,
+        1,
+        Black,
+        &MaterialEvaluator,
+        false,
+        -1_000_000,
+        1_000_000,
+    );
+    assert!(
+        score < -100_000,
+        "checkmate should return a large negative score, got {score}"
+    );
 }
