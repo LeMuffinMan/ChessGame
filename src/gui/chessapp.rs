@@ -64,15 +64,12 @@ impl ChessApp {
 impl App for ChessApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         if self.current.threaten_cells.is_empty() {
-            self.current.threaten_cells = self
-                .current
-                .board
-                .update_threatens_cells(&self.current.active_player)
+            self.update_threaten_cells()
         }
         if self.current.legals_moves.is_empty() {
-            self.current.legals_moves =
-                generate_moves(&mut self.current.board, &self.current.active_player);
+            self.update_legals_moves();
         }
+
         self.hooks(ctx);
         if self.bot_pending && self.current.end.is_none() {
             self.bot_pending = false;
@@ -81,25 +78,31 @@ impl App for ChessApp {
         }
         match &self.ui_type {
             UiType::Mobile => {
-                self.apply_styles(ctx);
-                self.top_title_panel(ctx);
-                self.central_panel_mobile(ctx);
+                self.mobile_layout(ctx);
             }
             UiType::Desktop => {
-                self.apply_desktop_styles(ctx);
-                self.top_title_panel(ctx);
-                self.bot_source_code_panel_desktop(ctx);
-                self.left_panel_desktop(ctx);
-                self.right_panel_desktop(ctx);
-                self.top_black_panel_desktop(ctx);
-                self.bot_white_panel_desktop(ctx);
-                self.central_panel_desktop(ctx);
+                self.desktop_layout(ctx);
             }
         }
     }
 }
 
 impl ChessApp {
+    pub fn mobile_layout(&mut self, ctx: &egui::Context) {
+        self.apply_styles(ctx);
+        self.top_title_panel(ctx);
+        self.central_panel_mobile(ctx);
+    }
+    pub fn desktop_layout(&mut self, ctx: &egui::Context) {
+        self.apply_desktop_styles(ctx);
+        self.top_title_panel(ctx);
+        self.bot_source_code_panel_desktop(ctx);
+        self.left_panel_desktop(ctx);
+        self.right_panel_desktop(ctx);
+        self.top_black_panel_desktop(ctx);
+        self.bot_white_panel_desktop(ctx);
+        self.central_panel_desktop(ctx);
+    }
     pub fn hooks(&mut self, ctx: &egui::Context) {
         self.hook_win(ctx);
         if self.app_mode == Replay {
@@ -119,14 +122,14 @@ impl ChessApp {
         }
     }
 
-    pub(crate) fn is_bot_turn(&self) -> bool {
+    pub fn is_bot_turn(&self) -> bool {
         match self.current.active_player {
             White => matches!(self.settings.white_bot, Bot(_)),
             Black => matches!(self.settings.black_bot, Bot(_)),
         }
     }
 
-    pub(crate) fn start_bot_game(&mut self) {
+    pub fn start_bot_game(&mut self) {
         let snapshot = self.current.clone();
         self.history.snapshots.push(snapshot);
         self.replay_infos.index += 1;
@@ -136,7 +139,7 @@ impl ChessApp {
         self.bot_pending = true;
     }
 
-    pub(crate) fn play_bot_turn(&mut self) {
+    pub fn play_bot_turn(&mut self) {
         let difficulty = match self.current.active_player {
             White => &self.settings.white_bot,
             Black => &self.settings.black_bot,
@@ -229,7 +232,6 @@ impl ChessApp {
         }
         None
     }
-    //after 50 moves without pawn moves or capture, it triggers a draw
     pub fn fifty_moves_draw_check(&mut self, m: &Move) {
         //if a pawn moved, the counter reset
         if let Some(p) = self.current.board.get(&m.dest).get_piece()
