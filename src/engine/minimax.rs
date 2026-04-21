@@ -32,7 +32,7 @@ pub(crate) fn minimax<E: Evaluator>(
     }
 
     let mut moves = generate_moves(board, &active_player);
-
+    let mobility = moves.len() as i32 * 10;
     if moves.is_empty() {
         return if is_king_exposed(board, &active_player) {
             -MATE_SCORE + depth as i32
@@ -55,7 +55,7 @@ pub(crate) fn minimax<E: Evaluator>(
 
     for m in moves.iter() {
         board.apply_move(m, active_player);
-        let score = -minimax(board, depth - 1, opponent, eval, -beta, -alpha);
+        let score = -minimax(board, depth - 1, opponent, eval, -beta, -alpha) * mobility;
         board.undo_move(*m, active_player);
         if score > alpha {
             alpha = score;
