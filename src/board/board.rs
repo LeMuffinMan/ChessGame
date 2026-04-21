@@ -95,59 +95,8 @@ impl Board {
             _ => Regular,
         }
     }
-    pub fn apply_move(&mut self, m: &Move, active_player: Color) {
-        self.en_passant = None;
-        self.check = None;
-        match self.get(&m.origin).get_piece() {
-            Some(piece) => match piece {
-                Pawn => {
-                    self.update_en_passant(&m.origin, &m.dest);
-                    if m.move_type == EnPassant {
-                        match active_player {
-                            White => {
-                                self.grid[(m.dest.row - 1) as usize][m.dest.col as usize] =
-                                    Cell::Free
-                            }
-                            Black => {
-                                self.grid[(m.dest.row + 1) as usize][m.dest.col as usize] =
-                                    Cell::Free
-                            }
-                        }
-                    }
-                }
-                King => {
-                    self.update_king_castle(&m.origin, &m.dest, &active_player);
-                    match active_player {
-                        White => {
-                            self.white_king = m.dest;
-                            self.white_castle = CastleRights {
-                                long: false,
-                                short: false,
-                            };
-                        }
-                        Black => {
-                            self.black_king = m.dest;
-                            self.black_castle = CastleRights {
-                                long: false,
-                                short: false,
-                            };
-                        }
-                    }
-                }
-                Rook => match (active_player, m.origin.col) {
-                    (White, 0) => self.white_castle.long = false,
-                    (White, 7) => self.white_castle.short = false,
-                    (Black, 0) => self.black_castle.long = false,
-                    (Black, 7) => self.black_castle.short = false,
-                    _ => {}
-                },
-                Knight | Queen | Bishop => {}
-            },
-            None => {
-                println!("Error : update board : origin cell empty")
-            }
-        }
-        // If a rook was captured at its starting corner, revoke the opponent's castle right
+
+    fn update_capture_rook(&mut self, m: &Move) {
         if let Cell::Occupied(Rook, color) = m.capture {
             let rights = match color {
                 White => &mut self.white_castle,
@@ -159,6 +108,23 @@ impl Board {
                 _ => {}
             }
         }
+    }
+
+    pub fn apply_move(&mut self, m: &Move, active_player: Color) {
+        self.en_passant = None;
+        self.check = None;
+        match self.get(&m.origin).get_piece() {
+            Some(piece) => match piece {
+                Pawn => self.update_pawn_move(&active_player, m),
+                King => self.update_king_move(&active_player, m),
+                Rook => self.update_rook_move(&active_player, m),
+                Knight | Queen | Bishop => {}
+            },
+            None => {
+                println!("Error : update board : origin cell empty")
+            }
+        }
+        self.update_capture_rook(m);
         self.grid[m.dest.row as usize][m.dest.col as usize] = std::mem::replace(
             &mut self.grid[m.origin.row as usize][m.origin.col as usize],
             Cell::Free,
@@ -166,6 +132,44 @@ impl Board {
         if let Promotion(promoted) = m.move_type {
             self.grid[m.dest.row as usize][m.dest.col as usize] =
                 Cell::Occupied(promoted, active_player);
+        }
+    }
+    pub fn update_pawn_move(&mut self, active_player: &Color, m: &Move) {
+        self.update_en_passant(&m.origin, &m.dest);
+        if m.move_type == EnPassant {
+            match active_player {
+                White => self.grid[(m.dest.row - 1) as usize][m.dest.col as usize] = Cell::Free,
+                Black => self.grid[(m.dest.row + 1) as usize][m.dest.col as usize] = Cell::Free,
+            }
+        }
+    }
+    pub fn update_king_move(&mut self, active_player: &Color, m: &Move) {
+        self.update_king_castle(&m.origin, &m.dest, &active_player);
+        match active_player {
+            White => {
+                self.white_king = m.dest;
+                self.white_castle = CastleRights {
+                    long: false,
+                    short: false,
+                };
+            }
+            Black => {
+                self.black_king = m.dest;
+                self.black_castle = CastleRights {
+                    long: false,
+                    short: false,
+                };
+            }
+        }
+    }
+
+    pub fn update_rook_move(&mut self, active_player: &Color, m: &Move) {
+        match (active_player, m.origin.col) {
+            (White, 0) => self.white_castle.long = false,
+            (White, 7) => self.white_castle.short = false,
+            (Black, 0) => self.black_castle.long = false,
+            (Black, 7) => self.black_castle.short = false,
+            _ => {}
         }
     }
 

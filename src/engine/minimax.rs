@@ -19,6 +19,8 @@ use crate::gui::player_type::PlayerType::*;
 use js_sys::Math;
 
 const MATE_SCORE: i32 = 1_000_000;
+const MEDIUM_DEPTH: u8 = 2;
+const HARD_DEPTH: u8 = 3;
 
 pub(crate) fn minimax<E: Evaluator>(
     board: &mut Board,
@@ -139,8 +141,8 @@ pub fn get_bot_move(
     active_player: Color,
 ) -> Option<Move> {
     match difficulty {
-        Bot(Hard) => find_best_move(board, active_player, &PositionalEvaluator, 3),
-        Bot(Medium) => find_best_move(board, active_player, &PositionalEvaluator, 2),
+        Bot(Hard) => find_best_move(board, active_player, &PositionalEvaluator, HARD_DEPTH),
+        Bot(Medium) => find_best_move(board, active_player, &PositionalEvaluator, MEDIUM_DEPTH),
         Bot(Easy) => {
             let mut move_list = MoveList::new();
             generate_moves(board, &active_player, &mut move_list);
