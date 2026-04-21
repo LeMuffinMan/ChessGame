@@ -4,6 +4,7 @@ use crate::Color::*;
 use crate::Coord;
 use crate::board::is_king_exposed::is_king_exposed;
 use crate::board::move_gen::Move;
+use crate::board::move_gen::MoveList;
 use crate::board::move_gen::generate_moves;
 use crate::gui::appmode::AppMode::*;
 use crate::gui::end::End::*;
@@ -38,9 +39,14 @@ impl ChessApp {
     }
 
     pub fn validate_move(&mut self, from: Coord, to: Coord) -> Option<Move> {
-        let legal = generate_moves(&mut self.current.board, &self.current.active_player)
-            .iter()
-            .any(|m| m.origin == from && m.dest == to);
+        let mut move_list = MoveList::new();
+        generate_moves(
+            &mut self.current.board,
+            &self.current.active_player,
+            &mut move_list,
+        );
+        let moves = &mut move_list.moves[..move_list.count];
+        let legal = moves.iter().any(|m| m.origin == from && m.dest == to);
         if !legal {
             println!("Illegal move: {from:?} -> {to:?}");
             return None;
@@ -138,8 +144,13 @@ impl ChessApp {
     }
 
     pub fn update_legals_moves(&mut self) {
-        self.current.legals_moves =
-            generate_moves(&mut self.current.board, &self.current.active_player);
+        let mut move_list = MoveList::new();
+        generate_moves(
+            &mut self.current.board,
+            &self.current.active_player,
+            &mut move_list,
+        );
+        self.current.legals_moves = move_list.moves[..move_list.count].to_vec();
     }
 
     pub fn update_threaten_cells(&mut self) {

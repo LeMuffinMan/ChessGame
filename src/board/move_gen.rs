@@ -9,7 +9,7 @@ use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
 use crate::board::is_king_exposed::is_king_exposed;
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Default)]
 pub struct Move {
     pub origin: Coord,
     pub dest: Coord,
@@ -21,8 +21,9 @@ pub struct Move {
     pub move_type: MoveType,
 }
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug, Default)]
 pub enum MoveType {
+    #[default]
     Regular,
     EnPassant,
     Castle(CastleSide),
@@ -35,8 +36,29 @@ pub enum CastleSide {
     Right,
 }
 
-pub fn generate_moves(board: &mut Board, active_player: &Color) -> Vec<Move> {
-    let mut moves: Vec<Move> = Vec::new();
+const MAX_MOVES: usize = 256;
+
+pub struct MoveList {
+    pub moves: [Move; MAX_MOVES],
+    pub count: usize,
+}
+
+impl MoveList {
+    pub fn new() -> Self {
+        // C'est de l'allocation sur la pile : extrêmement rapide !
+        Self {
+            moves: [Move::default(); MAX_MOVES],
+            count: 0,
+        }
+    }
+
+    pub fn push(&mut self, m: Move) {
+        self.moves[self.count] = m;
+        self.count += 1;
+    }
+}
+
+pub fn generate_moves(board: &mut Board, active_player: &Color, list: &mut MoveList) {
     for x in 0..8 {
         for y in 0..8 {
             if board.grid[x][y].is_color(active_player) {
@@ -46,257 +68,230 @@ pub fn generate_moves(board: &mut Board, active_player: &Color) -> Vec<Move> {
                 };
                 if let Some(piece) = board.get(&origin).get_piece() {
                     match piece {
-                        Pawn => {
-                            let vec = generate_pawn_moves(&origin, active_player, board);
-                            moves.extend(vec);
-                        }
-                        Rook => {
-                            let vec = generate_rook_moves(&origin, active_player, board);
-                            moves.extend(vec);
-                        }
-                        Knight => {
-                            let vec = generate_knight_moves(&origin, active_player, board);
-                            moves.extend(vec);
-                        }
-                        Bishop => {
-                            let vec = generate_bishop_moves(&origin, active_player, board);
-                            moves.extend(vec);
-                        }
-                        Queen => {
-                            let vec = generate_queen_moves(&origin, active_player, board);
-                            moves.extend(vec);
-                        }
-                        King => {
-                            let vec = generate_king_moves(&origin, active_player, board);
-                            moves.extend(vec);
+                        Pawn => generate_pawn_moves(&origin, active_player, board, list),
+                        Rook => generate_rook_moves(&origin, active_player, board, list),
+                        Knight => generate_knight_moves(&origin, active_player, board, list),
+                        Bishop => generate_bishop_moves(&origin, active_player, board, list),
+                        Queen => generate_queen_moves(&origin, active_player, board, list),
+                        King => generate_king_moves(&origin, active_player, board, list),
+                    }
+                }
+            }
+        }
+    }
+}
+
+pub fn generate_pawn_moves(
+    origin: &Coord,
+    active_player: &Color,
+    board: &mut Board,
+    list: &mut MoveList,
+) {
+    let dir = if *active_player == White { 1 } else { -1 };
+    let last_rank = if *active_player == White { 7 } else { 0 };
+
+    for dc in [1, -1] {
+        if let Some(dest) = Board::checked_coord(origin.row as i8 + dir, origin.col as i8 + dc) {
+            let target = board.get(&dest);
+            let is_enemy = target.get_piece().is_some() && !target.is_color(active_player);
+            let is_ep = board.en_passant.map_or(false, |ep| {
+                dest.col == ep.col && dest.row as i8 == ep.row as i8 + dir
+            });
+
+            if is_enemy || is_ep {
+                push_pawn_dest(origin, &dest, active_player, board, last_rank, list);
+            }
+        }
+    }
+
+    if let Some(dest) = Board::checked_coord(origin.row as i8 + dir, origin.col as i8) {
+        if board.get(&dest) == Cell::Free {
+            push_pawn_dest(origin, &dest, active_player, board, last_rank, list);
+
+            // Double avance initiale
+            let initial_row = if *active_player == White {
+                origin.row == 1
+            } else {
+                origin.row == 6
+            };
+            if initial_row {
+                if let Some(dest2) =
+                    Board::checked_coord(origin.row as i8 + dir * 2, origin.col as i8)
+                {
+                    if board.get(&dest2) == Cell::Free {
+                        if let Some(m) = board.check_move(origin, &dest2, active_player) {
+                            list.push(m);
                         }
                     }
                 }
             }
         }
     }
-    moves
 }
 
-pub fn generate_pawn_moves(origin: &Coord, active_player: &Color, board: &mut Board) -> Vec<Move> {
-    let dir: i8 = if *active_player == White { 1 } else { -1 };
-    let last_rank: u8 = if *active_player == White { 7 } else { 0 };
-    let mut ret: Vec<Move> = Vec::new();
-
-    // diagonals enemy piece or en passant
-    for dc in [1, -1] {
-        if let Some(dest) = Board::checked_coord(origin.row as i8 + dir, origin.col as i8 + dc) {
-            let target = board.get(&dest);
-            let is_enemy = target.get_piece().is_some() && !target.is_color(active_player);
-            let is_en_passant = match board.en_passant {
-                None => false,
-                Some(ep) => dest.col == ep.col && dest.row as i8 == ep.row as i8 + dir,
-            };
-            if is_enemy || is_en_passant {
-                push_pawn_dest(origin, &dest, active_player, board, last_rank, &mut ret);
-            }
-        }
-    }
-
-    if let Some(dest) = Board::checked_coord(origin.row as i8 + dir, origin.col as i8)
-        && board.get(&dest) == Cell::Free
-    {
-        push_pawn_dest(origin, &dest, active_player, board, last_rank, &mut ret);
-    }
-
-    let initial_row = match active_player {
-        White => origin.row == 1,
-        Black => origin.row == 6,
-    };
-    if initial_row
-        && let Some(mid) = Board::checked_coord(origin.row as i8 + dir, origin.col as i8)
-        && let Some(dest) = Board::checked_coord(origin.row as i8 + dir + dir, origin.col as i8)
-        && board.get(&mid) == Cell::Free
-        && board.get(&dest) == Cell::Free
-        && let Some(m) = board.check_move(origin, &dest, active_player)
-    {
-        ret.push(m);
-    }
-
-    ret
-}
-
-// If a pawn reach the last rank, we want to generate 4 moves for the 4 possible promotions
 fn push_pawn_dest(
     origin: &Coord,
     dest: &Coord,
-    active_player: &Color,
+    color: &Color,
     board: &mut Board,
     last_rank: u8,
-    ret: &mut Vec<Move>,
+    list: &mut MoveList,
 ) {
     if dest.row == last_rank {
+        // Simuler pour l'échec
         let base = Move {
             origin: *origin,
             dest: *dest,
             capture: board.get(dest),
             en_passant: board.en_passant,
-            check: board.check,
             white_castle: board.white_castle,
             black_castle: board.black_castle,
             move_type: MoveType::Promotion(Queen),
+            ..Default::default()
         };
-        board.apply_move(&base, *active_player);
-        let exposed = is_king_exposed(board, active_player);
-        board.undo_move(base, *active_player);
-        if !exposed {
-            for promoted in [Queen, Rook, Bishop, Knight] {
-                ret.push(Move {
-                    move_type: MoveType::Promotion(promoted),
-                    ..base
-                });
+
+        board.apply_move(&base, *color);
+        let safe = !is_king_exposed(board, color);
+        board.undo_move(base, *color);
+
+        if safe {
+            for p in [Queen, Rook, Bishop, Knight] {
+                let mut m = base;
+                m.move_type = MoveType::Promotion(p);
+                list.push(m);
             }
         }
-    } else if let Some(m) = board.check_move(origin, dest, active_player) {
-        ret.push(m);
+    } else if let Some(m) = board.check_move(origin, dest, color) {
+        list.push(m);
     }
 }
-
-pub fn generate_rook_moves(origin: &Coord, active_player: &Color, board: &mut Board) -> Vec<Move> {
-    let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
-    let mut ret: Vec<Move> = Vec::new();
-
-    for (dr, dc) in directions {
-        let mut r = origin.row as i8 + dr;
-        let mut c = origin.col as i8 + dc;
-
-        while let Some(dest) = Board::checked_coord(r, c) {
-            let target = board.get(&dest);
-
-            if target.is_color(active_player) {
-                break;
-            }
-            let is_capture = target.get_piece().is_some();
-            if let Some(m) = board.check_move(origin, &dest, active_player) {
-                ret.push(m);
-            }
-            if is_capture {
-                break;
-            }
-            r += dr;
-            c += dc;
-        }
-    }
-    ret
-}
-
-pub fn generate_knight_moves(
+pub fn generate_rook_moves(
     origin: &Coord,
     active_player: &Color,
     board: &mut Board,
-) -> Vec<Move> {
-    let cells: [(i8, i8); 8] = [
-        (2, 1),
-        (2, -1),
-        (-2, 1),
-        (-2, -1),
-        (1, 2),
-        (1, -2),
-        (-1, 2),
-        (-1, -2),
-    ];
-    let mut ret = Vec::new();
-
-    for (dr, dc) in cells {
-        let new_row = origin.row as i8 + dr;
-        let new_col = origin.col as i8 + dc;
-        if let Some(dest) = Board::checked_coord(new_row, new_col)
-            && let Some(m) = board.check_move(origin, &dest, active_player)
-        {
-            ret.push(m);
-        }
-    }
-    ret
+    list: &mut MoveList,
+) {
+    let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+    process_sliding_piece(origin, &directions, active_player, board, list);
 }
 
 pub fn generate_bishop_moves(
     origin: &Coord,
     active_player: &Color,
     board: &mut Board,
-) -> Vec<Move> {
+    list: &mut MoveList,
+) {
     let directions = [(1, 1), (-1, -1), (-1, 1), (1, -1)];
-    let mut ret = Vec::new();
+    process_sliding_piece(origin, &directions, active_player, board, list);
+}
 
-    for (dr, dc) in directions {
-        let mut r = origin.row as i8 + dr;
-        let mut c = origin.col as i8 + dc;
+pub fn generate_queen_moves(
+    origin: &Coord,
+    active_player: &Color,
+    board: &mut Board,
+    list: &mut MoveList,
+) {
+    generate_bishop_moves(origin, active_player, board, list);
+    generate_rook_moves(origin, active_player, board, list);
+}
 
+fn process_sliding_piece(
+    origin: &Coord,
+    dirs: &[(i8, i8)],
+    color: &Color,
+    board: &mut Board,
+    list: &mut MoveList,
+) {
+    for (dr, dc) in dirs {
+        let (mut r, mut c) = (origin.row as i8 + dr, origin.col as i8 + dc);
         while let Some(dest) = Board::checked_coord(r, c) {
             let target = board.get(&dest);
-
-            if target.is_color(active_player) {
+            if target.is_color(color) {
                 break;
             }
-            let is_capture = target.get_piece().is_some();
-            if let Some(m) = board.check_move(origin, &dest, active_player) {
-                ret.push(m);
+
+            if let Some(m) = board.check_move(origin, &dest, color) {
+                list.push(m);
             }
-            if is_capture {
+
+            if target.get_piece().is_some() {
                 break;
             }
             r += dr;
             c += dc;
         }
     }
-    ret
 }
 
-pub fn generate_queen_moves(origin: &Coord, active_player: &Color, board: &mut Board) -> Vec<Move> {
-    let mut ret: Vec<Move> = Vec::new();
-    ret.extend(generate_bishop_moves(origin, active_player, board));
-    ret.extend(generate_rook_moves(origin, active_player, board));
-    ret
-}
-
-pub fn generate_king_moves(origin: &Coord, active_player: &Color, board: &mut Board) -> Vec<Move> {
-    let cells: [(i8, i8); 8] = [
-        (-1, 1),
-        (0, 1),
-        (1, 1),
-        (-1, 0),
-        (1, 0),
-        (-1, -1),
-        (0, -1),
-        (1, -1),
+pub fn generate_knight_moves(
+    origin: &Coord,
+    active_player: &Color,
+    board: &mut Board,
+    list: &mut MoveList,
+) {
+    #[rustfmt::skip]
+    let offsets = [
+        (2, 1), (2, -1), (-2, 1), (-2, -1),
+        (1, 2),(1, -2), (-1, 2), (-1, -2),
     ];
-    let mut ret = Vec::new();
+    for (dr, dc) in offsets {
+        if let Some(dest) = Board::checked_coord(origin.row as i8 + dr, origin.col as i8 + dc) {
+            if let Some(m) = board.check_move(origin, &dest, active_player) {
+                list.push(m);
+            }
+        }
+    }
+}
 
-    for (dr, dc) in cells {
-        let new_row = origin.row as i8 + dr;
-        let new_col = origin.col as i8 + dc;
-        if let Some(dest) = Board::checked_coord(new_row, new_col)
-            && let Some(m) = board.check_move(origin, &dest, active_player)
-        {
-            ret.push(m);
+pub fn generate_king_moves(
+    origin: &Coord,
+    active_player: &Color,
+    board: &mut Board,
+    list: &mut MoveList,
+) {
+    #[rustfmt::skip]
+    let offsets = [
+        (-1, 1), (0, 1), (1, 1),  (-1, 0),
+        (1, 0), (-1, -1), (0, -1),  (1, -1),
+    ];
+    for (dr, dc) in offsets {
+        if let Some(dest) = Board::checked_coord(origin.row as i8 + dr, origin.col as i8 + dc) {
+            if let Some(m) = board.check_move(origin, &dest, active_player) {
+                list.push(m);
+            }
         }
     }
-    // castle : king not in check, rights available, path clear and not threaten
+
     if board.check.is_none() {
-        let castle_rights = match active_player {
-            White => board.white_castle,
-            Black => board.black_castle,
+        let rights = if *active_player == White {
+            board.white_castle
+        } else {
+            board.black_castle
         };
-        if castle_rights.short
-            && let Some(through) = Board::checked_coord(origin.row as i8, origin.col as i8 + 1)
-            && let Some(dest) = Board::checked_coord(origin.row as i8, origin.col as i8 + 2)
-            && board.check_move(origin, &through, active_player).is_some()
-            && let Some(m) = board.check_move(origin, &dest, active_player)
-        {
-            ret.push(m);
+        // Petit roque
+        if rights.short {
+            if let (Some(t), Some(d)) = (
+                Board::checked_coord(origin.row as i8, origin.col as i8 + 1),
+                Board::checked_coord(origin.row as i8, origin.col as i8 + 2),
+            ) {
+                if board.check_move(origin, &t, active_player).is_some() {
+                    if let Some(m) = board.check_move(origin, &d, active_player) {
+                        list.push(m);
+                    }
+                }
+            }
         }
-        if castle_rights.long
-            && let Some(through) = Board::checked_coord(origin.row as i8, origin.col as i8 - 1)
-            && let Some(dest) = Board::checked_coord(origin.row as i8, origin.col as i8 - 2)
-            && board.check_move(origin, &through, active_player).is_some()
-            && let Some(m) = board.check_move(origin, &dest, active_player)
-        {
-            ret.push(m);
+        if rights.long {
+            if let (Some(t), Some(d)) = (
+                Board::checked_coord(origin.row as i8, origin.col as i8 - 1),
+                Board::checked_coord(origin.row as i8, origin.col as i8 - 2),
+            ) {
+                if board.check_move(origin, &t, active_player).is_some() {
+                    if let Some(m) = board.check_move(origin, &d, active_player) {
+                        list.push(m);
+                    }
+                }
+            }
         }
     }
-    ret
 }

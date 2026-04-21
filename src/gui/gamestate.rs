@@ -5,6 +5,7 @@ use crate::board::cell::Color::*;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
 use crate::board::move_gen::Move;
+use crate::board::move_gen::MoveList;
 use crate::board::move_gen::generate_moves;
 use crate::gui::end::End;
 use crate::gui::gamestate::DrawOption::*;
@@ -62,7 +63,9 @@ impl GameState {
         let opponent = Color::Black;
 
         let threaten_cells = board.update_threatens_cells(&active_player);
-        let legals_moves = generate_moves(&mut board, &active_player);
+        let mut move_list = MoveList::new();
+        generate_moves(&mut board, &active_player, &mut move_list);
+        let legals_moves = &mut move_list.moves[..move_list.count];
 
         Self {
             board,
@@ -78,7 +81,7 @@ impl GameState {
                 draw_hash: None,
             },
             threaten_cells,
-            legals_moves,
+            legals_moves: legals_moves.to_vec(),
         }
     }
 

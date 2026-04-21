@@ -6,6 +6,7 @@ use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
 use crate::board::is_king_exposed::is_king_exposed;
 use crate::board::move_gen::Move;
+use crate::board::move_gen::MoveList;
 use crate::board::move_gen::generate_moves;
 use crate::engine::evaluator::Evaluator;
 use crate::engine::evaluator::PositionalEvaluator;
@@ -30,8 +31,9 @@ pub(crate) fn minimax<E: Evaluator>(
     if depth == 0 {
         return eval.evaluate(board, active_player);
     }
-
-    let mut moves = generate_moves(board, &active_player);
+    let mut move_list = MoveList::new();
+    generate_moves(board, &active_player, &mut move_list);
+    let moves = &mut move_list.moves[..move_list.count];
     let mobility = moves.len() as i32 * 10;
     if moves.is_empty() {
         return if is_king_exposed(board, &active_player) {
@@ -74,28 +76,37 @@ pub fn find_best_move<E: Evaluator>(
     eval: &E,
     depth: u8,
 ) -> Option<Move> {
-    let mut moves = generate_moves(board, &active_player);
+    let mut move_list = MoveList::new();
+    generate_moves(board, &active_player, &mut move_list);
+    let moves = &mut move_list.moves[..move_list.count];
+
     moves.sort_by_key(|m| {
         move_order_score(
-            &m,
+            m,
             board.grid[m.origin.row as usize][m.origin.col as usize].get_piece(),
         )
     });
+
     let opponent = match active_player {
         White => Black,
         Black => White,
     };
+
     let mut best_move = None;
     let mut best_score = i32::MIN;
-    for m in moves {
-        board.apply_move(&m, active_player);
+
+    for m in moves.iter() {
+        // .iter() rend l'intention explicite
+        board.apply_move(m, active_player);
         let score = -minimax(board, depth - 1, opponent, eval, -MATE_SCORE, MATE_SCORE);
-        board.undo_move(m, active_player);
+        board.undo_move(*m, active_player);
+
         if score > best_score {
             best_score = score;
-            best_move = Some(m);
+            best_move = Some(*m); // On copie la valeur
         }
     }
+
     best_move
 }
 
@@ -133,7 +144,9 @@ pub fn get_bot_move(
         Bot(Hard) => find_best_move(board, active_player, &PositionalEvaluator, 3),
         Bot(Medium) => find_best_move(board, active_player, &PositionalEvaluator, 2),
         Bot(Easy) => {
-            let moves = generate_moves(board, &active_player);
+            let mut move_list = MoveList::new();
+            generate_moves(board, &active_player, &mut move_list);
+            let moves = &mut move_list.moves[..move_list.count];
             let index = (Math::random() * moves.len() as f64).floor() as usize;
             Some(moves[index])
         }

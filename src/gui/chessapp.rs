@@ -161,6 +161,15 @@ impl ChessApp {
                 }
                 Bot(Medium) | Bot(Hard) => {
                     self.try_move(m.origin, m.dest);
+                    if let Promotion(piece) = m.move_type {
+                        self.current.board.grid[m.dest.row as usize][m.dest.col as usize] =
+                            Cell::Occupied(piece, self.current.active_player);
+                        self.promoteinfo = None;
+                        self.win = None;
+                        if self.current.end.is_none() && self.is_bot_turn() {
+                            self.bot_pending = true;
+                        }
+                    }
                 }
                 _ => {
                     unreachable!()
