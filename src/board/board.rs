@@ -17,7 +17,7 @@ pub struct Board {
     pub check: Option<Coord>,
 }
 
-#[derive(Copy, Clone, Debug, Hash, PartialEq)]
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Default)]
 pub struct CastleRights {
     pub long: bool,
     pub short: bool,

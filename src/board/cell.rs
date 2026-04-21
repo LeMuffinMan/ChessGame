@@ -16,15 +16,16 @@ pub enum Color {
 }
 use Color::*;
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, Default)]
 pub struct Coord {
     pub col: u8,
     pub row: u8,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Default)]
 pub enum Cell {
     Occupied(Piece, Color),
+    #[default]
     Free,
 }
 
