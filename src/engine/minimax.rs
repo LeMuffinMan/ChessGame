@@ -10,10 +10,8 @@ use crate::board::move_gen::MoveList;
 use crate::board::move_gen::generate_moves;
 use crate::engine::evaluator::Evaluator;
 use crate::engine::evaluator::PositionalEvaluator;
-use crate::engine::evaluator::{
-    BISHOP_VALUE, KING_VALUE, KNIGHT_VALUE, PAWN_VALUE, QUEEN_VALUE, ROOK_VALUE,
-};
 use crate::gui::bot_difficulty::BotDifficulty::*;
+use crate::gui::chessapp::SearchStats;
 use crate::gui::player_type::PlayerType;
 use crate::gui::player_type::PlayerType::*;
 use js_sys::Math;
@@ -29,7 +27,9 @@ pub(crate) fn minimax<E: Evaluator>(
     eval: &E,
     mut alpha: i32,
     beta: i32,
+    stats: &mut SearchStats,
 ) -> i32 {
+    stats.nodes += 1;
     if depth == 0 {
         return eval.evaluate(board, active_player);
     }
@@ -48,6 +48,7 @@ pub(crate) fn minimax<E: Evaluator>(
         move_order_score(
             &m,
             board.grid[m.origin.row as usize][m.origin.col as usize].get_piece(),
+            board,
         )
     });
 
@@ -57,13 +58,15 @@ pub(crate) fn minimax<E: Evaluator>(
     };
 
     for m in moves.iter() {
+        stats.heatmap[m.dest.row as usize][m.dest.col as usize] += 1;
         board.apply_move(m, active_player);
-        let score = -minimax(board, depth - 1, opponent, eval, -beta, -alpha);
+        let score = -minimax(board, depth - 1, opponent, eval, -beta, -alpha, stats);
         board.undo_move(*m, active_player);
         if score > alpha {
             alpha = score;
         }
         if alpha >= beta {
+            stats.cutoffs += 1;
             return alpha;
         }
     }
@@ -76,7 +79,9 @@ pub fn find_best_move<E: Evaluator>(
     active_player: Color,
     eval: &E,
     depth: u8,
+    stats: &mut SearchStats,
 ) -> Option<Move> {
+    stats.nodes += 1;
     let mut move_list = MoveList::new();
     generate_moves(board, &active_player, &mut move_list);
     let moves = &mut move_list.moves[..move_list.count];
@@ -85,6 +90,7 @@ pub fn find_best_move<E: Evaluator>(
         move_order_score(
             m,
             board.grid[m.origin.row as usize][m.origin.col as usize].get_piece(),
+            board,
         )
     });
 
@@ -97,52 +103,79 @@ pub fn find_best_move<E: Evaluator>(
     let mut alpha = i32::MIN;
 
     for m in moves.iter() {
+        stats.heatmap[m.dest.row as usize][m.dest.col as usize] += 1;
         board.apply_move(m, active_player);
-        let score = -minimax(board, depth - 1, opponent, eval, -MATE_SCORE, MATE_SCORE);
+        let score = -minimax(
+            board,
+            depth - 1,
+            opponent,
+            eval,
+            -MATE_SCORE,
+            MATE_SCORE,
+            stats,
+        );
         board.undo_move(*m, active_player);
 
         if score > alpha {
             alpha = score;
             best_move = Some(*m);
+            stats.cutoffs += 1;
         }
     }
 
     best_move
 }
 
-pub fn move_order_score(mv: &Move, attacker: Option<&Piece>) -> i32 {
-    let score;
-    let attack_score = match attacker {
-        Some(Pawn) => PAWN_VALUE / 10,
-        Some(Knight) => KNIGHT_VALUE / 10,
-        Some(Bishop) => BISHOP_VALUE / 10,
-        Some(Rook) => ROOK_VALUE / 10,
-        Some(Queen) => QUEEN_VALUE / 10,
-        Some(King) => KING_VALUE / 10,
-        None => unreachable!(),
-    };
-    match mv.capture {
+pub fn move_order_score(mv: &Move, attacker: Option<&Piece>, board: &Board) -> i32 {
+    let capture_score = match mv.capture {
         Occupied(piece, _) => match piece {
-            Pawn => score = PAWN_VALUE - attack_score,
-            Knight => score = KNIGHT_VALUE - attack_score,
-            Bishop => score = BISHOP_VALUE - attack_score,
-            Rook => score = ROOK_VALUE - attack_score,
-            Queen => score = QUEEN_VALUE - attack_score,
-            King => score = KING_VALUE - attack_score,
+            Pawn => 10,
+            Knight => 30,
+            Bishop => 30,
+            Rook => 50,
+            Queen => 90,
+            King => 10000,
         },
-        Free => score = 0,
+        Free => 0,
     };
-    -score
+
+    let attacker_penalty = match attacker {
+        Some(Pawn) => 1,
+        Some(Knight) => 3,
+        Some(Bishop) => 3,
+        Some(Rook) => 5,
+        Some(Queen) => 9,
+        Some(King) => 100,
+        None => 0,
+    };
+    let promotion_bonus = if mv.is_promotion(board) { 800 } else { 0 };
+    let check_bonus = if mv.check.is_some() { 50 } else { 0 };
+    let mvv_lva = capture_score * 10 - attacker_penalty;
+
+    -(mvv_lva + promotion_bonus + check_bonus)
 }
 
 pub fn get_bot_move(
     difficulty: &PlayerType,
     board: &mut Board,
     active_player: Color,
+    stats: &mut SearchStats,
 ) -> Option<Move> {
     match difficulty {
-        Bot(Hard) => find_best_move(board, active_player, &PositionalEvaluator, HARD_DEPTH),
-        Bot(Medium) => find_best_move(board, active_player, &PositionalEvaluator, MEDIUM_DEPTH),
+        Bot(Hard) => find_best_move(
+            board,
+            active_player,
+            &PositionalEvaluator,
+            HARD_DEPTH,
+            stats,
+        ),
+        Bot(Medium) => find_best_move(
+            board,
+            active_player,
+            &PositionalEvaluator,
+            MEDIUM_DEPTH,
+            stats,
+        ),
         Bot(Easy) => {
             let mut move_list = MoveList::new();
             generate_moves(board, &active_player, &mut move_list);

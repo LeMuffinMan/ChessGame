@@ -2,6 +2,9 @@ use crate::ChessApp;
 use crate::Color::*;
 use crate::gui::appmode::AppMode;
 use crate::gui::appmode::AppMode::*;
+use crate::gui::bot_difficulty::BotDifficulty::*;
+use crate::gui::chessapp::SearchStats;
+use crate::gui::player_type::PlayerType::*;
 
 use egui::Context;
 
@@ -15,7 +18,33 @@ impl ChessApp {
                 if matches!(&self.app_mode, AppMode::Versus(None)) {
                     self.draw_resign_undo(ui);
                 }
-                // ui.separator();
+                ui.separator();
+                if self.app_mode == Versus(None)
+                    && self.settings.black_bot != Human
+                    && self.settings.black_bot != Bot(Easy)
+                {
+                    ui.group(|ui| {
+                        ui.label(egui::RichText::new("Engine").strong());
+
+                        ui.label(
+                            egui::RichText::new(format!(
+                                "Time thinking: {}",
+                                SearchStats::format_time(self.stats.bot_time_thinking)
+                            ))
+                            .monospace(),
+                        );
+                        ui.label(
+                            egui::RichText::new(format!("Nodes: {}", self.stats.nodes)).monospace(),
+                        );
+                        ui.label(
+                            egui::RichText::new(format!("Cutoffs: {}", self.stats.cutoffs))
+                                .monospace(),
+                        );
+                        ui.label(
+                            egui::RichText::new(format!("NPS: {:.0}", self.stats.nps)).monospace(),
+                        );
+                    });
+                }
                 self.new_save_load(ui, ctx);
                 if self.app_mode == Lobby {
                     self.undo_limit(ui);

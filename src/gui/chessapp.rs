@@ -25,6 +25,7 @@ use crate::gui::ui_type::UiType;
 use crate::gui::update_timer::GameMode;
 use crate::gui::update_timer::Timer;
 use eframe::{App, egui};
+use web_sys::window;
 
 pub struct ChessApp {
     pub ui_type: UiType,
@@ -37,6 +38,7 @@ pub struct ChessApp {
     pub current: GameState,
     pub history: History,
     pub bot_pending: bool,
+    pub stats: SearchStats,
 }
 
 impl ChessApp {
@@ -52,6 +54,40 @@ impl ChessApp {
             settings: Settings::new(),
             promoteinfo: None,
             bot_pending: false,
+            stats: SearchStats {
+                nodes: 0,
+                bot_time_thinking: 0.0,
+                heatmap: [[0; 8]; 8],
+                cutoffs: 0,
+                nps: 0.0,
+            },
+        }
+    }
+}
+
+pub struct SearchStats {
+    pub nodes: u64,
+    pub bot_time_thinking: f64,
+    pub cutoffs: usize,
+    pub heatmap: [[u32; 8]; 8],
+    pub nps: f64,
+}
+
+impl SearchStats {
+    pub fn nps(&mut self) {
+        self.nps = if self.bot_time_thinking == 0.0 {
+            0.0
+        } else {
+            self.nodes as f64 / (self.bot_time_thinking / 1000.0)
+        };
+    }
+    pub fn format_time(ms: f64) -> String {
+        if ms < 1.0 {
+            format!("{:.3} ms", ms)
+        } else if ms < 1000.0 {
+            format!("{:.1} ms", ms)
+        } else {
+            format!("{:.2} s", ms / 1000.0)
         }
     }
 }
@@ -140,11 +176,21 @@ impl ChessApp {
             White => &self.settings.white_bot,
             Black => &self.settings.black_bot,
         };
-        if let Some(m) = get_bot_move(
+        let performance = window().unwrap().performance().unwrap();
+        self.stats.nodes = 0;
+        self.stats.cutoffs = 0;
+        self.stats.heatmap = [[0; 8]; 8];
+        let start = performance.now();
+        let bot_move = get_bot_move(
             difficulty,
             &mut self.current.board,
             self.current.active_player,
-        ) {
+            &mut self.stats,
+        );
+        let end = performance.now();
+        self.stats.bot_time_thinking = end - start;
+        self.stats.nps();
+        if let Some(m) = bot_move {
             match difficulty {
                 Bot(Easy) => {
                     let snapshot = self.current.clone();
