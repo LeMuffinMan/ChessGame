@@ -6,10 +6,7 @@ use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
 use crate::board::move_gen::Move;
 use crate::board::move_gen::MoveType::*;
-use crate::board::move_gen::generate_moves;
-use crate::engine::evaluator::MaterialEvaluator;
-use crate::engine::evaluator::PositionalEvaluator;
-use crate::engine::minimax::find_best_move;
+use crate::engine::minimax::get_bot_move;
 use crate::gui::appmode::AppMode;
 use crate::gui::appmode::AppMode::*;
 use crate::gui::bot_difficulty::BotDifficulty::*;
@@ -28,7 +25,6 @@ use crate::gui::ui_type::UiType;
 use crate::gui::update_timer::GameMode;
 use crate::gui::update_timer::Timer;
 use eframe::{App, egui};
-use js_sys::Math;
 
 pub struct ChessApp {
     pub ui_type: UiType,
@@ -144,49 +140,32 @@ impl ChessApp {
             White => &self.settings.white_bot,
             Black => &self.settings.black_bot,
         };
-        if *difficulty == Bot(Easy) {
-            let moves = generate_moves(&mut self.current.board, &self.current.active_player);
-            let index = (Math::random() * moves.len() as f64).floor() as usize;
-
-            let snapshot = self.current.clone();
-            self.current
-                .board
-                .apply_move(&moves[index], self.current.active_player);
-
-            self.commit_move(
-                snapshot,
-                moves[index],
-                moves[index].origin,
-                moves[index].dest,
-            );
-
-            if let Promotion(piece) = moves[index].move_type {
-                self.current.board.grid[moves[index].dest.row as usize]
-                    [moves[index].dest.col as usize] =
-                    Cell::Occupied(piece, self.current.active_player);
+        if let Some(m) = get_bot_move(
+            difficulty,
+            &mut self.current.board,
+            self.current.active_player,
+        ) {
+            match difficulty {
+                Bot(Easy) => {
+                    let snapshot = self.current.clone();
+                    self.apply_move(&m);
+                    self.commit_move(snapshot, m, m.origin, m.dest);
+                    if let Promotion(piece) = m.move_type {
+                        self.current.board.grid[m.dest.row as usize][m.dest.col as usize] =
+                            Cell::Occupied(piece, self.current.active_player);
+                    }
+                    self.switch_turn();
+                    if self.current.end.is_none() && self.is_bot_turn() {
+                        self.bot_pending = true;
+                    }
+                }
+                Bot(Medium) | Bot(Hard) => {
+                    self.try_move(m.origin, m.dest);
+                }
+                _ => {
+                    unreachable!()
+                }
             }
-            self.switch_turn();
-            if self.current.end.is_none() && self.is_bot_turn() {
-                self.bot_pending = true;
-            }
-        } else if let Some(m) = match difficulty {
-            Bot(Medium) => find_best_move(
-                &mut self.current.board,
-                self.current.active_player,
-                &PositionalEvaluator,
-                false,
-                2,
-            ),
-            Bot(Hard) => find_best_move(
-                &mut self.current.board,
-                self.current.active_player,
-                &PositionalEvaluator,
-                true,
-                3,
-            ),
-            _ => unreachable!(),
-        } {
-            self.try_move(m.origin, m.dest);
         }
     }
 
