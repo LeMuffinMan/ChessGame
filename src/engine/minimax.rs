@@ -6,6 +6,7 @@ use crate::board::cell::Piece::*;
 use crate::board::is_king_exposed::is_king_exposed;
 use crate::board::move_gen::Move;
 use crate::board::move_gen::MoveList;
+use crate::board::move_gen::MoveType::Promotion;
 use crate::board::move_gen::generate_moves;
 use crate::engine::evaluator::Evaluator;
 use crate::engine::evaluator::PositionalEvaluator;
@@ -60,7 +61,6 @@ pub fn minimax<E: Evaluator>(
             let score = move_order_score(
                 &moves[j],
                 board.grid[moves[j].origin.row as usize][moves[j].origin.col as usize].get_piece(),
-                board,
                 stats.killer_moves[depth as usize]
                     .get(0)
                     .and_then(|x| x.as_ref()),
@@ -142,7 +142,6 @@ pub fn find_best_move<E: Evaluator>(
             let score = move_order_score(
                 &moves[j],
                 board.grid[moves[j].origin.row as usize][moves[j].origin.col as usize].get_piece(),
-                board,
                 stats.killer_moves[depth as usize]
                     .get(0)
                     .and_then(|x| x.as_ref()),
@@ -197,7 +196,6 @@ pub fn find_best_move<E: Evaluator>(
 pub fn move_order_score(
     mv: &Move,
     attacker: Option<&Piece>,
-    board: &Board,
     killer1: Option<&Move>,
     killer2: Option<&Move>,
 ) -> i32 {
@@ -229,11 +227,14 @@ pub fn move_order_score(
         Some(King) => 100,
         None => 0,
     };
-    let promotion_bonus = if mv.is_promotion(board) { 800 } else { 0 };
+    let promotion_bonus = match mv.move_type {
+        Promotion(_) => 800,
+        _ => 0,
+    };
     let check_bonus = if mv.check.is_some() { 50 } else { 0 };
     let mvv_lva = capture_score * 10 - attacker_penalty;
 
-    -(mvv_lva + promotion_bonus + check_bonus)
+    mvv_lva + promotion_bonus + check_bonus
 }
 
 pub fn get_bot_move(
