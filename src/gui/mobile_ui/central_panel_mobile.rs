@@ -29,7 +29,7 @@ impl ChessApp {
                         self.black_panel(ui);
                         ui.add_space(20.0);
 
-                        self.mobile_board_display(ui, board_size);
+                        self.mobile_board_display(ui, board_size, ctx);
 
                         ui.add_space(20.0);
 
@@ -75,7 +75,12 @@ impl ChessApp {
         });
     }
 
-    pub fn mobile_board_display(&mut self, ui: &mut egui::Ui, board_size: f32) {
+    pub fn mobile_board_display(
+        &mut self,
+        ui: &mut egui::Ui,
+        board_size: f32,
+        ctx: &egui::Context,
+    ) {
         // plateau
         let (response, painter) = ui.allocate_painter(
             egui::Vec2::new(board_size, board_size),
@@ -99,7 +104,7 @@ impl ChessApp {
         self.render_pieces(&painter, inner, sq);
         self.render_dragged_piece(&painter, inner);
 
-        self.left_click(inner, sq, &response);
+        self.left_click(inner, sq, &response, ctx);
         self.right_click(&response);
         self.drag_and_drop(inner, sq, &response);
     }

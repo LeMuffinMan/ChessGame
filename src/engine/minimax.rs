@@ -17,8 +17,8 @@ use crate::gui::player_type::PlayerType::*;
 use js_sys::Math;
 
 const MATE_SCORE: i32 = 1_000_000;
-const MEDIUM_DEPTH: u8 = 2;
-const HARD_DEPTH: u8 = 3;
+const MEDIUM_DEPTH: u8 = 3;
+const HARD_DEPTH: u8 = 4;
 
 pub(crate) fn minimax<E: Evaluator>(
     board: &mut Board,
@@ -45,10 +45,16 @@ pub(crate) fn minimax<E: Evaluator>(
     }
 
     moves.sort_by_key(|m| {
-        move_order_score(
-            &m,
+        -move_order_score(
+            m,
             board.grid[m.origin.row as usize][m.origin.col as usize].get_piece(),
             board,
+            stats.killer_moves[depth as usize]
+                .get(0)
+                .and_then(|x| x.as_ref()),
+            stats.killer_moves[depth as usize]
+                .get(1)
+                .and_then(|x| x.as_ref()),
         )
     });
 
@@ -58,7 +64,6 @@ pub(crate) fn minimax<E: Evaluator>(
     };
 
     for m in moves.iter() {
-        stats.heatmap[m.dest.row as usize][m.dest.col as usize] += 1;
         board.apply_move(m, active_player);
         let score = -minimax(board, depth - 1, opponent, eval, -beta, -alpha, stats);
         board.undo_move(*m, active_player);
@@ -67,10 +72,17 @@ pub(crate) fn minimax<E: Evaluator>(
         }
         if alpha >= beta {
             stats.cutoffs += 1;
+            if m.capture == Free {
+                let depth_index = depth as usize;
+
+                if stats.killer_moves[depth_index][0] != Some(*m) {
+                    stats.killer_moves[depth_index][1] = stats.killer_moves[depth_index][0];
+                    stats.killer_moves[depth_index][0] = Some(*m);
+                }
+            }
             return alpha;
         }
     }
-
     alpha
 }
 
@@ -87,10 +99,16 @@ pub fn find_best_move<E: Evaluator>(
     let moves = &mut move_list.moves[..move_list.count];
 
     moves.sort_by_key(|m| {
-        move_order_score(
+        -move_order_score(
             m,
             board.grid[m.origin.row as usize][m.origin.col as usize].get_piece(),
             board,
+            stats.killer_moves[depth as usize]
+                .get(0)
+                .and_then(|x| x.as_ref()),
+            stats.killer_moves[depth as usize]
+                .get(1)
+                .and_then(|x| x.as_ref()),
         )
     });
 
@@ -103,7 +121,6 @@ pub fn find_best_move<E: Evaluator>(
     let mut alpha = i32::MIN;
 
     for m in moves.iter() {
-        stats.heatmap[m.dest.row as usize][m.dest.col as usize] += 1;
         board.apply_move(m, active_player);
         let score = -minimax(
             board,
@@ -120,13 +137,33 @@ pub fn find_best_move<E: Evaluator>(
             alpha = score;
             best_move = Some(*m);
             stats.cutoffs += 1;
+            if m.capture == Free {
+                let depth_index = depth as usize;
+
+                if stats.killer_moves[depth_index][0] != Some(*m) {
+                    stats.killer_moves[depth_index][1] = stats.killer_moves[depth_index][0];
+                    stats.killer_moves[depth_index][0] = Some(*m);
+                }
+            }
         }
     }
-
     best_move
 }
 
-pub fn move_order_score(mv: &Move, attacker: Option<&Piece>, board: &Board) -> i32 {
+pub fn move_order_score(
+    mv: &Move,
+    attacker: Option<&Piece>,
+    board: &Board,
+    killer1: Option<&Move>,
+    killer2: Option<&Move>,
+) -> i32 {
+    if Some(mv) == killer1 {
+        return 1_000_000;
+    }
+
+    if Some(mv) == killer2 {
+        return 900_000;
+    }
     let capture_score = match mv.capture {
         Occupied(piece, _) => match piece {
             Pawn => 10,

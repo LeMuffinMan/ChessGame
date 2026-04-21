@@ -42,7 +42,13 @@ impl ChessApp {
         }
     }
 
-    pub fn left_click(&mut self, inner: egui::Rect, sq: f32, response: &egui::Response) {
+    pub fn left_click(
+        &mut self,
+        inner: egui::Rect,
+        sq: f32,
+        response: &egui::Response,
+        ctx: &egui::Context,
+    ) {
         if response.clicked()
             && self.current.end.is_none()
             && self.promoteinfo.is_none()
@@ -72,6 +78,7 @@ impl ChessApp {
                         self.settings.piece_legals_moves.clear();
                         if origin != clicked {
                             self.try_move(origin, clicked);
+                            ctx.request_repaint_after(std::time::Duration::from_millis(300));
                         }
                         self.settings.from_cell = None;
                     }
