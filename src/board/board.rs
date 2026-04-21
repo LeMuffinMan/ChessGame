@@ -325,6 +325,7 @@ impl Board {
 
         board.fill_side(White);
         board.fill_side(Black);
+
         board
     }
 

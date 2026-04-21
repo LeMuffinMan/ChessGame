@@ -38,7 +38,7 @@ impl ChessApp {
             //left to select / try move
             //right to deselect (to fix)
             //drag_and_drop to select / try move
-            self.left_click(inner, sq, &response);
+            self.left_click(inner, sq, &response, ctx);
             self.right_click(&response);
             self.drag_and_drop(inner, sq, &response);
         });

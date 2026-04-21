@@ -57,9 +57,9 @@ impl ChessApp {
             stats: SearchStats {
                 nodes: 0,
                 bot_time_thinking: 0.0,
-                heatmap: [[0; 8]; 8],
                 cutoffs: 0,
                 nps: 0.0,
+                killer_moves: [[None; 2]; 64],
             },
         }
     }
@@ -68,9 +68,11 @@ impl ChessApp {
 pub struct SearchStats {
     pub nodes: u64,
     pub bot_time_thinking: f64,
+    //alpha beta pruning
     pub cutoffs: usize,
-    pub heatmap: [[u32; 8]; 8],
     pub nps: f64,
+    //non capture move which already gave a cutoff
+    pub killer_moves: [[Option<Move>; 2]; 64],
 }
 
 impl SearchStats {
@@ -103,11 +105,6 @@ impl App for ChessApp {
         }
 
         self.hooks(ctx);
-        if self.bot_pending && self.current.end.is_none() {
-            self.bot_pending = false;
-            ctx.request_repaint_after(std::time::Duration::from_millis(100));
-            self.play_bot_turn();
-        }
         match &self.ui_type {
             UiType::Mobile => {
                 self.mobile_layout(ctx);
@@ -115,6 +112,11 @@ impl App for ChessApp {
             UiType::Desktop => {
                 self.desktop_layout(ctx);
             }
+        }
+        if self.bot_pending && self.current.end.is_none() {
+            self.bot_pending = false;
+            ctx.request_repaint_after(std::time::Duration::from_millis(500));
+            self.play_bot_turn();
         }
     }
 }
@@ -179,7 +181,7 @@ impl ChessApp {
         let performance = window().unwrap().performance().unwrap();
         self.stats.nodes = 0;
         self.stats.cutoffs = 0;
-        self.stats.heatmap = [[0; 8]; 8];
+        self.stats.killer_moves = [[None; 2]; 64];
         let start = performance.now();
         let bot_move = get_bot_move(
             difficulty,
