@@ -1,5 +1,7 @@
 use crate::Board;
-use crate::board::cell::Cell::{Free, Occupied};
+#[cfg(test)]
+use crate::board::cell::Cell::Free;
+use crate::board::cell::Cell::Occupied;
 use crate::board::cell::Color;
 use crate::board::cell::Piece::{Bishop, King, Knight, Pawn, Queen, Rook};
 
@@ -121,8 +123,10 @@ impl Evaluator for PositionalEvaluator {
     }
 }
 
+#[cfg(test)]
 pub struct MaterialEvaluator;
 
+#[cfg(test)]
 impl Evaluator for MaterialEvaluator {
     fn evaluate(&self, board: &Board, active_player: Color) -> i32 {
         let mut score = 0;
@@ -143,7 +147,7 @@ impl Evaluator for MaterialEvaluator {
                         }
                         score += value * side;
                     }
-                    Free => { /* we skip empty cell  */ }
+                    Free => {}
                 };
             }
         }
