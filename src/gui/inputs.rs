@@ -22,17 +22,17 @@ impl ChessApp {
             self.settings.drag_pos = response.interact_pointer_pos();
         }
 
-        if response.drag_stopped()
-            && let (Some(from), Some(pos)) = (
-                self.settings.drag_from.take(),
-                self.settings.drag_pos.take(),
-            )
-            && let Some(dst) = ui_to_board(inner, sq, self.settings.flip, pos)
-            && from != dst
-        {
-            self.try_move(from, dst);
+        if response.drag_stopped() {
             self.settings.piece_legals_moves.clear();
             self.settings.from_cell = None;
+            if let (Some(from), Some(pos)) = (
+                self.settings.drag_from.take(),
+                self.settings.drag_pos.take(),
+            ) && let Some(dst) = ui_to_board(inner, sq, self.settings.flip, pos)
+                && from != dst
+            {
+                self.try_move(from, dst);
+            }
         }
     }
 
