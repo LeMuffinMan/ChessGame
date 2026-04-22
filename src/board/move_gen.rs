@@ -260,8 +260,9 @@ pub fn generate_king_moves(
 ) {
     #[rustfmt::skip]
     let offsets = [
-        (-1, 1), (0, 1), (1, 1),  (-1, 0),
-        (1, 0), (-1, -1), (0, -1),  (1, -1),
+        (-1, 1),  (0, 1), (1, 1),
+        (-1, 0),          (1, 0),
+        (-1, -1), (0, -1), (1, -1),
     ];
     for (dr, dc) in offsets {
         if let Some(dest) = Board::checked_coord(origin.row as i8 + dr, origin.col as i8 + dc) {
@@ -277,27 +278,38 @@ pub fn generate_king_moves(
         } else {
             board.black_castle
         };
-        // Petit roque
+
+        let row = origin.row as usize;
+        let col = origin.col as usize;
+
         if rights.short {
-            if let (Some(t), Some(d)) = (
-                Board::checked_coord(origin.row as i8, origin.col as i8 + 1),
-                Board::checked_coord(origin.row as i8, origin.col as i8 + 2),
-            ) {
-                if board.check_move(origin, &t, active_player).is_some() {
-                    if let Some(m) = board.check_move(origin, &d, active_player) {
-                        list.push(m);
+            if board.grid[row][col + 1] == Cell::Free && board.grid[row][col + 2] == Cell::Free {
+                if let (Some(t), Some(d)) = (
+                    Board::checked_coord(origin.row as i8, origin.col as i8 + 1),
+                    Board::checked_coord(origin.row as i8, origin.col as i8 + 2),
+                ) {
+                    if board.check_move(origin, &t, active_player).is_some() {
+                        if let Some(m) = board.check_move(origin, &d, active_player) {
+                            list.push(m);
+                        }
                     }
                 }
             }
         }
+
         if rights.long {
-            if let (Some(t), Some(d)) = (
-                Board::checked_coord(origin.row as i8, origin.col as i8 - 1),
-                Board::checked_coord(origin.row as i8, origin.col as i8 - 2),
-            ) {
-                if board.check_move(origin, &t, active_player).is_some() {
-                    if let Some(m) = board.check_move(origin, &d, active_player) {
-                        list.push(m);
+            if board.grid[row][col - 1] == Cell::Free
+                && board.grid[row][col - 2] == Cell::Free
+                && board.grid[row][col - 3] == Cell::Free
+            {
+                if let (Some(t), Some(d)) = (
+                    Board::checked_coord(origin.row as i8, origin.col as i8 - 1),
+                    Board::checked_coord(origin.row as i8, origin.col as i8 - 2),
+                ) {
+                    if board.check_move(origin, &t, active_player).is_some() {
+                        if let Some(m) = board.check_move(origin, &d, active_player) {
+                            list.push(m);
+                        }
                     }
                 }
             }
