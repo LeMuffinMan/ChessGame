@@ -1,10 +1,10 @@
 mod board;
 mod engine;
 pub mod gui;
-mod pgn;
 use crate::board::cell::Color;
 use crate::board::cell::Coord;
 use crate::gui::chessapp::ChessApp;
+#[cfg(target_arch = "wasm32")]
 use crate::gui::layout::UiType::*;
 use board::Board;
 
