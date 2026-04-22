@@ -6,6 +6,7 @@ use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
 use crate::board::move_gen::Move;
 use crate::board::move_gen::MoveType::*;
+use crate::engine::minimax::SearchStats;
 use crate::engine::minimax::get_bot_move;
 use crate::gui::appmode::AppMode;
 use crate::gui::appmode::AppMode::*;
@@ -61,35 +62,6 @@ impl ChessApp {
                 nps: 0.0,
                 killer_moves: [[None; 2]; 64],
             },
-        }
-    }
-}
-
-pub struct SearchStats {
-    pub nodes: u64,
-    pub bot_time_thinking: f64,
-    //alpha beta pruning
-    pub cutoffs: usize,
-    pub nps: f64,
-    //non capture move which already gave a cutoff
-    pub killer_moves: [[Option<Move>; 2]; 64],
-}
-
-impl SearchStats {
-    pub fn nps(&mut self) {
-        self.nps = if self.bot_time_thinking == 0.0 {
-            0.0
-        } else {
-            self.nodes as f64 / (self.bot_time_thinking / 1000.0)
-        };
-    }
-    pub fn format_time(ms: f64) -> String {
-        if ms < 1.0 {
-            format!("{:.3} ms", ms)
-        } else if ms < 1000.0 {
-            format!("{:.1} ms", ms)
-        } else {
-            format!("{:.2} s", ms / 1000.0)
         }
     }
 }
@@ -242,10 +214,10 @@ impl ChessApp {
             );
         });
     }
-    //Since we need player input to know in which piece promote a pawn, i need to
-    //store the coord of the pawn to promote and stop the try move process
-    //the GUI will hook on the coord position stored and force player to input a desired promotion
-    //Then this hook process the end of try move we skipped earlier
+
+    //When a player wants to promote a piece, we need to get out of try move so egui can request an input
+    //This function prepare it : if it find a pawn to promote at an end  of turn, try move would stop before commiting the board
+    // The player will then be prompted to input a piece for promotion, once done, the function hooks.rs/update_promote
     pub fn promote_pawn(
         &mut self,
         color: &Color,
@@ -259,16 +231,12 @@ impl ChessApp {
                 && let Some(piece) = self.current.board.grid[promote_row][y].get_piece()
                 && *piece == Pawn
             {
-                // let coord = Coord {
-                //     row: promote_row as u8,
-                //     col: y as u8,
-                // };
                 return Some(PromoteInfo {
                     from: *from,
                     to: *to,
-                    prev_board: prev_board.clone(), //le clone est problematique ici ?
+                    prev_board: prev_board.clone(),
                     pawn_to_promote: Some(*to),
-                    promote: None, // on attend l'input du user fournie par le hook
+                    promote: None, // this field will be filled by user through hooks()
                 });
             }
         }
