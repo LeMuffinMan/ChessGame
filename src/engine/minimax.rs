@@ -16,8 +16,8 @@ use crate::gui::features::bot::PlayerType::*;
 use js_sys::Math;
 
 const MATE_SCORE: i32 = 1_000_000;
-const MEDIUM_DEPTH: u8 = 4;
-const HARD_DEPTH: u8 = 5;
+const MEDIUM_DEPTH: u8 = 3;
+const HARD_DEPTH: u8 = 4;
 
 pub fn minimax<E: Evaluator>(
     board: &mut Board,
@@ -31,11 +31,12 @@ pub fn minimax<E: Evaluator>(
     stats.nodes += 1;
 
     if depth == 0 {
+        // return quiescence(board, alpha, beta, eval, active_player, stats);
         return eval.evaluate(board, active_player);
     }
 
     let mut move_list = MoveList::new();
-    generate_moves(board, &active_player, &mut move_list);
+    generate_moves(board, &active_player, &mut move_list, false);
     let moves = &mut move_list.moves[..move_list.count];
 
     if moves.is_empty() {
@@ -116,7 +117,7 @@ pub fn find_best_move<E: Evaluator>(
     stats.nodes += 1;
 
     let mut move_list = MoveList::new();
-    generate_moves(board, &active_player, &mut move_list);
+    generate_moves(board, &active_player, &mut move_list, false);
     let moves = &mut move_list.moves[..move_list.count];
 
     if moves.is_empty() {
@@ -257,11 +258,52 @@ pub fn get_bot_move(
         ),
         Bot(Easy) => {
             let mut move_list = MoveList::new();
-            generate_moves(board, &active_player, &mut move_list);
+            generate_moves(board, &active_player, &mut move_list, false);
             let moves = &mut move_list.moves[..move_list.count];
             let index = (Math::random() * moves.len() as f64).floor() as usize;
             Some(moves[index])
         }
         _ => None,
     }
+}
+
+pub fn quiescence<E: Evaluator>(
+    board: &mut Board,
+    mut alpha: i32,
+    beta: i32,
+    eval: &E,
+    active_player: Color,
+    stats: &mut SearchStats,
+) -> i32 {
+    let current_board_score = eval.evaluate(board, active_player);
+
+    if current_board_score >= beta {
+        return beta;
+    }
+    if current_board_score > alpha {
+        alpha = current_board_score;
+    }
+
+    let mut move_list = MoveList::new();
+    generate_moves(board, &active_player, &mut move_list, true);
+    let moves = &mut move_list.moves[..move_list.count];
+
+    let opponent = match active_player {
+        Color::White => Color::Black,
+        Color::Black => Color::White,
+    };
+
+    for i in 0..moves.len() {
+        board.apply_move(&moves[i], active_player);
+        let score = -quiescence(board, -beta, -alpha, eval, opponent, stats);
+        board.undo_move(moves[i], active_player);
+        if score >= beta {
+            return beta;
+        }
+        if score > alpha {
+            alpha = score;
+        }
+    }
+
+    alpha
 }

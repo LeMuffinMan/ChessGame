@@ -67,7 +67,12 @@ impl MoveList {
     }
 }
 
-pub fn generate_moves(board: &mut Board, active_player: &Color, list: &mut MoveList) {
+pub fn generate_moves(
+    board: &mut Board,
+    active_player: &Color,
+    list: &mut MoveList,
+    capture_only: bool,
+) {
     for x in 0..8 {
         for y in 0..8 {
             if board.grid[x][y].is_color(active_player) {
@@ -77,12 +82,12 @@ pub fn generate_moves(board: &mut Board, active_player: &Color, list: &mut MoveL
                 };
                 if let Some(piece) = board.get(&origin).get_piece() {
                     match piece {
-                        Pawn => generate_pawn_moves(&origin, active_player, board, list),
-                        Rook => generate_rook_moves(&origin, active_player, board, list),
-                        Knight => generate_knight_moves(&origin, active_player, board, list),
-                        Bishop => generate_bishop_moves(&origin, active_player, board, list),
-                        Queen => generate_queen_moves(&origin, active_player, board, list),
-                        King => generate_king_moves(&origin, active_player, board, list),
+                        Pawn => pawn_moves(&origin, active_player, board, list, capture_only),
+                        Rook => rook_moves(&origin, active_player, board, list, capture_only),
+                        Knight => knight_moves(&origin, active_player, board, list, capture_only),
+                        Bishop => bishop_moves(&origin, active_player, board, list, capture_only),
+                        Queen => queen_moves(&origin, active_player, board, list, capture_only),
+                        King => king_moves(&origin, active_player, board, list, capture_only),
                     }
                 }
             }
@@ -90,11 +95,12 @@ pub fn generate_moves(board: &mut Board, active_player: &Color, list: &mut MoveL
     }
 }
 
-pub fn generate_pawn_moves(
+fn pawn_moves(
     origin: &Coord,
     active_player: &Color,
     board: &mut Board,
     list: &mut MoveList,
+    capture_only: bool,
 ) {
     let dir = if *active_player == White { 1 } else { -1 };
     let last_rank = if *active_player == White { 7 } else { 0 };
@@ -111,6 +117,10 @@ pub fn generate_pawn_moves(
                 push_pawn_dest(origin, &dest, active_player, board, last_rank, list);
             }
         }
+    }
+
+    if capture_only {
+        return;
     }
 
     if let Some(dest) = Board::checked_coord(origin.row as i8 + dir, origin.col as i8) {
@@ -174,34 +184,51 @@ fn push_pawn_dest(
         list.push(m);
     }
 }
-pub fn generate_rook_moves(
+fn rook_moves(
     origin: &Coord,
     active_player: &Color,
     board: &mut Board,
     list: &mut MoveList,
+    capture_only: bool,
 ) {
     let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
-    process_sliding_piece(origin, &directions, active_player, board, list);
+    process_sliding_piece(
+        origin,
+        &directions,
+        active_player,
+        board,
+        list,
+        capture_only,
+    );
 }
 
-pub fn generate_bishop_moves(
+fn bishop_moves(
     origin: &Coord,
     active_player: &Color,
     board: &mut Board,
     list: &mut MoveList,
+    capture_only: bool,
 ) {
     let directions = [(1, 1), (-1, -1), (-1, 1), (1, -1)];
-    process_sliding_piece(origin, &directions, active_player, board, list);
+    process_sliding_piece(
+        origin,
+        &directions,
+        active_player,
+        board,
+        list,
+        capture_only,
+    );
 }
 
-pub fn generate_queen_moves(
+fn queen_moves(
     origin: &Coord,
     active_player: &Color,
     board: &mut Board,
     list: &mut MoveList,
+    capture_only: bool,
 ) {
-    generate_bishop_moves(origin, active_player, board, list);
-    generate_rook_moves(origin, active_player, board, list);
+    bishop_moves(origin, active_player, board, list, capture_only);
+    rook_moves(origin, active_player, board, list, capture_only);
 }
 
 fn process_sliding_piece(
@@ -210,6 +237,7 @@ fn process_sliding_piece(
     color: &Color,
     board: &mut Board,
     list: &mut MoveList,
+    capture_only: bool,
 ) {
     for (dr, dc) in dirs {
         let (mut r, mut c) = (origin.row as i8 + dr, origin.col as i8 + dc);
@@ -217,6 +245,10 @@ fn process_sliding_piece(
             let target = board.get(&dest);
             if target.is_color(color) {
                 break;
+            }
+
+            if capture_only && target.get_piece().is_none() {
+                continue;
             }
 
             if let Some(m) = board.check_move(origin, &dest, color) {
@@ -232,11 +264,12 @@ fn process_sliding_piece(
     }
 }
 
-pub fn generate_knight_moves(
+fn knight_moves(
     origin: &Coord,
     active_player: &Color,
     board: &mut Board,
     list: &mut MoveList,
+    capture_only: bool,
 ) {
     #[rustfmt::skip]
     let offsets = [
@@ -245,6 +278,12 @@ pub fn generate_knight_moves(
     ];
     for (dr, dc) in offsets {
         if let Some(dest) = Board::checked_coord(origin.row as i8 + dr, origin.col as i8 + dc) {
+            if capture_only {
+                let cell = board.grid[dest.row as usize][dest.col as usize];
+                if !cell.is_color(active_player) && cell.get_piece().is_none() {
+                    continue;
+                }
+            }
             if let Some(m) = board.check_move(origin, &dest, active_player) {
                 list.push(m);
             }
@@ -252,11 +291,12 @@ pub fn generate_knight_moves(
     }
 }
 
-pub fn generate_king_moves(
+fn king_moves(
     origin: &Coord,
     active_player: &Color,
     board: &mut Board,
     list: &mut MoveList,
+    capture_only: bool,
 ) {
     #[rustfmt::skip]
     let offsets = [
@@ -266,12 +306,21 @@ pub fn generate_king_moves(
     ];
     for (dr, dc) in offsets {
         if let Some(dest) = Board::checked_coord(origin.row as i8 + dr, origin.col as i8 + dc) {
+            if capture_only {
+                let cell = board.grid[dest.row as usize][dest.col as usize];
+                if !cell.is_color(active_player) && cell.get_piece().is_none() {
+                    continue;
+                }
+            }
             if let Some(m) = board.check_move(origin, &dest, active_player) {
                 list.push(m);
             }
         }
     }
 
+    if capture_only {
+        return;
+    }
     if board.check.is_none() {
         let rights = if *active_player == White {
             board.white_castle
