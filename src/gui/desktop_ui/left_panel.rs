@@ -24,7 +24,7 @@ impl ChessApp {
                     && self.settings.black_bot != Bot(Easy)
                 {
                     ui.group(|ui| {
-                        ui.label(egui::RichText::new("Engine").strong());
+                        ui.label(egui::RichText::new("Minimax").strong());
 
                         ui.label(
                             egui::RichText::new(format!(

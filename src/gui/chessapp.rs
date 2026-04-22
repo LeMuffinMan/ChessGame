@@ -113,7 +113,12 @@ impl App for ChessApp {
                 self.desktop_layout(ctx);
             }
         }
-        if self.bot_pending && self.current.end.is_none() {
+        if self.bot_pending
+            && self.current.end.is_none()
+            && self.app_mode != Replay
+            && self.app_mode != Lobby
+            && self.win.is_none()
+        {
             self.bot_pending = false;
             ctx.request_repaint_after(std::time::Duration::from_millis(500));
             self.play_bot_turn();

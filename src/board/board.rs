@@ -102,9 +102,11 @@ impl Board {
                 White => &mut self.white_castle,
                 Black => &mut self.black_castle,
             };
-            match m.dest.col {
-                0 => rights.long = false,
-                7 => rights.short = false,
+            match (m.dest.row, m.dest.col) {
+                (0, 0) => rights.long = false,
+                (0, 7) => rights.short = false,
+                (7, 0) => rights.long = false,
+                (7, 7) => rights.short = false,
                 _ => {}
             }
         }
@@ -164,11 +166,11 @@ impl Board {
     }
 
     pub fn update_rook_move(&mut self, active_player: &Color, m: &Move) {
-        match (active_player, m.origin.col) {
-            (White, 0) => self.white_castle.long = false,
-            (White, 7) => self.white_castle.short = false,
-            (Black, 0) => self.black_castle.long = false,
-            (Black, 7) => self.black_castle.short = false,
+        match (active_player, m.origin.row, m.origin.col) {
+            (White, 0, 0) => self.white_castle.long = false,
+            (White, 0, 7) => self.white_castle.short = false,
+            (Black, 7, 0) => self.black_castle.long = false,
+            (Black, 7, 7) => self.black_castle.short = false,
             _ => {}
         }
     }

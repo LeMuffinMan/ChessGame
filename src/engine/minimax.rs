@@ -3,7 +3,7 @@ use crate::board::cell::Cell::*;
 use crate::board::cell::Color;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
-use crate::board::is_king_exposed::is_king_exposed;
+// use crate::board::is_king_exposed::is_king_exposed;
 use crate::board::move_gen::Move;
 use crate::board::move_gen::MoveList;
 use crate::board::move_gen::MoveType::Promotion;
@@ -17,8 +17,8 @@ use crate::gui::player_type::PlayerType::*;
 use js_sys::Math;
 
 const MATE_SCORE: i32 = 1_000_000;
-const MEDIUM_DEPTH: u8 = 3;
-const HARD_DEPTH: u8 = 4;
+const MEDIUM_DEPTH: u8 = 4;
+const HARD_DEPTH: u8 = 5;
 
 pub fn minimax<E: Evaluator>(
     board: &mut Board,
@@ -40,7 +40,8 @@ pub fn minimax<E: Evaluator>(
     let moves = &mut move_list.moves[..move_list.count];
 
     if moves.is_empty() {
-        return if is_king_exposed(board, &active_player) {
+        // return if is_king_exposed(board, &active_player) {
+        return if board.check.is_some() {
             -MATE_SCORE + depth as i32
         } else {
             0
@@ -53,7 +54,6 @@ pub fn minimax<E: Evaluator>(
     };
 
     for i in 0..moves.len() {
-        // 🔍 Sélection du meilleur coup restant (lazy)
         let mut best_idx = i;
         let mut best_score = i32::MIN;
 
@@ -75,11 +75,9 @@ pub fn minimax<E: Evaluator>(
             }
         }
 
-        // 🔁 Mettre le meilleur coup en position i
         moves.swap(i, best_idx);
         let m = moves[i];
 
-        // ▶️ Jouer le coup
         board.apply_move(&m, active_player);
 
         let score = -minimax(board, depth - 1, opponent, eval, -beta, -alpha, stats);
