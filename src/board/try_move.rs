@@ -6,9 +6,9 @@ use crate::board::is_king_exposed::is_king_exposed;
 use crate::board::move_gen::Move;
 use crate::board::move_gen::MoveList;
 use crate::board::move_gen::generate_moves;
-use crate::gui::appmode::AppMode::*;
-use crate::gui::end::End::*;
-use crate::gui::gamestate::GameState;
+use crate::gui::chessapp::AppMode::*;
+use crate::gui::features::gamestate::GameState;
+use crate::gui::hooks::windows::End::*;
 
 impl ChessApp {
     pub fn try_move(&mut self, from: Coord, to: Coord) {
@@ -26,9 +26,6 @@ impl ChessApp {
             let prev_board = self.get_prev_board();
 
             self.turn_end(&from, &to, &prev_board);
-        } else {
-            return;
-            //No  move found : either bug or player entered an illegal move
         }
     }
 

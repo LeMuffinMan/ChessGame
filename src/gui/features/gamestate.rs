@@ -7,9 +7,9 @@ use crate::board::cell::Piece::*;
 use crate::board::move_gen::Move;
 use crate::board::move_gen::MoveList;
 use crate::board::move_gen::generate_moves;
-use crate::gui::end::End;
-use crate::gui::gamestate::DrawOption::*;
-use crate::gui::gamestate::DrawRule::*;
+use crate::gui::features::gamestate::DrawOption::*;
+use crate::gui::features::gamestate::DrawRule::*;
+use crate::gui::hooks::windows::End;
 
 use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;

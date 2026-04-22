@@ -1,0 +1,111 @@
+use crate::Board;
+use crate::board::cell::Cell;
+use crate::board::cell::Color::*;
+use crate::board::cell::Coord;
+use crate::board::cell::Piece;
+use crate::board::cell::Piece::*;
+use crate::gui::chessapp::ChessApp;
+use crate::gui::layout::UiType::*;
+
+#[derive(Clone)]
+pub struct PromoteInfo {
+    pub from: Coord,
+    pub to: Coord,
+    pub prev_board: Board,
+    pub pawn_to_promote: Option<Coord>,
+    pub promote: Option<Piece>,
+}
+
+impl ChessApp {
+    //if a player promoted a pawn, try_move didnt finished it's work, so we do it here
+    pub fn update_promote(&mut self) {
+        if let Some(promote_info) = &self.promoteinfo
+            && let Some(coord) = promote_info.pawn_to_promote
+            && let Some(piece) = promote_info.promote
+            && self.replay_infos.index == self.history.snapshots.len()
+        {
+            let color = if self.current.active_player == White {
+                Black
+            } else {
+                White
+            };
+            self.current.board.grid[coord.row as usize][coord.col as usize] =
+                Cell::Occupied(piece, color);
+
+            // check_endgame first: recalculates threaten_cells with the promoted piece's threats
+            self.check_endgame();
+            // then detect check using fresh threaten_cells
+            let k = match self.current.active_player {
+                White => self.current.board.white_king,
+                Black => self.current.board.black_king,
+            };
+            if self.current.threaten_cells.contains(&k) {
+                self.current.board.check = Some(k);
+            }
+            if let Some(promoteinfo) = &self.promoteinfo {
+                let from = promoteinfo.from;
+                let to = promoteinfo.to;
+                let prev_board = promoteinfo.prev_board.clone();
+                self.add_history_san(&from, &to, &prev_board);
+                if self.current.end.is_none() && self.is_bot_turn() {
+                    self.bot_pending = true;
+                }
+            }
+            self.promoteinfo = None;
+            self.win = None;
+        }
+    }
+    pub fn get_promotion_input(&mut self, ctx: &egui::Context) {
+        match self.ui_type {
+            Mobile => {
+                egui::Window::new("Promotion")
+                    .collapsible(false)
+                    .resizable(false)
+                    .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
+                    .show(ctx, |ui| {
+                        ui.horizontal(|ui| {
+                            ui.add_space(140.0);
+                            ui.vertical(|ui| {
+                                if let Some(ref mut info) = self.promoteinfo {
+                                    ui.add_space(20.0);
+                                    ui.selectable_value(&mut info.promote, Some(Queen), "Queen");
+                                    ui.add_space(20.0);
+                                    ui.selectable_value(&mut info.promote, Some(Bishop), "Bishop");
+                                    ui.add_space(20.0);
+                                    ui.selectable_value(&mut info.promote, Some(Knight), "Knight");
+                                    ui.add_space(20.0);
+                                    ui.selectable_value(&mut info.promote, Some(Rook), "Rook");
+                                }
+                            });
+                        });
+                        ui.add_space(20.0);
+                    });
+            }
+            Desktop => {
+                egui::Window::new("Promotion")
+                    .collapsible(false)
+                    .resizable(false)
+                    .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
+                    .show(ctx, |ui| {
+                        ui.horizontal(|ui| {
+                            ui.add_space(100.0);
+                            ui.vertical(|ui| {
+                                if let Some(ref mut info) = self.promoteinfo {
+                                    ui.add_space(20.0);
+                                    ui.selectable_value(&mut info.promote, Some(Queen), "Queen");
+                                    ui.add_space(20.0);
+                                    ui.selectable_value(&mut info.promote, Some(Bishop), "Bishop");
+                                    ui.add_space(20.0);
+                                    ui.selectable_value(&mut info.promote, Some(Knight), "Knight");
+                                    ui.add_space(20.0);
+                                    ui.selectable_value(&mut info.promote, Some(Rook), "Rook");
+                                }
+                            });
+                        });
+                        ui.add_space(20.0);
+                    });
+            }
+        }
+        self.update_promote();
+    }
+}

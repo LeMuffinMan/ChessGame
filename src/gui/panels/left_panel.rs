@@ -1,10 +1,10 @@
 use crate::ChessApp;
 use crate::Color::*;
 use crate::engine::minimax::SearchStats;
-use crate::gui::appmode::AppMode;
-use crate::gui::appmode::AppMode::*;
-use crate::gui::bot_difficulty::BotDifficulty::*;
-use crate::gui::player_type::PlayerType::*;
+use crate::gui::chessapp::AppMode;
+use crate::gui::chessapp::AppMode::*;
+use crate::gui::features::bot::BotDifficulty::*;
+use crate::gui::features::bot::PlayerType::*;
 
 use egui::Context;
 
@@ -16,7 +16,7 @@ impl ChessApp {
             .show(ctx, |ui| {
                 self.turn_infos(ui);
                 if matches!(&self.app_mode, AppMode::Versus(None)) {
-                    self.draw_resign_undo(ui);
+                    self.draw_resign_undo_desktop(ui);
                 }
                 ui.separator();
                 if self.app_mode == Versus(None)
@@ -45,7 +45,7 @@ impl ChessApp {
                         );
                     });
                 }
-                self.new_save_load(ui, ctx);
+                self.new_game_replay(ui, ctx);
                 if self.app_mode == Lobby {
                     self.undo_limit(ui);
                     self.timer_increment(ui, ctx);

@@ -1,6 +1,6 @@
 use crate::ChessApp;
-use crate::gui::desktop_ui::bot_panels::format_time;
-use crate::gui::update_timer::GameMode;
+use crate::gui::features::timer::GameMode;
+use crate::gui::panels::bot_panels::format_time;
 
 use chrono::Utc;
 use js_sys::Array;

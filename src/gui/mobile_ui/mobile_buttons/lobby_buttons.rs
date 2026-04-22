@@ -1,12 +1,10 @@
-use crate::gui::appmode::AppMode::*;
+use crate::gui::chessapp::AppMode::*;
 use crate::gui::chessapp::ChessApp;
-use crate::gui::hooks::WinDia;
-use crate::gui::ui_type::UiType::*;
-use crate::gui::update_timer::GameMode;
-use crate::gui::update_timer::GameMode::Rapid;
-use crate::gui::update_timer::GameMode::*;
-use crate::gui::update_timer::Timer;
-
+use crate::gui::features::timer::GameMode;
+use crate::gui::features::timer::GameMode::*;
+use crate::gui::features::timer::Timer;
+use crate::gui::hooks::windows::WinDia;
+use crate::gui::layout::UiType::*;
 use egui::RichText;
 
 impl ChessApp {
@@ -21,7 +19,7 @@ impl ChessApp {
             self.win = Some(WinDia::Timer);
         }
         ui.add_space(180.0);
-        self.new_game_button(ui);
+        self.new_game_button_mobile(ui);
     }
     pub fn draw_endgame_buttons(&mut self, ui: &mut egui::Ui) {
         ui.add_space(60.0);

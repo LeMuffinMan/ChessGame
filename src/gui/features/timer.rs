@@ -23,19 +23,19 @@ pub enum GameMode {
 
 impl Default for Timer {
     fn default() -> Self {
-        Self::new()
+        Self::new(0.0, 0.0, GameMode::NoTime)
     }
 }
 
 impl Timer {
-    pub fn new() -> Self {
+    pub fn new(start: f64, increment: f64, mode: GameMode) -> Self {
         Self {
-            start: 0.0,
-            increment: 0.0,
+            start,
+            increment,
             active: false,
-            mode: GameMode::NoTime,
-            white_time: 0.0,
-            black_time: 0.0,
+            mode,
+            white_time: start,
+            black_time: start,
             start_of_turn: (0.0, None),
         }
     }

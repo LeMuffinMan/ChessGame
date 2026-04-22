@@ -1,5 +1,5 @@
 use crate::ChessApp;
-use crate::gui::ui_type::UiType;
+use crate::gui::layout::UiType;
 
 pub struct ReplayInfos {
     pub index: usize,
@@ -119,5 +119,23 @@ impl ChessApp {
             self.replay_infos.index = self.history.snapshots.len() - 1;
             self.current = self.history.snapshots[self.replay_infos.index].clone();
         }
+    }
+
+    pub fn mobile_replay_step(&mut self, ctx: &egui::Context) {
+        if let Some(next_step) = self.replay_infos.next_step {
+            let now = ctx.input(|i| i.time);
+            if now >= next_step {
+                if self.replay_infos.index + 1 < self.history.snapshots.len() {
+                    self.replay_infos.index += 1;
+                    self.current = self.history.snapshots[self.replay_infos.index].clone();
+                    let delay = self.replay_infos.sec_per_frame;
+                    self.replay_infos.next_step = Some(now + delay);
+                } else {
+                    self.replay_infos.index = self.history.snapshots.len();
+                    self.replay_infos.next_step = None;
+                }
+            }
+        }
+        ctx.request_repaint();
     }
 }

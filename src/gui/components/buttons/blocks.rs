@@ -1,13 +1,39 @@
 use crate::ChessApp;
 use crate::Color::*;
-use crate::gui::end::End::Draw;
-use crate::gui::gamestate::DrawOption;
-use crate::gui::hooks::WinDia;
-use crate::gui::hooks::WinDia::*;
-use crate::gui::mobile_ui::mobile_buttons::versus_buttons::DrawOption::Available;
+use crate::gui::chessapp::AppMode::Replay;
+use crate::gui::features::gamestate::DrawOption;
+use crate::gui::features::gamestate::DrawOption::*;
+use crate::gui::hooks::windows::End::Draw;
+use crate::gui::hooks::windows::WinDia;
+use crate::gui::hooks::windows::WinDia::*;
+use egui::Context;
 
 impl ChessApp {
-    pub fn draw_resign_undo_buttons(&mut self, ui: &mut egui::Ui) {
+    //Desktop
+
+    pub fn new_game_replay(&mut self, ui: &mut egui::Ui, _ctx: &Context) {
+        ui.horizontal(|ui| {
+            if self.current.end.is_some() || self.app_mode == Replay {
+                self.new_game_button(ui);
+                self.replay_button(ui);
+            }
+        });
+        ui.separator();
+    }
+
+    pub fn draw_resign_undo_desktop(&mut self, ui: &mut egui::Ui) {
+        self.draw_buttons(ui);
+        ui.separator();
+        ui.horizontal(|ui| {
+            self.resign_button(ui);
+            if self.is_undoable() {
+                self.undo_button(ui);
+            }
+        });
+    }
+
+    //Mobile : to adapt using desktop components
+    pub fn draw_resign_undo_mobile(&mut self, ui: &mut egui::Ui) {
         ui.add_space(60.0);
         self.settings_button(ui);
         ui.add_space(150.0);
@@ -54,14 +80,7 @@ impl ChessApp {
                 .clicked()
             {
                 self.win = Some(WinDia::Undo);
-                match self.current.opponent {
-                    White => {
-                        self.settings.white_undo -= 1;
-                    }
-                    Black => {
-                        self.settings.black_undo -= 1;
-                    }
-                }
+                self.decremente_undo();
             }
         }
     }

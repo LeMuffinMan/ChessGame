@@ -1,14 +1,11 @@
 use crate::ChessApp;
-use crate::gui::appmode::AppMode;
-use crate::gui::desktop_ui::bot_panels::format_time;
-use crate::gui::hooks::WinDia::*;
-use crate::gui::update_timer::GameMode::*;
-
+use crate::gui::chessapp::AppMode;
+use crate::gui::features::timer::GameMode::*;
+use crate::gui::hooks::windows::WinDia::*;
+use crate::gui::panels::bot_panels::format_time;
 use egui::Label;
 use egui::RichText;
 use egui::Sense;
-
-//a remplacer
 
 impl ChessApp {
     pub fn central_panel_mobile(&mut self, ctx: &egui::Context) {
@@ -70,7 +67,7 @@ impl ChessApp {
                 self.draw_endgame_buttons(ui);
             }
             AppMode::Versus(None) => {
-                self.draw_resign_undo_buttons(ui);
+                self.draw_resign_undo_mobile(ui);
             }
         });
     }
