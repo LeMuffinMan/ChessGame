@@ -28,7 +28,7 @@ impl ChessApp {
 
                         ui.label(
                             egui::RichText::new(format!(
-                                "Time thinking: {}",
+                                "Time: {}",
                                 SearchStats::format_time(self.stats.bot_time_thinking)
                             ))
                             .monospace(),

@@ -1,4 +1,5 @@
 use crate::Board;
+use crate::Color;
 use crate::board::cell::Cell;
 use crate::board::cell::Color::*;
 use crate::board::cell::Coord;
@@ -17,6 +18,34 @@ pub struct PromoteInfo {
 }
 
 impl ChessApp {
+    //When a player wants to promote a piece, we need to get out of try move so egui can request an input
+    //This function prepare it : if it find a pawn to promote at an end  of turn, try move would stop before commiting the board
+    // The player will then be prompted to input a piece for promotion, once done, the function hooks.rs/update_promote
+    pub fn promote_pawn(
+        &mut self,
+        color: &Color,
+        from: &Coord,
+        to: &Coord,
+        prev_board: &Board,
+    ) -> Option<PromoteInfo> {
+        let promote_row = if *color == White { 7 } else { 0 };
+        for y in 0..8 {
+            if self.current.board.grid[promote_row][y].is_color(color)
+                && let Some(piece) = self.current.board.grid[promote_row][y].get_piece()
+                && *piece == Pawn
+            {
+                return Some(PromoteInfo {
+                    from: *from,
+                    to: *to,
+                    prev_board: prev_board.clone(),
+                    pawn_to_promote: Some(*to),
+                    promote: None, // this field will be filled by user through hooks()
+                });
+            }
+        }
+        None
+    }
+
     //if a player promoted a pawn, try_move didnt finished it's work, so we do it here
     pub fn update_promote(&mut self) {
         if let Some(promote_info) = &self.promoteinfo

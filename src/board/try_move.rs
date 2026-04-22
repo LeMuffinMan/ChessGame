@@ -41,6 +41,7 @@ impl ChessApp {
             &mut self.current.board,
             &self.current.active_player,
             &mut move_list,
+            false,
         );
         let moves = &mut move_list.moves[..move_list.count];
         let legal = moves.iter().any(|m| m.origin == from && m.dest == to);
@@ -146,6 +147,7 @@ impl ChessApp {
             &mut self.current.board,
             &self.current.active_player,
             &mut move_list,
+            false,
         );
         self.current.legals_moves = move_list.moves[..move_list.count].to_vec();
     }

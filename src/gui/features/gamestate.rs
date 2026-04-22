@@ -64,7 +64,7 @@ impl GameState {
 
         let threaten_cells = board.update_threatens_cells(&active_player);
         let mut move_list = MoveList::new();
-        generate_moves(&mut board, &active_player, &mut move_list);
+        generate_moves(&mut board, &active_player, &mut move_list, false);
         let legals_moves = &mut move_list.moves[..move_list.count];
 
         Self {
