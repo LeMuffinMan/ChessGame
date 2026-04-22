@@ -4,3 +4,8 @@ pub enum BotDifficulty {
     Medium,
     Hard,
 }
+#[derive(PartialEq, Debug)]
+pub enum PlayerType {
+    Human,
+    Bot(BotDifficulty),
+}

@@ -4,7 +4,7 @@ use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
-use crate::gui::end::End::*;
+use crate::gui::hooks::windows::End::*;
 
 // pub fn export_pgn(san: &str, path: &Path) {
 //     let mut pgn = String::new();
@@ -30,7 +30,7 @@ use crate::gui::end::End::*;
 // }
 
 impl ChessApp {
-    //a reacto
+    //a refacto
     pub fn encode_move_to_san(&mut self, from: &Coord, to: &Coord, prev_board: &Board) {
         //on ecrit le dernier coup une fois les checks du tour suivant faits
         if self.current.active_player == Black {

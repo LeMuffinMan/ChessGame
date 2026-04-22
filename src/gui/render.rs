@@ -3,7 +3,7 @@ use crate::Color;
 use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Piece;
-use crate::gui::end::End::*;
+use crate::gui::hooks::windows::End::*;
 
 impl ChessApp {
     pub fn centered_square(rect: egui::Rect) -> egui::Rect {

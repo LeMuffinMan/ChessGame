@@ -1,4 +1,4 @@
-use crate::gui::gamestate::GameState;
+use crate::gui::features::gamestate::GameState;
 
 pub struct History {
     pub snapshots: Vec<GameState>,

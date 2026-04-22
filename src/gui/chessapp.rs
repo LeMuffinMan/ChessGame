@@ -8,23 +8,22 @@ use crate::board::move_gen::Move;
 use crate::board::move_gen::MoveType::*;
 use crate::engine::minimax::SearchStats;
 use crate::engine::minimax::get_bot_move;
-use crate::gui::appmode::AppMode;
-use crate::gui::appmode::AppMode::*;
-use crate::gui::bot_difficulty::BotDifficulty::*;
-use crate::gui::end::End;
-use crate::gui::end::End::*;
-use crate::gui::gamestate::DrawOption::Available;
-use crate::gui::gamestate::DrawRule::FiftyMoves;
-use crate::gui::gamestate::GameState;
-use crate::gui::history::History;
-use crate::gui::hooks::WinDia;
-use crate::gui::player_type::PlayerType::*;
-use crate::gui::promote_info::PromoteInfo;
-use crate::gui::replay::ReplayInfos;
-use crate::gui::settings::Settings;
-use crate::gui::ui_type::UiType;
-use crate::gui::update_timer::GameMode;
-use crate::gui::update_timer::Timer;
+use crate::gui::chessapp::AppMode::*;
+use crate::gui::features::bot::BotDifficulty::*;
+use crate::gui::features::bot::PlayerType::*;
+use crate::gui::features::gamestate::DrawOption::Available;
+use crate::gui::features::gamestate::DrawRule::FiftyMoves;
+use crate::gui::features::gamestate::GameState;
+use crate::gui::features::history::History;
+use crate::gui::features::replay::ReplayInfos;
+use crate::gui::features::settings::Settings;
+use crate::gui::features::timer::GameMode;
+use crate::gui::features::timer::Timer;
+use crate::gui::hooks::promote::PromoteInfo;
+use crate::gui::hooks::windows::End;
+use crate::gui::hooks::windows::End::*;
+use crate::gui::hooks::windows::WinDia;
+use crate::gui::layout::UiType;
 use eframe::{App, egui};
 use web_sys::window;
 
@@ -47,7 +46,7 @@ impl ChessApp {
         Self {
             ui_type,
             history: History::new(),
-            timer: Timer::new(),
+            timer: Timer::new(0.0, 0.0, GameMode::NoTime),
             win: None,
             app_mode: Lobby,
             replay_infos: ReplayInfos::new(),
@@ -64,6 +63,13 @@ impl ChessApp {
             },
         }
     }
+}
+
+#[derive(PartialEq)]
+pub enum AppMode {
+    Versus(Option<End>),
+    Replay,
+    Lobby,
 }
 
 //This App trait runs the eframe : fn update is the main loop, run for each frame
@@ -99,21 +105,6 @@ impl App for ChessApp {
 }
 
 impl ChessApp {
-    pub fn mobile_layout(&mut self, ctx: &egui::Context) {
-        self.apply_styles(ctx);
-        self.top_title_panel(ctx);
-        self.central_panel_mobile(ctx);
-    }
-    pub fn desktop_layout(&mut self, ctx: &egui::Context) {
-        self.apply_desktop_styles(ctx);
-        self.top_title_panel(ctx);
-        self.bot_source_code_panel_desktop(ctx);
-        self.left_panel_desktop(ctx);
-        self.right_panel_desktop(ctx);
-        self.top_black_panel_desktop(ctx);
-        self.bot_white_panel_desktop(ctx);
-        self.central_panel_desktop(ctx);
-    }
     pub fn hooks(&mut self, ctx: &egui::Context) {
         self.hook_win(ctx);
         if self.app_mode == Replay {

@@ -1,4 +1,4 @@
-use crate::gui::appmode::AppMode;
+use crate::gui::chessapp::AppMode;
 
 use crate::ChessApp;
 

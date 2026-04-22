@@ -1,5 +1,4 @@
 use crate::ChessApp;
-
 use egui::Context;
 use egui::RichText;
 
@@ -13,7 +12,7 @@ impl ChessApp {
                 ui.horizontal(|ui| {
                     ui.add_space(20.0);
                     ui.vertical(|ui| {
-                        self.side_panel_flip(ui);
+                        self.flip_buttons(ui);
                         ui.add_space(20.0);
                         ui.checkbox(&mut self.settings.show_coordinates, "Coordinates")
                             .changed();
