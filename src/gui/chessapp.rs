@@ -208,10 +208,11 @@ impl ChessApp {
                     }
                 }
                 Bot(Medium) | Bot(Hard) => {
+                    let bot_color = self.current.active_player;
                     self.try_move(m.origin, m.dest);
                     if let Promotion(piece) = m.move_type {
                         self.current.board.grid[m.dest.row as usize][m.dest.col as usize] =
-                            Cell::Occupied(piece, self.current.active_player);
+                            Cell::Occupied(piece, bot_color);
                         self.promoteinfo = None;
                         self.win = None;
                         if self.current.end.is_none() && self.is_bot_turn() {
