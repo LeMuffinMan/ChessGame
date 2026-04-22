@@ -123,7 +123,7 @@ impl Board {
                 Knight | Queen | Bishop => {}
             },
             None => {
-                println!("Error : update board : origin cell empty")
+                unreachable!("Error : update board : origin cell empty")
             }
         }
         self.update_capture_rook(m);
@@ -135,6 +135,7 @@ impl Board {
             self.grid[m.dest.row as usize][m.dest.col as usize] =
                 Cell::Occupied(promoted, active_player);
         }
+        //rend une struct Undo pour undo move ?
     }
     pub fn update_pawn_move(&mut self, active_player: &Color, m: &Move) {
         self.update_en_passant(&m.origin, &m.dest);
@@ -175,6 +176,7 @@ impl Board {
         }
     }
 
+    //refacto : prend une Struct Undo en param ?
     pub fn undo_move(&mut self, m: Move, active_player: Color) {
         match m.move_type {
             EnPassant => {
@@ -251,6 +253,8 @@ impl Board {
         self.white_castle = m.white_castle;
         self.black_castle = m.black_castle;
     }
+
+    //reduire l'appel a check move ? renommer
     pub fn check_move(
         &mut self,
         origin: &Coord,
@@ -270,6 +274,7 @@ impl Board {
         None
     }
 
+    //renommer
     pub fn checked_coord(row: i8, col: i8) -> Option<Coord> {
         if (0..8).contains(&row) && (0..8).contains(&col) {
             Some(Coord {

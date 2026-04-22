@@ -404,7 +404,6 @@ impl ChessApp {
         }
     }
 
-    //Desktop hook
     //if a player promoted a pawn, try_move didnt finished it's work, so we do it here
     pub fn update_promote(&mut self) {
         if let Some(promote_info) = &self.promoteinfo

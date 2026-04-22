@@ -1,9 +1,9 @@
 use crate::ChessApp;
 use crate::Color::*;
+use crate::engine::minimax::SearchStats;
 use crate::gui::appmode::AppMode;
 use crate::gui::appmode::AppMode::*;
 use crate::gui::bot_difficulty::BotDifficulty::*;
-use crate::gui::chessapp::SearchStats;
 use crate::gui::player_type::PlayerType::*;
 
 use egui::Context;
