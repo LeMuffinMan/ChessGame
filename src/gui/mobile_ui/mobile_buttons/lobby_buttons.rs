@@ -19,7 +19,7 @@ impl ChessApp {
             self.win = Some(WinDia::Timer);
         }
         ui.add_space(180.0);
-        self.new_game_button_mobile(ui);
+        self.new_game_button(ui);
     }
     pub fn draw_endgame_buttons(&mut self, ui: &mut egui::Ui) {
         ui.add_space(60.0);
