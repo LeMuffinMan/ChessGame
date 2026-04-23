@@ -128,7 +128,6 @@ impl ChessApp {
         });
     }
 
-    //impl pour timer
     pub fn black_panel(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             ui.label(RichText::new("Black").size(50.0));

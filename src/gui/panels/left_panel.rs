@@ -24,22 +24,6 @@ impl ChessApp {
                     && self.settings.black_bot != Bot(Easy)
                 {
                     ui.group(|ui| {
-<<<<<<< HEAD
-                        ui.label(egui::RichText::new("Minimax").strong());
-
-                        ui.label(
-                            egui::RichText::new(format!(
-                                "Time: {}",
-                                SearchStats::format_time(self.stats.bot_time_thinking)
-                            ))
-                            .monospace(),
-                        );
-                        ui.label(
-                            egui::RichText::new(format!("Nodes: {}", self.stats.nodes)).monospace(),
-                        );
-                        ui.label(
-                            egui::RichText::new(format!("Cutoffs: {}", self.stats.cutoffs))
-=======
                         ui.vertical(|ui| {
                             ui.label(egui::RichText::new("Minimax").strong());
                             ui.label(
@@ -51,7 +35,6 @@ impl ChessApp {
                                     "Time: {}",
                                     SearchStats::format_time(self.stats.bot_time_thinking)
                                 ))
->>>>>>> 2b166a4 (feat: display depth on panel)
                                 .monospace(),
                             );
                             ui.label(

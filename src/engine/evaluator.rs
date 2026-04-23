@@ -1,11 +1,6 @@
 use crate::Board;
-<<<<<<< HEAD
 use crate::board::cell::Color;
 use crate::board::cell::Coord;
-=======
-use crate::Color;
-use crate::Coord;
->>>>>>> 6df9e5b (en passant fixed and refacto new incremental score)
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::{Bishop, King, Knight, Pawn, Queen, Rook};
 
