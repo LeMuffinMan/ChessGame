@@ -9,6 +9,7 @@ impl ChessApp {
             )
             .clicked()
         {
+            //revoir : ne pas changer les settings !
             *self = ChessApp::new(self.ui_type.clone());
         }
     }
