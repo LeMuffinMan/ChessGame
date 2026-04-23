@@ -331,13 +331,11 @@ pub fn quiescence<E: Evaluator>(
     active_player: Color,
     stats: &mut SearchStats,
 ) -> i32 {
-    let current_board_score = eval.evaluate(board);
-
-    if current_board_score >= beta {
+    if board.score >= beta {
         return beta;
     }
-    if current_board_score > alpha {
-        alpha = current_board_score;
+    if board.score > alpha {
+        alpha = board.score;
     }
 
     let mut move_list = MoveList::new();

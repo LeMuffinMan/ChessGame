@@ -5,7 +5,13 @@ use crate::board::cell::Color::{Black, White};
 use crate::board::cell::Coord;
 use crate::board::cell::Piece::{Bishop, King, Knight, Pawn, Queen, Rook};
 use crate::board::is_king_exposed::is_king_exposed;
-use crate::board::move_gen::generate_moves;
+use crate::board::move_gen::{generate_moves, Move, MoveList};
+
+fn gen_moves(board: &mut Board, color: &crate::board::cell::Color) -> Vec<Move> {
+    let mut list = MoveList::new();
+    generate_moves(board, color, &mut list, false);
+    list.moves[..list.count].to_vec()
+}
 
 fn board_core_eq(a: &Board, b: &Board) -> bool {
     a.grid == b.grid
@@ -115,7 +121,6 @@ fn test_apply_undo_castle_left() {
 
 fn empty_board_with_kings() -> Board {
     let mut board = Board::init_board();
-    //empty board, except king
     for r in 0..8usize {
         for c in 0..8usize {
             board.grid[r][c] = Free;
@@ -125,6 +130,8 @@ fn empty_board_with_kings() -> Board {
     board.grid[7][4] = Occupied(King, Black);
     board.white_king = coord(0, 4);
     board.black_king = coord(7, 4);
+    board.white_castle = CastleRights { long: false, short: false };
+    board.black_castle = CastleRights { long: false, short: false };
     board
 }
 
@@ -201,13 +208,13 @@ fn test_king_not_exposed_blocked_by_ally() {
 #[test]
 fn test_generate_moves_initial_white() {
     let mut board = Board::init_board();
-    assert_eq!(generate_moves(&mut board, &White).len(), 20);
+    assert_eq!(gen_moves(&mut board, &White).len(), 20);
 }
 
 #[test]
 fn test_generate_moves_initial_black() {
     let mut board = Board::init_board();
-    assert_eq!(generate_moves(&mut board, &Black).len(), 20);
+    assert_eq!(gen_moves(&mut board, &Black).len(), 20);
 }
 
 #[test]
@@ -215,7 +222,7 @@ fn test_generate_moves_after_e4_black() {
     let mut board = Board::init_board();
     let m = board.build_move(coord(1, 4), coord(3, 4), White);
     board.apply_move(&m, White);
-    assert_eq!(generate_moves(&mut board, &Black).len(), 20);
+    assert_eq!(gen_moves(&mut board, &Black).len(), 20);
 }
 
 #[test]
@@ -232,7 +239,9 @@ fn test_generate_moves_stalemate() {
     board.grid[5][2] = Occupied(King, White);
     board.white_king = coord(5, 2);
     board.black_king = coord(7, 0);
-    let moves = generate_moves(&mut board, &Black);
+    board.white_castle = CastleRights { long: false, short: false };
+    board.black_castle = CastleRights { long: false, short: false };
+    let moves = gen_moves(&mut board, &Black);
     assert!(moves.is_empty());
     assert!(!is_king_exposed(&board, &Black));
 }
@@ -240,7 +249,7 @@ fn test_generate_moves_stalemate() {
 // generate_moves — castle
 
 fn has_move(board: &mut Board, color: &crate::board::cell::Color, from: Coord, to: Coord) -> bool {
-    generate_moves(board, color)
+    gen_moves(board, color)
         .iter()
         .any(|m| m.origin == from && m.dest == to)
 }
@@ -299,7 +308,7 @@ fn test_pawn_cannot_move_straight_to_occupied() {
     let mut board = Board::init_board();
     // pion noir en e3 bloque le pion blanc en e2
     board.grid[2][4] = Occupied(Pawn, Black);
-    let moves = generate_moves(&mut board, &White);
+    let moves = gen_moves(&mut board, &White);
     assert!(
         !moves
             .iter()
@@ -317,7 +326,7 @@ fn test_pawn_cannot_move_diagonal_to_empty() {
     let mut board = Board::init_board();
     // case d3 est vide : le pion en e2 ne doit pas pouvoir aller en d3
     board.grid[2][3] = Free;
-    let moves = generate_moves(&mut board, &White);
+    let moves = gen_moves(&mut board, &White);
     assert!(
         !moves
             .iter()
@@ -331,7 +340,7 @@ fn test_pawn_double_push_blocked_by_intermediate() {
     // pion blanc en e3 bloque la double poussée du pion en e2
     board.grid[2][4] = Occupied(Pawn, White);
     board.grid[1][4] = Free;
-    let moves = generate_moves(&mut board, &White);
+    let moves = gen_moves(&mut board, &White);
     assert!(
         !moves
             .iter()
@@ -354,7 +363,7 @@ fn test_rook_stops_after_capture() {
     board.black_king = coord(7, 4);
     board.grid[0][0] = Occupied(Rook, White);
     board.grid[3][0] = Occupied(Pawn, Black);
-    let moves = generate_moves(&mut board, &White);
+    let moves = gen_moves(&mut board, &White);
     // la tour peut aller en a2, a3, a4 (capture) mais PAS a5+
     assert!(
         moves

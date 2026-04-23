@@ -1,5 +1,4 @@
 use crate::Coord;
-
 use crate::board::Board;
 use crate::board::board::CastleRights;
 use crate::board::cell::Cell;
@@ -7,7 +6,7 @@ use crate::board::cell::Color;
 use crate::board::cell::Color::*;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
-use crate::board::is_king_exposed::is_king_exposed;
+use crate::board::pin_detection::{pin_detection, PinInfos};
 
 #[derive(Copy, Clone, PartialEq, Default)]
 pub struct Move {
@@ -68,27 +67,63 @@ impl MoveList {
     }
 }
 
+// Vérifie si (dest - origin) est parallèle à la direction de clouage (dr, dc).
+fn aligned_with_pin(origin: &Coord, dest: &Coord, dr: i8, dc: i8) -> bool {
+    let row_diff = dest.row as i8 - origin.row as i8;
+    let col_diff = dest.col as i8 - origin.col as i8;
+    row_diff * dc == col_diff * dr
+}
+
+// Pousse un coup sans apply/undo/check_move quand c'est sûr.
+// Fallback sur check_move si le roi est déjà en échec.
+fn push_if_legal(
+    board: &mut Board,
+    origin: &Coord,
+    dest: Coord,
+    color: &Color,
+    list: &mut MoveList,
+    info: &PinInfos,
+) {
+    if board.get(&dest).is_color(color) {
+        return;
+    }
+    if info.checker_count >= 1 {
+        // Roi en échec : fallback check_move (correct, moins optimal)
+        if let Some(m) = board.check_move(origin, &dest, color) {
+            list.push(m);
+        }
+        return;
+    }
+    // Pas d'échec : vérifier le clouage
+    if let Some((dr, dc)) = info.pins[origin.row as usize][origin.col as usize] {
+        if !aligned_with_pin(origin, &dest, dr, dc) {
+            return;
+        }
+    }
+    list.push(board.build_move(*origin, dest, *color));
+}
+
 pub fn generate_moves(
     board: &mut Board,
     active_player: &Color,
     list: &mut MoveList,
     capture_only: bool,
 ) {
+    let info = pin_detection(board, *active_player);
     for x in 0..8 {
         for y in 0..8 {
             if board.grid[x][y].is_color(active_player) {
-                let origin = Coord {
-                    row: x as u8,
-                    col: y as u8,
-                };
+                let origin = Coord { row: x as u8, col: y as u8 };
                 if let Some(piece) = board.get(&origin).get_piece() {
                     match piece {
-                        Pawn => pawn_moves(&origin, active_player, board, list, capture_only),
-                        Rook => rook_moves(&origin, active_player, board, list, capture_only),
-                        Knight => knight_moves(&origin, active_player, board, list, capture_only),
-                        Bishop => bishop_moves(&origin, active_player, board, list, capture_only),
-                        Queen => queen_moves(&origin, active_player, board, list, capture_only),
-                        King => king_moves(&origin, active_player, board, list, capture_only),
+                        // Double échec : seul le roi peut bouger
+                        _ if info.checker_count == 2 && *piece != King => continue,
+                        Pawn   => pawn_moves(&origin, active_player, board, list, capture_only, &info),
+                        Rook   => rook_moves(&origin, active_player, board, list, capture_only, &info),
+                        Knight => knight_moves(&origin, active_player, board, list, capture_only, &info),
+                        Bishop => bishop_moves(&origin, active_player, board, list, capture_only, &info),
+                        Queen  => queen_moves(&origin, active_player, board, list, capture_only, &info),
+                        King   => king_moves(&origin, active_player, board, list, capture_only),
                     }
                 }
             }
@@ -102,20 +137,20 @@ fn pawn_moves(
     board: &mut Board,
     list: &mut MoveList,
     capture_only: bool,
+    info: &PinInfos,
 ) {
     let dir = if *active_player == White { 1 } else { -1 };
     let last_rank = if *active_player == White { 7 } else { 0 };
 
-    for dc in [1, -1] {
+    // Captures diagonales (et en passant)
+    for dc in [1i8, -1] {
         if let Some(dest) = Board::checked_coord(origin.row as i8 + dir, origin.col as i8 + dc) {
             let target = board.get(&dest);
             let is_enemy = target.get_piece().is_some() && !target.is_color(active_player);
-            let is_ep = board.en_passant.map_or(false, |ep| {
-                dest.col == ep.col && dest.row as i8 == ep.row as i8
-            });
+            let is_ep = board.en_passant.map_or(false, |ep| ep == dest);
 
             if is_enemy || is_ep {
-                push_pawn_dest(origin, &dest, active_player, board, last_rank, list);
+                push_pawn_dest(origin, dest, *active_player, board, last_rank, list, info);
             }
         }
     }
@@ -124,23 +159,17 @@ fn pawn_moves(
         return;
     }
 
+    // Avance d'une case
     if let Some(dest) = Board::checked_coord(origin.row as i8 + dir, origin.col as i8) {
         if board.get(&dest) == Cell::Free {
-            push_pawn_dest(origin, &dest, active_player, board, last_rank, list);
+            push_pawn_dest(origin, dest, *active_player, board, last_rank, list, info);
 
-            let initial_row = if *active_player == White {
-                origin.row == 1
-            } else {
-                origin.row == 6
-            };
+            // Avance de deux cases depuis la rangée initiale
+            let initial_row = if *active_player == White { origin.row == 1 } else { origin.row == 6 };
             if initial_row {
-                if let Some(dest2) =
-                    Board::checked_coord(origin.row as i8 + dir * 2, origin.col as i8)
-                {
+                if let Some(dest2) = Board::checked_coord(origin.row as i8 + dir * 2, origin.col as i8) {
                     if board.get(&dest2) == Cell::Free {
-                        if let Some(m) = board.check_move(origin, &dest2, active_player) {
-                            list.push(m);
-                        }
+                        push_if_legal(board, origin, dest2, active_player, list, info);
                     }
                 }
             }
@@ -150,55 +179,54 @@ fn pawn_moves(
 
 fn push_pawn_dest(
     origin: &Coord,
-    dest: &Coord,
-    color: &Color,
+    dest: Coord,
+    color: Color,
     board: &mut Board,
     last_rank: u8,
     list: &mut MoveList,
+    info: &PinInfos,
 ) {
     if dest.row == last_rank {
-        let base = Move {
-            origin: *origin,
-            dest: *dest,
-            capture: board.get(dest),
-            en_passant: board.en_passant,
-            white_castle: board.white_castle,
-            black_castle: board.black_castle,
-            move_type: MoveType::Promotion(Queen),
-            ..Default::default()
+        // Promotion : vérifier la légalité via pin/checker sans apply/undo
+        let is_legal = if info.checker_count >= 1 {
+            board.check_move(origin, &dest, &color).is_some()
+        } else if let Some((dr, dc)) = info.pins[origin.row as usize][origin.col as usize] {
+            aligned_with_pin(origin, &dest, dr, dc)
+        } else {
+            true
         };
 
-        board.apply_move(&base, *color);
-        let safe = !is_king_exposed(board, color);
-        board.undo_move(base, *color);
-
-        if safe {
+        if is_legal {
             for p in [Queen, Rook, Bishop, Knight] {
-                let mut m = base;
+                // create_move gère capture + prev_score correctement
+                let mut m = board.create_move(*origin, dest, color, MoveType::Promotion(Queen));
                 m.move_type = MoveType::Promotion(p);
                 list.push(m);
             }
         }
-    } else if let Some(m) = board.check_move(origin, dest, color) {
-        list.push(m);
+    } else {
+        let is_ep = board.en_passant.map_or(false, |ep| ep == dest);
+        if is_ep {
+            // En passant : garder check_move (découverte horizontale non détectable géométriquement)
+            if let Some(m) = board.check_move(origin, &dest, &color) {
+                list.push(m);
+            }
+        } else {
+            push_if_legal(board, origin, dest, &color, list, info);
+        }
     }
 }
+
 fn rook_moves(
     origin: &Coord,
     active_player: &Color,
     board: &mut Board,
     list: &mut MoveList,
     capture_only: bool,
+    info: &PinInfos,
 ) {
     let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
-    process_sliding_piece(
-        origin,
-        &directions,
-        active_player,
-        board,
-        list,
-        capture_only,
-    );
+    process_sliding_piece(origin, &directions, active_player, board, list, capture_only, info);
 }
 
 fn bishop_moves(
@@ -207,16 +235,10 @@ fn bishop_moves(
     board: &mut Board,
     list: &mut MoveList,
     capture_only: bool,
+    info: &PinInfos,
 ) {
     let directions = [(1, 1), (-1, -1), (-1, 1), (1, -1)];
-    process_sliding_piece(
-        origin,
-        &directions,
-        active_player,
-        board,
-        list,
-        capture_only,
-    );
+    process_sliding_piece(origin, &directions, active_player, board, list, capture_only, info);
 }
 
 fn queen_moves(
@@ -225,9 +247,10 @@ fn queen_moves(
     board: &mut Board,
     list: &mut MoveList,
     capture_only: bool,
+    info: &PinInfos,
 ) {
-    bishop_moves(origin, active_player, board, list, capture_only);
-    rook_moves(origin, active_player, board, list, capture_only);
+    bishop_moves(origin, active_player, board, list, capture_only, info);
+    rook_moves(origin, active_player, board, list, capture_only, info);
 }
 
 fn process_sliding_piece(
@@ -237,6 +260,7 @@ fn process_sliding_piece(
     board: &mut Board,
     list: &mut MoveList,
     capture_only: bool,
+    info: &PinInfos,
 ) {
     for (dr, dc) in dirs {
         let (mut r, mut c) = (origin.row as i8 + dr, origin.col as i8 + dc);
@@ -247,12 +271,12 @@ fn process_sliding_piece(
             }
 
             if capture_only && target.get_piece().is_none() {
+                r += dr;
+                c += dc;
                 continue;
             }
 
-            if let Some(m) = board.check_move(origin, &dest, color) {
-                list.push(m);
-            }
+            push_if_legal(board, origin, dest, color, list, info);
 
             if target.get_piece().is_some() {
                 break;
@@ -269,11 +293,12 @@ fn knight_moves(
     board: &mut Board,
     list: &mut MoveList,
     capture_only: bool,
+    info: &PinInfos,
 ) {
     #[rustfmt::skip]
     let offsets = [
         (2, 1), (2, -1), (-2, 1), (-2, -1),
-        (1, 2),(1, -2), (-1, 2), (-1, -2),
+        (1, 2), (1, -2), (-1, 2), (-1, -2),
     ];
     for (dr, dc) in offsets {
         if let Some(dest) = Board::checked_coord(origin.row as i8 + dr, origin.col as i8 + dc) {
@@ -283,9 +308,7 @@ fn knight_moves(
                     continue;
                 }
             }
-            if let Some(m) = board.check_move(origin, &dest, active_player) {
-                list.push(m);
-            }
+            push_if_legal(board, origin, dest, active_player, list, info);
         }
     }
 }
