@@ -1,10 +1,7 @@
 use crate::ChessApp;
 use crate::Color::*;
-use crate::engine::search_stats::SearchStats;
 use crate::gui::chessapp::AppMode;
 use crate::gui::chessapp::AppMode::*;
-use crate::gui::features::bot::BotDifficulty::*;
-use crate::gui::features::bot::PlayerType::*;
 
 use egui::Context;
 
@@ -19,47 +16,7 @@ impl ChessApp {
                     self.draw_resign_undo_desktop(ui);
                 }
                 ui.separator();
-                if self.app_mode == Versus(None)
-                    && self.settings.black_bot != Human
-                    && self.settings.black_bot != Bot(Easy)
-                {
-                    ui.group(|ui| {
-                        ui.vertical(|ui| {
-                            ui.label(egui::RichText::new("Minimax").strong());
-                            ui.label(
-                                egui::RichText::new(format!("depth: {}", self.get_depth()))
-                                    .monospace(),
-                            );
-                            ui.label(
-                                egui::RichText::new(format!(
-                                    "Time: {}",
-                                    SearchStats::format_time(self.stats.bot_time_thinking)
-                                ))
-                                .monospace(),
-                            );
-                            ui.label(
-                                egui::RichText::new(format!("Nodes: {}", self.stats.nodes))
-                                    .monospace(),
-                            );
-                            ui.label(
-                                egui::RichText::new(format!("Cutoffs: {}", self.stats.cutoffs))
-                                    .monospace(),
-                            );
-                            ui.label(
-                                egui::RichText::new(format!("NPS: {:.0}", self.stats.nps))
-                                    .monospace(),
-                            );
-
-                            ui.label(
-                                egui::RichText::new(format!(
-                                    "Score: {:.0}",
-                                    self.current.board.score
-                                ))
-                                .monospace(),
-                            );
-                        });
-                    });
-                }
+                self.engine_infos(ui, &self.current.active_player);
                 self.new_game_replay(ui, ctx);
                 if self.app_mode == Lobby {
                     self.undo_limit(ui);

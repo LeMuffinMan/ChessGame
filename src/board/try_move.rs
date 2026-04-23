@@ -164,6 +164,10 @@ impl ChessApp {
         if let Some(promote_info) = self.promote_pawn(&active_player, from, to, prev_board) {
             self.promoteinfo = Some(promote_info);
         }
+        match self.current.active_player {
+            White => self.white_last_score = self.current.board.score,
+            Black => self.black_last_score = self.current.board.score,
+        };
         self.switch_turn();
 
         //if there were no promotion, we add the actual board in history, and incremente the index

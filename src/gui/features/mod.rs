@@ -1,4 +1,3 @@
-pub mod bot;
 pub mod gamestate;
 pub mod history;
 pub mod pgn;

@@ -10,10 +10,10 @@ use crate::board::move_gen::generate_moves;
 use crate::engine::evaluator::Evaluator;
 use crate::engine::evaluator::PositionalEvaluator;
 // use crate::engine::evaluator::*;
+use crate::engine::bot::BotDifficulty::*;
+use crate::engine::bot::PlayerType;
+use crate::engine::bot::PlayerType::*;
 use crate::engine::search_stats::SearchStats;
-use crate::gui::features::bot::BotDifficulty::*;
-use crate::gui::features::bot::PlayerType;
-use crate::gui::features::bot::PlayerType::*;
 use js_sys::Math;
 
 const MATE_SCORE: i32 = 1_000_000;
