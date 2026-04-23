@@ -57,13 +57,6 @@ impl ChessApp {
                                 ))
                                 .monospace(),
                             );
-                            ui.label(
-                                egui::RichText::new(format!(
-                                    "Eval score: {:.0}",
-                                    self.current.board.evaluated_score
-                                ))
-                                .monospace(),
-                            );
                         });
                     });
                 }
@@ -94,13 +87,6 @@ impl ChessApp {
                 ui.label(
                     egui::RichText::new(format!("Score: {:.0}", self.current.board.score))
                         .monospace(),
-                );
-                ui.label(
-                    egui::RichText::new(format!(
-                        "Eval score: {:.0}",
-                        self.current.board.evaluated_score
-                    ))
-                    .monospace(),
                 );
             });
     }

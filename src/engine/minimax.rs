@@ -9,7 +9,7 @@ use crate::board::move_gen::MoveType::Promotion;
 use crate::board::move_gen::generate_moves;
 use crate::engine::evaluator::Evaluator;
 use crate::engine::evaluator::PositionalEvaluator;
-use crate::engine::evaluator::*;
+// use crate::engine::evaluator::*;
 use crate::engine::search_stats::SearchStats;
 use crate::gui::features::bot::BotDifficulty::*;
 use crate::gui::features::bot::PlayerType;
@@ -245,6 +245,7 @@ pub fn find_best_move<E: Evaluator>(
 
     best_move
 }
+
 pub fn move_order_score(
     mv: &Move,
     attacker: Option<&Piece>,

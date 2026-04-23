@@ -8,8 +8,8 @@ use crate::board::cell::Piece::*;
 use crate::board::is_king_exposed::is_king_exposed;
 use crate::board::move_gen::MoveType;
 use crate::board::move_gen::{CastleSide::*, Move, MoveType::*};
-use crate::engine::evaluator::Evaluator;
-use crate::engine::evaluator::PositionalEvaluator;
+// use crate::engine::evaluator::Evaluator;
+// use crate::engine::evaluator::PositionalEvaluator;
 use crate::engine::evaluator::get_piece_value_at;
 
 #[derive(Clone, PartialEq)]
@@ -22,7 +22,6 @@ pub struct Board {
     pub en_passant: Option<Coord>,
     pub check: Option<Coord>,
     pub score: i32,
-    pub evaluated_score: i32,
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Default)]
@@ -132,7 +131,6 @@ impl Board {
     }
 
     pub fn apply_move(&mut self, m: &Move, active_player: Color) {
-        // web_sys::console::log_1(&wasm_bindgen::JsValue::from_str("apply_move called"));
         let capture_coord = match m.move_type {
             EnPassant => {
                 let row = if active_player == White {
@@ -154,7 +152,7 @@ impl Board {
         self.en_passant = None;
         self.check = None;
         match self.get(&m.origin).get_piece() {
-            Some(Pawn) => self.update_pawn_move(&active_player, m),
+            Some(Pawn) => self.update_en_passant(&m.origin, &m.dest, &active_player),
             Some(King) => self.update_king_move(&active_player, m),
             Some(Rook) => self.update_rook_move(&active_player, m),
             _ => {}
@@ -188,8 +186,6 @@ impl Board {
 
         self.update_board_score(&self.get(&m.dest), &m.dest, true);
 
-        let eval = PositionalEvaluator;
-        self.evaluated_score = eval.evaluate(self);
         // self.debug_check_score(&format!(
         //     "after apply_move active={:?} type={:?} from=({},{}) to=({},{}) capture={:?}",
         //     active_player,
@@ -202,15 +198,6 @@ impl Board {
         // ))
     }
 
-    pub fn update_pawn_move(&mut self, active_player: &Color, m: &Move) {
-        self.update_en_passant(&m.origin, &m.dest);
-        // if m.move_type == EnPassant {
-        //     match active_player {
-        //         White => self.grid[(m.dest.row - 1) as usize][m.dest.col as usize] = Cell::Free,
-        //         Black => self.grid[(m.dest.row + 1) as usize][m.dest.col as usize] = Cell::Free,
-        //     }
-        // }
-    }
     pub fn update_king_move(&mut self, active_player: &Color, m: &Move) {
         self.update_king_castle(&m.origin, &m.dest, &active_player);
         match active_player {
@@ -257,7 +244,6 @@ impl Board {
             }
             _ => m.dest,
         };
-        // self.update_board_score(&self.get(&m.dest), &m.dest, false);
 
         match m.move_type {
             EnPassant => {
@@ -271,11 +257,8 @@ impl Board {
                 let (r_orig, r_dest) = if side == Right { (7, 5) } else { (0, 3) };
                 let rook = Cell::Occupied(Rook, active_player);
 
-                // On défait le mouvement de la tour (Score + Grille)
-                // self.update_board_score(&rook, &Coord { row, col: r_dest }, false);
                 self.grid[row as usize][r_dest as usize] = Cell::Free;
                 self.grid[row as usize][r_orig as usize] = rook;
-                // self.update_board_score(&rook, &Coord { row, col: r_orig }, true);
 
                 self.grid[row as usize][4] = Cell::Occupied(King, active_player);
                 self.grid[m.dest.row as usize][m.dest.col as usize] = Cell::Free;
@@ -304,9 +287,6 @@ impl Board {
                 }
             }
         }
-
-        // self.update_board_score(&self.get(&m.origin), &m.origin, true); // Remet le moteur à l'origine
-        // self.update_board_score(&m.capture, &capture_coord, true); // Remet la capture là où elle était
 
         self.en_passant = m.en_passant;
         self.check = m.check;
@@ -358,10 +338,13 @@ impl Board {
         }
     }
 
-    pub fn update_en_passant(&mut self, origin: &Coord, to: &Coord) {
+    pub fn update_en_passant(&mut self, origin: &Coord, to: &Coord, active_player: &Color) {
         let dif = to.row as i8 - origin.row as i8;
         if dif.abs() == 2 {
-            let mid_row = (origin.row as i8 + to.row as i8) / 2;
+            let mid_row = match active_player {
+                White => to.row - 1,
+                Black => to.row + 1,
+            };
             self.en_passant = Some(Coord {
                 row: mid_row as u8,
                 col: origin.col,
@@ -392,7 +375,6 @@ impl Board {
         }
     }
     pub fn init_board() -> Board {
-        // web_sys::console::log_1(&wasm_bindgen::JsValue::from_str("init_board done"));
         let mut board = Board {
             grid: [[Cell::Free; 8]; 8],
             en_passant: None,
@@ -408,7 +390,6 @@ impl Board {
             black_king: (Coord { row: 7, col: 4 }),
             check: None,
             score: 0,
-            evaluated_score: 0,
         };
 
         board.fill_side(White);
@@ -421,8 +402,6 @@ impl Board {
                 }
             }
         }
-        board.evaluated_score = PositionalEvaluator.evaluate(&board);
-        board.score = PositionalEvaluator.evaluate(&board);
         board
     }
 
@@ -453,38 +432,13 @@ impl Board {
         }
     }
 
-    pub fn debug_check_score(&self, context: &str) {
-        let eval = PositionalEvaluator;
-        let recomputed = eval.evaluate(self);
+    // pub fn debug_check_score(&self, context: &str) {
+    // let eval = PositionalEvaluator;
+    // let recomputed = eval.evaluate(self);
 
-        web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(&format!(
-            "[DEBUG] {} score={} recomputed={} evaluated_score={} en_passant={:?} check={:?}",
-            context, self.score, recomputed, self.evaluated_score, self.en_passant, self.check
-        )));
-    }
-}
-
-#[cfg(target_arch = "wasm32")]
-pub fn log(s: &str) {
-    web_sys::console::log_1(&s.into());
-}
-
-#[cfg(target_arch = "wasm32")]
-pub fn console_log(s: &str) {
-    web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(s));
-}
-
-#[cfg(target_arch = "wasm32")]
-pub fn console_warn(s: &str) {
-    web_sys::console::warn_1(&wasm_bindgen::JsValue::from_str(s));
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-pub fn console_log(s: &str) {
-    println!("{s}");
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-pub fn console_warn(s: &str) {
-    eprintln!("{s}");
+    // web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(&format!(
+    //     "[DEBUG] {} score={} recomputed={} evaluated_score={} en_passant={:?} check={:?}",
+    //     context, self.score, recomputed, self.evaluated_score, self.en_passant, self.check
+    // )));
+    // }
 }

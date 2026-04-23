@@ -1,9 +1,6 @@
 use crate::Board;
-#[cfg(test)]
-use crate::board::cell::Cell::Free;
-use crate::board::cell::Cell::Occupied;
-use crate::board::cell::Color;
-use crate::board::cell::Coord;
+use crate::Color;
+use crate::Coord;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::{Bishop, King, Knight, Pawn, Queen, Rook};
 

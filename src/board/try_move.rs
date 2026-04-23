@@ -56,7 +56,7 @@ impl ChessApp {
             self.current
                 .board
                 .build_move(from, to, self.current.active_player),
-        ) //erreur a gerer ?
+        )
     }
 
     pub fn apply_move(&mut self, m: &Move) {
@@ -164,7 +164,7 @@ impl ChessApp {
         }
         self.switch_turn();
 
-        //if there were no promotion, we add the actual board in history, and inc the index
+        //if there were no promotion, we add the actual board in history, and incremente the index
         //if there was a promotion, the gui handler would do this part too
         if self.promoteinfo.is_none() {
             self.add_history_san(&from, &to, &prev_board);
