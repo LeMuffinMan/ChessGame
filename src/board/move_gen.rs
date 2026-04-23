@@ -19,6 +19,7 @@ pub struct Move {
     pub white_castle: CastleRights,
     pub black_castle: CastleRights,
     pub move_type: MoveType,
+    pub prev_score: i32,
 }
 
 impl Move {

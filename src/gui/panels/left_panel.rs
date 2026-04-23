@@ -43,6 +43,18 @@ impl ChessApp {
                         ui.label(
                             egui::RichText::new(format!("NPS: {:.0}", self.stats.nps)).monospace(),
                         );
+
+                        ui.label(
+                            egui::RichText::new(format!("Score: {:.0}", self.current.board.score))
+                                .monospace(),
+                        );
+                        ui.label(
+                            egui::RichText::new(format!(
+                                "Eval score: {:.0}",
+                                self.current.board.evaluated_score
+                            ))
+                            .monospace(),
+                        );
                     });
                 }
                 self.new_game_replay(ui, ctx);
@@ -69,6 +81,17 @@ impl ChessApp {
                         });
                     }
                 }
+                ui.label(
+                    egui::RichText::new(format!("Score: {:.0}", self.current.board.score))
+                        .monospace(),
+                );
+                ui.label(
+                    egui::RichText::new(format!(
+                        "Eval score: {:.0}",
+                        self.current.board.evaluated_score
+                    ))
+                    .monospace(),
+                );
             });
     }
 
