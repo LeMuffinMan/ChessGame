@@ -45,7 +45,10 @@ impl ChessApp {
         }
         None
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6df9e5b (en passant fixed and refacto new incremental score)
     //if a player promoted a pawn, try_move didnt finished it's work, so we do it here
     pub fn update_promote(&mut self) {
         if let Some(promote_info) = &self.promoteinfo

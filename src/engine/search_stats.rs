@@ -1,5 +1,6 @@
 use crate::board::move_gen::Move;
 
+//killers moves a enlever ?
 pub struct SearchStats {
     pub nodes: u64,
     pub bot_time_thinking: f64,

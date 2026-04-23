@@ -246,6 +246,7 @@ pub fn find_best_move<E: Evaluator>(
 
     best_move
 }
+
 pub fn move_order_score(
     mv: &Move,
     attacker: Option<&Piece>,

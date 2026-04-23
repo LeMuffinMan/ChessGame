@@ -1,6 +1,7 @@
 use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
 use crate::board::move_gen::Move;
+<<<<<<< HEAD
 use crate::engine::evaluator::Evaluator;
 use crate::engine::evaluator::PositionalEvaluator;
 <<<<<<< HEAD
@@ -8,6 +9,8 @@ use crate::engine::evaluator::PositionalEvaluator;
 use crate::engine::minimax::get_bot_move;
 use crate::engine::minimax::{HARD_DEPTH, MEDIUM_DEPTH};
 >>>>>>> 2b166a4 (feat: display depth on panel)
+=======
+>>>>>>> 6df9e5b (en passant fixed and refacto new incremental score)
 use crate::engine::search_stats::SearchStats;
 use crate::gui::chessapp::AppMode::*;
 use crate::gui::features::gamestate::DrawOption::Available;
@@ -73,13 +76,6 @@ pub enum AppMode {
 //This App trait runs the eframe : fn update is the main loop, run for each frame
 impl App for ChessApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        if self.current.threaten_cells.is_empty() {
-            self.update_threaten_cells()
-        }
-        if self.current.legals_moves.is_empty() {
-            self.update_legals_moves();
-        }
-
         self.hooks(ctx);
         match &self.ui_type {
             UiType::Mobile => {
@@ -103,8 +99,6 @@ impl App for ChessApp {
             ctx.request_repaint();
 >>>>>>> 2b166a4 (feat: display depth on panel)
             self.play_bot_turn();
-            // let eval = PositionalEvaluator;
-            // self.current.board.evaluated_score = eval.evaluate(&self.current.board);
             if self.current.draw.draw_option.is_some() {
                 self.current.end = Some(Draw);
             }
@@ -113,6 +107,7 @@ impl App for ChessApp {
 }
 
 impl ChessApp {
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
     pub fn get_depth(&self) -> u8 {
@@ -129,6 +124,8 @@ impl ChessApp {
             0
         }
     }
+=======
+>>>>>>> 6df9e5b (en passant fixed and refacto new incremental score)
     pub fn hooks(&mut self, ctx: &egui::Context) {
         self.hook_win(ctx);
         if self.app_mode == Replay {
@@ -148,6 +145,7 @@ impl ChessApp {
         }
     }
 
+<<<<<<< HEAD
     pub fn is_bot_turn(&self) -> bool {
         match self.current.active_player {
             White => matches!(self.settings.white_bot, Bot(_)),
@@ -231,6 +229,8 @@ impl ChessApp {
         });
     }
 
+=======
+>>>>>>> 6df9e5b (en passant fixed and refacto new incremental score)
     pub fn fifty_moves_draw_check(&mut self, m: &Move) {
         //if a pawn moved, the counter reset
         if let Some(p) = self.current.board.get(&m.dest).get_piece()
