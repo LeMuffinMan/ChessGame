@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 use crate::board::cell::Cell;
 use crate::board::cell::Color::*;
 use crate::board::move_gen::MoveType::Promotion;
@@ -9,12 +10,15 @@ use crate::gui::features::bot::PlayerType::*;
 use web_sys::window;
 
 #[derive(PartialEq, Debug)]
+=======
+#[derive(PartialEq, Debug, Copy, Clone)]
+>>>>>>> 2b166a4 (feat: display depth on panel)
 pub enum BotDifficulty {
     Easy,
     Medium,
     Hard,
 }
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Copy, Clone)]
 pub enum PlayerType {
     Human,
     Bot(BotDifficulty),

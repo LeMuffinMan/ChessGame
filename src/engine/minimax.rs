@@ -17,8 +17,8 @@ use crate::gui::features::bot::PlayerType::*;
 use js_sys::Math;
 
 const MATE_SCORE: i32 = 1_000_000;
-const MEDIUM_DEPTH: u8 = 3;
-const HARD_DEPTH: u8 = 4;
+pub const MEDIUM_DEPTH: u8 = 3;
+pub const HARD_DEPTH: u8 = 4;
 
 pub fn minimax<E: Evaluator>(
     board: &mut Board,
