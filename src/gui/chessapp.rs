@@ -232,7 +232,6 @@ impl ChessApp {
 =======
 >>>>>>> 6df9e5b (en passant fixed and refacto new incremental score)
     pub fn fifty_moves_draw_check(&mut self, m: &Move) {
-        //if a pawn moved, the counter reset
         if let Some(p) = self.current.board.get(&m.dest).get_piece()
             && p == &Pawn
         {
