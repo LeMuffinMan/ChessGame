@@ -60,9 +60,10 @@ impl ChessApp {
             self.current.board.grid[coord.row as usize][coord.col as usize] =
                 Cell::Occupied(piece, color);
 
-            // check_endgame first: recalculates threaten_cells with the promoted piece's threats
+            self.update_threaten_cells();
+            self.update_legals_moves();
+
             self.check_endgame();
-            // then detect check using fresh threaten_cells
             let k = match self.current.active_player {
                 White => self.current.board.white_king,
                 Black => self.current.board.black_king,
