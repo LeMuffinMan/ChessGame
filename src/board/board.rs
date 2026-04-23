@@ -2,11 +2,15 @@ use crate::Color;
 use crate::Color::*;
 use crate::Coord;
 use crate::board::cell::Cell;
+use crate::board::cell::Cell::Occupied;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
 use crate::board::is_king_exposed::is_king_exposed;
 use crate::board::move_gen::MoveType;
 use crate::board::move_gen::{CastleSide::*, Move, MoveType::*};
+use crate::engine::evaluator::Evaluator;
+use crate::engine::evaluator::PositionalEvaluator;
+use crate::engine::evaluator::get_piece_value_at;
 
 #[derive(Clone, PartialEq)]
 pub struct Board {
@@ -17,6 +21,8 @@ pub struct Board {
     pub black_king: Coord,
     pub en_passant: Option<Coord>,
     pub check: Option<Coord>,
+    pub score: i32,
+    pub evaluated_score: i32,
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Default)]
@@ -68,6 +74,7 @@ impl Board {
             white_castle: self.white_castle,
             black_castle: self.black_castle,
             move_type: m_type,
+            prev_score: self.score,
         }
     }
     fn get_move_type(&self, origin: Coord, dest: Coord, piece_moving: Option<&Piece>) -> MoveType {
@@ -112,39 +119,97 @@ impl Board {
         }
     }
 
+    //mode : true = we add a piece to the board / false = we remove a piece from the board
+    fn update_board_score(&mut self, cell: &Cell, target: &Coord, mode: bool) {
+        if let Occupied(piece, color) = cell {
+            let value = get_piece_value_at(piece, color, target);
+            if mode {
+                self.score += value;
+            } else {
+                self.score -= value;
+            }
+        }
+    }
+
     pub fn apply_move(&mut self, m: &Move, active_player: Color) {
+        // web_sys::console::log_1(&wasm_bindgen::JsValue::from_str("apply_move called"));
+        let capture_coord = match m.move_type {
+            EnPassant => {
+                let row = if active_player == White {
+                    m.dest.row - 1
+                } else {
+                    m.dest.row + 1
+                };
+                Coord {
+                    row,
+                    col: m.dest.col,
+                }
+            }
+            _ => m.dest,
+        };
+
+        self.update_board_score(&self.get(&m.origin), &m.origin, false);
+        self.update_board_score(&m.capture, &capture_coord, false);
+
         self.en_passant = None;
         self.check = None;
         match self.get(&m.origin).get_piece() {
-            Some(piece) => match piece {
-                Pawn => self.update_pawn_move(&active_player, m),
-                King => self.update_king_move(&active_player, m),
-                Rook => self.update_rook_move(&active_player, m),
-                Knight | Queen | Bishop => {}
-            },
-            None => {
-                unreachable!("Error : update board : origin cell empty")
-            }
+            Some(Pawn) => self.update_pawn_move(&active_player, m),
+            Some(King) => self.update_king_move(&active_player, m),
+            Some(Rook) => self.update_rook_move(&active_player, m),
+            _ => {}
         }
         self.update_capture_rook(m);
+
+        if let EnPassant = m.move_type {
+            self.grid[capture_coord.row as usize][capture_coord.col as usize] = Cell::Free;
+        }
+
         self.grid[m.dest.row as usize][m.dest.col as usize] = std::mem::replace(
             &mut self.grid[m.origin.row as usize][m.origin.col as usize],
             Cell::Free,
         );
+
         if let Promotion(promoted) = m.move_type {
             self.grid[m.dest.row as usize][m.dest.col as usize] =
                 Cell::Occupied(promoted, active_player);
         }
-        //rend une struct Undo pour undo move ?
+
+        if let Castle(side) = m.move_type {
+            let row = if active_player == White { 0 } else { 7 };
+            let (r_orig, r_dest) = if side == Right { (7, 5) } else { (0, 3) };
+            // On retire la tour de son coin et on l'ajoute à sa nouvelle place (Score + Grille)
+            let rook = Cell::Occupied(Rook, active_player);
+            self.update_board_score(&rook, &Coord { row, col: r_orig }, false);
+            self.grid[row as usize][r_orig as usize] = Cell::Free;
+            self.grid[row as usize][r_dest as usize] = rook;
+            self.update_board_score(&rook, &Coord { row, col: r_dest }, true);
+        }
+
+        self.update_board_score(&self.get(&m.dest), &m.dest, true);
+
+        let eval = PositionalEvaluator;
+        self.evaluated_score = eval.evaluate(self);
+        // self.debug_check_score(&format!(
+        //     "after apply_move active={:?} type={:?} from=({},{}) to=({},{}) capture={:?}",
+        //     active_player,
+        //     m.move_type,
+        //     m.origin.row,
+        //     m.origin.col,
+        //     m.dest.row,
+        //     m.dest.col,
+        //     m.capture
+        // ))
     }
+
     pub fn update_pawn_move(&mut self, active_player: &Color, m: &Move) {
         self.update_en_passant(&m.origin, &m.dest);
-        if m.move_type == EnPassant {
-            match active_player {
-                White => self.grid[(m.dest.row - 1) as usize][m.dest.col as usize] = Cell::Free,
-                Black => self.grid[(m.dest.row + 1) as usize][m.dest.col as usize] = Cell::Free,
-            }
-        }
+        // if m.move_type == EnPassant {
+        //     match active_player {
+        //         White => self.grid[(m.dest.row - 1) as usize][m.dest.col as usize] = Cell::Free,
+        //         Black => self.grid[(m.dest.row + 1) as usize][m.dest.col as usize] = Cell::Free,
+        //     }
+        // }
     }
     pub fn update_king_move(&mut self, active_player: &Color, m: &Move) {
         self.update_king_castle(&m.origin, &m.dest, &active_player);
@@ -178,83 +243,90 @@ impl Board {
 
     //refacto : prend une Struct Undo en param ?
     pub fn undo_move(&mut self, m: Move, active_player: Color) {
+        let capture_coord = match m.move_type {
+            EnPassant => {
+                let row = if active_player == White {
+                    m.dest.row - 1
+                } else {
+                    m.dest.row + 1
+                };
+                Coord {
+                    row,
+                    col: m.dest.col,
+                }
+            }
+            _ => m.dest,
+        };
+        // self.update_board_score(&self.get(&m.dest), &m.dest, false);
+
         match m.move_type {
             EnPassant => {
                 self.grid[m.dest.row as usize][m.dest.col as usize] = Cell::Free;
-                match active_player {
-                    White => {
-                        self.grid[(m.dest.row - 1) as usize][m.dest.col as usize] = m.capture;
-                        self.grid[m.origin.row as usize][m.origin.col as usize] =
-                            Cell::Occupied(Pawn, active_player);
-                    }
-                    Black => {
-                        self.grid[(m.dest.row + 1) as usize][m.dest.col as usize] = m.capture;
-                        self.grid[m.origin.row as usize][m.origin.col as usize] =
-                            Cell::Occupied(Pawn, active_player);
-                    }
+                self.grid[capture_coord.row as usize][capture_coord.col as usize] = m.capture;
+                self.grid[m.origin.row as usize][m.origin.col as usize] =
+                    Cell::Occupied(Pawn, active_player);
+            }
+            Castle(side) => {
+                let row = if active_player == White { 0 } else { 7 };
+                let (r_orig, r_dest) = if side == Right { (7, 5) } else { (0, 3) };
+                let rook = Cell::Occupied(Rook, active_player);
+
+                // On défait le mouvement de la tour (Score + Grille)
+                // self.update_board_score(&rook, &Coord { row, col: r_dest }, false);
+                self.grid[row as usize][r_dest as usize] = Cell::Free;
+                self.grid[row as usize][r_orig as usize] = rook;
+                // self.update_board_score(&rook, &Coord { row, col: r_orig }, true);
+
+                self.grid[row as usize][4] = Cell::Occupied(King, active_player);
+                self.grid[m.dest.row as usize][m.dest.col as usize] = Cell::Free;
+
+                if active_player == White {
+                    self.white_king = Coord { row: 0, col: 4 };
+                } else {
+                    self.black_king = Coord { row: 7, col: 4 };
                 }
             }
-            Castle(side) => match side {
-                Right => match active_player {
-                    White => {
-                        self.grid[0][4] = Cell::Occupied(King, White);
-                        self.grid[0][5] = Cell::Free;
-                        self.grid[0][6] = Cell::Free;
-                        self.grid[0][7] = Cell::Occupied(Rook, White);
-                        self.white_king = Coord { row: 0, col: 4 };
-                    }
-                    Black => {
-                        self.grid[7][4] = Cell::Occupied(King, Black);
-                        self.grid[7][5] = Cell::Free;
-                        self.grid[7][6] = Cell::Free;
-                        self.grid[7][7] = Cell::Occupied(Rook, Black);
-                        self.black_king = Coord { row: 7, col: 4 };
-                    }
-                },
-                Left => match active_player {
-                    White => {
-                        self.grid[0][4] = Cell::Occupied(King, White);
-                        self.grid[0][3] = Cell::Free;
-                        self.grid[0][2] = Cell::Free;
-                        self.grid[0][1] = Cell::Free;
-                        self.grid[0][0] = Cell::Occupied(Rook, White);
-                        self.white_king = Coord { row: 0, col: 4 };
-                    }
-                    Black => {
-                        self.grid[7][4] = Cell::Occupied(King, Black);
-                        self.grid[7][3] = Cell::Free;
-                        self.grid[7][2] = Cell::Free;
-                        self.grid[7][1] = Cell::Free;
-                        self.grid[7][0] = Cell::Occupied(Rook, Black);
-                        self.black_king = Coord { row: 7, col: 4 };
-                    }
-                },
-            },
             Promotion(_) => {
                 self.grid[m.origin.row as usize][m.origin.col as usize] =
                     Cell::Occupied(Pawn, active_player);
                 self.grid[m.dest.row as usize][m.dest.col as usize] = m.capture;
             }
             Regular => {
-                self.grid[m.origin.row as usize][m.origin.col as usize] = self.get(&m.dest);
-                if self.grid[m.origin.row as usize][m.origin.col as usize].get_piece()
-                    == Some(&King)
-                {
+                let moving_piece = self.get(&m.dest);
+                self.grid[m.origin.row as usize][m.origin.col as usize] = moving_piece;
+                self.grid[m.dest.row as usize][m.dest.col as usize] = m.capture;
+
+                if let Some(King) = moving_piece.get_piece() {
                     match active_player {
                         White => self.white_king = m.origin,
                         Black => self.black_king = m.origin,
                     }
                 }
-                self.grid[m.dest.row as usize][m.dest.col as usize] = m.capture;
             }
         }
+
+        // self.update_board_score(&self.get(&m.origin), &m.origin, true); // Remet le moteur à l'origine
+        // self.update_board_score(&m.capture, &capture_coord, true); // Remet la capture là où elle était
+
         self.en_passant = m.en_passant;
         self.check = m.check;
         self.white_castle = m.white_castle;
         self.black_castle = m.black_castle;
+        self.score = m.prev_score;
+
+        // self.debug_check_score(&format!(
+        //     "after undo_move active={:?} type={:?} from=({},{}) to=({},{}) capture={:?}",
+        //     active_player,
+        //     m.move_type,
+        //     m.origin.row,
+        //     m.origin.col,
+        //     m.dest.row,
+        //     m.dest.col,
+        //     m.capture
+        // ));
     }
 
-    //reduire l'appel a check move ? renommer
+    //reduire l'appel a check move ou enlever le is_king_exposed ? renommer
     pub fn check_move(
         &mut self,
         origin: &Coord,
@@ -287,9 +359,15 @@ impl Board {
     }
 
     pub fn update_en_passant(&mut self, origin: &Coord, to: &Coord) {
-        let dif = origin.row as i8 - to.row as i8;
+        let dif = to.row as i8 - origin.row as i8;
         if dif.abs() == 2 {
-            self.en_passant = Some(*to);
+            let mid_row = (origin.row as i8 + to.row as i8) / 2;
+            self.en_passant = Some(Coord {
+                row: mid_row as u8,
+                col: origin.col,
+            });
+        } else {
+            self.en_passant = None;
         }
     }
 
@@ -314,6 +392,7 @@ impl Board {
         }
     }
     pub fn init_board() -> Board {
+        // web_sys::console::log_1(&wasm_bindgen::JsValue::from_str("init_board done"));
         let mut board = Board {
             grid: [[Cell::Free; 8]; 8],
             en_passant: None,
@@ -328,11 +407,22 @@ impl Board {
             white_king: (Coord { row: 0, col: 4 }),
             black_king: (Coord { row: 7, col: 4 }),
             check: None,
+            score: 0,
+            evaluated_score: 0,
         };
 
         board.fill_side(White);
         board.fill_side(Black);
-
+        for x in 0..8 {
+            for y in 0..8 {
+                let target = Coord { row: x, col: y };
+                if let Occupied(piece, color) = board.get(&target) {
+                    board.score += get_piece_value_at(&piece, &color, &target);
+                }
+            }
+        }
+        board.evaluated_score = PositionalEvaluator.evaluate(&board);
+        board.score = PositionalEvaluator.evaluate(&board);
         board
     }
 
@@ -362,4 +452,39 @@ impl Board {
             }
         }
     }
+
+    pub fn debug_check_score(&self, context: &str) {
+        let eval = PositionalEvaluator;
+        let recomputed = eval.evaluate(self);
+
+        web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(&format!(
+            "[DEBUG] {} score={} recomputed={} evaluated_score={} en_passant={:?} check={:?}",
+            context, self.score, recomputed, self.evaluated_score, self.en_passant, self.check
+        )));
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn log(s: &str) {
+    web_sys::console::log_1(&s.into());
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn console_log(s: &str) {
+    web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(s));
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn console_warn(s: &str) {
+    web_sys::console::warn_1(&wasm_bindgen::JsValue::from_str(s));
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn console_log(s: &str) {
+    println!("{s}");
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn console_warn(s: &str) {
+    eprintln!("{s}");
 }

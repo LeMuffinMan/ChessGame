@@ -6,6 +6,8 @@ use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
 use crate::board::move_gen::Move;
 use crate::board::move_gen::MoveType::*;
+use crate::engine::evaluator::Evaluator;
+use crate::engine::evaluator::PositionalEvaluator;
 use crate::engine::minimax::get_bot_move;
 use crate::engine::search_stats::SearchStats;
 use crate::gui::chessapp::AppMode::*;
@@ -100,6 +102,8 @@ impl App for ChessApp {
             self.bot_pending = false;
             ctx.request_repaint_after(std::time::Duration::from_millis(500));
             self.play_bot_turn();
+            let eval = PositionalEvaluator;
+            self.current.board.evaluated_score = eval.evaluate(&self.current.board);
         }
     }
 }
