@@ -111,7 +111,7 @@ fn pawn_moves(
             let target = board.get(&dest);
             let is_enemy = target.get_piece().is_some() && !target.is_color(active_player);
             let is_ep = board.en_passant.map_or(false, |ep| {
-                dest.col == ep.col && dest.row as i8 == ep.row as i8 + dir
+                dest.col == ep.col && dest.row as i8 == ep.row as i8
             });
 
             if is_enemy || is_ep {
@@ -128,7 +128,6 @@ fn pawn_moves(
         if board.get(&dest) == Cell::Free {
             push_pawn_dest(origin, &dest, active_player, board, last_rank, list);
 
-            // Double avance initiale
             let initial_row = if *active_player == White {
                 origin.row == 1
             } else {
@@ -158,7 +157,6 @@ fn push_pawn_dest(
     list: &mut MoveList,
 ) {
     if dest.row == last_rank {
-        // Simuler pour l'échec
         let base = Move {
             origin: *origin,
             dest: *dest,
