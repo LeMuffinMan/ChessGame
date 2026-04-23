@@ -50,7 +50,13 @@ impl ChessApp {
                 style.spacing.icon_spacing = 8.0;
 
                 ui.add_space(20.0);
-                self.highlight_checkboxes(ui);
+
+                ui.horizontal(|ui| {
+                    ui.add_space(50.0);
+                    ui.vertical(|ui| {
+                        self.highlight_checkboxes(ui);
+                    });
+                });
                 ui.add_space(20.0);
                 // if !self.history.is_empty() {
                 //     self.mobile_save_button(ui);

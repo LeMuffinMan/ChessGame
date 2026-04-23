@@ -14,18 +14,7 @@ impl ChessApp {
                     ui.vertical(|ui| {
                         self.flip_buttons(ui);
                         ui.add_space(20.0);
-                        ui.checkbox(&mut self.settings.show_coordinates, "Coordinates")
-                            .changed();
-                        ui.add_space(20.0);
-                        ui.label("Highlight :");
-                        ui.add_space(20.0);
-                        ui.checkbox(&mut self.settings.show_legals_moves, "Legals moves")
-                            .changed();
-                        ui.add_space(20.0);
-                        ui.checkbox(&mut self.settings.show_threaten_cells, "Threaten cells");
-                        ui.add_space(20.0);
-                        ui.checkbox(&mut self.settings.show_last_move, "Last move")
-                            .changed();
+                        self.highlight_checkboxes(ui);
                         ui.add_space(20.0);
                         if !self.history.snapshots.is_empty() {
                             ui.text_edit_singleline(&mut self.settings.file_name);
