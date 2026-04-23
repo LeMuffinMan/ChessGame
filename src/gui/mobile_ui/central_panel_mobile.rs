@@ -1,10 +1,8 @@
 use crate::ChessApp;
+use crate::board::cell::Color::*;
 use crate::gui::chessapp::AppMode;
-use crate::gui::features::timer::GameMode::*;
 use crate::gui::hooks::windows::WinDia::*;
-use crate::gui::panels::bot_panels::format_time;
 use egui::Label;
-use egui::RichText;
 use egui::Sense;
 
 impl ChessApp {
@@ -23,16 +21,15 @@ impl ChessApp {
                     egui::Layout::top_down_justified(egui::Align::Center),
                     |ui| {
                         ui.add_space(20.0);
-                        self.black_panel(ui);
-                        ui.add_space(20.0);
+                        self.player_bar(ui, &Black);
+                        ui.add_space(30.0);
 
                         self.mobile_board_display(ui, board_size, ctx);
 
+                        ui.add_space(30.0);
+                        self.player_bar(ui, &White);
                         ui.add_space(20.0);
 
-                        self.white_panel(ui);
-
-                        ui.add_space(40.0);
                         ui.separator();
                         ui.add_space(40.0);
 
@@ -125,54 +122,6 @@ impl ChessApp {
             if response.clicked() {
                 self.win = Some(Pgn);
             }
-        });
-    }
-
-    pub fn black_panel(&mut self, ui: &mut egui::Ui) {
-        ui.horizontal(|ui| {
-            ui.label(RichText::new("Black").size(50.0));
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if self.timer.mode != NoTime {
-                    if self.timer.increment == 0.0 {
-                        ui.label(
-                            RichText::new(format_time(self.timer.black_time) + " ⏱").size(50.0),
-                        );
-                    } else {
-                        ui.label(
-                            RichText::new(
-                                format_time(self.timer.black_time)
-                                    + " ⏱ + "
-                                    + &format_time(self.timer.increment).to_string(),
-                            )
-                            .size(50.0),
-                        );
-                    }
-                }
-            });
-        });
-    }
-
-    pub fn white_panel(&mut self, ui: &mut egui::Ui) {
-        ui.horizontal(|ui| {
-            ui.label(RichText::new("White").size(50.0));
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if self.timer.mode != NoTime {
-                    if self.timer.increment == 0.0 {
-                        ui.label(
-                            RichText::new(format_time(self.timer.white_time) + " ⏱").size(50.0),
-                        );
-                    } else {
-                        ui.label(
-                            RichText::new(
-                                format_time(self.timer.white_time)
-                                    + " ⏱ + "
-                                    + &format_time(self.timer.increment).to_string(),
-                            )
-                            .size(50.0),
-                        );
-                    }
-                }
-            });
         });
     }
 }

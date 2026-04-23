@@ -1,6 +1,6 @@
 use crate::ChessApp;
-use crate::gui::features::bot::BotDifficulty::*;
-use crate::gui::features::bot::PlayerType::*;
+use crate::engine::bot::BotDifficulty::*;
+use crate::engine::bot::PlayerType::*;
 use crate::gui::features::timer::GameMode::NoTime;
 use egui::RichText;
 use egui::TextEdit;

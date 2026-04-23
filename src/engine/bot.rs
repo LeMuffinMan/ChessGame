@@ -2,12 +2,12 @@ use crate::ChessApp;
 use crate::board::cell::Cell;
 use crate::board::cell::Color::*;
 use crate::board::move_gen::MoveType::Promotion;
+use crate::engine::bot::PlayerType::*;
 use crate::engine::minimax::get_bot_move;
 use crate::gui::chessapp::AppMode::*;
 use web_sys::window;
 
 use crate::engine::minimax::{HARD_DEPTH, MEDIUM_DEPTH};
-use crate::gui::features::bot::PlayerType::Bot;
 
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum BotDifficulty {
@@ -101,7 +101,7 @@ impl ChessApp {
                     }
                 }
                 _ => {
-                    unreachable!()
+                    unreachable!("Player can't reach this branch")
                 }
             }
         }

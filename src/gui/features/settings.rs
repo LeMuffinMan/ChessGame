@@ -1,7 +1,7 @@
 use crate::Coord;
-use crate::gui::features::bot::BotDifficulty::*;
-use crate::gui::features::bot::PlayerType;
-use crate::gui::features::bot::PlayerType::*;
+use crate::engine::bot::BotDifficulty::*;
+use crate::engine::bot::PlayerType;
+use crate::engine::bot::PlayerType::*;
 use egui::Pos2;
 use std::path::PathBuf;
 
