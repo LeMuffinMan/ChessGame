@@ -24,37 +24,47 @@ impl ChessApp {
                     && self.settings.black_bot != Bot(Easy)
                 {
                     ui.group(|ui| {
-                        ui.label(egui::RichText::new("Minimax").strong());
-
-                        ui.label(
-                            egui::RichText::new(format!(
-                                "Time thinking: {}",
-                                SearchStats::format_time(self.stats.bot_time_thinking)
-                            ))
-                            .monospace(),
-                        );
-                        ui.label(
-                            egui::RichText::new(format!("Nodes: {}", self.stats.nodes)).monospace(),
-                        );
-                        ui.label(
-                            egui::RichText::new(format!("Cutoffs: {}", self.stats.cutoffs))
+                        ui.vertical(|ui| {
+                            ui.label(egui::RichText::new("Minimax").strong());
+                            ui.label(
+                                egui::RichText::new(format!("depth: {}", self.get_depth()))
+                                    .monospace(),
+                            );
+                            ui.label(
+                                egui::RichText::new(format!(
+                                    "Time: {}",
+                                    SearchStats::format_time(self.stats.bot_time_thinking)
+                                ))
                                 .monospace(),
-                        );
-                        ui.label(
-                            egui::RichText::new(format!("NPS: {:.0}", self.stats.nps)).monospace(),
-                        );
+                            );
+                            ui.label(
+                                egui::RichText::new(format!("Nodes: {}", self.stats.nodes))
+                                    .monospace(),
+                            );
+                            ui.label(
+                                egui::RichText::new(format!("Cutoffs: {}", self.stats.cutoffs))
+                                    .monospace(),
+                            );
+                            ui.label(
+                                egui::RichText::new(format!("NPS: {:.0}", self.stats.nps))
+                                    .monospace(),
+                            );
 
-                        ui.label(
-                            egui::RichText::new(format!("Score: {:.0}", self.current.board.score))
+                            ui.label(
+                                egui::RichText::new(format!(
+                                    "Score: {:.0}",
+                                    self.current.board.score
+                                ))
                                 .monospace(),
-                        );
-                        ui.label(
-                            egui::RichText::new(format!(
-                                "Eval score: {:.0}",
-                                self.current.board.evaluated_score
-                            ))
-                            .monospace(),
-                        );
+                            );
+                            ui.label(
+                                egui::RichText::new(format!(
+                                    "Eval score: {:.0}",
+                                    self.current.board.evaluated_score
+                                ))
+                                .monospace(),
+                            );
+                        });
                     });
                 }
                 self.new_game_replay(ui, ctx);

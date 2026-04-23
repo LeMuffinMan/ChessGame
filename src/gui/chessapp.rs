@@ -9,6 +9,7 @@ use crate::board::move_gen::MoveType::*;
 use crate::engine::evaluator::Evaluator;
 use crate::engine::evaluator::PositionalEvaluator;
 use crate::engine::minimax::get_bot_move;
+use crate::engine::minimax::{HARD_DEPTH, MEDIUM_DEPTH};
 use crate::engine::search_stats::SearchStats;
 use crate::gui::chessapp::AppMode::*;
 use crate::gui::features::bot::BotDifficulty::*;
@@ -100,15 +101,33 @@ impl App for ChessApp {
             && self.win.is_none()
         {
             self.bot_pending = false;
-            ctx.request_repaint_after(std::time::Duration::from_millis(500));
+            // ctx.request_repaint_after(std::time::Duration::from_millis(300));
+            ctx.request_repaint();
             self.play_bot_turn();
-            let eval = PositionalEvaluator;
-            self.current.board.evaluated_score = eval.evaluate(&self.current.board);
+            // let eval = PositionalEvaluator;
+            // self.current.board.evaluated_score = eval.evaluate(&self.current.board);
+            if self.current.draw.draw_option.is_some() {
+                self.current.end = Some(Draw);
+            }
         }
     }
 }
 
 impl ChessApp {
+    pub fn get_depth(&self) -> u8 {
+        if let Bot(diff) = match self.current.active_player {
+            White => self.settings.black_bot,
+            Black => self.settings.white_bot,
+        } {
+            match diff {
+                Easy => 0,
+                Medium => MEDIUM_DEPTH,
+                Hard => HARD_DEPTH,
+            }
+        } else {
+            0
+        }
+    }
     pub fn hooks(&mut self, ctx: &egui::Context) {
         self.hook_win(ctx);
         if self.app_mode == Replay {
