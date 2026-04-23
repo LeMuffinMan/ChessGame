@@ -152,11 +152,7 @@ impl Board {
         self.en_passant = None;
         self.check = None;
         match self.get(&m.origin).get_piece() {
-<<<<<<< HEAD
-            Some(Pawn) => self.update_en_passant(&m.origin, &m.dest),
-=======
             Some(Pawn) => self.update_en_passant(&m.origin, &m.dest, &active_player),
->>>>>>> 6df9e5b (en passant fixed and refacto new incremental score)
             Some(King) => self.update_king_move(&active_player, m),
             Some(Rook) => self.update_rook_move(&active_player, m),
             _ => {}
@@ -435,17 +431,4 @@ impl Board {
             }
         }
     }
-<<<<<<< HEAD
-=======
-
-    // pub fn debug_check_score(&self, context: &str) {
-    // let eval = PositionalEvaluator;
-    // let recomputed = eval.evaluate(self);
-
-    // web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(&format!(
-    //     "[DEBUG] {} score={} recomputed={} evaluated_score={} en_passant={:?} check={:?}",
-    //     context, self.score, recomputed, self.evaluated_score, self.en_passant, self.check
-    // )));
-    // }
->>>>>>> 6df9e5b (en passant fixed and refacto new incremental score)
 }

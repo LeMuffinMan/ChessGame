@@ -30,9 +30,9 @@ impl ChessApp {
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         let label = match &self.settings.black_bot {
                             Human => "Player",
-                            Bot(Easy) => "Bot - Easy",
-                            Bot(Medium) => "Bot - Medium",
-                            Bot(Hard) => "Bot - Hard",
+                            Bot(Easy) => "Bot - depth = 2",
+                            Bot(Medium) => "Bot - depth = 3",
+                            Bot(Hard) => "Bot - depth = 4",
                         };
                         ui.menu_button(label, |ui| {
                             if ui
