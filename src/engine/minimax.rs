@@ -13,7 +13,7 @@ use crate::engine::evaluator::PositionalEvaluator;
 use crate::engine::bot::BotDifficulty::*;
 use crate::engine::bot::PlayerType;
 use crate::engine::bot::PlayerType::*;
-use crate::engine::search_stats::{KillerTable, SearchStats};
+use crate::engine::search_stats::{HistoryTable, KillerTable, SearchStats};
 #[cfg(target_arch = "wasm32")]
 use js_sys::Math;
 
@@ -31,6 +31,7 @@ pub fn minimax<E: Evaluator>(
     mut beta: i32,
     stats: &mut SearchStats,
     killers: &mut KillerTable,
+    history: &mut HistoryTable,
 ) -> i32 {
     stats.nodes_per_depth[stats.depth] += 1;
     stats.total_node_depth += stats.depth;
@@ -81,6 +82,7 @@ pub fn minimax<E: Evaluator>(
                         .get_piece(),
                     killer1,
                     killer2,
+                    history,
                 );
                 if score > best_score {
                     best_score = score;
@@ -91,7 +93,7 @@ pub fn minimax<E: Evaluator>(
             let m = moves[i];
             board.apply_move(&m, active_player);
             stats.depth += 1;
-            let score = minimax(board, depth - 1, opponent, eval, alpha, beta, stats, killers);
+            let score = minimax(board, depth - 1, opponent, eval, alpha, beta, stats, killers, history);
             stats.depth -= 1;
             board.undo_move(m, active_player);
 
@@ -100,6 +102,9 @@ pub fn minimax<E: Evaluator>(
             if alpha >= beta {
                 if m.capture == Free {
                     killers.update(depth as usize, m);
+                    let from = m.origin.row as usize * 8 + m.origin.col as usize;
+                    let to = m.dest.row as usize * 8 + m.dest.col as usize;
+                    history.update(from, to, depth);
                 }
                 stats.cutoffs += 1;
                 stats.cutoffs_per_depth[stats.depth] += 1;
@@ -120,6 +125,7 @@ pub fn minimax<E: Evaluator>(
                         .get_piece(),
                     killer1,
                     killer2,
+                    history,
                 );
                 if score > best_score {
                     best_score = score;
@@ -130,7 +136,7 @@ pub fn minimax<E: Evaluator>(
             let m = moves[i];
             board.apply_move(&m, active_player);
             stats.depth += 1;
-            let score = minimax(board, depth - 1, opponent, eval, alpha, beta, stats, killers);
+            let score = minimax(board, depth - 1, opponent, eval, alpha, beta, stats, killers, history);
             stats.depth -= 1;
             board.undo_move(m, active_player);
 
@@ -139,6 +145,9 @@ pub fn minimax<E: Evaluator>(
             if alpha >= beta {
                 if m.capture == Free {
                     killers.update(depth as usize, m);
+                    let from = m.origin.row as usize * 8 + m.origin.col as usize;
+                    let to = m.dest.row as usize * 8 + m.dest.col as usize;
+                    history.update(from, to, depth);
                 }
                 stats.cutoffs += 1;
                 stats.cutoffs_per_depth[stats.depth] += 1;
@@ -165,6 +174,7 @@ pub fn find_best_move<E: Evaluator>(
     depth: u8,
     stats: &mut SearchStats,
     killers: &mut KillerTable,
+    history: &mut HistoryTable,
 ) -> Option<Move> {
     let mut move_list = MoveList::new();
     generate_moves(board, &active_player, &mut move_list, false);
@@ -184,6 +194,7 @@ pub fn find_best_move<E: Evaluator>(
 
     if active_player == Color::White {
         let mut best_score = i32::MIN;
+        let mut alpha = i32::MIN;
         for i in 0..moves.len() {
             let mut best_idx = i;
             let mut current_max = i32::MIN;
@@ -194,6 +205,7 @@ pub fn find_best_move<E: Evaluator>(
                         .get_piece(),
                     killer1,
                     killer2,
+                    history,
                 );
                 if score > current_max {
                     current_max = score;
@@ -205,17 +217,19 @@ pub fn find_best_move<E: Evaluator>(
 
             board.apply_move(&m, active_player);
             stats.depth += 1;
-            let score = minimax(board, depth - 1, opponent, eval, i32::MIN, i32::MAX, stats, killers);
+            let score = minimax(board, depth - 1, opponent, eval, alpha, i32::MAX, stats, killers, history);
             stats.depth -= 1;
             board.undo_move(m, active_player);
 
             if score > best_score {
                 best_score = score;
+                alpha = score;
                 best_move = Some(m);
             }
         }
     } else {
         let mut best_score = i32::MAX;
+        let mut beta = i32::MAX;
         for i in 0..moves.len() {
             let mut best_idx = i;
             let mut current_max = i32::MIN;
@@ -226,6 +240,7 @@ pub fn find_best_move<E: Evaluator>(
                         .get_piece(),
                     killer1,
                     killer2,
+                    history,
                 );
                 if score > current_max {
                     current_max = score;
@@ -237,12 +252,13 @@ pub fn find_best_move<E: Evaluator>(
 
             board.apply_move(&m, active_player);
             stats.depth += 1;
-            let score = minimax(board, depth - 1, opponent, eval, i32::MIN, i32::MAX, stats, killers);
+            let score = minimax(board, depth - 1, opponent, eval, i32::MIN, beta, stats, killers, history);
             stats.depth -= 1;
             board.undo_move(m, active_player);
 
             if score < best_score {
                 best_score = score;
+                beta = score;
                 best_move = Some(m);
             }
         }
@@ -256,6 +272,7 @@ pub fn move_order_score(
     attacker: Option<&Piece>,
     killer1: Option<Move>,
     killer2: Option<Move>,
+    history: &HistoryTable,
 ) -> i32 {
     if killer1 == Some(*mv) {
         return 1_000_000;
@@ -292,7 +309,19 @@ pub fn move_order_score(
     let check_bonus = if mv.check.is_some() { 50 } else { 0 };
     let mvv_lva = capture_score * 10 - attacker_penalty;
 
-    mvv_lva + promotion_bonus + check_bonus
+    // Captures always rank above quiet moves — offset ensures the hierarchy:
+    // killers (1M, 900K) > captures (200K+) > quiet+history (0–199K)
+    if capture_score > 0 {
+        return 200_000 + mvv_lva + promotion_bonus + check_bonus;
+    }
+
+    let history_bonus = {
+        let from = mv.origin.row as usize * 8 + mv.origin.col as usize;
+        let to = mv.dest.row as usize * 8 + mv.dest.col as usize;
+        history.get(from, to) as i32
+    };
+
+    promotion_bonus + check_bonus + history_bonus
 }
 
 pub fn get_bot_move(
@@ -301,6 +330,7 @@ pub fn get_bot_move(
     active_player: Color,
     stats: &mut SearchStats,
     killers: &mut KillerTable,
+    history: &mut HistoryTable,
 ) -> Option<Move> {
     match difficulty {
         Bot(Hard) => find_best_move(
@@ -310,6 +340,7 @@ pub fn get_bot_move(
             HARD_DEPTH,
             stats,
             killers,
+            history,
         ),
         Bot(Medium) => find_best_move(
             board,
@@ -318,6 +349,7 @@ pub fn get_bot_move(
             MEDIUM_DEPTH,
             stats,
             killers,
+            history,
         ),
         Bot(Easy) => {
             let mut move_list = MoveList::new();

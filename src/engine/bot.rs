@@ -9,7 +9,7 @@ use crate::gui::chessapp::AppMode::*;
 use web_sys::window;
 
 use crate::engine::minimax::{HARD_DEPTH, MEDIUM_DEPTH};
-use crate::engine::search_stats::{KillerTable, MAX_SEARCH_DEPTH};
+use crate::engine::search_stats::{HistoryTable, KillerTable, MAX_SEARCH_DEPTH};
 
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum BotDifficulty {
@@ -70,6 +70,7 @@ impl ChessApp {
         self.stats.total_node_depth = 0;
         self.stats.total_cutoffs_depth = 0;
         let mut killers = KillerTable::new();
+        let mut history = HistoryTable::new();
         let start = performance.now();
         let bot_move = get_bot_move(
             difficulty,
@@ -77,6 +78,7 @@ impl ChessApp {
             self.current.active_player,
             &mut self.stats,
             &mut killers,
+            &mut history,
         );
         let end = performance.now();
         self.stats.bot_time_thinking = end - start;

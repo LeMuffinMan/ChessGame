@@ -2,7 +2,7 @@ use crate::Board;
 use crate::board::cell::Color;
 use crate::engine::evaluator::PositionalEvaluator;
 use crate::engine::minimax::find_best_move;
-use crate::engine::search_stats::{KillerTable, MAX_SEARCH_DEPTH, SearchStats};
+use crate::engine::search_stats::{HistoryTable, KillerTable, MAX_SEARCH_DEPTH, SearchStats};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 const START_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -51,8 +51,9 @@ pub fn bench_run(fen: &str, color: Color, depth: u8, max_nodes: u64) -> BenchRes
     let mut stats = SearchStats::new();
     stats.max_nodes = max_nodes;
     let mut killers = KillerTable::new();
+    let mut history = HistoryTable::new();
     let t0 = now_ms();
-    find_best_move(&mut board, color, &eval, depth, &mut stats, &mut killers);
+    find_best_move(&mut board, color, &eval, depth, &mut stats, &mut killers, &mut history);
     let time_ms = now_ms() - t0;
     BenchResult {
         nodes: stats.nodes,
