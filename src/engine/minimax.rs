@@ -18,9 +18,9 @@ use crate::engine::search_stats::{HistoryTable, KillerTable, SearchStats};
 use js_sys::Math;
 
 const MATE_SCORE: i32 = 1_000_000;
-pub const EASY_DEPTH: u8 = 4;
-pub const MEDIUM_DEPTH: u8 = 5;
-pub const HARD_DEPTH: u8 = 6;
+pub const EASY_DEPTH: u8 = 5;
+pub const MEDIUM_DEPTH: u8 = 6;
+pub const HARD_DEPTH: u8 = 7;
 
 pub fn minimax<E: Evaluator>(
     board: &mut Board,
@@ -93,7 +93,17 @@ pub fn minimax<E: Evaluator>(
             let m = moves[i];
             board.apply_move(&m, active_player);
             stats.depth += 1;
-            let score = minimax(board, depth - 1, opponent, eval, alpha, beta, stats, killers, history);
+            let score = minimax(
+                board,
+                depth - 1,
+                opponent,
+                eval,
+                alpha,
+                beta,
+                stats,
+                killers,
+                history,
+            );
             stats.depth -= 1;
             board.undo_move(m, active_player);
 
@@ -136,7 +146,17 @@ pub fn minimax<E: Evaluator>(
             let m = moves[i];
             board.apply_move(&m, active_player);
             stats.depth += 1;
-            let score = minimax(board, depth - 1, opponent, eval, alpha, beta, stats, killers, history);
+            let score = minimax(
+                board,
+                depth - 1,
+                opponent,
+                eval,
+                alpha,
+                beta,
+                stats,
+                killers,
+                history,
+            );
             stats.depth -= 1;
             board.undo_move(m, active_player);
 
@@ -217,7 +237,17 @@ pub fn find_best_move<E: Evaluator>(
 
             board.apply_move(&m, active_player);
             stats.depth += 1;
-            let score = minimax(board, depth - 1, opponent, eval, alpha, i32::MAX, stats, killers, history);
+            let score = minimax(
+                board,
+                depth - 1,
+                opponent,
+                eval,
+                alpha,
+                i32::MAX,
+                stats,
+                killers,
+                history,
+            );
             stats.depth -= 1;
             board.undo_move(m, active_player);
 
@@ -252,7 +282,17 @@ pub fn find_best_move<E: Evaluator>(
 
             board.apply_move(&m, active_player);
             stats.depth += 1;
-            let score = minimax(board, depth - 1, opponent, eval, i32::MIN, beta, stats, killers, history);
+            let score = minimax(
+                board,
+                depth - 1,
+                opponent,
+                eval,
+                i32::MIN,
+                beta,
+                stats,
+                killers,
+                history,
+            );
             stats.depth -= 1;
             board.undo_move(m, active_player);
 
