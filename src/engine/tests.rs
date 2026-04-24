@@ -5,7 +5,8 @@ use crate::board::cell::Color;
 use crate::board::cell::Color::{Black, White};
 use crate::board::cell::Coord;
 use crate::board::cell::Piece::{King, Pawn, Queen, Rook};
-use crate::board::move_gen::{MoveList, generate_moves};
+use crate::board::moves::move_gen::generate_moves;
+use crate::board::moves::move_structs::MoveList;
 use crate::engine::evaluator::{
     BISHOP_VALUE, Evaluator, KING_VALUE, KNIGHT_VALUE, PAWN_VALUE, QUEEN_VALUE, ROOK_VALUE,
 };
@@ -148,8 +149,16 @@ fn test_captures_free_queen() {
     board.grid[3][3] = Occupied(Rook, White);
     board.grid[4][3] = Occupied(Queen, Black);
 
-    let mv = find_best_move(&mut board, White, &MaterialEvaluator, 2, &mut test_stats(), &mut test_killers(), &mut test_history())
-        .expect("should find a move");
+    let mv = find_best_move(
+        &mut board,
+        White,
+        &MaterialEvaluator,
+        2,
+        &mut test_stats(),
+        &mut test_killers(),
+        &mut test_history(),
+    )
+    .expect("should find a move");
     assert_eq!(mv.origin, coord(3, 3));
     assert_eq!(mv.dest, coord(4, 3));
 }
@@ -165,8 +174,16 @@ fn test_avoids_losing_rook_depth2() {
     board.black_king = coord(7, 4);
     board.grid[6][4] = Occupied(Rook, Black);
 
-    let mv = find_best_move(&mut board, White, &MaterialEvaluator, 2, &mut test_stats(), &mut test_killers(), &mut test_history())
-        .expect("should find a move");
+    let mv = find_best_move(
+        &mut board,
+        White,
+        &MaterialEvaluator,
+        2,
+        &mut test_stats(),
+        &mut test_killers(),
+        &mut test_history(),
+    )
+    .expect("should find a move");
     let is_bad_capture = mv.origin == coord(3, 3) && mv.dest == coord(3, 4);
     assert!(
         !is_bad_capture,

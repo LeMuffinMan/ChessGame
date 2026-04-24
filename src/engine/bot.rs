@@ -1,8 +1,7 @@
 use crate::ChessApp;
 use crate::board::cell::Cell;
 use crate::board::cell::Color::*;
-use crate::board::move_gen::MoveType::Promotion;
-use crate::engine::bot::BotDifficulty::*;
+use crate::board::moves::move_structs::MoveType::Promotion;
 use crate::engine::bot::PlayerType::*;
 use crate::engine::minimax::get_bot_move;
 use crate::gui::chessapp::AppMode::*;

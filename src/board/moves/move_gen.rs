@@ -1,71 +1,12 @@
 use crate::Coord;
 use crate::board::Board;
-use crate::board::board::CastleRights;
 use crate::board::cell::Cell;
 use crate::board::cell::Color;
 use crate::board::cell::Color::*;
-use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
+use crate::board::moves::move_structs::MoveList;
+use crate::board::moves::move_structs::MoveType;
 use crate::board::pin_detection::{PinInfos, pin_detection};
-
-#[derive(Copy, Clone, PartialEq, Default)]
-pub struct Move {
-    pub origin: Coord,
-    pub dest: Coord,
-    pub capture: Cell,
-    pub en_passant: Option<Coord>,
-    pub check: Option<Coord>,
-    pub white_castle: CastleRights,
-    pub black_castle: CastleRights,
-    pub move_type: MoveType,
-    pub prev_score: i32,
-}
-
-impl Move {
-    pub fn is_promotion(&self, board: &Board) -> bool {
-        match board.grid[self.origin.row as usize][self.origin.col as usize].get_color() {
-            Some(White) => self.dest.row == 7,
-            Some(Black) => self.dest.row == 0,
-            _ => unreachable!("Move without origin"),
-        }
-    }
-}
-
-#[derive(Copy, Clone, PartialEq, Debug, Default)]
-pub enum MoveType {
-    #[default]
-    Regular,
-    EnPassant,
-    Castle(CastleSide),
-    Promotion(Piece),
-}
-
-#[derive(Copy, Clone, PartialEq, Debug)]
-pub enum CastleSide {
-    Left,
-    Right,
-}
-
-const MAX_MOVES: usize = 256;
-
-pub struct MoveList {
-    pub moves: [Move; MAX_MOVES],
-    pub count: usize,
-}
-
-impl MoveList {
-    pub fn new() -> Self {
-        Self {
-            moves: [Move::default(); MAX_MOVES],
-            count: 0,
-        }
-    }
-
-    pub fn push(&mut self, m: Move) {
-        self.moves[self.count] = m;
-        self.count += 1;
-    }
-}
 
 //Is the piece pinned will expose king ?
 fn aligned_with_pin(origin: &Coord, dest: &Coord, dr: i8, dc: i8) -> bool {
