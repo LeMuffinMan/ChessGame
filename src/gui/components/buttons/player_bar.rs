@@ -1,4 +1,7 @@
 use crate::ChessApp;
+use crate::engine::minimax::HARD_DEPTH;
+use crate::engine::minimax::EASY_DEPTH;
+use crate::engine::minimax::MEDIUM_DEPTH;
 use crate::board::cell::Color;
 use crate::board::cell::Color::*;
 use crate::engine::bot::BotDifficulty::*;
@@ -59,10 +62,10 @@ impl ChessApp {
                 };
 
                 let label = match &bot_setting {
-                    Human => "Player",
-                    Bot(Easy) => "Bot - depth = 2",
-                    Bot(Medium) => "Bot - depth = 3",
-                    Bot(Hard) => "Bot - depth = 4",
+                    Human => "Player".to_string(),
+                    Bot(Easy) => format!("Bot (d = {})", EASY_DEPTH),
+                    Bot(Medium) => format!("Bot (d = {})", MEDIUM_DEPTH),
+                    Bot(Hard) => format!("Bot (d = {})", HARD_DEPTH),
                 };
 
                 ui.menu_button(label, |ui| {
@@ -73,19 +76,19 @@ impl ChessApp {
                         bot_setting = Human;
                     }
                     if ui
-                        .selectable_label(bot_setting == Bot(Easy), "Bot (d = 2)")
+                        .selectable_label(bot_setting == Bot(Easy), format!("Bot (d = {})", EASY_DEPTH))
                         .clicked()
                     {
                         bot_setting = Bot(Easy);
                     }
                     if ui
-                        .selectable_label(bot_setting == Bot(Medium), "Bot (d = 3)")
+                        .selectable_label(bot_setting == Bot(Medium), format!("Bot (d = {})", MEDIUM_DEPTH))
                         .clicked()
                     {
                         bot_setting = Bot(Medium);
                     }
                     if ui
-                        .selectable_label(bot_setting == Bot(Hard), "Bot (d = 4)")
+                        .selectable_label(bot_setting == Bot(Hard), format!("Bot (d = {})", HARD_DEPTH))
                         .clicked()
                     {
                         bot_setting = Bot(Hard);

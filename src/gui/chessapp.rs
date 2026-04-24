@@ -1,4 +1,5 @@
 use crate::board::cell::Cell;
+use crate::engine::minimax::HARD_DEPTH;
 use crate::board::cell::Piece::*;
 use crate::board::move_gen::Move;
 // use crate::engine::evaluator::Evaluator;
@@ -51,13 +52,7 @@ impl ChessApp {
             settings: Settings::new(),
             promoteinfo: None,
             bot_pending: false,
-            stats: SearchStats {
-                nodes: 0,
-                bot_time_thinking: 0.0,
-                cutoffs: 0,
-                nps: 0.0,
-                killer_moves: [[None; 2]; 64],
-            },
+            stats: SearchStats::new(),
             white_last_score: 0,
             black_last_score: 0,
         }

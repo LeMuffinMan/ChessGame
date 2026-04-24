@@ -29,10 +29,11 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
     let window = web_sys::window().expect("no global `window`");
     //this is the html content of the page
     let document = window.document().expect("should have a document");
-    let canvas = document
-        .get_element_by_id("chessappid")
-        .expect("Canvas not found")
-        .dyn_into::<HtmlCanvasElement>() //exposes canvas API
+    let Some(element) = document.get_element_by_id("chessappid") else {
+        return Ok(()); // page sans canvas (ex: bench.html) — ne pas lancer egui
+    };
+    let canvas = element
+        .dyn_into::<HtmlCanvasElement>()
         .expect("Failed to cast canvas");
 
     let is_mobile = {

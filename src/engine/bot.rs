@@ -1,4 +1,5 @@
 use crate::ChessApp;
+use crate::engine::bot::BotDifficulty::*;
 use crate::board::cell::Cell;
 use crate::board::cell::Color::*;
 use crate::board::move_gen::MoveType::Promotion;
@@ -8,6 +9,7 @@ use crate::gui::chessapp::AppMode::*;
 use web_sys::window;
 
 use crate::engine::minimax::{HARD_DEPTH, MEDIUM_DEPTH};
+use crate::engine::search_stats::MAX_SEARCH_DEPTH;
 
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum BotDifficulty {
@@ -61,7 +63,13 @@ impl ChessApp {
         let performance = window().unwrap().performance().unwrap();
         self.stats.nodes = 0;
         self.stats.cutoffs = 0;
-        self.stats.killer_moves = [[None; 2]; 64];
+        self.stats.leafs = 0;
+        self.stats.nodes_per_depth = [0; MAX_SEARCH_DEPTH];
+        self.stats.cutoffs_per_depth = [0; MAX_SEARCH_DEPTH];
+        self.stats.depth = 0;
+        self.stats.total_node_depth = 0;
+        self.stats.total_cutoffs_depth = 0;
+        self.stats.killer_moves = [[None; 2]; MAX_SEARCH_DEPTH];
         let start = performance.now();
         let bot_move = get_bot_move(
             difficulty,
