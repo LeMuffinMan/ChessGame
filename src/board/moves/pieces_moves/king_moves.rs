@@ -19,7 +19,7 @@ pub fn king_moves(
     king_castles(board, *origin, active_player, list);
 }
 
-fn king_offsets(board: &mut Board, origin: Coord, capture_only: bool, active_player: &Color, list: &mut MoveList,) {
+fn king_offsets(board: &mut Board, origin: Coord, capture_only: bool, active_player: &Color, list: &mut MoveList) {
     #[rustfmt::skip]
     let offsets = [
         (-1, 1),  (0, 1), (1, 1),

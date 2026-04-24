@@ -73,7 +73,7 @@ impl Board {
     }
 }
 
-fn get_capture(m: &Move, active_player: &Color) -> Coord {
+pub fn get_capture(m: &Move, active_player: &Color) -> Coord {
     match m.move_type {
         EnPassant => {
             let row = if *active_player == White {

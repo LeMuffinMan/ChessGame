@@ -99,7 +99,6 @@ pub fn push_pawn_dest(
     } else {
         let is_ep = board.en_passant.map_or(false, |ep| ep == dest);
         if is_ep {
-            // En passant : garder check_move (découverte horizontale non détectable géométriquement)
             if let Some(m) = board.check_move(origin, &dest, &color) {
                 list.push(m);
             }
