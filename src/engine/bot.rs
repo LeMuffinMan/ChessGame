@@ -84,37 +84,48 @@ impl ChessApp {
         self.stats.bot_time_thinking = end - start;
         self.stats.nps();
         if let Some(m) = bot_move {
-            match difficulty {
-                Bot(BotDifficulty::Easy) => {
-                    let snapshot = self.current.clone();
-                    self.apply_move(&m);
-                    self.commit_move(snapshot, m, m.origin, m.dest);
-                    if let Promotion(piece) = m.move_type {
-                        self.current.board.grid[m.dest.row as usize][m.dest.col as usize] =
-                            Cell::Occupied(piece, self.current.active_player);
-                    }
-                    self.switch_turn();
-                    if self.current.end.is_none() && self.is_bot_turn() {
-                        self.bot_pending = true;
-                    }
-                }
-                Bot(BotDifficulty::Medium) | Bot(BotDifficulty::Hard) => {
-                    let bot_color = self.current.active_player;
-                    self.try_move(m.origin, m.dest);
-                    if let Promotion(piece) = m.move_type {
-                        self.current.board.grid[m.dest.row as usize][m.dest.col as usize] =
-                            Cell::Occupied(piece, bot_color);
-                        self.promoteinfo = None;
-                        self.win = None;
-                        if self.current.end.is_none() && self.is_bot_turn() {
-                            self.bot_pending = true;
-                        }
-                    }
-                }
-                _ => {
-                    unreachable!("Player can't reach this branch")
+            let bot_color = self.current.active_player;
+            self.try_move(m.origin, m.dest);
+            if let Promotion(piece) = m.move_type {
+                self.current.board.grid[m.dest.row as usize][m.dest.col as usize] =
+                    Cell::Occupied(piece, bot_color);
+                self.promoteinfo = None;
+                self.win = None;
+                if self.current.end.is_none() && self.is_bot_turn() {
+                    self.bot_pending = true;
                 }
             }
+            // match difficulty {
+            //     Bot(BotDifficulty::Easy) => {
+            //         let snapshot = self.current.clone();
+            //         self.apply_move(&m);
+            //         self.commit_move(snapshot, m, m.origin, m.dest);
+            //         if let Promotion(piece) = m.move_type {
+            //             self.current.board.grid[m.dest.row as usize][m.dest.col as usize] =
+            //                 Cell::Occupied(piece, self.current.active_player);
+            //         }
+            //         self.switch_turn();
+            //         if self.current.end.is_none() && self.is_bot_turn() {
+            //             self.bot_pending = true;
+            //         }
+            //     }
+            //     Bot(BotDifficulty::Medium) | Bot(BotDifficulty::Hard) => {
+            //         let bot_color = self.current.active_player;
+            //         self.try_move(m.origin, m.dest);
+            //         if let Promotion(piece) = m.move_type {
+            //             self.current.board.grid[m.dest.row as usize][m.dest.col as usize] =
+            //                 Cell::Occupied(piece, bot_color);
+            //             self.promoteinfo = None;
+            //             self.win = None;
+            //             if self.current.end.is_none() && self.is_bot_turn() {
+            //                 self.bot_pending = true;
+            //             }
+            //         }
+            //     }
+            //     _ => {
+            //         unreachable!("Player can't reach this branch")
+            //     }
+            // }
         }
     }
 }
