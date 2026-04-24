@@ -92,7 +92,7 @@ pub fn perft(board: &mut Board, color: Color, depth: u8) -> u64 {
     };
 
     for i in 0..moves.len() {
-        board.apply_move(&moves[i], color);
+        board.apply_move(&moves[i], &color);
         res += perft(board, opponent, depth - 1);
         board.undo_move(moves[i], color);
     }
