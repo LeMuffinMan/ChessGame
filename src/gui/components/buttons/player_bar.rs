@@ -1,11 +1,11 @@
 use crate::ChessApp;
-use crate::engine::minimax::HARD_DEPTH;
-use crate::engine::minimax::EASY_DEPTH;
-use crate::engine::minimax::MEDIUM_DEPTH;
 use crate::board::cell::Color;
 use crate::board::cell::Color::*;
 use crate::engine::bot::BotDifficulty::*;
 use crate::engine::bot::PlayerType::*;
+use crate::engine::minimax::EASY_DEPTH;
+use crate::engine::minimax::HARD_DEPTH;
+use crate::engine::minimax::MEDIUM_DEPTH;
 use crate::gui::features::timer::GameMode::NoTime;
 use crate::gui::layout::UiType::*;
 use crate::gui::panels::bot_panels::format_time;
@@ -50,8 +50,17 @@ impl ChessApp {
             });
 
             columns[1].vertical_centered(|ui| {
-                if self.ui_type == Mobile {
-                    self.engine_infos(ui, color);
+                // if self.ui_type == Mobile {
+                //     self.engine_infos(ui, color);
+                // }
+                let both_bots = matches!(self.settings.white_bot, Bot(_))
+                    && matches!(self.settings.black_bot, Bot(_));
+                if *color == White
+                    && both_bots
+                    && self.history.snapshots.is_empty()
+                    && ui.button("▶ Start").clicked()
+                {
+                    self.start_bot_game();
                 }
             });
 
@@ -76,19 +85,28 @@ impl ChessApp {
                         bot_setting = Human;
                     }
                     if ui
-                        .selectable_label(bot_setting == Bot(Easy), format!("Bot (d = {})", EASY_DEPTH))
+                        .selectable_label(
+                            bot_setting == Bot(Easy),
+                            format!("Bot (d = {})", EASY_DEPTH),
+                        )
                         .clicked()
                     {
                         bot_setting = Bot(Easy);
                     }
                     if ui
-                        .selectable_label(bot_setting == Bot(Medium), format!("Bot (d = {})", MEDIUM_DEPTH))
+                        .selectable_label(
+                            bot_setting == Bot(Medium),
+                            format!("Bot (d = {})", MEDIUM_DEPTH),
+                        )
                         .clicked()
                     {
                         bot_setting = Bot(Medium);
                     }
                     if ui
-                        .selectable_label(bot_setting == Bot(Hard), format!("Bot (d = {})", HARD_DEPTH))
+                        .selectable_label(
+                            bot_setting == Bot(Hard),
+                            format!("Bot (d = {})", HARD_DEPTH),
+                        )
                         .clicked()
                     {
                         bot_setting = Bot(Hard);

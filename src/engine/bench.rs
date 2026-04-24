@@ -5,10 +5,8 @@ use crate::engine::minimax::find_best_move;
 use crate::engine::search_stats::{MAX_SEARCH_DEPTH, SearchStats};
 use wasm_bindgen::prelude::wasm_bindgen;
 
-const START_FEN: &str =
-    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-const KIWIPETE_FEN: &str =
-    "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+const START_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const KIWIPETE_FEN: &str = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
 
 // --- Timer ---
 
@@ -69,16 +67,28 @@ pub fn bench_run(fen: &str, color: Color, depth: u8, max_nodes: u64) -> BenchRes
 // --- Derived metrics ---
 
 fn nps(nodes: u64, time_ms: f64) -> u64 {
-    if time_ms > 0.0 { (nodes as f64 / (time_ms / 1000.0)) as u64 } else { 0 }
+    if time_ms > 0.0 {
+        (nodes as f64 / (time_ms / 1000.0)) as u64
+    } else {
+        0
+    }
 }
 
 fn cut_pct(cutoffs: usize, nodes: u64, leafs: usize) -> f64 {
     let interior = nodes.saturating_sub(leafs as u64);
-    if interior == 0 { 0.0 } else { cutoffs as f64 / interior as f64 * 100.0 }
+    if interior == 0 {
+        0.0
+    } else {
+        cutoffs as f64 / interior as f64 * 100.0
+    }
 }
 
 fn ebf(nodes: u64, depth: u8) -> f64 {
-    if nodes == 0 || depth == 0 { 0.0 } else { (nodes as f64).powf(1.0 / depth as f64) }
+    if nodes == 0 || depth == 0 {
+        0.0
+    } else {
+        (nodes as f64).powf(1.0 / depth as f64)
+    }
 }
 
 fn entry_json(label: &str, depth: u8, r: &BenchResult) -> String {
@@ -107,11 +117,11 @@ pub fn run_bench(depth: u8, max_nodes: u32) -> String {
         return "[]".to_string();
     }
     let limit = max_nodes as u64;
-    let r1 = bench_run(START_FEN,    Color::White, depth, limit);
+    let r1 = bench_run(START_FEN, Color::White, depth, limit);
     let r2 = bench_run(KIWIPETE_FEN, Color::White, depth, limit);
     format!(
         "[{},{}]",
-        entry_json("Start",    depth, &r1),
+        entry_json("Start", depth, &r1),
         entry_json("Kiwipete", depth, &r2),
     )
 }

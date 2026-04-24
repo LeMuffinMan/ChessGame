@@ -6,7 +6,7 @@ use crate::board::cell::Color;
 use crate::board::cell::Color::*;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
-use crate::board::pin_detection::{pin_detection, PinInfos};
+use crate::board::pin_detection::{PinInfos, pin_detection};
 
 #[derive(Copy, Clone, PartialEq, Default)]
 pub struct Move {
@@ -113,17 +113,30 @@ pub fn generate_moves(
     for x in 0..8 {
         for y in 0..8 {
             if board.grid[x][y].is_color(active_player) {
-                let origin = Coord { row: x as u8, col: y as u8 };
+                let origin = Coord {
+                    row: x as u8,
+                    col: y as u8,
+                };
                 if let Some(piece) = board.get(&origin).get_piece() {
                     match piece {
                         // Double échec : seul le roi peut bouger
                         _ if info.checker_count == 2 && *piece != King => continue,
-                        Pawn   => pawn_moves(&origin, active_player, board, list, capture_only, &info),
-                        Rook   => rook_moves(&origin, active_player, board, list, capture_only, &info),
-                        Knight => knight_moves(&origin, active_player, board, list, capture_only, &info),
-                        Bishop => bishop_moves(&origin, active_player, board, list, capture_only, &info),
-                        Queen  => queen_moves(&origin, active_player, board, list, capture_only, &info),
-                        King   => king_moves(&origin, active_player, board, list, capture_only),
+                        Pawn => {
+                            pawn_moves(&origin, active_player, board, list, capture_only, &info)
+                        }
+                        Rook => {
+                            rook_moves(&origin, active_player, board, list, capture_only, &info)
+                        }
+                        Knight => {
+                            knight_moves(&origin, active_player, board, list, capture_only, &info)
+                        }
+                        Bishop => {
+                            bishop_moves(&origin, active_player, board, list, capture_only, &info)
+                        }
+                        Queen => {
+                            queen_moves(&origin, active_player, board, list, capture_only, &info)
+                        }
+                        King => king_moves(&origin, active_player, board, list, capture_only),
                     }
                 }
             }
@@ -165,9 +178,15 @@ fn pawn_moves(
             push_pawn_dest(origin, dest, *active_player, board, last_rank, list, info);
 
             // Avance de deux cases depuis la rangée initiale
-            let initial_row = if *active_player == White { origin.row == 1 } else { origin.row == 6 };
+            let initial_row = if *active_player == White {
+                origin.row == 1
+            } else {
+                origin.row == 6
+            };
             if initial_row {
-                if let Some(dest2) = Board::checked_coord(origin.row as i8 + dir * 2, origin.col as i8) {
+                if let Some(dest2) =
+                    Board::checked_coord(origin.row as i8 + dir * 2, origin.col as i8)
+                {
                     if board.get(&dest2) == Cell::Free {
                         push_if_legal(board, origin, dest2, active_player, list, info);
                     }
@@ -226,7 +245,15 @@ fn rook_moves(
     info: &PinInfos,
 ) {
     let directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
-    process_sliding_piece(origin, &directions, active_player, board, list, capture_only, info);
+    process_sliding_piece(
+        origin,
+        &directions,
+        active_player,
+        board,
+        list,
+        capture_only,
+        info,
+    );
 }
 
 fn bishop_moves(
@@ -238,7 +265,15 @@ fn bishop_moves(
     info: &PinInfos,
 ) {
     let directions = [(1, 1), (-1, -1), (-1, 1), (1, -1)];
-    process_sliding_piece(origin, &directions, active_player, board, list, capture_only, info);
+    process_sliding_piece(
+        origin,
+        &directions,
+        active_player,
+        board,
+        list,
+        capture_only,
+        info,
+    );
 }
 
 fn queen_moves(
