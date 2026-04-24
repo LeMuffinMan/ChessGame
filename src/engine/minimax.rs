@@ -13,7 +13,7 @@ use crate::engine::evaluator::PositionalEvaluator;
 use crate::engine::bot::BotDifficulty::*;
 use crate::engine::bot::PlayerType;
 use crate::engine::bot::PlayerType::*;
-use crate::engine::search_stats::SearchStats;
+use crate::engine::search_stats::{KillerTable, SearchStats};
 #[cfg(target_arch = "wasm32")]
 use js_sys::Math;
 
@@ -30,6 +30,7 @@ pub fn minimax<E: Evaluator>(
     mut alpha: i32,
     mut beta: i32,
     stats: &mut SearchStats,
+    killers: &mut KillerTable,
 ) -> i32 {
     stats.nodes_per_depth[stats.depth] += 1;
     stats.total_node_depth += stats.depth;
@@ -66,6 +67,8 @@ pub fn minimax<E: Evaluator>(
         Color::Black => Color::White,
     };
 
+    let [killer1, killer2] = killers.get(depth as usize);
+
     if active_player == Color::White {
         let mut max_eval = i32::MIN;
         for i in 0..moves.len() {
@@ -76,12 +79,8 @@ pub fn minimax<E: Evaluator>(
                     &moves[j],
                     board.grid[moves[j].origin.row as usize][moves[j].origin.col as usize]
                         .get_piece(),
-                    stats.killer_moves[depth as usize]
-                        .get(0)
-                        .and_then(|x| x.as_ref()),
-                    stats.killer_moves[depth as usize]
-                        .get(1)
-                        .and_then(|x| x.as_ref()),
+                    killer1,
+                    killer2,
                 );
                 if score > best_score {
                     best_score = score;
@@ -92,7 +91,7 @@ pub fn minimax<E: Evaluator>(
             let m = moves[i];
             board.apply_move(&m, active_player);
             stats.depth += 1;
-            let score = minimax(board, depth - 1, opponent, eval, alpha, beta, stats);
+            let score = minimax(board, depth - 1, opponent, eval, alpha, beta, stats, killers);
             stats.depth -= 1;
             board.undo_move(m, active_player);
 
@@ -100,11 +99,7 @@ pub fn minimax<E: Evaluator>(
             alpha = alpha.max(score);
             if alpha >= beta {
                 if m.capture == Free {
-                    let d = depth as usize;
-                    if stats.killer_moves[d][0] != Some(m) {
-                        stats.killer_moves[d][1] = stats.killer_moves[d][0];
-                        stats.killer_moves[d][0] = Some(m);
-                    }
+                    killers.update(depth as usize, m);
                 }
                 stats.cutoffs += 1;
                 stats.cutoffs_per_depth[stats.depth] += 1;
@@ -123,12 +118,8 @@ pub fn minimax<E: Evaluator>(
                     &moves[j],
                     board.grid[moves[j].origin.row as usize][moves[j].origin.col as usize]
                         .get_piece(),
-                    stats.killer_moves[depth as usize]
-                        .get(0)
-                        .and_then(|x| x.as_ref()),
-                    stats.killer_moves[depth as usize]
-                        .get(1)
-                        .and_then(|x| x.as_ref()),
+                    killer1,
+                    killer2,
                 );
                 if score > best_score {
                     best_score = score;
@@ -139,7 +130,7 @@ pub fn minimax<E: Evaluator>(
             let m = moves[i];
             board.apply_move(&m, active_player);
             stats.depth += 1;
-            let score = minimax(board, depth - 1, opponent, eval, alpha, beta, stats);
+            let score = minimax(board, depth - 1, opponent, eval, alpha, beta, stats, killers);
             stats.depth -= 1;
             board.undo_move(m, active_player);
 
@@ -147,11 +138,7 @@ pub fn minimax<E: Evaluator>(
             beta = beta.min(score);
             if alpha >= beta {
                 if m.capture == Free {
-                    let d = depth as usize;
-                    if stats.killer_moves[d][0] != Some(m) {
-                        stats.killer_moves[d][1] = stats.killer_moves[d][0];
-                        stats.killer_moves[d][0] = Some(m);
-                    }
+                    killers.update(depth as usize, m);
                 }
                 stats.cutoffs += 1;
                 stats.cutoffs_per_depth[stats.depth] += 1;
@@ -177,6 +164,7 @@ pub fn find_best_move<E: Evaluator>(
     eval: &E,
     depth: u8,
     stats: &mut SearchStats,
+    killers: &mut KillerTable,
 ) -> Option<Move> {
     let mut move_list = MoveList::new();
     generate_moves(board, &active_player, &mut move_list, false);
@@ -192,11 +180,11 @@ pub fn find_best_move<E: Evaluator>(
     };
 
     let mut best_move = None;
+    let [killer1, killer2] = killers.get(depth as usize);
 
     if active_player == Color::White {
         let mut best_score = i32::MIN;
         for i in 0..moves.len() {
-            // Tri identique
             let mut best_idx = i;
             let mut current_max = i32::MIN;
             for j in i..moves.len() {
@@ -204,12 +192,8 @@ pub fn find_best_move<E: Evaluator>(
                     &moves[j],
                     board.grid[moves[j].origin.row as usize][moves[j].origin.col as usize]
                         .get_piece(),
-                    stats.killer_moves[depth as usize]
-                        .get(0)
-                        .and_then(|x| x.as_ref()),
-                    stats.killer_moves[depth as usize]
-                        .get(1)
-                        .and_then(|x| x.as_ref()),
+                    killer1,
+                    killer2,
                 );
                 if score > current_max {
                     current_max = score;
@@ -221,7 +205,7 @@ pub fn find_best_move<E: Evaluator>(
 
             board.apply_move(&m, active_player);
             stats.depth += 1;
-            let score = minimax(board, depth - 1, opponent, eval, i32::MIN, i32::MAX, stats);
+            let score = minimax(board, depth - 1, opponent, eval, i32::MIN, i32::MAX, stats, killers);
             stats.depth -= 1;
             board.undo_move(m, active_player);
 
@@ -240,12 +224,8 @@ pub fn find_best_move<E: Evaluator>(
                     &moves[j],
                     board.grid[moves[j].origin.row as usize][moves[j].origin.col as usize]
                         .get_piece(),
-                    stats.killer_moves[depth as usize]
-                        .get(0)
-                        .and_then(|x| x.as_ref()),
-                    stats.killer_moves[depth as usize]
-                        .get(1)
-                        .and_then(|x| x.as_ref()),
+                    killer1,
+                    killer2,
                 );
                 if score > current_max {
                     current_max = score;
@@ -257,7 +237,7 @@ pub fn find_best_move<E: Evaluator>(
 
             board.apply_move(&m, active_player);
             stats.depth += 1;
-            let score = minimax(board, depth - 1, opponent, eval, i32::MIN, i32::MAX, stats);
+            let score = minimax(board, depth - 1, opponent, eval, i32::MIN, i32::MAX, stats, killers);
             stats.depth -= 1;
             board.undo_move(m, active_player);
 
@@ -274,14 +254,14 @@ pub fn find_best_move<E: Evaluator>(
 pub fn move_order_score(
     mv: &Move,
     attacker: Option<&Piece>,
-    killer1: Option<&Move>,
-    killer2: Option<&Move>,
+    killer1: Option<Move>,
+    killer2: Option<Move>,
 ) -> i32 {
-    if Some(mv) == killer1 {
+    if killer1 == Some(*mv) {
         return 1_000_000;
     }
 
-    if Some(mv) == killer2 {
+    if killer2 == Some(*mv) {
         return 900_000;
     }
     let capture_score = match mv.capture {
@@ -320,6 +300,7 @@ pub fn get_bot_move(
     board: &mut Board,
     active_player: Color,
     stats: &mut SearchStats,
+    killers: &mut KillerTable,
 ) -> Option<Move> {
     match difficulty {
         Bot(Hard) => find_best_move(
@@ -328,6 +309,7 @@ pub fn get_bot_move(
             &PositionalEvaluator,
             HARD_DEPTH,
             stats,
+            killers,
         ),
         Bot(Medium) => find_best_move(
             board,
@@ -335,6 +317,7 @@ pub fn get_bot_move(
             &PositionalEvaluator,
             MEDIUM_DEPTH,
             stats,
+            killers,
         ),
         Bot(Easy) => {
             let mut move_list = MoveList::new();

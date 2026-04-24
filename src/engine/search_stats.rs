@@ -2,13 +2,33 @@ use crate::board::move_gen::Move;
 
 pub const MAX_SEARCH_DEPTH: usize = 16;
 
+pub struct KillerTable {
+    moves: [[Option<Move>; 2]; MAX_SEARCH_DEPTH],
+}
+
+impl KillerTable {
+    pub fn new() -> Self {
+        Self { moves: [[None; 2]; MAX_SEARCH_DEPTH] }
+    }
+
+    pub fn update(&mut self, depth: usize, mv: Move) {
+        if self.moves[depth][0] != Some(mv) {
+            self.moves[depth][1] = self.moves[depth][0];
+            self.moves[depth][0] = Some(mv);
+        }
+    }
+
+    pub fn get(&self, depth: usize) -> [Option<Move>; 2] {
+        [self.moves[depth][0], self.moves[depth][1]]
+    }
+}
+
 pub struct SearchStats {
     pub depth: usize,
     pub nodes: u64,
     pub bot_time_thinking: f64,
     pub cutoffs: usize,
     pub nps: f64,
-    pub killer_moves: [[Option<Move>; 2]; MAX_SEARCH_DEPTH],
     pub leafs: usize,
     pub cutoffs_per_depth: [usize; MAX_SEARCH_DEPTH],
     pub nodes_per_depth: [usize; MAX_SEARCH_DEPTH],
@@ -26,7 +46,6 @@ impl SearchStats {
             bot_time_thinking: 0.0,
             cutoffs: 0,
             nps: 0.0,
-            killer_moves: [[None; 2]; MAX_SEARCH_DEPTH],
             leafs: 0,
             cutoffs_per_depth: [0; MAX_SEARCH_DEPTH],
             nodes_per_depth: [0; MAX_SEARCH_DEPTH],
