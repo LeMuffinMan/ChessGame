@@ -434,3 +434,66 @@ fn test_castle_rights_restored_on_undo() {
         }
     );
 }
+
+// --- FEN ---
+
+#[test]
+fn test_fen_initial_position() {
+    let reference = Board::init_board();
+    let fi = Board::board_from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    assert_eq!(fi.board.grid, reference.grid);
+    assert_eq!(fi.board.white_king, reference.white_king);
+    assert_eq!(fi.board.black_king, reference.black_king);
+    assert_eq!(fi.board.white_castle, reference.white_castle);
+    assert_eq!(fi.board.black_castle, reference.black_castle);
+    assert_eq!(fi.board.en_passant, None);
+    assert_eq!(fi.board.score, reference.score);
+    assert_eq!(fi.active_color, White);
+    assert_eq!(fi.halfmove_clock, 0);
+    assert_eq!(fi.fullmove, 1);
+}
+
+#[test]
+fn test_fen_piece_placement() {
+    // After 1.e4 e5
+    let board = Board::board_from_fen("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2").board;
+    assert_eq!(board.grid[3][4], Occupied(Pawn, White)); // e4
+    assert_eq!(board.grid[4][4], Occupied(Pawn, Black)); // e5
+    assert_eq!(board.grid[1][4], Free);                  // e2 vide
+    assert_eq!(board.grid[6][4], Free);                  // e7 vide
+}
+
+#[test]
+fn test_fen_castling_rights() {
+    let fi = Board::board_from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w kq - 0 1");
+    assert_eq!(fi.board.white_castle, CastleRights { long: false, short: false });
+    assert_eq!(fi.board.black_castle, CastleRights { long: true,  short: true  });
+
+    let fi2 = Board::board_from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w K - 0 1");
+    assert_eq!(fi2.board.white_castle, CastleRights { long: false, short: true });
+    assert_eq!(fi2.board.black_castle, CastleRights { long: false, short: false });
+}
+
+#[test]
+fn test_fen_en_passant() {
+    // After 1.e4 — en passant square e3, tour noir
+    let fi = Board::board_from_fen("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
+    assert_eq!(fi.board.en_passant, Some(coord(2, 4))); // e3 = row 2, col 4
+    assert_eq!(fi.active_color, Black);
+}
+
+#[test]
+fn test_fen_kings_tracked() {
+    // Rois hors cases initiales
+    let fi = Board::board_from_fen("8/8/3k4/8/8/3K4/8/8 w - - 0 1");
+    assert_eq!(fi.board.white_king, coord(2, 3)); // d3
+    assert_eq!(fi.board.black_king, coord(5, 3)); // d6
+}
+
+#[test]
+fn test_fen_halfmove_fullmove() {
+    let fi = Board::board_from_fen("8/8/3k4/8/8/3K4/8/8 b - - 7 42");
+    assert_eq!(fi.active_color, Black);
+    assert_eq!(fi.halfmove_clock, 7);
+    assert_eq!(fi.fullmove, 42);
+}

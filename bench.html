@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ChessGame — Benchmark</title>
+        <style>
+            body {
+                font-family: system-ui, sans-serif;
+                max-width: 900px;
+                margin: 40px auto;
+                padding: 0 20px;
+                background: #0f1117;
+                color: #e2e8f0;
+            }
+            h1 {
+                font-size: 1.4rem;
+                margin-bottom: 4px;
+            }
+            .subtitle {
+                color: #64748b;
+                font-size: 0.85rem;
+                margin-bottom: 28px;
+            }
+
+            .controls {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                margin-bottom: 24px;
+                flex-wrap: wrap;
+            }
+            label {
+                font-size: 0.9rem;
+                color: #94a3b8;
+            }
+            select {
+                background: #1e293b;
+                color: #e2e8f0;
+                border: 1px solid #334155;
+                border-radius: 6px;
+                padding: 6px 10px;
+                font-size: 0.9rem;
+                cursor: pointer;
+            }
+            button {
+                background: #3b82f6;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 7px 18px;
+                font-size: 0.9rem;
+                cursor: pointer;
+                transition: background 0.15s;
+            }
+            button:hover {
+                background: #2563eb;
+            }
+            button:disabled {
+                background: #334155;
+                cursor: not-allowed;
+            }
+
+            #status {
+                font-size: 0.85rem;
+                color: #64748b;
+                min-height: 1.2em;
+                margin-bottom: 12px;
+            }
+
+            .legend {
+                display: flex;
+                gap: 20px;
+                font-size: 0.78rem;
+                margin-bottom: 16px;
+                color: #64748b;
+            }
+            .legend span::before {
+                content: "● ";
+            }
+            .legend .fast::before {
+                color: #4ade80;
+            }
+            .legend .warn::before {
+                color: #fbbf24;
+            }
+            .legend .slow::before {
+                color: #f87171;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.88rem;
+            }
+            th {
+                text-align: left;
+                padding: 8px 10px;
+                border-bottom: 1px solid #334155;
+                color: #64748b;
+                font-weight: 500;
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+            td {
+                padding: 7px 10px;
+                border-bottom: 1px solid #1e293b;
+                font-variant-numeric: tabular-nums;
+            }
+            tr:last-child td {
+                border-bottom: none;
+            }
+            .col-pos {
+                color: #94a3b8;
+            }
+            .num {
+                font-family: monospace;
+            }
+            .fast {
+                color: #4ade80;
+            }
+            .warn {
+                color: #fbbf24;
+            }
+            .slow {
+                color: #f87171;
+            }
+            .aborted {
+                color: #fbbf24;
+                font-style: italic;
+            }
+            .sep td {
+                background: #1e293b;
+                padding: 2px;
+            }
+            .msg td {
+                color: #64748b;
+                font-style: italic;
+                padding: 10px;
+            }
+
+            th[title] {
+                cursor: help;
+                border-bottom: 1px dashed #475569;
+            }
+
+            .table-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            @media (max-width: 768px) {
+                body {
+                    margin: 20px auto;
+                    padding: 0 12px;
+                }
+                h1 {
+                    font-size: 1.15rem;
+                }
+                .controls {
+                    flex-direction: column;
+                    align-items: stretch;
+                    gap: 10px;
+                }
+                .controls label {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
+                .controls select,
+                .controls button {
+                    width: 100%;
+                    padding: 10px;
+                    font-size: 1rem;
+                }
+                table {
+                    font-size: 0.78rem;
+                }
+                th,
+                td {
+                    padding: 6px 8px;
+                }
+
+            }
+        </style>
+    </head>
+    <body>
+        <h1>ChessGame — Benchmark</h1>
+        <p class="subtitle">
+            Measures nodes/s, alpha-beta efficiency and branching factor across
+            depths on two fixed positions.
+        </p>
+
+        <div class="controls">
+            <label>
+                Max depth
+                <select id="max-depth">
+                    <option value="3">3</option>
+                    <option value="4" selected>4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                </select>
+            </label>
+            <label>
+                Node limit
+                <select id="node-limit">
+                    <option value="100000">100k</option>
+                    <option value="500000" selected>500k</option>
+                    <option value="5000000">5M</option>
+                    <option value="10000000">10M</option>
+                </select>
+            </label>
+            <button id="run">▶ Run</button>
+        </div>
+
+        <div id="status"></div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Position</th>
+                        <th>Depth</th>
+                        <th title="Total nodes visited">Nodes</th>
+                        <th title="Wall-clock time for this search">Time</th>
+                        <th title="Nodes per second">NPS</th>
+                        <th title="Alpha-beta cutoffs">Cutoffs</th>
+                        <th
+                            title="Cutoffs / interior nodes × 100. Higher = better move ordering."
+                        >
+                            Cut%
+                        </th>
+                        <th
+                            title="Effective Branching Factor = nodes^(1/depth). Lower = better pruning. Perfect alpha-beta ≈ sqrt(branching_factor)."
+                        >
+                            EBF
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+
+        <script type="module">
+            import init, { run_bench } from "./chess_game.js";
+            await init();
+
+            const runBtn = document.getElementById("run");
+            const statusEl = document.getElementById("status");
+            const tbody = document.getElementById("tbody");
+
+            function timeClass(ms) {
+                if (ms < 200) return "fast";
+                if (ms < 500) return "warn";
+                return "slow";
+            }
+
+            function fmtTime(ms) {
+                if (ms < 1) return "< 1 ms";
+                if (ms < 1000) return ms.toFixed(1) + " ms";
+                return (ms / 1000).toFixed(2) + " s";
+            }
+
+            function fmtNum(n) {
+                return Number(n).toLocaleString("en-US");
+            }
+
+            function addSeparator() {
+                const tr = document.createElement("tr");
+                tr.className = "sep";
+                tr.innerHTML = '<td colspan="8"></td>';
+                tbody.appendChild(tr);
+            }
+
+            function addRow(e) {
+                const tr = document.createElement("tr");
+                const timeCol = e.aborted
+                    ? `<span class="aborted">${fmtTime(e.time_ms)} (aborted)</span>`
+                    : `<span class="${timeClass(e.time_ms)}">${fmtTime(e.time_ms)}</span>`;
+                tr.innerHTML =
+                    `<td class="col-pos">${e.label}</td>` +
+                    `<td class="num">${e.depth}</td>` +
+                    `<td class="num">${fmtNum(e.nodes)}</td>` +
+                    `<td class="num">${timeCol}</td>` +
+                    `<td class="num">${fmtNum(e.nps)} n/s</td>` +
+                    `<td class="num">${fmtNum(e.cutoffs)}</td>` +
+                    `<td class="num">${e.cut_pct.toFixed(1)}%</td>` +
+                    `<td class="num">${e.ebf.toFixed(2)}</td>`;
+                tbody.appendChild(tr);
+            }
+
+            function addMessage(msg) {
+                const tr = document.createElement("tr");
+                tr.className = "msg";
+                tr.innerHTML = `<td colspan="8">${msg}</td>`;
+                tbody.appendChild(tr);
+            }
+
+            runBtn.addEventListener("click", async () => {
+                const maxDepth = +document.getElementById("max-depth").value;
+                const nodeLimit = +document.getElementById("node-limit").value;
+
+                tbody.innerHTML = "";
+                runBtn.disabled = true;
+
+                for (let d = 1; d <= maxDepth; d++) {
+                    statusEl.textContent = `Running depth ${d} / ${maxDepth}…`;
+                    await new Promise((r) => setTimeout(r, 0)); // yield so status renders
+
+                    const entries = JSON.parse(run_bench(d, nodeLimit));
+
+                    if (d > 1) addSeparator();
+                    for (const e of entries) addRow(e);
+
+                    await new Promise((r) => setTimeout(r, 0)); // yield so rows render
+                }
+
+                statusEl.textContent = "Done.";
+                runBtn.disabled = false;
+            });
+        </script>
+    </body>
+</html>

@@ -17,8 +17,9 @@ use crate::engine::search_stats::SearchStats;
 use js_sys::Math;
 
 const MATE_SCORE: i32 = 1_000_000;
-pub const MEDIUM_DEPTH: u8 = 3;
-pub const HARD_DEPTH: u8 = 4;
+pub const EASY_DEPTH: u8 = 4;
+pub const MEDIUM_DEPTH: u8 = 5;
+pub const HARD_DEPTH: u8 = 6;
 
 pub fn minimax<E: Evaluator>(
     board: &mut Board,
@@ -29,9 +30,17 @@ pub fn minimax<E: Evaluator>(
     mut beta: i32,
     stats: &mut SearchStats,
 ) -> i32 {
+    stats.nodes_per_depth[stats.depth] += 1;
+    stats.total_node_depth += stats.depth;
     stats.nodes += 1;
 
+    if stats.max_nodes > 0 && stats.nodes >= stats.max_nodes {
+        stats.aborted = true;
+        return 0;
+    }
+
     if depth == 0 {
+        stats.leafs += 1;
         // return quiescence(board, alpha, beta, eval, active_player, stats);
         return board.score;
     }
@@ -78,7 +87,9 @@ pub fn minimax<E: Evaluator>(
             moves.swap(i, best_idx);
             let m = moves[i];
             board.apply_move(&m, active_player);
+            stats.depth += 1;
             let score = minimax(board, depth - 1, opponent, eval, alpha, beta, stats);
+            stats.depth -= 1;
             board.undo_move(m, active_player);
 
             max_eval = max_eval.max(score);
@@ -92,6 +103,8 @@ pub fn minimax<E: Evaluator>(
                     }
                 }
                 stats.cutoffs += 1;
+                stats.cutoffs_per_depth[stats.depth] += 1;
+                stats.total_cutoffs_depth += stats.depth;
                 break;
             }
         }
@@ -121,7 +134,9 @@ pub fn minimax<E: Evaluator>(
             moves.swap(i, best_idx);
             let m = moves[i];
             board.apply_move(&m, active_player);
+            stats.depth += 1;
             let score = minimax(board, depth - 1, opponent, eval, alpha, beta, stats);
+            stats.depth -= 1;
             board.undo_move(m, active_player);
 
             min_eval = min_eval.min(score);
@@ -135,6 +150,8 @@ pub fn minimax<E: Evaluator>(
                     }
                 }
                 stats.cutoffs += 1;
+                stats.cutoffs_per_depth[stats.depth] += 1;
+                stats.total_cutoffs_depth += stats.depth;
                 break;
             }
         }
@@ -199,7 +216,9 @@ pub fn find_best_move<E: Evaluator>(
             let m = moves[i];
 
             board.apply_move(&m, active_player);
+            stats.depth += 1;
             let score = minimax(board, depth - 1, opponent, eval, i32::MIN, i32::MAX, stats);
+            stats.depth -= 1;
             board.undo_move(m, active_player);
 
             if score > best_score {
@@ -234,7 +253,9 @@ pub fn find_best_move<E: Evaluator>(
             let m = moves[i];
 
             board.apply_move(&m, active_player);
+            stats.depth += 1;
             let score = minimax(board, depth - 1, opponent, eval, i32::MIN, i32::MAX, stats);
+            stats.depth -= 1;
             board.undo_move(m, active_player);
 
             if score < best_score {
@@ -316,7 +337,17 @@ pub fn get_bot_move(
             let mut move_list = MoveList::new();
             generate_moves(board, &active_player, &mut move_list, false);
             let moves = &mut move_list.moves[..move_list.count];
+            #[cfg(target_arch = "wasm32")]
             let index = (Math::random() * moves.len() as f64).floor() as usize;
+            #[cfg(not(target_arch = "wasm32"))]
+            let index = {
+                use std::time::{SystemTime, UNIX_EPOCH};
+                let seed = SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .subsec_nanos() as usize;
+                seed % moves.len()
+            };
             Some(moves[index])
         }
         _ => None,

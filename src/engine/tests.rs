@@ -29,13 +29,7 @@ fn empty_board(white_king: Coord, black_king: Coord) -> Board {
 }
 
 fn test_stats() -> SearchStats {
-    SearchStats {
-        nodes: 0,
-        bot_time_thinking: 0.0,
-        cutoffs: 0,
-        nps: 0.0,
-        killer_moves: [[None; 2]; 64],
-    }
+    SearchStats::new()
 }
 
 // Évaluateur matériel pur (sans PST) pour les tests — recompute depuis le board
