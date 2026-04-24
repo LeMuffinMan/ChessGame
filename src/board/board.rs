@@ -7,6 +7,8 @@ use crate::board::cell::Piece::*;
 use crate::board::is_king_exposed::is_king_exposed;
 use crate::board::move_gen::MoveType;
 use crate::board::move_gen::{CastleSide::*, Move, MoveType::*};
+use crate::engine::zobris_table::hash_from_scratch;
+// use crate::engine::zobris_table::piece_index;
 // use crate::engine::evaluator::Evaluator;
 // use crate::engine::evaluator::PositionalEvaluator;
 use crate::engine::evaluator::get_piece_value_at;
@@ -21,6 +23,7 @@ pub struct Board {
     pub en_passant: Option<Coord>,
     pub check: Option<Coord>,
     pub score: i32,
+    pub hash: u64,
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Default)]
@@ -83,6 +86,7 @@ impl Board {
             prev_score: self.score,
         }
     }
+
     fn get_move_type(&self, origin: Coord, dest: Coord, piece_moving: Option<&Piece>) -> MoveType {
         match piece_moving {
             Some(Pawn) => {
@@ -183,7 +187,6 @@ impl Board {
         if let Castle(side) = m.move_type {
             let row = if active_player == White { 0 } else { 7 };
             let (r_orig, r_dest) = if side == Right { (7, 5) } else { (0, 3) };
-            // On retire la tour de son coin et on l'ajoute à sa nouvelle place (Score + Grille)
             let rook = Cell::Occupied(Rook, active_player);
             self.update_board_score(&rook, &Coord { row, col: r_orig }, false);
             self.grid[row as usize][r_orig as usize] = Cell::Free;
@@ -381,6 +384,39 @@ impl Board {
             }
         }
     }
+
+    pub fn init_board() -> Board {
+        let mut board = Board {
+            grid: [[Cell::Free; 8]; 8],
+            en_passant: None,
+            white_castle: CastleRights {
+                long: true,
+                short: true,
+            },
+            black_castle: CastleRights {
+                long: true,
+                short: true,
+            },
+            white_king: (Coord { row: 0, col: 4 }),
+            black_king: (Coord { row: 7, col: 4 }),
+            check: None,
+            score: 0,
+            hash: 0,
+        };
+        board.fill_side(White);
+        board.fill_side(Black);
+        for x in 0..8 {
+            for y in 0..8 {
+                let target = Coord { row: x, col: y };
+                if let Occupied(piece, color) = board.get(&target) {
+                    board.score += get_piece_value_at(&piece, &color, &target);
+                }
+            }
+        }
+        board.hash = hash_from_scratch(&board, Color::White);
+        board
+    }
+
     pub fn board_from_fen(fen: &str) -> FenInfo {
         let mut board = Board {
             grid: [[Cell::Free; 8]; 8],
@@ -397,6 +433,7 @@ impl Board {
             black_king: Coord { row: 7, col: 4 },
             check: None,
             score: 0,
+            hash: 0,
         };
 
         let mut parts = fen.split(' ');
@@ -442,13 +479,11 @@ impl Board {
             }
         }
 
-        // 2. Active color: w or b
         let active_color = match parts.next().unwrap_or("w") {
             "b" => Black,
             _ => White,
         };
 
-        // 3. Castling rights: KQkq or -
         for c in parts.next().unwrap_or("-").chars() {
             match c {
                 'K' => board.white_castle.short = true,
@@ -459,7 +494,6 @@ impl Board {
             }
         }
 
-        // 4. En passant square: e3 or -
         let ep = parts.next().unwrap_or("-");
         if ep != "-" {
             let mut chars = ep.chars();
@@ -471,10 +505,8 @@ impl Board {
             }
         }
 
-        // 5. Halfmove clock (fifty-move rule counter)
         let halfmove_clock = parts.next().unwrap_or("0").parse::<u32>().unwrap_or(0);
 
-        // 6. Fullmove number
         let fullmove = parts.next().unwrap_or("1").parse::<u32>().unwrap_or(1);
 
         FenInfo {
@@ -483,37 +515,6 @@ impl Board {
             halfmove_clock,
             fullmove,
         }
-    }
-
-    pub fn init_board() -> Board {
-        let mut board = Board {
-            grid: [[Cell::Free; 8]; 8],
-            en_passant: None,
-            white_castle: CastleRights {
-                long: true,
-                short: true,
-            },
-            black_castle: CastleRights {
-                long: true,
-                short: true,
-            },
-            white_king: (Coord { row: 0, col: 4 }),
-            black_king: (Coord { row: 7, col: 4 }),
-            check: None,
-            score: 0,
-        };
-
-        board.fill_side(White);
-        board.fill_side(Black);
-        for x in 0..8 {
-            for y in 0..8 {
-                let target = Coord { row: x, col: y };
-                if let Occupied(piece, color) = board.get(&target) {
-                    board.score += get_piece_value_at(&piece, &color, &target);
-                }
-            }
-        }
-        board
     }
 
     pub fn fill_side(&mut self, color: Color) {
