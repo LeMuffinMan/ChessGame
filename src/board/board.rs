@@ -4,13 +4,8 @@ use crate::Coord;
 use crate::board::cell::Cell;
 use crate::board::cell::Cell::Occupied;
 use crate::board::cell::Piece::*;
-// use crate::board::moves::move_structs::MoveType;
-// use crate::board::moves::move_structs::{CastleSide::*, Move, MoveType::*};
-use crate::engine::zobris_table::hash_from_scratch;
-// use crate::engine::zobris_table::piece_index;
-// use crate::engine::evaluator::Evaluator;
-// use crate::engine::evaluator::PositionalEvaluator;
 use crate::engine::evaluator::get_piece_value_at;
+use crate::engine::zobris_table::hash_from_scratch;
 
 #[derive(Clone, PartialEq)]
 pub struct Board {

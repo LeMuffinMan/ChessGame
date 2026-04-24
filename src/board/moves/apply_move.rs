@@ -1,31 +1,17 @@
+use crate::Board;
 use crate::board::cell::Cell;
 use crate::board::cell::Color;
-use crate::board::is_king_exposed::is_king_exposed;
-use crate::board::moves::move_structs::CastleSide::*;
-use crate::board::moves::move_structs::MoveType::*;
-
-use crate::Board;
 use crate::board::cell::Color::*;
 use crate::board::cell::Coord;
 use crate::board::cell::Piece::*;
+use crate::board::is_king_exposed::is_king_exposed;
+use crate::board::moves::move_structs::CastleSide::*;
 use crate::board::moves::move_structs::Move;
+use crate::board::moves::move_structs::MoveType::*;
 
 impl Board {
     pub fn apply_move(&mut self, m: &Move, active_player: Color) {
-        let capture_coord = match m.move_type {
-            EnPassant => {
-                let row = if active_player == White {
-                    m.dest.row - 1
-                } else {
-                    m.dest.row + 1
-                };
-                Coord {
-                    row,
-                    col: m.dest.col,
-                }
-            }
-            _ => m.dest,
-        };
+        let capture_coord = get_capture(m, &active_player);
 
         self.update_board_score(&self.get(&m.origin), &m.origin, false);
         self.update_board_score(&m.capture, &capture_coord, false);
@@ -65,20 +51,8 @@ impl Board {
         }
 
         self.update_board_score(&self.get(&m.dest), &m.dest, true);
-
-        // self.debug_check_score(&format!(
-        //     "after apply_move active={:?} type={:?} from=({},{}) to=({},{}) capture={:?}",
-        //     active_player,
-        //     m.move_type,
-        //     m.origin.row,
-        //     m.origin.col,
-        //     m.dest.row,
-        //     m.dest.col,
-        //     m.capture
-        // ))
     }
 
-    //reduire l'appel a check move ou enlever le is_king_exposed ? renommer
     pub fn check_move(
         &mut self,
         origin: &Coord,
@@ -96,5 +70,22 @@ impl Board {
             return Some(m);
         }
         None
+    }
+}
+
+fn get_capture(m: &Move, active_player: &Color) -> Coord {
+    match m.move_type {
+        EnPassant => {
+            let row = if *active_player == White {
+                m.dest.row - 1
+            } else {
+                m.dest.row + 1
+            };
+            Coord {
+                row,
+                col: m.dest.col,
+            }
+        }
+        _ => m.dest,
     }
 }
