@@ -5,7 +5,7 @@ use crate::board::cell::Color::{Black, White};
 use crate::board::cell::Coord;
 use crate::board::cell::Piece::{Bishop, King, Knight, Pawn, Queen, Rook};
 use crate::board::is_king_exposed::is_king_exposed;
-use crate::board::move_gen::{generate_moves, Move, MoveList};
+use crate::board::move_gen::{Move, MoveList, generate_moves};
 
 fn gen_moves(board: &mut Board, color: &crate::board::cell::Color) -> Vec<Move> {
     let mut list = MoveList::new();
@@ -130,8 +130,14 @@ fn empty_board_with_kings() -> Board {
     board.grid[7][4] = Occupied(King, Black);
     board.white_king = coord(0, 4);
     board.black_king = coord(7, 4);
-    board.white_castle = CastleRights { long: false, short: false };
-    board.black_castle = CastleRights { long: false, short: false };
+    board.white_castle = CastleRights {
+        long: false,
+        short: false,
+    };
+    board.black_castle = CastleRights {
+        long: false,
+        short: false,
+    };
     board
 }
 
@@ -239,8 +245,14 @@ fn test_generate_moves_stalemate() {
     board.grid[5][2] = Occupied(King, White);
     board.white_king = coord(5, 2);
     board.black_king = coord(7, 0);
-    board.white_castle = CastleRights { long: false, short: false };
-    board.black_castle = CastleRights { long: false, short: false };
+    board.white_castle = CastleRights {
+        long: false,
+        short: false,
+    };
+    board.black_castle = CastleRights {
+        long: false,
+        short: false,
+    };
     let moves = gen_moves(&mut board, &Black);
     assert!(moves.is_empty());
     assert!(!is_king_exposed(&board, &Black));
@@ -456,22 +468,47 @@ fn test_fen_initial_position() {
 #[test]
 fn test_fen_piece_placement() {
     // After 1.e4 e5
-    let board = Board::board_from_fen("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2").board;
+    let board =
+        Board::board_from_fen("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2").board;
     assert_eq!(board.grid[3][4], Occupied(Pawn, White)); // e4
     assert_eq!(board.grid[4][4], Occupied(Pawn, Black)); // e5
-    assert_eq!(board.grid[1][4], Free);                  // e2 vide
-    assert_eq!(board.grid[6][4], Free);                  // e7 vide
+    assert_eq!(board.grid[1][4], Free); // e2 vide
+    assert_eq!(board.grid[6][4], Free); // e7 vide
 }
 
 #[test]
 fn test_fen_castling_rights() {
     let fi = Board::board_from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w kq - 0 1");
-    assert_eq!(fi.board.white_castle, CastleRights { long: false, short: false });
-    assert_eq!(fi.board.black_castle, CastleRights { long: true,  short: true  });
+    assert_eq!(
+        fi.board.white_castle,
+        CastleRights {
+            long: false,
+            short: false
+        }
+    );
+    assert_eq!(
+        fi.board.black_castle,
+        CastleRights {
+            long: true,
+            short: true
+        }
+    );
 
     let fi2 = Board::board_from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w K - 0 1");
-    assert_eq!(fi2.board.white_castle, CastleRights { long: false, short: true });
-    assert_eq!(fi2.board.black_castle, CastleRights { long: false, short: false });
+    assert_eq!(
+        fi2.board.white_castle,
+        CastleRights {
+            long: false,
+            short: true
+        }
+    );
+    assert_eq!(
+        fi2.board.black_castle,
+        CastleRights {
+            long: false,
+            short: false
+        }
+    );
 }
 
 #[test]

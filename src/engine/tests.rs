@@ -4,7 +4,9 @@ use crate::board::cell::Cell::{Free, Occupied};
 use crate::board::cell::Color::{Black, White};
 use crate::board::cell::Coord;
 use crate::board::cell::Piece::{King, Pawn, Queen, Rook};
-use crate::engine::evaluator::{Evaluator, BISHOP_VALUE, KNIGHT_VALUE, PAWN_VALUE, QUEEN_VALUE, ROOK_VALUE, KING_VALUE};
+use crate::engine::evaluator::{
+    BISHOP_VALUE, Evaluator, KING_VALUE, KNIGHT_VALUE, PAWN_VALUE, QUEEN_VALUE, ROOK_VALUE,
+};
 use crate::engine::minimax::{find_best_move, minimax};
 use crate::engine::search_stats::SearchStats;
 
@@ -23,8 +25,14 @@ fn empty_board(white_king: Coord, black_king: Coord) -> Board {
     board.grid[black_king.row as usize][black_king.col as usize] = Occupied(King, Black);
     board.white_king = white_king;
     board.black_king = black_king;
-    board.white_castle = CastleRights { long: false, short: false };
-    board.black_castle = CastleRights { long: false, short: false };
+    board.white_castle = CastleRights {
+        long: false,
+        short: false,
+    };
+    board.black_castle = CastleRights {
+        long: false,
+        short: false,
+    };
     board
 }
 
@@ -42,12 +50,12 @@ impl Evaluator for MaterialEvaluator {
             for y in 0..8 {
                 if let Occupied(piece, color) = board.grid[x][y] {
                     let v = match piece {
-                        crate::board::cell::Piece::Pawn   => PAWN_VALUE,
+                        crate::board::cell::Piece::Pawn => PAWN_VALUE,
                         crate::board::cell::Piece::Knight => KNIGHT_VALUE,
                         crate::board::cell::Piece::Bishop => BISHOP_VALUE,
-                        crate::board::cell::Piece::Rook   => ROOK_VALUE,
-                        crate::board::cell::Piece::Queen  => QUEEN_VALUE,
-                        crate::board::cell::Piece::King   => KING_VALUE,
+                        crate::board::cell::Piece::Rook => ROOK_VALUE,
+                        crate::board::cell::Piece::Queen => QUEEN_VALUE,
+                        crate::board::cell::Piece::King => KING_VALUE,
                     };
                     score += if color == White { v } else { -v };
                 }
@@ -104,7 +112,10 @@ fn test_avoids_losing_rook_depth2() {
     let mv = find_best_move(&mut board, White, &MaterialEvaluator, 2, &mut test_stats())
         .expect("should find a move");
     let is_bad_capture = mv.origin == coord(3, 3) && mv.dest == coord(3, 4);
-    assert!(!is_bad_capture, "bot should not take a pawn defended by a rook");
+    assert!(
+        !is_bad_capture,
+        "bot should not take a pawn defended by a rook"
+    );
 }
 
 // Pat classique : roi noir coincé en a8, dame blanche b6
@@ -113,7 +124,15 @@ fn test_stalemate_returns_zero() {
     let mut board = empty_board(coord(5, 0), coord(7, 0));
     board.grid[5][1] = Occupied(Queen, White);
 
-    let score = minimax(&mut board, 1, Black, &MaterialEvaluator, -1_000_000, 1_000_000, &mut test_stats());
+    let score = minimax(
+        &mut board,
+        1,
+        Black,
+        &MaterialEvaluator,
+        -1_000_000,
+        1_000_000,
+        &mut test_stats(),
+    );
     assert_eq!(score, 0, "stalemate should return 0");
 }
 
@@ -127,7 +146,18 @@ fn test_checkmate_returns_mate_score() {
     // car board.check n'est pas maintenu sur les boards construits manuellement
     board.check = Some(coord(7, 7));
 
-    let score = minimax(&mut board, 1, Black, &MaterialEvaluator, -1_000_000, 1_000_000, &mut test_stats());
+    let score = minimax(
+        &mut board,
+        1,
+        Black,
+        &MaterialEvaluator,
+        -1_000_000,
+        1_000_000,
+        &mut test_stats(),
+    );
     // Black est maté → White gagne → score large positif (convention board.score : positif = avantage blanc)
-    assert!(score > 100_000, "checkmate should return a large positive score (white wins), got {score}");
+    assert!(
+        score > 100_000,
+        "checkmate should return a large positive score (white wins), got {score}"
+    );
 }
