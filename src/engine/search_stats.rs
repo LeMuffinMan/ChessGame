@@ -23,6 +23,24 @@ impl KillerTable {
     }
 }
 
+pub struct HistoryTable {
+    table: [[u32; 64]; 64],
+}
+
+impl HistoryTable {
+    pub fn new() -> Self {
+        Self { table: [[0; 64]; 64] }
+    }
+
+    pub fn update(&mut self, from: usize, to: usize, depth: u8) {
+        self.table[from][to] = self.table[from][to].saturating_add((depth as u32) * (depth as u32));
+    }
+
+    pub fn get(&self, from: usize, to: usize) -> u32 {
+        self.table[from][to]
+    }
+}
+
 pub struct SearchStats {
     pub depth: usize,
     pub nodes: u64,

@@ -10,7 +10,7 @@ use crate::engine::evaluator::{
     BISHOP_VALUE, Evaluator, KING_VALUE, KNIGHT_VALUE, PAWN_VALUE, QUEEN_VALUE, ROOK_VALUE,
 };
 use crate::engine::minimax::{find_best_move, minimax};
-use crate::engine::search_stats::{KillerTable, SearchStats};
+use crate::engine::search_stats::{HistoryTable, KillerTable, SearchStats};
 
 fn coord(row: u8, col: u8) -> Coord {
     Coord { row, col }
@@ -44,6 +44,10 @@ fn test_stats() -> SearchStats {
 
 fn test_killers() -> KillerTable {
     KillerTable::new()
+}
+
+fn test_history() -> HistoryTable {
+    HistoryTable::new()
 }
 
 // Évaluateur matériel pur (sans PST) pour les tests — recompute depuis le board
@@ -144,7 +148,7 @@ fn test_captures_free_queen() {
     board.grid[3][3] = Occupied(Rook, White);
     board.grid[4][3] = Occupied(Queen, Black);
 
-    let mv = find_best_move(&mut board, White, &MaterialEvaluator, 2, &mut test_stats(), &mut test_killers())
+    let mv = find_best_move(&mut board, White, &MaterialEvaluator, 2, &mut test_stats(), &mut test_killers(), &mut test_history())
         .expect("should find a move");
     assert_eq!(mv.origin, coord(3, 3));
     assert_eq!(mv.dest, coord(4, 3));
@@ -161,7 +165,7 @@ fn test_avoids_losing_rook_depth2() {
     board.black_king = coord(7, 4);
     board.grid[6][4] = Occupied(Rook, Black);
 
-    let mv = find_best_move(&mut board, White, &MaterialEvaluator, 2, &mut test_stats(), &mut test_killers())
+    let mv = find_best_move(&mut board, White, &MaterialEvaluator, 2, &mut test_stats(), &mut test_killers(), &mut test_history())
         .expect("should find a move");
     let is_bad_capture = mv.origin == coord(3, 3) && mv.dest == coord(3, 4);
     assert!(
@@ -185,6 +189,7 @@ fn test_stalemate_returns_zero() {
         1_000_000,
         &mut test_stats(),
         &mut test_killers(),
+        &mut test_history(),
     );
     assert_eq!(score, 0, "stalemate should return 0");
 }
@@ -208,6 +213,7 @@ fn test_checkmate_returns_mate_score() {
         1_000_000,
         &mut test_stats(),
         &mut test_killers(),
+        &mut test_history(),
     );
     // Black est maté → White gagne → score large positif (convention board.score : positif = avantage blanc)
     assert!(
