@@ -5,8 +5,9 @@ use crate::board::cell::Color::{Black, White};
 use crate::board::cell::Coord;
 use crate::board::cell::Piece::{Bishop, King, Knight, Pawn, Queen, Rook};
 use crate::board::is_king_exposed::is_king_exposed;
-use crate::board::move_gen::{Move, MoveList, generate_moves};
-
+use crate::board::moves::move_gen::generate_moves;
+// use crate::board::moves::move_structs::MoveType;
+use crate::board::moves::move_structs::{Move, MoveList};
 fn gen_moves(board: &mut Board, color: &crate::board::cell::Color) -> Vec<Move> {
     let mut list = MoveList::new();
     generate_moves(board, color, &mut list, false);
@@ -68,7 +69,10 @@ fn test_apply_undo_en_passant() {
     let from = coord(4, 4);
     let to = coord(5, 3); // d6
     let m = board.build_move(from, to, White);
-    assert_eq!(m.move_type, crate::board::move_gen::MoveType::EnPassant);
+    assert_eq!(
+        m.move_type,
+        crate::board::moves::move_structs::MoveType::EnPassant
+    );
     board.apply_move(&m, White);
     assert_eq!(board.grid[4][3], Free); // black pawn capture
     assert_eq!(board.grid[5][3], Occupied(Pawn, White)); // white pawn in d6
@@ -547,6 +551,11 @@ fn test_pawn_check_blocks_unrelated_moves() {
     board.grid[1][3] = Occupied(Pawn, White); // d2 — unrelated pawn
 
     let moves = gen_moves(&mut board, &White);
-    let has_illegal = moves.iter().any(|m| m.origin == coord(1, 3) && m.dest == coord(2, 3));
-    assert!(!has_illegal, "d2->d3 must be illegal: king remains in check from pawn on f2");
+    let has_illegal = moves
+        .iter()
+        .any(|m| m.origin == coord(1, 3) && m.dest == coord(2, 3));
+    assert!(
+        !has_illegal,
+        "d2->d3 must be illegal: king remains in check from pawn on f2"
+    );
 }

@@ -7,7 +7,6 @@ use crate::engine::minimax::EASY_DEPTH;
 use crate::engine::minimax::HARD_DEPTH;
 use crate::engine::minimax::MEDIUM_DEPTH;
 use crate::gui::features::timer::GameMode::NoTime;
-use crate::gui::layout::UiType::*;
 use crate::gui::panels::bot_panels::format_time;
 use egui::Align;
 use egui::Layout;

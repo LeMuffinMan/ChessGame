@@ -1,10 +1,5 @@
 use crate::ChessApp;
 use crate::Color::*;
-use crate::engine::bot::BotDifficulty::*;
-use crate::engine::bot::PlayerType::*;
-use crate::gui::features::timer::GameMode::NoTime;
-use egui::RichText;
-use egui::TextEdit;
 
 impl ChessApp {
     //The bot pannels show the white player name and its timer

@@ -1,4 +1,4 @@
-use crate::board::move_gen::Move;
+use crate::board::moves::move_structs::Move;
 
 pub const MAX_SEARCH_DEPTH: usize = 16;
 
@@ -8,7 +8,9 @@ pub struct KillerTable {
 
 impl KillerTable {
     pub fn new() -> Self {
-        Self { moves: [[None; 2]; MAX_SEARCH_DEPTH] }
+        Self {
+            moves: [[None; 2]; MAX_SEARCH_DEPTH],
+        }
     }
 
     pub fn update(&mut self, depth: usize, mv: Move) {
@@ -29,7 +31,9 @@ pub struct HistoryTable {
 
 impl HistoryTable {
     pub fn new() -> Self {
-        Self { table: [[0; 64]; 64] }
+        Self {
+            table: [[0; 64]; 64],
+        }
     }
 
     pub fn update(&mut self, from: usize, to: usize, depth: u8) {

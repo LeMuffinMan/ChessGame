@@ -1,7 +1,6 @@
 use crate::board::cell::Cell;
 use crate::board::cell::Piece::*;
-use crate::board::move_gen::Move;
-use crate::engine::minimax::HARD_DEPTH;
+use crate::board::moves::move_structs::Move;
 // use crate::engine::evaluator::Evaluator;
 // use crate::engine::evaluator::PositionalEvaluator;
 // use crate::engine::minimax::get_bot_move;

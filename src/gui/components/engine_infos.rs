@@ -94,9 +94,9 @@ impl ChessApp {
                             ui.label(egui::RichText::new("PERFORMANCE").weak().small());
                             ui.add_space(2.0);
 
-                            egui::Frame::none()
+                            egui::Frame::new()
                                 .fill(ui.visuals().faint_bg_color)
-                                .rounding(4.0)
+                                // .rounding(4.0)
                                 .inner_margin(6.0)
                                 .show(ui, |ui| {
                                     egui::Grid::new("perf_grid")
