@@ -14,6 +14,7 @@ use crate::engine::bot::BotDifficulty::*;
 use crate::engine::bot::PlayerType;
 use crate::engine::bot::PlayerType::*;
 use crate::engine::search_stats::SearchStats;
+#[cfg(target_arch = "wasm32")]
 use js_sys::Math;
 
 const MATE_SCORE: i32 = 1_000_000;
@@ -41,7 +42,10 @@ pub fn minimax<E: Evaluator>(
 
     if depth == 0 {
         stats.leafs += 1;
-        // return quiescence(board, alpha, beta, eval, active_player, stats);
+        // return match active_player {
+        //     Color::White => quiescence(board, alpha, beta, eval, active_player, stats, 2),
+        //     Color::Black => -quiescence(board, -beta, -alpha, eval, active_player, stats, 2),
+        // };
         return board.score;
     }
 
@@ -229,7 +233,6 @@ pub fn find_best_move<E: Evaluator>(
     } else {
         let mut best_score = i32::MAX;
         for i in 0..moves.len() {
-            // Tri identique
             let mut best_idx = i;
             let mut current_max = i32::MIN;
             for j in i..moves.len() {
@@ -361,27 +364,45 @@ pub fn quiescence<E: Evaluator>(
     eval: &E,
     active_player: Color,
     stats: &mut SearchStats,
+    depth: i8,
 ) -> i32 {
-    if board.score >= beta {
+    if stats.max_nodes > 0 && stats.nodes >= stats.max_nodes {
+        stats.aborted = true;
+        return 0;
+    }
+
+    let stand_pat = if active_player == Color::White {
+        board.score
+    } else {
+        -board.score
+    };
+
+    if stand_pat >= beta {
         return beta;
     }
-    if board.score > alpha {
-        alpha = board.score;
+    if depth <= 0 {
+        return alpha.max(stand_pat);
+    }
+    if stand_pat + 900 < alpha {
+        return alpha;
+    }
+    if stand_pat > alpha {
+        alpha = stand_pat;
     }
 
     let mut move_list = MoveList::new();
     generate_moves(board, &active_player, &mut move_list, true);
-    let moves = &mut move_list.moves[..move_list.count];
 
     let opponent = match active_player {
         Color::White => Color::Black,
         Color::Black => Color::White,
     };
 
-    for i in 0..moves.len() {
-        board.apply_move(&moves[i], active_player);
-        let score = -quiescence(board, -beta, -alpha, eval, opponent, stats);
-        board.undo_move(moves[i], active_player);
+    for i in 0..move_list.count {
+        let m = move_list.moves[i];
+        board.apply_move(&m, active_player);
+        let score = -quiescence(board, -beta, -alpha, eval, opponent, stats, depth - 1);
+        board.undo_move(m, active_player);
         if score >= beta {
             return beta;
         }
