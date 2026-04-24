@@ -2,7 +2,7 @@ use crate::Board;
 use crate::board::cell::Cell::{Free, Occupied};
 use crate::board::cell::Color;
 use crate::board::cell::Coord;
-use crate::board::cell::Piece::{Bishop, Knight, Queen, Rook};
+use crate::board::cell::Piece::{Bishop, Knight, Pawn, Queen, Rook};
 
 pub struct PinInfos {
     pub pins: [[Option<(i8, i8)>; 8]; 8],
@@ -105,6 +105,22 @@ pub fn pin_detection(board: &Board, color: Color) -> PinInfos {
         let c = king.col as i8 + dc;
         if let Some(dest) = Board::checked_coord(r, c) {
             if let Occupied(Knight, cell_color) = board.grid[dest.row as usize][dest.col as usize] {
+                if cell_color != color {
+                    info.add_checker(dest);
+                }
+            }
+        }
+    }
+
+    let pawn_dir: i8 = match color {
+        Color::White => 1,
+        Color::Black => -1,
+    };
+    for dc in [1i8, -1] {
+        let r = king.row as i8 + pawn_dir;
+        let c = king.col as i8 + dc;
+        if let Some(dest) = Board::checked_coord(r, c) {
+            if let Occupied(Pawn, cell_color) = board.grid[dest.row as usize][dest.col as usize] {
                 if cell_color != color {
                     info.add_checker(dest);
                 }

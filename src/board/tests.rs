@@ -534,3 +534,19 @@ fn test_fen_halfmove_fullmove() {
     assert_eq!(fi.halfmove_clock, 7);
     assert_eq!(fi.fullmove, 42);
 }
+
+#[test]
+fn test_pawn_check_blocks_unrelated_moves() {
+    // White king e1 (0,4), black pawn f2 (1,5) gives check diagonally
+    // White pawn d2 (1,3) — advancing to d3 must be illegal (doesn't resolve the check)
+    let mut board = empty_board_with_kings();
+    board.grid[7][4] = Free;
+    board.grid[7][0] = Occupied(King, Black);
+    board.black_king = coord(7, 0);
+    board.grid[1][5] = Occupied(Pawn, Black); // f2 — checks white king on e1
+    board.grid[1][3] = Occupied(Pawn, White); // d2 — unrelated pawn
+
+    let moves = gen_moves(&mut board, &White);
+    let has_illegal = moves.iter().any(|m| m.origin == coord(1, 3) && m.dest == coord(2, 3));
+    assert!(!has_illegal, "d2->d3 must be illegal: king remains in check from pawn on f2");
+}
