@@ -67,15 +67,15 @@ impl MoveList {
     }
 }
 
-// Vérifie si (dest - origin) est parallèle à la direction de clouage (dr, dc).
+//Is the piece pinned will expose king ?
 fn aligned_with_pin(origin: &Coord, dest: &Coord, dr: i8, dc: i8) -> bool {
     let row_diff = dest.row as i8 - origin.row as i8;
     let col_diff = dest.col as i8 - origin.col as i8;
     row_diff * dc == col_diff * dr
 }
 
-// Pousse un coup sans apply/undo/check_move quand c'est sûr.
-// Fallback sur check_move si le roi est déjà en échec.
+// If safe, push without apply / undo / check_move
+// Only check move if king is exposed
 fn push_if_legal(
     board: &mut Board,
     origin: &Coord,
@@ -88,13 +88,12 @@ fn push_if_legal(
         return;
     }
     if info.checker_count >= 1 {
-        // Roi en échec : fallback check_move (correct, moins optimal)
+        //If king is in check, we check_move
         if let Some(m) = board.check_move(origin, &dest, color) {
             list.push(m);
         }
         return;
     }
-    // Pas d'échec : vérifier le clouage
     if let Some((dr, dc)) = info.pins[origin.row as usize][origin.col as usize] {
         if !aligned_with_pin(origin, &dest, dr, dc) {
             return;

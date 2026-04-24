@@ -53,8 +53,9 @@ impl ChessApp {
                 // if self.ui_type == Mobile {
                 //     self.engine_infos(ui, color);
                 // }
-                let both_bots = matches!(self.settings.white_bot, Bot(_))
-                    && matches!(self.settings.black_bot, Bot(_));
+                let both_bots =
+                    self.settings.white_bot != Human && self.settings.black_bot != Human;
+
                 if *color == White
                     && both_bots
                     && self.history.snapshots.is_empty()

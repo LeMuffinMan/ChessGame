@@ -1,9 +1,11 @@
 use crate::Board;
 use crate::board::board::CastleRights;
 use crate::board::cell::Cell::{Free, Occupied};
+use crate::board::cell::Color;
 use crate::board::cell::Color::{Black, White};
 use crate::board::cell::Coord;
 use crate::board::cell::Piece::{King, Pawn, Queen, Rook};
+use crate::board::move_gen::{MoveList, generate_moves};
 use crate::engine::evaluator::{
     BISHOP_VALUE, Evaluator, KING_VALUE, KNIGHT_VALUE, PAWN_VALUE, QUEEN_VALUE, ROOK_VALUE,
 };
@@ -63,6 +65,52 @@ impl Evaluator for MaterialEvaluator {
         }
         score
     }
+}
+
+pub fn perft(board: &mut Board, color: Color, depth: u8) -> u64 {
+    let mut res = 0;
+    if depth == 0 {
+        return 1;
+    }
+
+    let mut move_list = MoveList::new();
+    generate_moves(board, &color, &mut move_list, false);
+    let moves = &mut move_list.moves[..move_list.count];
+
+    let opponent = match color {
+        White => Black,
+        Black => White,
+    };
+
+    for i in 0..moves.len() {
+        board.apply_move(&moves[i], color);
+        res += perft(board, opponent, depth - 1);
+        board.undo_move(moves[i], color);
+    }
+    res
+}
+
+#[test]
+fn perft_d1() {
+    let mut board = Board::init_board();
+    assert_eq!(perft(&mut board, White, 1), 20);
+}
+
+#[test]
+fn perft_d2() {
+    let mut board = Board::init_board();
+    assert_eq!(perft(&mut board, White, 2), 400);
+}
+
+#[test]
+fn perft_d3() {
+    let mut board = Board::init_board();
+    assert_eq!(perft(&mut board, White, 3), 8902);
+}
+#[test]
+fn perft_d4() {
+    let mut board = Board::init_board();
+    assert_eq!(perft(&mut board, White, 4), 197281);
 }
 
 // --- evaluator ---
