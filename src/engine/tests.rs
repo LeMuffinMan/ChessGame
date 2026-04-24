@@ -10,7 +10,7 @@ use crate::engine::evaluator::{
     BISHOP_VALUE, Evaluator, KING_VALUE, KNIGHT_VALUE, PAWN_VALUE, QUEEN_VALUE, ROOK_VALUE,
 };
 use crate::engine::minimax::{find_best_move, minimax};
-use crate::engine::search_stats::SearchStats;
+use crate::engine::search_stats::{KillerTable, SearchStats};
 
 fn coord(row: u8, col: u8) -> Coord {
     Coord { row, col }
@@ -40,6 +40,10 @@ fn empty_board(white_king: Coord, black_king: Coord) -> Board {
 
 fn test_stats() -> SearchStats {
     SearchStats::new()
+}
+
+fn test_killers() -> KillerTable {
+    KillerTable::new()
 }
 
 // Évaluateur matériel pur (sans PST) pour les tests — recompute depuis le board
@@ -140,7 +144,7 @@ fn test_captures_free_queen() {
     board.grid[3][3] = Occupied(Rook, White);
     board.grid[4][3] = Occupied(Queen, Black);
 
-    let mv = find_best_move(&mut board, White, &MaterialEvaluator, 2, &mut test_stats())
+    let mv = find_best_move(&mut board, White, &MaterialEvaluator, 2, &mut test_stats(), &mut test_killers())
         .expect("should find a move");
     assert_eq!(mv.origin, coord(3, 3));
     assert_eq!(mv.dest, coord(4, 3));
@@ -157,7 +161,7 @@ fn test_avoids_losing_rook_depth2() {
     board.black_king = coord(7, 4);
     board.grid[6][4] = Occupied(Rook, Black);
 
-    let mv = find_best_move(&mut board, White, &MaterialEvaluator, 2, &mut test_stats())
+    let mv = find_best_move(&mut board, White, &MaterialEvaluator, 2, &mut test_stats(), &mut test_killers())
         .expect("should find a move");
     let is_bad_capture = mv.origin == coord(3, 3) && mv.dest == coord(3, 4);
     assert!(
@@ -180,6 +184,7 @@ fn test_stalemate_returns_zero() {
         -1_000_000,
         1_000_000,
         &mut test_stats(),
+        &mut test_killers(),
     );
     assert_eq!(score, 0, "stalemate should return 0");
 }
@@ -202,6 +207,7 @@ fn test_checkmate_returns_mate_score() {
         -1_000_000,
         1_000_000,
         &mut test_stats(),
+        &mut test_killers(),
     );
     // Black est maté → White gagne → score large positif (convention board.score : positif = avantage blanc)
     assert!(
