@@ -62,6 +62,7 @@ pub struct SearchStats {
     pub aborted: bool,
     pub tt_hits: usize,
     pub tt_stores: usize,
+    pub quiescence_nodes: u64,
 }
 
 impl SearchStats {
@@ -81,6 +82,7 @@ impl SearchStats {
             aborted: false,
             tt_hits: 0,
             tt_stores: 0,
+            quiescence_nodes: 0,
         }
     }
 
@@ -105,6 +107,7 @@ impl SearchStats {
         self.aborted = false;
         self.tt_hits = 0;
         self.tt_stores = 0;
+        self.quiescence_nodes = 0;
     }
 
     pub fn format_time(ms: f64) -> String {

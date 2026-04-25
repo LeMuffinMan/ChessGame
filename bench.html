@@ -187,8 +187,8 @@
     <body>
         <h1>ChessGame — Benchmark</h1>
         <p class="subtitle">
-            Measures nodes/s, alpha-beta efficiency and branching factor across
-            depths on two fixed positions.
+            Rust → WASM, single-threaded · alpha-beta with killers, MVV-LVA,
+            transposition table · two fixed positions
         </p>
 
         <div class="controls">
@@ -201,16 +201,14 @@
                     <option value="6">6</option>
                     <option value="7">7</option>
                     <option value="8">8</option>
-                    <option value="9">9</option>
                 </select>
             </label>
             <label>
-                Node limit
-                <select id="node-limit">
-                    <option value="100000">100k</option>
-                    <option value="500000" selected>500k</option>
-                    <option value="5000000">5M</option>
-                    <option value="10000000">10M</option>
+                Position
+                <select id="position">
+                    <option value="both" selected>Both</option>
+                    <option value="start">Start only</option>
+                    <option value="kiwipete">Kiwipete only</option>
                 </select>
             </label>
             <button id="run">▶ Run</button>
@@ -222,19 +220,29 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Position</th>
                         <th>Depth</th>
-                        <th title="Total nodes visited">Nodes</th>
-                        <th title="Wall-clock time for this search">Time</th>
-                        <th title="Nodes per second">NPS</th>
-                        <th title="Alpha-beta cutoffs">Cutoffs</th>
+                        <th>Position</th>
+                        <th title="Total alpha-beta nodes visited">Nodes</th>
+                        <th
+                            title="Quiescence search nodes (captures only, depth=0 extension)"
+                        >
+                            Q-nodes
+                        </th>
+                        <th title="Min over 5 runs (2 warmup discarded)">
+                            Time
+                        </th>
+                        <th
+                            title="Nodes per second — primary throughput metric"
+                        >
+                            NPS
+                        </th>
                         <th
                             title="Cutoffs / interior nodes × 100. Higher = better move ordering."
                         >
                             Cut%
                         </th>
                         <th
-                            title="Effective Branching Factor = nodes^(1/depth). Lower = better pruning. Perfect alpha-beta ≈ sqrt(branching_factor)."
+                            title="Effective Branching Factor = nodes^(1/depth). Lower = better pruning. Theoretical min for alpha-beta ≈ sqrt(b)."
                         >
                             EBF
                         </th>
@@ -280,13 +288,17 @@
                 const timeCol = e.aborted
                     ? `<span class="aborted">${fmtTime(e.time_ms)} (aborted)</span>`
                     : `<span class="${timeClass(e.time_ms)}">${fmtTime(e.time_ms)}</span>`;
+                const qNodes =
+                    e.q_nodes > 0
+                        ? fmtNum(e.q_nodes)
+                        : `<span style="color:#475569">—</span>`;
                 tr.innerHTML =
-                    `<td class="col-pos">${e.label}</td>` +
                     `<td class="num">${e.depth}</td>` +
+                    `<td class="col-pos">${e.label}</td>` +
                     `<td class="num">${fmtNum(e.nodes)}</td>` +
+                    `<td class="num">${qNodes}</td>` +
                     `<td class="num">${timeCol}</td>` +
                     `<td class="num">${fmtNum(e.nps)} n/s</td>` +
-                    `<td class="num">${fmtNum(e.cutoffs)}</td>` +
                     `<td class="num">${e.cut_pct.toFixed(1)}%</td>` +
                     `<td class="num">${e.ebf.toFixed(2)}</td>`;
                 tbody.appendChild(tr);
@@ -301,7 +313,6 @@
 
             runBtn.addEventListener("click", async () => {
                 const maxDepth = +document.getElementById("max-depth").value;
-                const nodeLimit = +document.getElementById("node-limit").value;
 
                 tbody.innerHTML = "";
                 runBtn.disabled = true;
@@ -310,10 +321,18 @@
                     statusEl.textContent = `Running depth ${d} / ${maxDepth}…`;
                     await new Promise((r) => setTimeout(r, 0)); // yield so status renders
 
-                    const entries = JSON.parse(run_bench(d, nodeLimit));
+                    const entries = JSON.parse(run_bench(d, 0));
+                    const pos = document.getElementById("position").value;
 
                     if (d > 1) addSeparator();
-                    for (const e of entries) addRow(e);
+                    for (const e of entries) {
+                        if (
+                            pos === "both" ||
+                            (pos === "start" && e.label === "Start") ||
+                            (pos === "kiwipete" && e.label === "Kiwipete")
+                        )
+                            addRow(e);
+                    }
 
                     await new Promise((r) => setTimeout(r, 0)); // yield so rows render
                 }
