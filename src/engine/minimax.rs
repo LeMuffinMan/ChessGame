@@ -1,9 +1,12 @@
 use crate::Board;
+use std::collections::HashMap;
 use crate::board::cell::Cell::*;
 use crate::board::cell::Color;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
 use crate::board::moves::move_gen::generate_moves;
+use crate::engine::ttentry::TtEntry;
+use crate::engine::ttentry::TtFlag;
 use crate::board::moves::move_structs::Move;
 use crate::board::moves::move_structs::MoveList;
 use crate::board::moves::move_structs::MoveType::Promotion;
@@ -32,6 +35,7 @@ pub fn minimax<E: Evaluator>(
     stats: &mut SearchStats,
     killers: &mut KillerTable,
     history: &mut HistoryTable,
+     tt: &mut HashMap<u64, TtEntry>
 ) -> i32 {
     stats.nodes_per_depth[stats.depth] += 1;
     stats.total_node_depth += stats.depth;
@@ -50,6 +54,22 @@ pub fn minimax<E: Evaluator>(
         // };
         return board.score;
     }
+
+    let orig_alpha = alpha;
+    let orig_beta  = beta;
+
+    // --- Probe ---
+    if let Some(entry) = tt.get(&board.hash) {
+        if entry.depth >= depth {
+            match entry.flag {
+                TtFlag::Exact      => return entry.score,
+                TtFlag::LowerBound => alpha = alpha.max(entry.score),
+                TtFlag::UpperBound => beta  = beta.min(entry.score),
+            }
+            if alpha >= beta { return entry.score; }
+        }
+    }
+
 
     let mut move_list = MoveList::new();
     generate_moves(board, &active_player, &mut move_list, false);
@@ -103,6 +123,7 @@ pub fn minimax<E: Evaluator>(
                 stats,
                 killers,
                 history,
+                tt,
             );
             stats.depth -= 1;
             board.undo_move(m, active_player);
@@ -122,6 +143,11 @@ pub fn minimax<E: Evaluator>(
                 break;
             }
         }
+        // --- Store ---
+        let flag = if max_eval <= orig_alpha { TtFlag::UpperBound }
+        else if max_eval >= orig_beta { TtFlag::LowerBound }
+        else { TtFlag::Exact };
+        tt.insert(board.hash, TtEntry { score: max_eval, depth, flag });
         max_eval
     } else {
         let mut min_eval = i32::MAX;
@@ -156,6 +182,7 @@ pub fn minimax<E: Evaluator>(
                 stats,
                 killers,
                 history,
+                tt,
             );
             stats.depth -= 1;
             board.undo_move(m, active_player);
@@ -175,6 +202,13 @@ pub fn minimax<E: Evaluator>(
                 break;
             }
         }
+
+        // --- Store ---
+        let flag = if min_eval <= orig_alpha { TtFlag::UpperBound }
+        else if min_eval >= orig_beta { TtFlag::LowerBound }
+        else { TtFlag::Exact };
+        tt.insert(board.hash, TtEntry { score: min_eval, depth, flag });
+
         min_eval
     }
 }
@@ -196,6 +230,7 @@ pub fn find_best_move<E: Evaluator>(
     killers: &mut KillerTable,
     history: &mut HistoryTable,
 ) -> Option<Move> {
+        let mut tt: HashMap<u64, TtEntry> = HashMap::new();
     let mut move_list = MoveList::new();
     generate_moves(board, &active_player, &mut move_list, false);
     let moves = &mut move_list.moves[..move_list.count];
@@ -247,6 +282,7 @@ pub fn find_best_move<E: Evaluator>(
                 stats,
                 killers,
                 history,
+                &mut tt,
             );
             stats.depth -= 1;
             board.undo_move(m, active_player);
@@ -292,6 +328,7 @@ pub fn find_best_move<E: Evaluator>(
                 stats,
                 killers,
                 history,
+                &mut tt,
             );
             stats.depth -= 1;
             board.undo_move(m, active_player);

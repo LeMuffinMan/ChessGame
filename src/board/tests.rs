@@ -47,6 +47,7 @@ fn test_apply_undo_capture() {
     let mut board = Board::init_board();
     // Place a black pawn in d3 so the white pawn in e2 can capture
     board.grid[2][3] = Occupied(Pawn, Black);
+    board.sync_hash(White);
     let snapshot = board.clone();
     let from = coord(1, 4); // e2
     let to = coord(2, 3); // d3 capture
@@ -65,6 +66,7 @@ fn test_apply_undo_en_passant() {
     board.grid[4][4] = Occupied(Pawn, White); // e5
     board.grid[4][3] = Occupied(Pawn, Black); // d5
     board.en_passant = Some(coord(5, 3)); // d6 — en passant target
+    board.sync_hash(White);
     let snapshot = board.clone();
     let from = coord(4, 4);
     let to = coord(5, 3); // d6
@@ -86,6 +88,7 @@ fn test_apply_undo_castle_right() {
     // Free f1 and g1
     board.grid[0][5] = Free;
     board.grid[0][6] = Free;
+    board.sync_hash(White);
     let snapshot = board.clone();
     let from = coord(0, 4); // e1
     let to = coord(0, 6); // g1
@@ -107,6 +110,7 @@ fn test_apply_undo_castle_left() {
     board.grid[0][1] = Free;
     board.grid[0][2] = Free;
     board.grid[0][3] = Free;
+    board.sync_hash(White);
     let snapshot = board.clone();
     let from = coord(0, 4); // e1
     let to = coord(0, 2); // c1
@@ -257,6 +261,7 @@ fn test_generate_moves_stalemate() {
         long: false,
         short: false,
     };
+    board.sync_hash(Black);
     let moves = gen_moves(&mut board, &Black);
     assert!(moves.is_empty());
     assert!(!is_king_exposed(&board, &Black));
@@ -275,6 +280,7 @@ fn test_castle_right_in_legal_moves() {
     let mut board = Board::init_board();
     board.grid[0][5] = Free;
     board.grid[0][6] = Free;
+    board.sync_hash(White);
     assert!(has_move(&mut board, &White, coord(0, 4), coord(0, 6)));
 }
 
@@ -284,6 +290,7 @@ fn test_castle_left_in_legal_moves() {
     board.grid[0][1] = Free;
     board.grid[0][2] = Free;
     board.grid[0][3] = Free;
+    board.sync_hash(White);
     assert!(has_move(&mut board, &White, coord(0, 4), coord(0, 2)));
 }
 
@@ -293,6 +300,7 @@ fn test_castle_denied_through_check() {
     board.grid[0][5] = Free;
     board.grid[0][6] = Free;
     board.grid[1][5] = Occupied(Rook, Black); // tour noire menace f1
+    board.sync_hash(White);
     assert!(!has_move(&mut board, &White, coord(0, 4), coord(0, 6)));
 }
 
@@ -302,6 +310,7 @@ fn test_castle_denied_king_in_check() {
     board.grid[0][5] = Free;
     board.grid[0][6] = Free;
     board.check = Some(coord(0, 4));
+    board.sync_hash(White);
     assert!(!has_move(&mut board, &White, coord(0, 4), coord(0, 6)));
 }
 
@@ -314,6 +323,7 @@ fn test_castle_denied_rights_lost() {
         long: false,
         short: false,
     };
+    board.sync_hash(White);
     assert!(!has_move(&mut board, &White, coord(0, 4), coord(0, 6)));
 }
 
@@ -356,6 +366,7 @@ fn test_pawn_double_push_blocked_by_intermediate() {
     // pion blanc en e3 bloque la double poussée du pion en e2
     board.grid[2][4] = Occupied(Pawn, White);
     board.grid[1][4] = Free;
+    board.sync_hash(White);
     let moves = gen_moves(&mut board, &White);
     assert!(
         !moves
@@ -377,8 +388,11 @@ fn test_rook_stops_after_capture() {
     board.grid[7][4] = Occupied(King, Black);
     board.white_king = coord(0, 4);
     board.black_king = coord(7, 4);
+    board.white_castle = CastleRights { long: false, short: false };
+    board.black_castle = CastleRights { long: false, short: false };
     board.grid[0][0] = Occupied(Rook, White);
     board.grid[3][0] = Occupied(Pawn, Black);
+    board.sync_hash(White);
     let moves = gen_moves(&mut board, &White);
     // la tour peut aller en a2, a3, a4 (capture) mais PAS a5+
     assert!(
@@ -398,6 +412,7 @@ fn test_castle_rights_revoked_on_king_move() {
     let mut board = Board::init_board();
     board.grid[0][5] = Free;
     board.grid[0][6] = Free;
+    board.sync_hash(White);
     let m = board.build_move(coord(0, 4), coord(0, 5), White);
     board.apply_move(&m, White);
     assert_eq!(
@@ -414,6 +429,7 @@ fn test_castle_rights_revoked_on_rook_move() {
     let mut board = Board::init_board();
     board.grid[1][7] = Free; // free the pawn in front of h1 rook
     board.grid[2][7] = Free;
+    board.sync_hash(White);
     let m = board.build_move(coord(0, 7), coord(2, 7), White);
     board.apply_move(&m, White);
     assert_eq!(
@@ -430,6 +446,7 @@ fn test_castle_rights_restored_on_undo() {
     let mut board = Board::init_board();
     board.grid[0][5] = Free;
     board.grid[0][6] = Free;
+    board.sync_hash(White);
     let from = coord(0, 4);
     let to = coord(0, 6);
     let m = board.build_move(from, to, White);
@@ -549,6 +566,7 @@ fn test_pawn_check_blocks_unrelated_moves() {
     board.black_king = coord(7, 0);
     board.grid[1][5] = Occupied(Pawn, Black); // f2 — checks white king on e1
     board.grid[1][3] = Occupied(Pawn, White); // d2 — unrelated pawn
+    board.sync_hash(White);
 
     let moves = gen_moves(&mut board, &White);
     let has_illegal = moves
