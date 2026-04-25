@@ -1,16 +1,16 @@
 use crate::Board;
-use std::collections::HashMap;
 use crate::board::cell::Cell::*;
 use crate::board::cell::Color;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
 use crate::board::moves::move_gen::generate_moves;
-use crate::engine::ttentry::TtEntry;
-use crate::engine::ttentry::TtFlag;
 use crate::board::moves::move_structs::Move;
 use crate::board::moves::move_structs::MoveList;
 use crate::board::moves::move_structs::MoveType::Promotion;
 use crate::engine::evaluator::Evaluator;
+use crate::engine::ttentry::TtEntry;
+use crate::engine::ttentry::TtFlag;
+use std::collections::HashMap;
 // use crate::engine::evaluator::PositionalEvaluator;
 // use crate::engine::evaluator::*;
 use crate::engine::search_stats::{HistoryTable, KillerTable, SearchContext, SearchStats};
@@ -32,7 +32,7 @@ pub fn minimax<E: Evaluator>(
     stats: &mut SearchStats,
     killers: &mut KillerTable,
     history: &mut HistoryTable,
-     tt: &mut HashMap<u64, TtEntry>
+    tt: &mut HashMap<u64, TtEntry>,
 ) -> i32 {
     stats.nodes_per_depth[stats.depth] += 1;
     stats.total_node_depth += stats.depth;
@@ -49,11 +49,12 @@ pub fn minimax<E: Evaluator>(
         //     Color::White => quiescence(board, alpha, beta, eval, active_player, stats, 99),
         //     Color::Black => -quiescence(board, -beta, -alpha, eval, active_player, stats,99),
         // };
+        // return quiescence(board, alpha, beta, eval, active_player, stats, 99);
         return board.score;
     }
 
     let orig_alpha = alpha;
-    let orig_beta  = beta;
+    let orig_beta = beta;
 
     // --- Probe ---
     if let Some(entry) = tt.get(&board.hash) {
@@ -67,7 +68,7 @@ pub fn minimax<E: Evaluator>(
                     return entry.score;
                 }
                 TtFlag::LowerBound => alpha = alpha.max(entry.score),
-                TtFlag::UpperBound => beta  = beta.min(entry.score),
+                TtFlag::UpperBound => beta = beta.min(entry.score),
             }
             if alpha >= beta {
                 stats.cutoffs += 1;
@@ -78,7 +79,6 @@ pub fn minimax<E: Evaluator>(
             }
         }
     }
-
 
     let mut move_list = MoveList::new();
     generate_moves(board, &active_player, &mut move_list, false);
@@ -153,12 +153,23 @@ pub fn minimax<E: Evaluator>(
             }
         }
         // --- Store (replace only if new depth >= existing) ---
-        let flag = if max_eval <= orig_alpha { TtFlag::UpperBound }
-            else if max_eval >= orig_beta { TtFlag::LowerBound }
-            else { TtFlag::Exact };
+        let flag = if max_eval <= orig_alpha {
+            TtFlag::UpperBound
+        } else if max_eval >= orig_beta {
+            TtFlag::LowerBound
+        } else {
+            TtFlag::Exact
+        };
         let should_store = tt.get(&board.hash).map_or(true, |e| depth >= e.depth);
         if should_store {
-            tt.insert(board.hash, TtEntry { score: max_eval, depth, flag });
+            tt.insert(
+                board.hash,
+                TtEntry {
+                    score: max_eval,
+                    depth,
+                    flag,
+                },
+            );
             stats.tt_stores += 1;
         }
         max_eval
@@ -217,12 +228,23 @@ pub fn minimax<E: Evaluator>(
         }
 
         // --- Store (replace only if new depth >= existing) ---
-        let flag = if min_eval <= orig_alpha { TtFlag::UpperBound }
-            else if min_eval >= orig_beta { TtFlag::LowerBound }
-            else { TtFlag::Exact };
+        let flag = if min_eval <= orig_alpha {
+            TtFlag::UpperBound
+        } else if min_eval >= orig_beta {
+            TtFlag::LowerBound
+        } else {
+            TtFlag::Exact
+        };
         let should_store = tt.get(&board.hash).map_or(true, |e| depth >= e.depth);
         if should_store {
-            tt.insert(board.hash, TtEntry { score: min_eval, depth, flag });
+            tt.insert(
+                board.hash,
+                TtEntry {
+                    score: min_eval,
+                    depth,
+                    flag,
+                },
+            );
             stats.tt_stores += 1;
         }
         min_eval
@@ -413,8 +435,6 @@ pub fn move_order_score(
 
     promotion_bonus + check_bonus + history_bonus
 }
-
-
 
 pub fn quiescence<E: Evaluator>(
     board: &mut Board,

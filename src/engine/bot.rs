@@ -1,25 +1,26 @@
+use crate::Board;
 use crate::ChessApp;
 use crate::Color;
-use crate::Board;
 use crate::board::cell::Cell;
 use crate::board::cell::Color::*;
-use crate::board::moves::move_structs::MoveType::Promotion;
-use crate::engine::bot::PlayerType::*;
-use crate::gui::chessapp::AppMode::*;
 use crate::board::moves::move_gen::generate_moves;
 use crate::board::moves::move_structs::Move;
 use crate::board::moves::move_structs::MoveList;
+use crate::board::moves::move_structs::MoveType::Promotion;
 use crate::engine::bot::BotDifficulty::*;
-use crate::engine::minimax::find_best_move;
+use crate::engine::bot::PlayerType::*;
 use crate::engine::evaluator::PositionalEvaluator;
+use crate::engine::minimax::find_best_move;
 use crate::engine::search_stats::SearchContext;
-use web_sys::window;
+use crate::gui::chessapp::AppMode::*;
 use js_sys::Math;
+use web_sys::window;
 
-use crate::engine::minimax::{HARD_DEPTH, MEDIUM_DEPTH};
+use crate::engine::minimax::{EASY_DEPTH, HARD_DEPTH, MEDIUM_DEPTH};
 
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum BotDifficulty {
+    Random,
     Easy,
     Medium,
     Hard,
@@ -37,13 +38,7 @@ pub fn get_bot_move(
     ctx: &mut SearchContext,
 ) -> Option<Move> {
     match difficulty {
-        Bot(Hard) => find_best_move(
-            board,
-            active_player,
-            &PositionalEvaluator,
-            HARD_DEPTH,
-            ctx,
-        ),
+        Bot(Hard) => find_best_move(board, active_player, &PositionalEvaluator, HARD_DEPTH, ctx),
         Bot(Medium) => find_best_move(
             board,
             active_player,
@@ -51,7 +46,8 @@ pub fn get_bot_move(
             MEDIUM_DEPTH,
             ctx,
         ),
-        Bot(Easy) => {
+        Bot(Easy) => find_best_move(board, active_player, &PositionalEvaluator, EASY_DEPTH, ctx),
+        Bot(Random) => {
             let mut move_list = MoveList::new();
             generate_moves(board, &active_player, &mut move_list, false);
             let moves = &mut move_list.moves[..move_list.count];
@@ -79,9 +75,10 @@ impl ChessApp {
             Black => self.settings.white_bot,
         } {
             match diff {
-                BotDifficulty::Easy => 0,
+                BotDifficulty::Easy => EASY_DEPTH,
                 BotDifficulty::Medium => MEDIUM_DEPTH,
                 BotDifficulty::Hard => HARD_DEPTH,
+                BotDifficulty::Random => 0,
             }
         } else {
             0
