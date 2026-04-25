@@ -26,6 +26,8 @@ pub struct Settings {
     pub undo_limit: u8,
     pub white_bot: PlayerType,
     pub black_bot: PlayerType,
+    pub white_bot_depth: u8,
+    pub black_bot_depth: u8,
 }
 
 impl Settings {
@@ -51,6 +53,8 @@ impl Settings {
             undo_limit: 0,
             white_bot: Human,
             black_bot: Bot(Medium),
+            white_bot_depth: 6,
+            black_bot_depth: 6,
         }
     }
 }
