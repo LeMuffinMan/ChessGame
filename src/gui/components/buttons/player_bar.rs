@@ -72,6 +72,7 @@ impl ChessApp {
 
                 let label = match &bot_setting {
                     Human => "Player".to_string(),
+                    Bot(Random) => "Bot random".into(),
                     Bot(Easy) => format!("Bot (d = {})", EASY_DEPTH),
                     Bot(Medium) => format!("Bot (d = {})", MEDIUM_DEPTH),
                     Bot(Hard) => format!("Bot (d = {})", HARD_DEPTH),
@@ -83,6 +84,12 @@ impl ChessApp {
                         .clicked()
                     {
                         bot_setting = Human;
+                    }
+                    if ui
+                        .selectable_label(bot_setting == Bot(Random), "Bot random")
+                        .clicked()
+                    {
+                        bot_setting = Bot(Random);
                     }
                     if ui
                         .selectable_label(
