@@ -5,7 +5,7 @@ use crate::board::moves::move_structs::Move;
 // use crate::engine::evaluator::PositionalEvaluator;
 // use crate::engine::minimax::get_bot_move;
 // use crate::engine::minimax::{HARD_DEPTH, MEDIUM_DEPTH};
-use crate::engine::search_stats::SearchStats;
+use crate::engine::search_stats::SearchContext;
 use crate::gui::chessapp::AppMode::*;
 use crate::gui::features::gamestate::DrawOption::Available;
 use crate::gui::features::gamestate::DrawRule::FiftyMoves;
@@ -33,7 +33,7 @@ pub struct ChessApp {
     pub current: GameState,
     pub history: History,
     pub bot_pending: bool,
-    pub stats: SearchStats,
+    pub search_ctx: SearchContext,
     pub white_last_score: i32,
     pub black_last_score: i32,
 }
@@ -51,7 +51,7 @@ impl ChessApp {
             settings: Settings::new(),
             promoteinfo: None,
             bot_pending: false,
-            stats: SearchStats::new(),
+            search_ctx: SearchContext::new(),
             white_last_score: 0,
             black_last_score: 0,
         }

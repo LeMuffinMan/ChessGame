@@ -1,14 +1,22 @@
 use crate::ChessApp;
+use crate::Color;
+use crate::Board;
 use crate::board::cell::Cell;
 use crate::board::cell::Color::*;
 use crate::board::moves::move_structs::MoveType::Promotion;
 use crate::engine::bot::PlayerType::*;
-use crate::engine::minimax::get_bot_move;
 use crate::gui::chessapp::AppMode::*;
+use crate::board::moves::move_gen::generate_moves;
+use crate::board::moves::move_structs::Move;
+use crate::board::moves::move_structs::MoveList;
+use crate::engine::bot::BotDifficulty::*;
+use crate::engine::minimax::find_best_move;
+use crate::engine::evaluator::PositionalEvaluator;
+use crate::engine::search_stats::SearchContext;
 use web_sys::window;
+use js_sys::Math;
 
 use crate::engine::minimax::{HARD_DEPTH, MEDIUM_DEPTH};
-use crate::engine::search_stats::{HistoryTable, KillerTable, MAX_SEARCH_DEPTH};
 
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum BotDifficulty {
@@ -20,6 +28,48 @@ pub enum BotDifficulty {
 pub enum PlayerType {
     Human,
     Bot(BotDifficulty),
+}
+
+pub fn get_bot_move(
+    difficulty: &PlayerType,
+    board: &mut Board,
+    active_player: Color,
+    ctx: &mut SearchContext,
+) -> Option<Move> {
+    match difficulty {
+        Bot(Hard) => find_best_move(
+            board,
+            active_player,
+            &PositionalEvaluator,
+            HARD_DEPTH,
+            ctx,
+        ),
+        Bot(Medium) => find_best_move(
+            board,
+            active_player,
+            &PositionalEvaluator,
+            MEDIUM_DEPTH,
+            ctx,
+        ),
+        Bot(Easy) => {
+            let mut move_list = MoveList::new();
+            generate_moves(board, &active_player, &mut move_list, false);
+            let moves = &mut move_list.moves[..move_list.count];
+            #[cfg(target_arch = "wasm32")]
+            let index = (Math::random() * moves.len() as f64).floor() as usize;
+            #[cfg(not(target_arch = "wasm32"))]
+            let index = {
+                use std::time::{SystemTime, UNIX_EPOCH};
+                let seed = SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .subsec_nanos() as usize;
+                seed % moves.len()
+            };
+            Some(moves[index])
+        }
+        _ => None,
+    }
 }
 
 impl ChessApp {
@@ -52,6 +102,7 @@ impl ChessApp {
         self.timer.active = true;
         self.timer.start_of_turn.1 = Some(White);
         self.bot_pending = true;
+        self.search_ctx.reset_for_new_game();
     }
 
     pub fn play_bot_turn(&mut self) {
@@ -60,28 +111,17 @@ impl ChessApp {
             Black => &self.settings.black_bot,
         };
         let performance = window().unwrap().performance().unwrap();
-        self.stats.nodes = 0;
-        self.stats.cutoffs = 0;
-        self.stats.leafs = 0;
-        self.stats.nodes_per_depth = [0; MAX_SEARCH_DEPTH];
-        self.stats.cutoffs_per_depth = [0; MAX_SEARCH_DEPTH];
-        self.stats.depth = 0;
-        self.stats.total_node_depth = 0;
-        self.stats.total_cutoffs_depth = 0;
-        let mut killers = KillerTable::new();
-        let mut history = HistoryTable::new();
+        self.search_ctx.reset_stats();
         let start = performance.now();
         let bot_move = get_bot_move(
             difficulty,
             &mut self.current.board,
             self.current.active_player,
-            &mut self.stats,
-            &mut killers,
-            &mut history,
+            &mut self.search_ctx,
         );
         let end = performance.now();
-        self.stats.bot_time_thinking = end - start;
-        self.stats.nps();
+        self.search_ctx.stats.bot_time_thinking = end - start;
+        self.search_ctx.stats.nps();
         if let Some(m) = bot_move {
             let bot_color = self.current.active_player;
             self.try_move(m.origin, m.dest);

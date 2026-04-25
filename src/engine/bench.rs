@@ -2,7 +2,7 @@ use crate::Board;
 use crate::board::cell::Color;
 use crate::engine::evaluator::PositionalEvaluator;
 use crate::engine::minimax::find_best_move;
-use crate::engine::search_stats::{HistoryTable, KillerTable, MAX_SEARCH_DEPTH, SearchStats};
+use crate::engine::search_stats::{MAX_SEARCH_DEPTH, SearchContext};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 const START_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -48,21 +48,19 @@ pub fn bench_run(fen: &str, color: Color, depth: u8, max_nodes: u64) -> BenchRes
     assert!(depth >= 1, "bench_run requires depth >= 1");
     let mut board = Board::board_from_fen(fen).board;
     let eval = PositionalEvaluator;
-    let mut stats = SearchStats::new();
-    stats.max_nodes = max_nodes;
-    let mut killers = KillerTable::new();
-    let mut history = HistoryTable::new();
+    let mut ctx = SearchContext::new();
+    ctx.stats.max_nodes = max_nodes;
     let t0 = now_ms();
-    find_best_move(&mut board, color, &eval, depth, &mut stats, &mut killers, &mut history);
+    find_best_move(&mut board, color, &eval, depth, &mut ctx);
     let time_ms = now_ms() - t0;
     BenchResult {
-        nodes: stats.nodes,
+        nodes: ctx.stats.nodes,
         time_ms,
-        cutoffs: stats.cutoffs,
-        leafs: stats.leafs,
-        aborted: stats.aborted,
-        nodes_per_depth: stats.nodes_per_depth,
-        cutoffs_per_depth: stats.cutoffs_per_depth,
+        cutoffs: ctx.stats.cutoffs,
+        leafs: ctx.stats.leafs,
+        aborted: ctx.stats.aborted,
+        nodes_per_depth: ctx.stats.nodes_per_depth,
+        cutoffs_per_depth: ctx.stats.cutoffs_per_depth,
     }
 }
 

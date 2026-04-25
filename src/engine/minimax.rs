@@ -11,12 +11,9 @@ use crate::board::moves::move_structs::Move;
 use crate::board::moves::move_structs::MoveList;
 use crate::board::moves::move_structs::MoveType::Promotion;
 use crate::engine::evaluator::Evaluator;
-use crate::engine::evaluator::PositionalEvaluator;
+// use crate::engine::evaluator::PositionalEvaluator;
 // use crate::engine::evaluator::*;
-use crate::engine::bot::BotDifficulty::*;
-use crate::engine::bot::PlayerType;
-use crate::engine::bot::PlayerType::*;
-use crate::engine::search_stats::{HistoryTable, KillerTable, SearchStats};
+use crate::engine::search_stats::{HistoryTable, KillerTable, SearchContext, SearchStats};
 #[cfg(target_arch = "wasm32")]
 use js_sys::Math;
 
@@ -49,8 +46,8 @@ pub fn minimax<E: Evaluator>(
     if depth == 0 {
         stats.leafs += 1;
         // return match active_player {
-        //     Color::White => quiescence(board, alpha, beta, eval, active_player, stats, 4),
-        //     Color::Black => -quiescence(board, -beta, -alpha, eval, active_player, stats, 4),
+        //     Color::White => quiescence(board, alpha, beta, eval, active_player, stats, 99),
+        //     Color::Black => -quiescence(board, -beta, -alpha, eval, active_player, stats,99),
         // };
         return board.score;
     }
@@ -62,11 +59,23 @@ pub fn minimax<E: Evaluator>(
     if let Some(entry) = tt.get(&board.hash) {
         if entry.depth >= depth {
             match entry.flag {
-                TtFlag::Exact      => return entry.score,
+                TtFlag::Exact => {
+                    stats.cutoffs += 1;
+                    stats.cutoffs_per_depth[stats.depth] += 1;
+                    stats.total_cutoffs_depth += stats.depth;
+                    stats.tt_hits += 1;
+                    return entry.score;
+                }
                 TtFlag::LowerBound => alpha = alpha.max(entry.score),
                 TtFlag::UpperBound => beta  = beta.min(entry.score),
             }
-            if alpha >= beta { return entry.score; }
+            if alpha >= beta {
+                stats.cutoffs += 1;
+                stats.cutoffs_per_depth[stats.depth] += 1;
+                stats.total_cutoffs_depth += stats.depth;
+                stats.tt_hits += 1;
+                return entry.score;
+            }
         }
     }
 
@@ -143,11 +152,15 @@ pub fn minimax<E: Evaluator>(
                 break;
             }
         }
-        // --- Store ---
+        // --- Store (replace only if new depth >= existing) ---
         let flag = if max_eval <= orig_alpha { TtFlag::UpperBound }
-        else if max_eval >= orig_beta { TtFlag::LowerBound }
-        else { TtFlag::Exact };
-        tt.insert(board.hash, TtEntry { score: max_eval, depth, flag });
+            else if max_eval >= orig_beta { TtFlag::LowerBound }
+            else { TtFlag::Exact };
+        let should_store = tt.get(&board.hash).map_or(true, |e| depth >= e.depth);
+        if should_store {
+            tt.insert(board.hash, TtEntry { score: max_eval, depth, flag });
+            stats.tt_stores += 1;
+        }
         max_eval
     } else {
         let mut min_eval = i32::MAX;
@@ -203,12 +216,15 @@ pub fn minimax<E: Evaluator>(
             }
         }
 
-        // --- Store ---
+        // --- Store (replace only if new depth >= existing) ---
         let flag = if min_eval <= orig_alpha { TtFlag::UpperBound }
-        else if min_eval >= orig_beta { TtFlag::LowerBound }
-        else { TtFlag::Exact };
-        tt.insert(board.hash, TtEntry { score: min_eval, depth, flag });
-
+            else if min_eval >= orig_beta { TtFlag::LowerBound }
+            else { TtFlag::Exact };
+        let should_store = tt.get(&board.hash).map_or(true, |e| depth >= e.depth);
+        if should_store {
+            tt.insert(board.hash, TtEntry { score: min_eval, depth, flag });
+            stats.tt_stores += 1;
+        }
         min_eval
     }
 }
@@ -226,11 +242,8 @@ pub fn find_best_move<E: Evaluator>(
     active_player: Color,
     eval: &E,
     depth: u8,
-    stats: &mut SearchStats,
-    killers: &mut KillerTable,
-    history: &mut HistoryTable,
+    ctx: &mut SearchContext,
 ) -> Option<Move> {
-        let mut tt: HashMap<u64, TtEntry> = HashMap::new();
     let mut move_list = MoveList::new();
     generate_moves(board, &active_player, &mut move_list, false);
     let moves = &mut move_list.moves[..move_list.count];
@@ -245,7 +258,7 @@ pub fn find_best_move<E: Evaluator>(
     };
 
     let mut best_move = None;
-    let [killer1, killer2] = killers.get(depth as usize);
+    let [killer1, killer2] = ctx.killers.get(depth as usize);
 
     if active_player == Color::White {
         let mut best_score = i32::MIN;
@@ -260,7 +273,7 @@ pub fn find_best_move<E: Evaluator>(
                         .get_piece(),
                     killer1,
                     killer2,
-                    history,
+                    &ctx.history,
                 );
                 if score > current_max {
                     current_max = score;
@@ -271,7 +284,7 @@ pub fn find_best_move<E: Evaluator>(
             let m = moves[i];
 
             board.apply_move(&m, active_player);
-            stats.depth += 1;
+            ctx.stats.depth += 1;
             let score = minimax(
                 board,
                 depth - 1,
@@ -279,12 +292,12 @@ pub fn find_best_move<E: Evaluator>(
                 eval,
                 alpha,
                 i32::MAX,
-                stats,
-                killers,
-                history,
-                &mut tt,
+                &mut ctx.stats,
+                &mut ctx.killers,
+                &mut ctx.history,
+                &mut ctx.tt,
             );
-            stats.depth -= 1;
+            ctx.stats.depth -= 1;
             board.undo_move(m, active_player);
 
             if score > best_score {
@@ -306,7 +319,7 @@ pub fn find_best_move<E: Evaluator>(
                         .get_piece(),
                     killer1,
                     killer2,
-                    history,
+                    &ctx.history,
                 );
                 if score > current_max {
                     current_max = score;
@@ -317,7 +330,7 @@ pub fn find_best_move<E: Evaluator>(
             let m = moves[i];
 
             board.apply_move(&m, active_player);
-            stats.depth += 1;
+            ctx.stats.depth += 1;
             let score = minimax(
                 board,
                 depth - 1,
@@ -325,12 +338,12 @@ pub fn find_best_move<E: Evaluator>(
                 eval,
                 i32::MIN,
                 beta,
-                stats,
-                killers,
-                history,
-                &mut tt,
+                &mut ctx.stats,
+                &mut ctx.killers,
+                &mut ctx.history,
+                &mut ctx.tt,
             );
-            stats.depth -= 1;
+            ctx.stats.depth -= 1;
             board.undo_move(m, active_player);
 
             if score < best_score {
@@ -401,53 +414,7 @@ pub fn move_order_score(
     promotion_bonus + check_bonus + history_bonus
 }
 
-pub fn get_bot_move(
-    difficulty: &PlayerType,
-    board: &mut Board,
-    active_player: Color,
-    stats: &mut SearchStats,
-    killers: &mut KillerTable,
-    history: &mut HistoryTable,
-) -> Option<Move> {
-    match difficulty {
-        Bot(Hard) => find_best_move(
-            board,
-            active_player,
-            &PositionalEvaluator,
-            HARD_DEPTH,
-            stats,
-            killers,
-            history,
-        ),
-        Bot(Medium) => find_best_move(
-            board,
-            active_player,
-            &PositionalEvaluator,
-            MEDIUM_DEPTH,
-            stats,
-            killers,
-            history,
-        ),
-        Bot(Easy) => {
-            let mut move_list = MoveList::new();
-            generate_moves(board, &active_player, &mut move_list, false);
-            let moves = &mut move_list.moves[..move_list.count];
-            #[cfg(target_arch = "wasm32")]
-            let index = (Math::random() * moves.len() as f64).floor() as usize;
-            #[cfg(not(target_arch = "wasm32"))]
-            let index = {
-                use std::time::{SystemTime, UNIX_EPOCH};
-                let seed = SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .unwrap_or_default()
-                    .subsec_nanos() as usize;
-                seed % moves.len()
-            };
-            Some(moves[index])
-        }
-        _ => None,
-    }
-}
+
 
 pub fn quiescence<E: Evaluator>(
     board: &mut Board,
