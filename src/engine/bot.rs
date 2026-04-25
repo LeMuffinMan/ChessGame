@@ -16,14 +16,12 @@ use crate::gui::chessapp::AppMode::*;
 use js_sys::Math;
 use web_sys::window;
 
-use crate::engine::minimax::{EASY_DEPTH, HARD_DEPTH, MEDIUM_DEPTH};
+
 
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum BotDifficulty {
     Random,
-    Easy,
-    Medium,
-    Hard,
+    Depth(u8),
 }
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum PlayerType {
@@ -38,15 +36,7 @@ pub fn get_bot_move(
     ctx: &mut SearchContext,
 ) -> Option<Move> {
     match difficulty {
-        Bot(Hard) => find_best_move(board, active_player, &PositionalEvaluator, HARD_DEPTH, ctx),
-        Bot(Medium) => find_best_move(
-            board,
-            active_player,
-            &PositionalEvaluator,
-            MEDIUM_DEPTH,
-            ctx,
-        ),
-        Bot(Easy) => find_best_move(board, active_player, &PositionalEvaluator, EASY_DEPTH, ctx),
+        Bot(Depth(d)) => find_best_move(board, active_player, &PositionalEvaluator, *d, ctx),
         Bot(Random) => {
             let mut move_list = MoveList::new();
             generate_moves(board, &active_player, &mut move_list, false);
@@ -75,9 +65,7 @@ impl ChessApp {
             Black => self.settings.white_bot,
         } {
             match diff {
-                BotDifficulty::Easy => EASY_DEPTH,
-                BotDifficulty::Medium => MEDIUM_DEPTH,
-                BotDifficulty::Hard => HARD_DEPTH,
+                BotDifficulty::Depth(d) => d,
                 BotDifficulty::Random => 0,
             }
         } else {

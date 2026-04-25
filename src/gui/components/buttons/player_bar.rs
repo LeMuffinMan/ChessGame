@@ -3,122 +3,134 @@ use crate::board::cell::Color;
 use crate::board::cell::Color::*;
 use crate::engine::bot::BotDifficulty::*;
 use crate::engine::bot::PlayerType::*;
-use crate::engine::minimax::EASY_DEPTH;
-use crate::engine::minimax::HARD_DEPTH;
 use crate::engine::minimax::MEDIUM_DEPTH;
 use crate::gui::features::timer::GameMode::NoTime;
 use crate::gui::panels::bot_panels::format_time;
 use egui::Align;
+use egui::Direction;
 use egui::Layout;
-
 use egui::RichText;
+use egui::Vec2;
 
 impl ChessApp {
     pub fn player_bar(&mut self, ui: &mut egui::Ui, color: &Color) {
-        ui.columns(3, |columns| {
-            columns[0].vertical(|ui| {
-                if self.history.snapshots.is_empty() || self.current.end.is_some() {
-                    match color {
-                        White => ui.text_edit_singleline(&mut self.settings.white_name),
-                        Black => ui.text_edit_singleline(&mut self.settings.black_name),
-                    };
-                } else {
-                    match color {
-                        White => ui.label(&self.settings.white_name),
-                        Black => ui.label(&self.settings.black_name),
-                    };
-                }
+        let left_w = ui.available_width() * 0.35;
+        let row_h = ui.spacing().interact_size.y;
 
-                if self.timer.mode != NoTime {
-                    let time_val = match color {
-                        White => self.timer.white_time,
-                        Black => self.timer.black_time,
-                    };
-
-                    let text = if self.timer.increment == 0.0 {
-                        format_time(time_val) + " ⏱"
+        ui.horizontal(|ui| {
+            // LEFT — nom + timer
+            ui.allocate_ui_with_layout(
+                Vec2::new(left_w, row_h),
+                Layout::top_down(Align::LEFT),
+                |ui| {
+                    if self.history.snapshots.is_empty() || self.current.end.is_some() {
+                        match color {
+                            White => {
+                                ui.text_edit_singleline(&mut self.settings.white_name);
+                            }
+                            Black => {
+                                ui.text_edit_singleline(&mut self.settings.black_name);
+                            }
+                        };
                     } else {
-                        format!(
-                            "{} ⏱ + {}",
-                            format_time(time_val),
-                            format_time(self.timer.increment)
-                        )
-                    };
-                    ui.label(RichText::new(text).size(20.0));
-                }
-            });
+                        match color {
+                            White => ui.label(&self.settings.white_name),
+                            Black => ui.label(&self.settings.black_name),
+                        };
+                    }
 
-            columns[1].vertical_centered(|ui| {
-                // if self.ui_type == Mobile {
-                //     self.engine_infos(ui, color);
-                // }
-                let both_bots =
-                    self.settings.white_bot != Human && self.settings.black_bot != Human;
+                    if self.timer.mode != NoTime {
+                        let time_val = match color {
+                            White => self.timer.white_time,
+                            Black => self.timer.black_time,
+                        };
+                        let text = if self.timer.increment == 0.0 {
+                            format_time(time_val) + " ⏱"
+                        } else {
+                            format!(
+                                "{} ⏱ + {}",
+                                format_time(time_val),
+                                format_time(self.timer.increment)
+                            )
+                        };
+                        ui.label(RichText::new(text).size(20.0));
+                    }
+                },
+            );
 
-                if *color == White
-                    && both_bots
-                    && self.history.snapshots.is_empty()
-                    && ui.button("▶ Start").clicked()
-                {
-                    self.start_bot_game();
-                }
-            });
-
-            columns[2].with_layout(Layout::top_down(Align::Max), |ui| {
+            // RIGHT + CENTER : right_to_left prend tout l'espace restant
+            // → garantit que les boutons sont collés au bord droit
+            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                 let mut bot_setting = match color {
                     White => self.settings.white_bot,
                     Black => self.settings.black_bot,
                 };
 
-                let label = match &bot_setting {
-                    Human => "Player".to_string(),
-                    Bot(Random) => "Bot random".into(),
-                    Bot(Easy) => format!("Bot (d = {})", EASY_DEPTH),
-                    Bot(Medium) => format!("Bot (d = {})", MEDIUM_DEPTH),
-                    Bot(Hard) => format!("Bot (d = {})", HARD_DEPTH),
+                let current_depth = match bot_setting {
+                    Bot(Depth(d)) => d,
+                    _ => MEDIUM_DEPTH,
                 };
 
-                ui.menu_button(label, |ui| {
-                    if ui
-                        .selectable_label(bot_setting == Human, "Player")
-                        .clicked()
-                    {
+                // Depth menu (rtl : dessiné en premier = visuellement le plus à droite)
+                if let Bot(Depth(ref mut d)) = bot_setting {
+                    let depth_label = format!("d={}", d);
+                    ui.menu_button(depth_label, |ui| {
+                        for depth in 1u8..=8 {
+                            if ui
+                                .selectable_label(*d == depth, format!("d={}", depth))
+                                .clicked()
+                            {
+                                *d = depth;
+                                ui.close_menu();
+                            }
+                        }
+                    });
+                }
+
+                // Bot type menu (rtl : à gauche du depth)
+                let type_label = match &bot_setting {
+                    Human => "Player",
+                    Bot(Random) => "Bot random",
+                    Bot(Depth(_)) => "Bot",
+                };
+                ui.menu_button(type_label, |ui| {
+                    if ui.selectable_label(bot_setting == Human, "Player").clicked() {
                         bot_setting = Human;
+                        ui.close_menu();
                     }
                     if ui
                         .selectable_label(bot_setting == Bot(Random), "Bot random")
                         .clicked()
                     {
                         bot_setting = Bot(Random);
+                        ui.close_menu();
                     }
                     if ui
-                        .selectable_label(
-                            bot_setting == Bot(Easy),
-                            format!("Bot (d = {})", EASY_DEPTH),
-                        )
+                        .selectable_label(matches!(bot_setting, Bot(Depth(_))), "Bot")
                         .clicked()
                     {
-                        bot_setting = Bot(Easy);
-                    }
-                    if ui
-                        .selectable_label(
-                            bot_setting == Bot(Medium),
-                            format!("Bot (d = {})", MEDIUM_DEPTH),
-                        )
-                        .clicked()
-                    {
-                        bot_setting = Bot(Medium);
-                    }
-                    if ui
-                        .selectable_label(
-                            bot_setting == Bot(Hard),
-                            format!("Bot (d = {})", HARD_DEPTH),
-                        )
-                        .clicked()
-                    {
-                        bot_setting = Bot(Hard);
+                        bot_setting = Bot(Depth(current_depth));
+                        ui.close_menu();
                     }
                 });
+
+                // Start button dans l'espace restant (centre de la barre)
+                let remaining_w = ui.available_width();
+                ui.allocate_ui_with_layout(
+                    Vec2::new(remaining_w, row_h),
+                    Layout::centered_and_justified(Direction::TopDown),
+                    |ui| {
+                        let both_bots = self.settings.white_bot != Human
+                            && self.settings.black_bot != Human;
+                        if *color == White
+                            && both_bots
+                            && self.history.snapshots.is_empty()
+                            && ui.button("▶ Start").clicked()
+                        {
+                            self.start_bot_game();
+                        }
+                    },
+                );
 
                 match color {
                     White => self.settings.white_bot = bot_setting,
