@@ -14,6 +14,7 @@ use std::collections::HashMap;
 // use crate::engine::evaluator::PositionalEvaluator;
 // use crate::engine::evaluator::*;
 use crate::engine::search_stats::{HistoryTable, KillerTable, SearchContext, SearchStats};
+use crate::engine::zobris_table::zobrist;
 
 const MATE_SCORE: i32 = 1_000_000;
 
@@ -28,6 +29,7 @@ pub fn minimax<E: Evaluator>(
     killers: &mut KillerTable,
     history: &mut HistoryTable,
     tt: &mut HashMap<u64, TtEntry>,
+    null_move_allowed: bool,
 ) -> i32 {
     stats.nodes_per_depth[stats.depth] += 1;
     stats.total_node_depth += stats.depth;
@@ -89,6 +91,33 @@ pub fn minimax<E: Evaluator>(
 
     let [killer1, killer2] = killers.get(depth as usize);
 
+    // --- Null Move Pruning ---
+    if null_move_allowed && depth >= 3 && board.check.is_none() && has_non_pawn_material(board, active_player) {
+        let zt = zobrist();
+        let prev_ep = board.en_passant;
+        let prev_hash = board.hash;
+        board.hash ^= zt.side_to_move;
+        if let Some(ep) = prev_ep {
+            board.hash ^= zt.en_passant[ep.col as usize];
+        }
+        board.en_passant = None;
+        if active_player == Color::White {
+            let null_score = minimax(board, depth - 3, opponent, eval, beta - 1, beta, stats, killers, history, tt, false);
+            board.en_passant = prev_ep;
+            board.hash = prev_hash;
+            if null_score >= beta {
+                return beta;
+            }
+        } else {
+            let null_score = minimax(board, depth - 3, opponent, eval, alpha, alpha + 1, stats, killers, history, tt, false);
+            board.en_passant = prev_ep;
+            board.hash = prev_hash;
+            if null_score <= alpha {
+                return alpha;
+            }
+        }
+    }
+
     if active_player == Color::White {
         moves.sort_unstable_by_key(|mv| {
             std::cmp::Reverse(move_order_score(
@@ -104,7 +133,7 @@ pub fn minimax<E: Evaluator>(
             board.apply_move(&m, active_player);
             stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1, opponent, eval, alpha, beta, stats, killers, history, tt)
+                minimax(board, depth - 1, opponent, eval, alpha, beta, stats, killers, history, tt, true)
             } else {
                 let is_quiet = m.capture == Free
                     && !matches!(m.move_type, Promotion(_))
@@ -112,9 +141,9 @@ pub fn minimax<E: Evaluator>(
                     && killer1 != Some(m)
                     && killer2 != Some(m);
                 let r: u8 = if is_quiet && depth >= 3 && i >= 3 { if i >= 6 { 2 } else { 1 } } else { 0 };
-                let scout = minimax(board, (depth - 1).saturating_sub(r), opponent, eval, alpha, alpha + 1, stats, killers, history, tt);
+                let scout = minimax(board, (depth - 1).saturating_sub(r), opponent, eval, alpha, alpha + 1, stats, killers, history, tt, true);
                 if scout > alpha && (r > 0 || scout < beta) {
-                    minimax(board, depth - 1, opponent, eval, alpha, beta, stats, killers, history, tt)
+                    minimax(board, depth - 1, opponent, eval, alpha, beta, stats, killers, history, tt, true)
                 } else {
                     scout
                 }
@@ -166,7 +195,7 @@ pub fn minimax<E: Evaluator>(
             board.apply_move(&m, active_player);
             stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1, opponent, eval, alpha, beta, stats, killers, history, tt)
+                minimax(board, depth - 1, opponent, eval, alpha, beta, stats, killers, history, tt, true)
             } else {
                 let is_quiet = m.capture == Free
                     && !matches!(m.move_type, Promotion(_))
@@ -174,9 +203,9 @@ pub fn minimax<E: Evaluator>(
                     && killer1 != Some(m)
                     && killer2 != Some(m);
                 let r: u8 = if is_quiet && depth >= 3 && i >= 3 { if i >= 6 { 2 } else { 1 } } else { 0 };
-                let scout = minimax(board, (depth - 1).saturating_sub(r), opponent, eval, beta - 1, beta, stats, killers, history, tt);
+                let scout = minimax(board, (depth - 1).saturating_sub(r), opponent, eval, beta - 1, beta, stats, killers, history, tt, true);
                 if scout < beta && (r > 0 || scout > alpha) {
-                    minimax(board, depth - 1, opponent, eval, alpha, beta, stats, killers, history, tt)
+                    minimax(board, depth - 1, opponent, eval, alpha, beta, stats, killers, history, tt, true)
                 } else {
                     scout
                 }
@@ -214,6 +243,19 @@ pub fn minimax<E: Evaluator>(
         }
         min_eval
     }
+}
+
+fn has_non_pawn_material(board: &Board, color: Color) -> bool {
+    for row in 0..8usize {
+        for col in 0..8usize {
+            if let Occupied(piece, c) = board.grid[row][col] {
+                if c == color && !matches!(piece, Pawn | King) {
+                    return true;
+                }
+            }
+        }
+    }
+    false
 }
 
 fn is_mate_or_pat(active_player: Color, depth: u8) -> i32 {
@@ -263,11 +305,11 @@ pub fn find_best_move<E: Evaluator>(
             board.apply_move(&m, active_player);
             ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1, opponent, eval, alpha, i32::MAX, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt)
+                minimax(board, depth - 1, opponent, eval, alpha, i32::MAX, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt, true)
             } else {
-                let scout = minimax(board, depth - 1, opponent, eval, alpha, alpha + 1, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt);
+                let scout = minimax(board, depth - 1, opponent, eval, alpha, alpha + 1, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt, true);
                 if scout > alpha {
-                    minimax(board, depth - 1, opponent, eval, alpha, i32::MAX, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt)
+                    minimax(board, depth - 1, opponent, eval, alpha, i32::MAX, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt, true)
                 } else {
                     scout
                 }
@@ -296,11 +338,11 @@ pub fn find_best_move<E: Evaluator>(
             board.apply_move(&m, active_player);
             ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1, opponent, eval, i32::MIN, beta, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt)
+                minimax(board, depth - 1, opponent, eval, i32::MIN, beta, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt, true)
             } else {
-                let scout = minimax(board, depth - 1, opponent, eval, beta - 1, beta, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt);
+                let scout = minimax(board, depth - 1, opponent, eval, beta - 1, beta, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt, true);
                 if scout < beta {
-                    minimax(board, depth - 1, opponent, eval, i32::MIN, beta, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt)
+                    minimax(board, depth - 1, opponent, eval, i32::MIN, beta, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt, true)
                 } else {
                     scout
                 }
