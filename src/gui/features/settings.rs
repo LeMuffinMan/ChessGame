@@ -2,7 +2,6 @@ use crate::Coord;
 use crate::engine::bot::BotDifficulty::*;
 use crate::engine::bot::PlayerType;
 use crate::engine::bot::PlayerType::*;
-use crate::engine::minimax::MEDIUM_DEPTH;
 use egui::Pos2;
 use std::path::PathBuf;
 
@@ -51,7 +50,7 @@ impl Settings {
             black_undo: 0,
             undo_limit: 0,
             white_bot: Human,
-            black_bot: Bot(Depth(MEDIUM_DEPTH)),
+            black_bot: Bot(Depth(5)),
         }
     }
 }
