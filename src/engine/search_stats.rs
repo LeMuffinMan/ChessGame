@@ -1,4 +1,6 @@
+use std::collections::HashMap;
 use crate::board::moves::move_structs::Move;
+use crate::engine::ttentry::TtEntry;
 
 pub const MAX_SEARCH_DEPTH: usize = 16;
 
@@ -58,6 +60,8 @@ pub struct SearchStats {
     pub total_cutoffs_depth: usize,
     pub max_nodes: u64,
     pub aborted: bool,
+    pub tt_hits: usize,
+    pub tt_stores: usize,
 }
 
 impl SearchStats {
@@ -75,6 +79,8 @@ impl SearchStats {
             total_cutoffs_depth: 0,
             max_nodes: 0,
             aborted: false,
+            tt_hits: 0,
+            tt_stores: 0,
         }
     }
 
@@ -86,6 +92,21 @@ impl SearchStats {
         };
     }
 
+    pub fn reset(&mut self) {
+        self.depth = 0;
+        self.nodes = 0;
+        self.cutoffs = 0;
+        self.nps = 0.0;
+        self.leafs = 0;
+        self.cutoffs_per_depth = [0; MAX_SEARCH_DEPTH];
+        self.nodes_per_depth = [0; MAX_SEARCH_DEPTH];
+        self.total_node_depth = 0;
+        self.total_cutoffs_depth = 0;
+        self.aborted = false;
+        self.tt_hits = 0;
+        self.tt_stores = 0;
+    }
+
     pub fn format_time(ms: f64) -> String {
         if ms < 1.0 {
             format!("{:.3} ms", ms)
@@ -94,5 +115,35 @@ impl SearchStats {
         } else {
             format!("{:.2} s", ms / 1000.0)
         }
+    }
+}
+
+pub struct SearchContext {
+    pub killers: KillerTable,
+    pub history: HistoryTable,
+    pub tt: HashMap<u64, TtEntry>,
+    pub stats: SearchStats,
+}
+
+impl SearchContext {
+    pub fn new() -> Self {
+        Self {
+            killers: KillerTable::new(),
+            history: HistoryTable::new(),
+            tt: HashMap::new(),
+            stats: SearchStats::new(),
+        }
+    }
+
+    pub fn reset_for_new_game(&mut self) {
+        self.killers = KillerTable::new();
+        self.history = HistoryTable::new();
+        self.tt.clear();
+        self.stats = SearchStats::new();
+    }
+
+    pub fn reset_stats(&mut self) {
+        self.killers = KillerTable::new();
+        self.stats.reset();
     }
 }

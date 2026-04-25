@@ -11,7 +11,7 @@ use crate::engine::evaluator::{
     BISHOP_VALUE, Evaluator, KING_VALUE, KNIGHT_VALUE, PAWN_VALUE, QUEEN_VALUE, ROOK_VALUE,
 };
 use crate::engine::minimax::{find_best_move, minimax};
-use crate::engine::search_stats::{HistoryTable, KillerTable, SearchStats};
+use crate::engine::search_stats::SearchContext;
 
 fn coord(row: u8, col: u8) -> Coord {
     Coord { row, col }
@@ -39,16 +39,8 @@ fn empty_board(white_king: Coord, black_king: Coord) -> Board {
     board
 }
 
-fn test_stats() -> SearchStats {
-    SearchStats::new()
-}
-
-fn test_killers() -> KillerTable {
-    KillerTable::new()
-}
-
-fn test_history() -> HistoryTable {
-    HistoryTable::new()
+fn test_ctx() -> SearchContext {
+    SearchContext::new()
 }
 
 // Évaluateur matériel pur (sans PST) pour les tests — recompute depuis le board
@@ -155,9 +147,7 @@ fn test_captures_free_queen() {
         White,
         &MaterialEvaluator,
         2,
-        &mut test_stats(),
-        &mut test_killers(),
-        &mut test_history(),
+        &mut test_ctx(),
     )
     .expect("should find a move");
     assert_eq!(mv.origin, coord(3, 3));
@@ -181,9 +171,7 @@ fn test_avoids_losing_rook_depth2() {
         White,
         &MaterialEvaluator,
         2,
-        &mut test_stats(),
-        &mut test_killers(),
-        &mut test_history(),
+        &mut test_ctx(),
     )
     .expect("should find a move");
     let is_bad_capture = mv.origin == coord(3, 3) && mv.dest == coord(3, 4);
@@ -200,6 +188,7 @@ fn test_stalemate_returns_zero() {
     board.grid[5][1] = Occupied(Queen, White);
     board.sync_hash(Black);
 
+    let mut ctx = test_ctx();
     let score = minimax(
         &mut board,
         1,
@@ -207,9 +196,10 @@ fn test_stalemate_returns_zero() {
         &MaterialEvaluator,
         -1_000_000,
         1_000_000,
-        &mut test_stats(),
-        &mut test_killers(),
-        &mut test_history(),
+        &mut ctx.stats,
+        &mut ctx.killers,
+        &mut ctx.history,
+        &mut ctx.tt,
     );
     assert_eq!(score, 0, "stalemate should return 0");
 }
@@ -225,6 +215,7 @@ fn test_checkmate_returns_mate_score() {
     board.check = Some(coord(7, 7));
     board.sync_hash(Black);
 
+    let mut ctx = test_ctx();
     let score = minimax(
         &mut board,
         1,
@@ -232,9 +223,10 @@ fn test_checkmate_returns_mate_score() {
         &MaterialEvaluator,
         -1_000_000,
         1_000_000,
-        &mut test_stats(),
-        &mut test_killers(),
-        &mut test_history(),
+        &mut ctx.stats,
+        &mut ctx.killers,
+        &mut ctx.history,
+        &mut ctx.tt,
     );
     // Black est maté → White gagne → score large positif (convention board.score : positif = avantage blanc)
     assert!(
