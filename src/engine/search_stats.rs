@@ -1,10 +1,8 @@
-use crate::board::moves::move_structs::Move;
-use crate::engine::minimax::HARD_DEPTH;
-use crate::engine::ttentry::TtEntry;
 use std::collections::HashMap;
+use crate::board::moves::move_structs::Move;
+use crate::engine::ttentry::TtEntry;
 
-//a refacto
-pub const MAX_SEARCH_DEPTH: usize = HARD_DEPTH as usize;
+pub const MAX_SEARCH_DEPTH: usize = 16;
 
 pub struct KillerTable {
     moves: [[Option<Move>; 2]; MAX_SEARCH_DEPTH],

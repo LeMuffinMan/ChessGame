@@ -7,7 +7,6 @@ use crate::engine::minimax::EASY_DEPTH;
 use crate::engine::minimax::HARD_DEPTH;
 use crate::engine::minimax::MEDIUM_DEPTH;
 use crate::gui::features::timer::GameMode::NoTime;
-use crate::gui::layout::UiType;
 use crate::gui::panels::bot_panels::format_time;
 use egui::Align;
 use egui::Layout;
@@ -74,83 +73,56 @@ impl ChessApp {
                 let label = match &bot_setting {
                     Human => "Player".to_string(),
                     Bot(Random) => "Bot random".into(),
-                    Bot(Easy) => "Bot easy".into(),
-                    Bot(Medium) => "Bot medium".into(),
-                    Bot(Hard) => "Bot hard".into(),
+                    Bot(Easy) => format!("Bot (d = {})", EASY_DEPTH),
+                    Bot(Medium) => format!("Bot (d = {})", MEDIUM_DEPTH),
+                    Bot(Hard) => format!("Bot (d = {})", HARD_DEPTH),
                 };
 
-                let max_depth = match &self.ui_type {
-                    UiType::Desktop => 9,
-                    UiType::Mobile => 7,
-                };
-
-                let mut bot_depth = match color {
-                    White => self.settings.white_bot_depth,
-                    Black => self.settings.black_bot_depth,
-                };
-
-                ui.horizontal_centered(|ui| {
-                    ui.menu_button(label, |ui| {
-                        if ui
-                            .selectable_label(bot_setting == Human, "Player")
-                            .clicked()
-                        {
-                            bot_setting = Human;
-                        }
-                        if ui
-                            .selectable_label(bot_setting == Bot(Random), "Bot random")
-                            .clicked()
-                        {
-                            bot_setting = Bot(Random);
-                        }
-                        if ui
-                            .selectable_label(bot_setting == Bot(Easy), "Bot easy")
-                            .clicked()
-                        {
-                            bot_setting = Bot(Easy);
-                        }
-                        if ui
-                            .selectable_label(bot_setting == Bot(Medium), "Bot medium")
-                            .clicked()
-                        {
-                            bot_setting = Bot(Medium);
-                        }
-                        if ui
-                            .selectable_label(bot_setting == Bot(Hard), "Bot hard")
-                            .clicked()
-                        {
-                            bot_setting = Bot(Hard);
-                        }
-                    });
-
-                    // Menu déroulant pour la profondeur (depth)
-                    if bot_setting != Human {
-                        let combo_id = match color {
-                            White => "white_depth_combo",
-                            Black => "black_depth_combo",
-                        };
-
-                        egui::ComboBox::from_id_source(combo_id)
-                            .selected_text(bot_depth.to_string())
-                            .width(40.0) // Optionnel: pour éviter que le menu soit trop large
-                            .show_ui(ui, |ui| {
-                                for depth in 1..=max_depth {
-                                    ui.selectable_value(&mut bot_depth, depth, depth.to_string());
-                                }
-                            });
+                ui.menu_button(label, |ui| {
+                    if ui
+                        .selectable_label(bot_setting == Human, "Player")
+                        .clicked()
+                    {
+                        bot_setting = Human;
+                    }
+                    if ui
+                        .selectable_label(bot_setting == Bot(Random), "Bot random")
+                        .clicked()
+                    {
+                        bot_setting = Bot(Random);
+                    }
+                    if ui
+                        .selectable_label(
+                            bot_setting == Bot(Easy),
+                            format!("Bot (d = {})", EASY_DEPTH),
+                        )
+                        .clicked()
+                    {
+                        bot_setting = Bot(Easy);
+                    }
+                    if ui
+                        .selectable_label(
+                            bot_setting == Bot(Medium),
+                            format!("Bot (d = {})", MEDIUM_DEPTH),
+                        )
+                        .clicked()
+                    {
+                        bot_setting = Bot(Medium);
+                    }
+                    if ui
+                        .selectable_label(
+                            bot_setting == Bot(Hard),
+                            format!("Bot (d = {})", HARD_DEPTH),
+                        )
+                        .clicked()
+                    {
+                        bot_setting = Bot(Hard);
                     }
                 });
 
-                // Sauvegarde des paramètres
                 match color {
-                    White => {
-                        self.settings.white_bot = bot_setting;
-                        self.settings.white_bot_depth = bot_depth;
-                    }
-                    Black => {
-                        self.settings.black_bot = bot_setting;
-                        self.settings.black_bot_depth = bot_depth;
-                    }
+                    White => self.settings.white_bot = bot_setting,
+                    Black => self.settings.black_bot = bot_setting,
                 }
             });
         });
