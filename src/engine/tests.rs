@@ -92,7 +92,7 @@ pub fn perft(board: &mut Board, color: Color, depth: u8) -> u64 {
     };
 
     for i in 0..moves.len() {
-        board.apply_move(&moves[i], &color);
+        board.apply_move(&moves[i], color);
         res += perft(board, opponent, depth - 1);
         board.undo_move(moves[i], color);
     }
@@ -148,6 +148,7 @@ fn test_captures_free_queen() {
     let mut board = empty_board(coord(0, 0), coord(7, 7));
     board.grid[3][3] = Occupied(Rook, White);
     board.grid[4][3] = Occupied(Queen, Black);
+    board.sync_hash(White);
 
     let mv = find_best_move(
         &mut board,
@@ -173,6 +174,7 @@ fn test_avoids_losing_rook_depth2() {
     board.grid[7][4] = Occupied(King, Black);
     board.black_king = coord(7, 4);
     board.grid[6][4] = Occupied(Rook, Black);
+    board.sync_hash(White);
 
     let mv = find_best_move(
         &mut board,
@@ -196,6 +198,7 @@ fn test_avoids_losing_rook_depth2() {
 fn test_stalemate_returns_zero() {
     let mut board = empty_board(coord(5, 0), coord(7, 0));
     board.grid[5][1] = Occupied(Queen, White);
+    board.sync_hash(Black);
 
     let score = minimax(
         &mut board,
@@ -220,6 +223,7 @@ fn test_checkmate_returns_mate_score() {
     // Le roi noir est en échec (dame diagonale g7→h8) — setter manuellement
     // car board.check n'est pas maintenu sur les boards construits manuellement
     board.check = Some(coord(7, 7));
+    board.sync_hash(Black);
 
     let score = minimax(
         &mut board,

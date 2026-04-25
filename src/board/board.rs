@@ -86,6 +86,10 @@ impl Board {
         }
     }
 
+    pub fn sync_hash(&mut self, active: Color) {
+        self.hash = hash_from_scratch(self, active);
+    }
+
     pub fn checked_coord(row: i8, col: i8) -> Option<Coord> {
         if (0..8).contains(&row) && (0..8).contains(&col) {
             Some(Coord {

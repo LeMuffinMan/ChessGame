@@ -13,11 +13,28 @@ pub struct ZobristTable {
 
 impl ZobristTable {
     fn generate() -> Self {
+        let mut state: u64 = 0xDEADBEEF_CAFEBABE;
+        let mut next = || lcg_rand(&mut state);
+
+        let mut pieces = [[0; 64]; 12];
+        for row in &mut pieces {
+            for sq in row.iter_mut() {
+                *sq = next();
+            }
+        }
+        let mut castling = [0; 4];
+        for c in &mut castling {
+            *c = next();
+        }
+        let mut en_passant = [0; 8];
+        for ep in &mut en_passant {
+            *ep = next();
+        }
         Self {
-            pieces: [[0; 64]; 12],
-            side_to_move: 0,
-            castling: [0; 4],
-            en_passant: [0; 8],
+            pieces,
+            side_to_move: next(),
+            castling,
+            en_passant,
         }
     }
 }
