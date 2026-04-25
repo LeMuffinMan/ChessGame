@@ -1,9 +1,9 @@
 use crate::board::cell::Cell::*;
+use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
 use crate::board::moves::move_structs::Move;
 use crate::board::moves::move_structs::MoveType::Promotion;
-use crate::board::cell::Piece;
-use crate::engine::search_stats::HistoryTable;
+use crate::engine::search_context::HistoryTable;
 
 pub fn move_order_score(
     mv: &Move,

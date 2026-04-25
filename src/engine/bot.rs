@@ -11,12 +11,10 @@ use crate::engine::bot::BotDifficulty::*;
 use crate::engine::bot::PlayerType::*;
 use crate::engine::evaluator::PositionalEvaluator;
 use crate::engine::minimax::iterative_deepening;
-use crate::engine::search_stats::SearchContext;
+use crate::engine::search_context::SearchContext;
 use crate::gui::chessapp::AppMode::*;
 use js_sys::Math;
 use web_sys::window;
-
-
 
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum BotDifficulty {
@@ -41,17 +39,7 @@ pub fn get_bot_move(
             let mut move_list = MoveList::new();
             generate_moves(board, &active_player, &mut move_list, false);
             let moves = &mut move_list.moves[..move_list.count];
-            #[cfg(target_arch = "wasm32")]
             let index = (Math::random() * moves.len() as f64).floor() as usize;
-            #[cfg(not(target_arch = "wasm32"))]
-            let index = {
-                use std::time::{SystemTime, UNIX_EPOCH};
-                let seed = SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .unwrap_or_default()
-                    .subsec_nanos() as usize;
-                seed % moves.len()
-            };
             Some(moves[index])
         }
         _ => None,

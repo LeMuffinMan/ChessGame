@@ -11,7 +11,7 @@ use crate::engine::evaluator::{
     BISHOP_VALUE, Evaluator, KING_VALUE, KNIGHT_VALUE, PAWN_VALUE, QUEEN_VALUE, ROOK_VALUE,
 };
 use crate::engine::minimax::{find_best_move, minimax};
-use crate::engine::search_stats::SearchContext;
+use crate::engine::search_context::SearchContext;
 
 fn coord(row: u8, col: u8) -> Coord {
     Coord { row, col }
@@ -142,14 +142,8 @@ fn test_captures_free_queen() {
     board.grid[4][3] = Occupied(Queen, Black);
     board.sync_hash(White);
 
-    let mv = find_best_move(
-        &mut board,
-        White,
-        &MaterialEvaluator,
-        2,
-        &mut test_ctx(),
-    )
-    .expect("should find a move");
+    let mv = find_best_move(&mut board, White, &MaterialEvaluator, 2, &mut test_ctx())
+        .expect("should find a move");
     assert_eq!(mv.origin, coord(3, 3));
     assert_eq!(mv.dest, coord(4, 3));
 }
@@ -166,14 +160,8 @@ fn test_avoids_losing_rook_depth2() {
     board.grid[6][4] = Occupied(Rook, Black);
     board.sync_hash(White);
 
-    let mv = find_best_move(
-        &mut board,
-        White,
-        &MaterialEvaluator,
-        2,
-        &mut test_ctx(),
-    )
-    .expect("should find a move");
+    let mv = find_best_move(&mut board, White, &MaterialEvaluator, 2, &mut test_ctx())
+        .expect("should find a move");
     let is_bad_capture = mv.origin == coord(3, 3) && mv.dest == coord(3, 4);
     assert!(
         !is_bad_capture,

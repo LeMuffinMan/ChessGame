@@ -2,7 +2,8 @@ use crate::Board;
 use crate::board::cell::Color;
 use crate::engine::evaluator::PositionalEvaluator;
 use crate::engine::minimax::find_best_move;
-use crate::engine::search_stats::{MAX_SEARCH_DEPTH, SearchContext};
+use crate::engine::search_context::SearchContext;
+use crate::engine::search_stats::MAX_SEARCH_DEPTH;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 const START_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
