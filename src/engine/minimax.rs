@@ -90,26 +90,17 @@ pub fn minimax<E: Evaluator>(
     let [killer1, killer2] = killers.get(depth as usize);
 
     if active_player == Color::White {
+        moves.sort_unstable_by_key(|mv| {
+            std::cmp::Reverse(move_order_score(
+                mv,
+                board.grid[mv.origin.row as usize][mv.origin.col as usize].get_piece(),
+                killer1,
+                killer2,
+                history,
+            ))
+        });
         let mut max_eval = i32::MIN;
-        for i in 0..moves.len() {
-            let mut best_idx = i;
-            let mut best_score = i32::MIN;
-            for j in i..moves.len() {
-                let score = move_order_score(
-                    &moves[j],
-                    board.grid[moves[j].origin.row as usize][moves[j].origin.col as usize]
-                        .get_piece(),
-                    killer1,
-                    killer2,
-                    history,
-                );
-                if score > best_score {
-                    best_score = score;
-                    best_idx = j;
-                }
-            }
-            moves.swap(i, best_idx);
-            let m = moves[i];
+        for &m in moves.iter() {
             board.apply_move(&m, active_player);
             stats.depth += 1;
             let score = minimax(
@@ -164,26 +155,17 @@ pub fn minimax<E: Evaluator>(
         }
         max_eval
     } else {
+        moves.sort_unstable_by_key(|mv| {
+            std::cmp::Reverse(move_order_score(
+                mv,
+                board.grid[mv.origin.row as usize][mv.origin.col as usize].get_piece(),
+                killer1,
+                killer2,
+                history,
+            ))
+        });
         let mut min_eval = i32::MAX;
-        for i in 0..moves.len() {
-            let mut best_idx = i;
-            let mut best_score = i32::MIN;
-            for j in i..moves.len() {
-                let score = move_order_score(
-                    &moves[j],
-                    board.grid[moves[j].origin.row as usize][moves[j].origin.col as usize]
-                        .get_piece(),
-                    killer1,
-                    killer2,
-                    history,
-                );
-                if score > best_score {
-                    best_score = score;
-                    best_idx = j;
-                }
-            }
-            moves.swap(i, best_idx);
-            let m = moves[i];
+        for &m in moves.iter() {
             board.apply_move(&m, active_player);
             stats.depth += 1;
             let score = minimax(
@@ -273,27 +255,18 @@ pub fn find_best_move<E: Evaluator>(
     let [killer1, killer2] = ctx.killers.get(depth as usize);
 
     if active_player == Color::White {
+        moves.sort_unstable_by_key(|mv| {
+            std::cmp::Reverse(move_order_score(
+                mv,
+                board.grid[mv.origin.row as usize][mv.origin.col as usize].get_piece(),
+                killer1,
+                killer2,
+                &ctx.history,
+            ))
+        });
         let mut best_score = i32::MIN;
         let mut alpha = i32::MIN;
-        for i in 0..moves.len() {
-            let mut best_idx = i;
-            let mut current_max = i32::MIN;
-            for j in i..moves.len() {
-                let score = move_order_score(
-                    &moves[j],
-                    board.grid[moves[j].origin.row as usize][moves[j].origin.col as usize]
-                        .get_piece(),
-                    killer1,
-                    killer2,
-                    &ctx.history,
-                );
-                if score > current_max {
-                    current_max = score;
-                    best_idx = j;
-                }
-            }
-            moves.swap(i, best_idx);
-            let m = moves[i];
+        for &m in moves.iter() {
 
             board.apply_move(&m, active_player);
             ctx.stats.depth += 1;
@@ -350,27 +323,18 @@ pub fn find_best_move<E: Evaluator>(
             }
         }
     } else {
+        moves.sort_unstable_by_key(|mv| {
+            std::cmp::Reverse(move_order_score(
+                mv,
+                board.grid[mv.origin.row as usize][mv.origin.col as usize].get_piece(),
+                killer1,
+                killer2,
+                &ctx.history,
+            ))
+        });
         let mut best_score = i32::MAX;
         let mut beta = i32::MAX;
-        for i in 0..moves.len() {
-            let mut best_idx = i;
-            let mut current_max = i32::MIN;
-            for j in i..moves.len() {
-                let score = move_order_score(
-                    &moves[j],
-                    board.grid[moves[j].origin.row as usize][moves[j].origin.col as usize]
-                        .get_piece(),
-                    killer1,
-                    killer2,
-                    &ctx.history,
-                );
-                if score > current_max {
-                    current_max = score;
-                    best_idx = j;
-                }
-            }
-            moves.swap(i, best_idx);
-            let m = moves[i];
+        for &m in moves.iter() {
 
             board.apply_move(&m, active_player);
             ctx.stats.depth += 1;
