@@ -45,12 +45,10 @@ pub fn minimax<E: Evaluator>(
 
     if depth == 0 {
         stats.leafs += 1;
-        // return match active_player {
-        //     Color::White => quiescence(board, alpha, beta, eval, active_player, stats, 99),
-        //     Color::Black => -quiescence(board, -beta, -alpha, eval, active_player, stats,99),
-        // };
-        // return quiescence(board, alpha, beta, eval, active_player, stats, 99);
-        return board.score;
+        return match active_player {
+            Color::White => quiescence(board, alpha, beta, eval, active_player, stats, 3),
+            Color::Black => -quiescence(board, -beta, -alpha, eval, active_player, stats, 3),
+        };
     }
 
     let orig_alpha = alpha;
@@ -308,11 +306,44 @@ pub fn find_best_move<E: Evaluator>(
             board.apply_move(&m, active_player);
             ctx.stats.depth += 1;
             let score = if best_move.is_none() {
-                minimax(board, depth - 1, opponent, eval, alpha, i32::MAX, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt)
+                minimax(
+                    board,
+                    depth - 1,
+                    opponent,
+                    eval,
+                    alpha,
+                    i32::MAX,
+                    &mut ctx.stats,
+                    &mut ctx.killers,
+                    &mut ctx.history,
+                    &mut ctx.tt,
+                )
             } else {
-                let null_score = minimax(board, depth - 1, opponent, eval, alpha, alpha + 1, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt);
+                let null_score = minimax(
+                    board,
+                    depth - 1,
+                    opponent,
+                    eval,
+                    alpha,
+                    alpha + 1,
+                    &mut ctx.stats,
+                    &mut ctx.killers,
+                    &mut ctx.history,
+                    &mut ctx.tt,
+                );
                 if null_score > alpha {
-                    minimax(board, depth - 1, opponent, eval, alpha, i32::MAX, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt)
+                    minimax(
+                        board,
+                        depth - 1,
+                        opponent,
+                        eval,
+                        alpha,
+                        i32::MAX,
+                        &mut ctx.stats,
+                        &mut ctx.killers,
+                        &mut ctx.history,
+                        &mut ctx.tt,
+                    )
                 } else {
                     null_score
                 }
@@ -352,11 +383,44 @@ pub fn find_best_move<E: Evaluator>(
             board.apply_move(&m, active_player);
             ctx.stats.depth += 1;
             let score = if best_move.is_none() {
-                minimax(board, depth - 1, opponent, eval, i32::MIN, beta, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt)
+                minimax(
+                    board,
+                    depth - 1,
+                    opponent,
+                    eval,
+                    i32::MIN,
+                    beta,
+                    &mut ctx.stats,
+                    &mut ctx.killers,
+                    &mut ctx.history,
+                    &mut ctx.tt,
+                )
             } else {
-                let null_score = minimax(board, depth - 1, opponent, eval, beta - 1, beta, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt);
+                let null_score = minimax(
+                    board,
+                    depth - 1,
+                    opponent,
+                    eval,
+                    beta - 1,
+                    beta,
+                    &mut ctx.stats,
+                    &mut ctx.killers,
+                    &mut ctx.history,
+                    &mut ctx.tt,
+                );
                 if null_score < beta {
-                    minimax(board, depth - 1, opponent, eval, i32::MIN, beta, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt)
+                    minimax(
+                        board,
+                        depth - 1,
+                        opponent,
+                        eval,
+                        i32::MIN,
+                        beta,
+                        &mut ctx.stats,
+                        &mut ctx.killers,
+                        &mut ctx.history,
+                        &mut ctx.tt,
+                    )
                 } else {
                     null_score
                 }
@@ -462,6 +526,7 @@ pub fn quiescence<E: Evaluator>(
     stats: &mut SearchStats,
     depth: i8,
 ) -> i32 {
+    stats.quiescence_nodes += 1;
     if stats.max_nodes > 0 && stats.nodes >= stats.max_nodes {
         stats.aborted = true;
         return 0;
