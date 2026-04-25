@@ -7,7 +7,7 @@ use crate::board::moves::move_gen::generate_moves;
 use crate::board::moves::move_structs::Move;
 use crate::board::moves::move_structs::MoveList;
 use crate::board::moves::move_structs::MoveType::Promotion;
-use crate::engine::evaluator::Evaluator;
+use crate::engine::evaluator::{Evaluator, BISHOP_VALUE, KNIGHT_VALUE, PAWN_VALUE, QUEEN_VALUE, ROOK_VALUE};
 use crate::engine::ttentry::TtEntry;
 use crate::engine::ttentry::TtFlag;
 use std::collections::HashMap;
@@ -130,6 +130,15 @@ pub fn minimax<E: Evaluator>(
         });
         let mut max_eval = i32::MIN;
         for (i, &m) in moves.iter().enumerate() {
+            // Futility Pruning: quiet move at depth 1 can't possibly raise score above alpha
+            if depth == 1
+                && m.capture == Free
+                && !matches!(m.move_type, Promotion(_))
+                && m.check.is_none()
+                && board.score + QUEEN_VALUE < alpha
+            {
+                continue;
+            }
             board.apply_move(&m, active_player);
             stats.depth += 1;
             let score = if i == 0 {
@@ -192,6 +201,15 @@ pub fn minimax<E: Evaluator>(
         });
         let mut min_eval = i32::MAX;
         for (i, &m) in moves.iter().enumerate() {
+            // Futility Pruning: quiet move at depth 1 can't possibly lower score below beta
+            if depth == 1
+                && m.capture == Free
+                && !matches!(m.move_type, Promotion(_))
+                && m.check.is_none()
+                && board.score - QUEEN_VALUE > beta
+            {
+                continue;
+            }
             board.apply_move(&m, active_player);
             stats.depth += 1;
             let score = if i == 0 {
@@ -485,6 +503,21 @@ pub fn quiescence_minimax<E: Evaluator>(
 
     for i in 0..move_list.count {
         let m = move_list.moves[i];
+        // Delta Pruning: if even capturing this piece + margin can't improve the bound, skip
+        let capture_value = match m.capture {
+            Occupied(piece, _) => match piece {
+                Pawn => PAWN_VALUE, Knight => KNIGHT_VALUE, Bishop => BISHOP_VALUE,
+                Rook => ROOK_VALUE, Queen => QUEEN_VALUE, King => 0,
+            },
+            Free => 0,
+        };
+        const DELTA: i32 = 200;
+        if active_player == Color::White && stand_pat + capture_value + DELTA < alpha {
+            continue;
+        }
+        if active_player == Color::Black && stand_pat - capture_value - DELTA > beta {
+            continue;
+        }
         board.apply_move(&m, active_player);
         let score = quiescence_minimax(board, alpha, beta, eval, opponent, stats, depth - 1);
         board.undo_move(m, active_player);
