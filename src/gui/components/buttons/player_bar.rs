@@ -3,6 +3,7 @@ use crate::board::cell::Color;
 use crate::board::cell::Color::*;
 use crate::engine::bot::BotDifficulty::*;
 use crate::engine::bot::PlayerType::*;
+use crate::engine::search_stats::MAX_SEARCH_DEPTH;
 use crate::gui::features::timer::GameMode::NoTime;
 use crate::gui::panels::bot_panels::format_time;
 use egui::Align;
@@ -70,7 +71,7 @@ impl ChessApp {
                 if let Bot(Depth(ref mut d)) = bot_setting {
                     let depth_label = format!("d={}", d);
                     ui.menu_button(depth_label, |ui| {
-                        for depth in 1u8..=8 {
+                        for depth in 1..=MAX_SEARCH_DEPTH as u8 {
                             if ui
                                 .selectable_label(*d == depth, format!("d={}", depth))
                                 .clicked()
