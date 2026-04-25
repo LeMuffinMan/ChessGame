@@ -1,6 +1,6 @@
-use std::collections::HashMap;
 use crate::board::moves::move_structs::Move;
 use crate::engine::ttentry::TtEntry;
+use std::collections::HashMap;
 
 pub const MAX_SEARCH_DEPTH: usize = 16;
 
@@ -90,7 +90,7 @@ impl SearchStats {
         self.nps = if self.bot_time_thinking == 0.0 {
             0.0
         } else {
-            self.nodes as f64 / (self.bot_time_thinking / 1000.0)
+            (self.nodes as f64 + self.quiescence_nodes as f64) / (self.bot_time_thinking / 1000.0)
         };
     }
 

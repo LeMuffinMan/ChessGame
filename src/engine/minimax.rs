@@ -14,8 +14,6 @@ use std::collections::HashMap;
 // use crate::engine::evaluator::PositionalEvaluator;
 // use crate::engine::evaluator::*;
 use crate::engine::search_stats::{HistoryTable, KillerTable, SearchContext, SearchStats};
-#[cfg(target_arch = "wasm32")]
-// use js_sys::Math;
 
 const MATE_SCORE: i32 = 1_000_000;
 
