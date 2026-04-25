@@ -45,10 +45,11 @@ pub fn minimax<E: Evaluator>(
 
     if depth == 0 {
         stats.leafs += 1;
-        return match active_player {
-            Color::White => quiescence(board, alpha, beta, eval, active_player, stats, 2),
-            Color::Black => -quiescence(board, -beta, -alpha, eval, active_player, stats, 2),
-        };
+        // return match active_player {
+        //     _ => quiescence(board, alpha, beta, eval, active_player, stats, 2),
+        //     Color::Black => quiescence(board, -beta, -alpha, eval, active_player, stats, 2),
+        // };
+        return board.score;
     }
 
     let orig_alpha = alpha;
