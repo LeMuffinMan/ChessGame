@@ -307,18 +307,16 @@ pub fn find_best_move<E: Evaluator>(
 
             board.apply_move(&m, active_player);
             ctx.stats.depth += 1;
-            let score = minimax(
-                board,
-                depth - 1,
-                opponent,
-                eval,
-                alpha,
-                i32::MAX,
-                &mut ctx.stats,
-                &mut ctx.killers,
-                &mut ctx.history,
-                &mut ctx.tt,
-            );
+            let score = if best_move.is_none() {
+                minimax(board, depth - 1, opponent, eval, alpha, i32::MAX, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt)
+            } else {
+                let null_score = minimax(board, depth - 1, opponent, eval, alpha, alpha + 1, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt);
+                if null_score > alpha {
+                    minimax(board, depth - 1, opponent, eval, alpha, i32::MAX, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt)
+                } else {
+                    null_score
+                }
+            };
             ctx.stats.depth -= 1;
             board.undo_move(m, active_player);
 
@@ -353,18 +351,16 @@ pub fn find_best_move<E: Evaluator>(
 
             board.apply_move(&m, active_player);
             ctx.stats.depth += 1;
-            let score = minimax(
-                board,
-                depth - 1,
-                opponent,
-                eval,
-                i32::MIN,
-                beta,
-                &mut ctx.stats,
-                &mut ctx.killers,
-                &mut ctx.history,
-                &mut ctx.tt,
-            );
+            let score = if best_move.is_none() {
+                minimax(board, depth - 1, opponent, eval, i32::MIN, beta, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt)
+            } else {
+                let null_score = minimax(board, depth - 1, opponent, eval, beta - 1, beta, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt);
+                if null_score < beta {
+                    minimax(board, depth - 1, opponent, eval, i32::MIN, beta, &mut ctx.stats, &mut ctx.killers, &mut ctx.history, &mut ctx.tt)
+                } else {
+                    null_score
+                }
+            };
             ctx.stats.depth -= 1;
             board.undo_move(m, active_player);
 
@@ -376,6 +372,27 @@ pub fn find_best_move<E: Evaluator>(
         }
     }
 
+    best_move
+}
+
+pub fn iterative_deepening<E: Evaluator>(
+    board: &mut Board,
+    active_player: Color,
+    eval: &E,
+    max_depth: u8,
+    ctx: &mut SearchContext,
+) -> Option<Move> {
+    let mut best_move = None;
+    for depth in 1..=max_depth {
+        ctx.stats.reset();
+        let candidate = find_best_move(board, active_player, eval, depth, ctx);
+        if ctx.stats.aborted {
+            break;
+        }
+        if candidate.is_some() {
+            best_move = candidate;
+        }
+    }
     best_move
 }
 

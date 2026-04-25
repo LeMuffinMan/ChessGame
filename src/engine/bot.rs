@@ -10,7 +10,7 @@ use crate::board::moves::move_structs::MoveType::Promotion;
 use crate::engine::bot::BotDifficulty::*;
 use crate::engine::bot::PlayerType::*;
 use crate::engine::evaluator::PositionalEvaluator;
-use crate::engine::minimax::find_best_move;
+use crate::engine::minimax::iterative_deepening;
 use crate::engine::search_stats::SearchContext;
 use crate::gui::chessapp::AppMode::*;
 use js_sys::Math;
@@ -36,7 +36,7 @@ pub fn get_bot_move(
     ctx: &mut SearchContext,
 ) -> Option<Move> {
     match difficulty {
-        Bot(Depth(d)) => find_best_move(board, active_player, &PositionalEvaluator, *d, ctx),
+        Bot(Depth(d)) => iterative_deepening(board, active_player, &PositionalEvaluator, *d, ctx),
         Bot(Random) => {
             let mut move_list = MoveList::new();
             generate_moves(board, &active_player, &mut move_list, false);
