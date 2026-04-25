@@ -15,12 +15,9 @@ use std::collections::HashMap;
 // use crate::engine::evaluator::*;
 use crate::engine::search_stats::{HistoryTable, KillerTable, SearchContext, SearchStats};
 #[cfg(target_arch = "wasm32")]
-use js_sys::Math;
+// use js_sys::Math;
 
 const MATE_SCORE: i32 = 1_000_000;
-pub const EASY_DEPTH: u8 = 5;
-pub const MEDIUM_DEPTH: u8 = 6;
-pub const HARD_DEPTH: u8 = 7;
 
 pub fn minimax<E: Evaluator>(
     board: &mut Board,
@@ -45,11 +42,7 @@ pub fn minimax<E: Evaluator>(
 
     if depth == 0 {
         stats.leafs += 1;
-        // return match active_player {
-        //     _ => quiescence(board, alpha, beta, eval, active_player, stats, 2),
-        //     Color::Black => quiescence(board, -beta, -alpha, eval, active_player, stats, 2),
-        // };
-        return board.score;
+        return quiescence_minimax(board, alpha, beta, eval, active_player, stats, 4);
     }
 
     let orig_alpha = alpha;
@@ -518,60 +511,77 @@ pub fn move_order_score(
     promotion_bonus + check_bonus + history_bonus
 }
 
-pub fn quiescence<E: Evaluator>(
+pub fn quiescence_minimax<E: Evaluator>(
     board: &mut Board,
     mut alpha: i32,
-    beta: i32,
+    mut beta: i32,
     eval: &E,
     active_player: Color,
     stats: &mut SearchStats,
     depth: i8,
 ) -> i32 {
     stats.quiescence_nodes += 1;
-    if stats.max_nodes > 0 && stats.nodes >= stats.max_nodes {
-        stats.aborted = true;
-        return 0;
-    }
 
-    let stand_pat = if active_player == Color::White {
-        board.score
+    let stand_pat = board.score; // toujours point de vue Blanc
+
+    if active_player == Color::White {
+        if stand_pat >= beta {
+            return beta;
+        }
+        if stand_pat > alpha {
+            alpha = stand_pat;
+        }
     } else {
-        -board.score
-    };
+        if stand_pat <= alpha {
+            return alpha;
+        }
+        if stand_pat < beta {
+            beta = stand_pat;
+        }
+    }
 
-    if stand_pat >= beta {
-        return beta;
-    }
     if depth <= 0 {
-        return alpha.max(stand_pat);
-    }
-    if stand_pat + 900 < alpha {
-        return alpha;
-    }
-    if stand_pat > alpha {
-        alpha = stand_pat;
+        return if active_player == Color::White {
+            alpha
+        } else {
+            beta
+        };
     }
 
     let mut move_list = MoveList::new();
     generate_moves(board, &active_player, &mut move_list, true);
-
-    let opponent = match active_player {
-        Color::White => Color::Black,
-        Color::Black => Color::White,
+    let opponent = if active_player == Color::White {
+        Color::Black
+    } else {
+        Color::White
     };
 
     for i in 0..move_list.count {
         let m = move_list.moves[i];
         board.apply_move(&m, active_player);
-        let score = -quiescence(board, -beta, -alpha, eval, opponent, stats, depth - 1);
+        let score = quiescence_minimax(board, alpha, beta, eval, opponent, stats, depth - 1);
         board.undo_move(m, active_player);
-        if score >= beta {
-            return beta;
-        }
-        if score > alpha {
-            alpha = score;
+
+        if active_player == Color::White {
+            if score > alpha {
+                alpha = score;
+            }
+            if alpha >= beta {
+                return beta;
+            }
+        } else {
+            if score < beta {
+                beta = score;
+            }
+            if alpha >= beta {
+                return alpha;
+            }
         }
     }
 
-    alpha
+    if active_player == Color::White {
+        alpha
+    } else {
+        beta
+    }
 }
