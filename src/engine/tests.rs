@@ -196,10 +196,7 @@ fn test_stalemate_returns_zero() {
         &MaterialEvaluator,
         -1_000_000,
         1_000_000,
-        &mut ctx.stats,
-        &mut ctx.killers,
-        &mut ctx.history,
-        &mut ctx.tt,
+        &mut ctx,
         true,
     );
     assert_eq!(score, 0, "stalemate should return 0");
@@ -224,10 +221,7 @@ fn test_checkmate_returns_mate_score() {
         &MaterialEvaluator,
         -1_000_000,
         1_000_000,
-        &mut ctx.stats,
-        &mut ctx.killers,
-        &mut ctx.history,
-        &mut ctx.tt,
+        &mut ctx,
         true,
     );
     // Black est maté → White gagne → score large positif (convention board.score : positif = avantage blanc)
