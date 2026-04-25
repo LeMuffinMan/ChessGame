@@ -5,7 +5,7 @@ use crate::board::moves::move_structs::Move;
 // use crate::engine::evaluator::PositionalEvaluator;
 // use crate::engine::minimax::get_bot_move;
 // use crate::engine::minimax::{HARD_DEPTH, MEDIUM_DEPTH};
-use crate::engine::search_stats::SearchContext;
+use crate::engine::search_context::SearchContext;
 use crate::gui::chessapp::AppMode::*;
 use crate::gui::features::gamestate::DrawOption::Available;
 use crate::gui::features::gamestate::DrawRule::FiftyMoves;
