@@ -7,7 +7,7 @@ use crate::board::moves::move_structs::Move;
 use crate::board::moves::move_structs::MoveList;
 use crate::board::moves::move_structs::MoveType::Promotion;
 use crate::engine::evaluator::{
-    BISHOP_VALUE, Evaluator, KNIGHT_VALUE, PAWN_VALUE, QUEEN_VALUE, ROOK_VALUE,
+    evaluate, BISHOP_VALUE, KNIGHT_VALUE, PAWN_VALUE, QUEEN_VALUE, ROOK_VALUE,
 };
 use crate::engine::move_ordering::move_order_score;
 use crate::engine::search_context::SearchContext;
@@ -16,11 +16,10 @@ use crate::engine::zobris_table::zobrist;
 
 const MATE_SCORE: i32 = 1_000_000;
 
-pub fn minimax<E: Evaluator>(
+pub fn minimax(
     board: &mut Board,
     depth: u8,
     active_player: Color,
-    eval: &E,
     mut alpha: i32,
     mut beta: i32,
     ctx: &mut SearchContext,
@@ -35,7 +34,7 @@ pub fn minimax<E: Evaluator>(
 
     if depth == 0 {
         ctx.stats.leafs += 1;
-        return quiescence_minimax(board, alpha, beta, eval, active_player, ctx, 4);
+        return quiescence_minimax(board, alpha, beta, active_player, ctx, 4);
     }
 
     let orig_alpha = alpha;
@@ -99,7 +98,7 @@ pub fn minimax<E: Evaluator>(
         }
         board.en_passant = None;
         if active_player == Color::White {
-            let null_score = minimax(board, depth - 3, opponent, eval, beta - 1, beta, ctx, false);
+            let null_score = minimax(board, depth - 3, opponent, beta - 1, beta, ctx, false);
             board.en_passant = prev_ep;
             board.hash = prev_hash;
             if null_score >= beta {
@@ -110,7 +109,6 @@ pub fn minimax<E: Evaluator>(
                 board,
                 depth - 3,
                 opponent,
-                eval,
                 alpha,
                 alpha + 1,
                 ctx,
@@ -148,7 +146,7 @@ pub fn minimax<E: Evaluator>(
             board.apply_move(&m, active_player);
             ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1, opponent, eval, alpha, beta, ctx, true)
+                minimax(board, depth - 1, opponent, alpha, beta, ctx, true)
             } else {
                 let is_quiet = m.capture == Free
                     && !matches!(m.move_type, Promotion(_))
@@ -164,14 +162,13 @@ pub fn minimax<E: Evaluator>(
                     board,
                     (depth - 1).saturating_sub(r),
                     opponent,
-                    eval,
                     alpha,
                     alpha + 1,
                     ctx,
                     true,
                 );
                 if scout > alpha && (r > 0 || scout < beta) {
-                    minimax(board, depth - 1, opponent, eval, alpha, beta, ctx, true)
+                    minimax(board, depth - 1, opponent, alpha, beta, ctx, true)
                 } else {
                     scout
                 }
@@ -238,7 +235,7 @@ pub fn minimax<E: Evaluator>(
             board.apply_move(&m, active_player);
             ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1, opponent, eval, alpha, beta, ctx, true)
+                minimax(board, depth - 1, opponent, alpha, beta, ctx, true)
             } else {
                 let is_quiet = m.capture == Free
                     && !matches!(m.move_type, Promotion(_))
@@ -254,14 +251,13 @@ pub fn minimax<E: Evaluator>(
                     board,
                     (depth - 1).saturating_sub(r),
                     opponent,
-                    eval,
                     beta - 1,
                     beta,
                     ctx,
                     true,
                 );
                 if scout < beta && (r > 0 || scout > alpha) {
-                    minimax(board, depth - 1, opponent, eval, alpha, beta, ctx, true)
+                    minimax(board, depth - 1, opponent, alpha, beta, ctx, true)
                 } else {
                     scout
                 }
@@ -328,10 +324,9 @@ fn is_mate_or_pat(active_player: Color, depth: u8) -> i32 {
     }
 }
 
-pub fn find_best_move<E: Evaluator>(
+pub fn find_best_move(
     board: &mut Board,
     active_player: Color,
-    eval: &E,
     depth: u8,
     ctx: &mut SearchContext,
 ) -> Option<Move> {
@@ -367,20 +362,19 @@ pub fn find_best_move<E: Evaluator>(
             board.apply_move(&m, active_player);
             ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1, opponent, eval, alpha, i32::MAX, ctx, true)
+                minimax(board, depth - 1, opponent, alpha, i32::MAX, ctx, true)
             } else {
                 let scout = minimax(
                     board,
                     depth - 1,
                     opponent,
-                    eval,
                     alpha,
                     alpha + 1,
                     ctx,
                     true,
                 );
                 if scout > alpha {
-                    minimax(board, depth - 1, opponent, eval, alpha, i32::MAX, ctx, true)
+                    minimax(board, depth - 1, opponent, alpha, i32::MAX, ctx, true)
                 } else {
                     scout
                 }
@@ -409,11 +403,11 @@ pub fn find_best_move<E: Evaluator>(
             board.apply_move(&m, active_player);
             ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1, opponent, eval, i32::MIN, beta, ctx, true)
+                minimax(board, depth - 1, opponent, i32::MIN, beta, ctx, true)
             } else {
-                let scout = minimax(board, depth - 1, opponent, eval, beta - 1, beta, ctx, true);
+                let scout = minimax(board, depth - 1, opponent, beta - 1, beta, ctx, true);
                 if scout < beta {
-                    minimax(board, depth - 1, opponent, eval, i32::MIN, beta, ctx, true)
+                    minimax(board, depth - 1, opponent, i32::MIN, beta, ctx, true)
                 } else {
                     scout
                 }
@@ -431,17 +425,16 @@ pub fn find_best_move<E: Evaluator>(
     best_move
 }
 
-pub fn iterative_deepening<E: Evaluator>(
+pub fn iterative_deepening(
     board: &mut Board,
     active_player: Color,
-    eval: &E,
     max_depth: u8,
     ctx: &mut SearchContext,
 ) -> Option<Move> {
     let mut best_move = None;
     for depth in 1..=max_depth {
         ctx.stats.reset();
-        let candidate = find_best_move(board, active_player, eval, depth, ctx);
+        let candidate = find_best_move(board, active_player, depth, ctx);
         if ctx.stats.aborted {
             break;
         }
@@ -452,18 +445,17 @@ pub fn iterative_deepening<E: Evaluator>(
     best_move
 }
 
-pub fn quiescence_minimax<E: Evaluator>(
+pub fn quiescence_minimax(
     board: &mut Board,
     mut alpha: i32,
     mut beta: i32,
-    eval: &E,
     active_player: Color,
     ctx: &mut SearchContext,
     depth: i8,
 ) -> i32 {
     ctx.stats.quiescence_nodes += 1;
 
-    let stand_pat = board.score;
+    let stand_pat = evaluate(board);
 
     if active_player == Color::White {
         if stand_pat >= beta {
@@ -520,7 +512,7 @@ pub fn quiescence_minimax<E: Evaluator>(
         }
 
         board.apply_move(&m, active_player);
-        let score = quiescence_minimax(board, alpha, beta, eval, opponent, ctx, depth - 1);
+        let score = quiescence_minimax(board, alpha, beta, opponent, ctx, depth - 1);
         board.undo_move(m, active_player);
 
         if active_player == Color::White {

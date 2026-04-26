@@ -1,6 +1,5 @@
 use crate::Board;
 use crate::board::cell::Color;
-use crate::engine::evaluator::PositionalEvaluator;
 use crate::engine::minimax::find_best_move;
 use crate::engine::search_context::SearchContext;
 use crate::engine::search_stats::MAX_SEARCH_DEPTH;
@@ -50,11 +49,10 @@ pub struct BenchResult {
 pub fn bench_run(fen: &str, color: Color, depth: u8, max_nodes: u64) -> BenchResult {
     assert!(depth >= 1, "bench_run requires depth >= 1");
     let mut board = Board::board_from_fen(fen).board;
-    let eval = PositionalEvaluator;
     let mut ctx = SearchContext::new();
     ctx.stats.max_nodes = max_nodes;
     let t0 = now_ms();
-    find_best_move(&mut board, color, &eval, depth, &mut ctx);
+    find_best_move(&mut board, color, depth, &mut ctx);
     let time_ms = now_ms() - t0;
     BenchResult {
         nodes: ctx.stats.nodes,
