@@ -7,9 +7,7 @@ use crate::board::cell::Coord;
 use crate::board::cell::Piece::{King, Pawn, Queen, Rook};
 use crate::board::moves::move_gen::generate_moves;
 use crate::board::moves::move_structs::MoveList;
-use crate::engine::evaluator::{
-    BISHOP_VALUE, Evaluator, KING_VALUE, KNIGHT_VALUE, PAWN_VALUE, QUEEN_VALUE, ROOK_VALUE,
-};
+use crate::engine::evaluator::{evaluate, get_piece_value_at};
 use crate::engine::minimax::{find_best_move, minimax};
 use crate::engine::search_context::SearchContext;
 
@@ -43,28 +41,19 @@ fn test_ctx() -> SearchContext {
     SearchContext::new()
 }
 
-// Évaluateur matériel pur (sans PST) pour les tests — recompute depuis le board
-// Nécessaire car board.score n'est pas maintenu sur les boards construits manuellement
-struct MaterialEvaluator;
-impl Evaluator for MaterialEvaluator {
-    fn evaluate(&self, board: &Board) -> i32 {
-        let mut score = 0;
-        for x in 0..8 {
-            for y in 0..8 {
-                if let Occupied(piece, color) = board.grid[x][y] {
-                    let v = match piece {
-                        crate::board::cell::Piece::Pawn => PAWN_VALUE,
-                        crate::board::cell::Piece::Knight => KNIGHT_VALUE,
-                        crate::board::cell::Piece::Bishop => BISHOP_VALUE,
-                        crate::board::cell::Piece::Rook => ROOK_VALUE,
-                        crate::board::cell::Piece::Queen => QUEEN_VALUE,
-                        crate::board::cell::Piece::King => KING_VALUE,
-                    };
-                    score += if color == White { v } else { -v };
-                }
+// board.score n'est pas maintenu sur les boards construits manuellement → recalcul nécessaire
+fn recompute_score(board: &mut Board) {
+    board.score = 0;
+    for r in 0..8usize {
+        for c in 0..8usize {
+            if let Occupied(piece, color) = board.grid[r][c] {
+                board.score += get_piece_value_at(
+                    &piece,
+                    &color,
+                    &Coord { row: r as u8, col: c as u8 },
+                );
             }
         }
-        score
     }
 }
 
@@ -118,18 +107,19 @@ fn perft_d4() {
 
 #[test]
 fn test_evaluate_equal_material() {
-    let board = empty_board(coord(0, 0), coord(7, 7));
-    let eval = MaterialEvaluator;
+    let mut board = empty_board(coord(0, 0), coord(7, 7));
+    recompute_score(&mut board);
     // Two kings cancel out → 0
-    assert_eq!(eval.evaluate(&board), 0);
+    assert_eq!(evaluate(&board), 0);
 }
 
 #[test]
 fn test_evaluate_white_queen_advantage() {
     let mut board = empty_board(coord(0, 0), coord(7, 7));
     board.grid[3][3] = Occupied(Queen, White);
-    let eval = MaterialEvaluator;
-    assert_eq!(eval.evaluate(&board), 900);
+    recompute_score(&mut board);
+    // 900 (material) + 5 (QUEEN_PST[35]) = 905, kings cancel out
+    assert_eq!(evaluate(&board), 905);
 }
 
 // --- minimax ---
@@ -140,9 +130,10 @@ fn test_captures_free_queen() {
     let mut board = empty_board(coord(0, 0), coord(7, 7));
     board.grid[3][3] = Occupied(Rook, White);
     board.grid[4][3] = Occupied(Queen, Black);
+    recompute_score(&mut board);
     board.sync_hash(White);
 
-    let mv = find_best_move(&mut board, White, &MaterialEvaluator, 2, &mut test_ctx())
+    let mv = find_best_move(&mut board, White, 2, &mut test_ctx())
         .expect("should find a move");
     assert_eq!(mv.origin, coord(3, 3));
     assert_eq!(mv.dest, coord(4, 3));
@@ -158,9 +149,10 @@ fn test_avoids_losing_rook_depth2() {
     board.grid[7][4] = Occupied(King, Black);
     board.black_king = coord(7, 4);
     board.grid[6][4] = Occupied(Rook, Black);
+    recompute_score(&mut board);
     board.sync_hash(White);
 
-    let mv = find_best_move(&mut board, White, &MaterialEvaluator, 2, &mut test_ctx())
+    let mv = find_best_move(&mut board, White, 2, &mut test_ctx())
         .expect("should find a move");
     let is_bad_capture = mv.origin == coord(3, 3) && mv.dest == coord(3, 4);
     assert!(
@@ -174,6 +166,7 @@ fn test_avoids_losing_rook_depth2() {
 fn test_stalemate_returns_zero() {
     let mut board = empty_board(coord(5, 0), coord(7, 0));
     board.grid[5][1] = Occupied(Queen, White);
+    recompute_score(&mut board);
     board.sync_hash(Black);
 
     let mut ctx = test_ctx();
@@ -181,7 +174,6 @@ fn test_stalemate_returns_zero() {
         &mut board,
         1,
         Black,
-        &MaterialEvaluator,
         -1_000_000,
         1_000_000,
         &mut ctx,
@@ -199,6 +191,7 @@ fn test_checkmate_returns_mate_score() {
     // Le roi noir est en échec (dame diagonale g7→h8) — setter manuellement
     // car board.check n'est pas maintenu sur les boards construits manuellement
     board.check = Some(coord(7, 7));
+    recompute_score(&mut board);
     board.sync_hash(Black);
 
     let mut ctx = test_ctx();
@@ -206,7 +199,6 @@ fn test_checkmate_returns_mate_score() {
         &mut board,
         1,
         Black,
-        &MaterialEvaluator,
         -1_000_000,
         1_000_000,
         &mut ctx,
