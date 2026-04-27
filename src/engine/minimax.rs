@@ -8,7 +8,7 @@ use crate::board::moves::move_structs::Move;
 use crate::board::moves::move_structs::MoveList;
 use crate::board::moves::move_structs::MoveType::Promotion;
 use crate::engine::evaluator::{
-    evaluate, BISHOP_VALUE, KNIGHT_VALUE, PAWN_VALUE, QUEEN_VALUE, ROOK_VALUE,
+    BISHOP_VALUE, KNIGHT_VALUE, PAWN_VALUE, QUEEN_VALUE, ROOK_VALUE, evaluate,
 };
 use crate::engine::move_ordering::move_order_score;
 use crate::engine::search_context::SearchContext;
@@ -41,7 +41,7 @@ pub fn minimax(
     let orig_alpha = alpha;
     let orig_beta = beta;
 
-    // --- Probe TT ---
+    // we probe the tt first
     if let Some(entry) = ctx.tt.get(&board.hash) {
         if entry.depth >= depth {
             match entry.flag {
@@ -73,11 +73,15 @@ pub fn minimax(
         return if board.check.is_some() {
             is_mate_or_pat(active_player, depth)
         } else {
-            // Pat : pénalise le camp gagnant qui a créé le pat
+            //we want a winning bot to see a pat as not a good option
             const STALEMATE_CONTEMPT: i32 = 50;
-            if board.score > 300 { -STALEMATE_CONTEMPT }
-            else if board.score < -300 { STALEMATE_CONTEMPT }
-            else { 0 }
+            if board.score > 300 {
+                -STALEMATE_CONTEMPT
+            } else if board.score < -300 {
+                STALEMATE_CONTEMPT
+            } else {
+                0
+            }
         };
     }
 
@@ -86,9 +90,15 @@ pub fn minimax(
         Color::Black => Color::White,
     };
 
+    //if we found a quite move which gave advantage at same depth but other subbranch, it could be a fork, or a near mate,
+    // our moveordering could lead us to explore them later, so killers list is our "strong choices" among previous quiet moves tested
+    // so we want to try in first these move in other sub branches or depth, to cut earlier
     let [killer1, killer2] = ctx.killers.get(depth as usize);
 
-    // --- Null Move Pruning ---
+    // when we reached d=3 at least, and we are not in check situation and we are not in zugzwang (endgame)
+    // benefiting of the alpha / beta pruning, we can simulate we pass our turn, then check deeper
+    // if doing so, we are still in advantage, opponent would not play rationnaly
+    // the move who led us at our initial depth so we want to cut this branch
     if null_move_allowed
         && depth >= 3
         && board.check.is_none()
@@ -110,15 +120,7 @@ pub fn minimax(
                 return beta;
             }
         } else {
-            let null_score = minimax(
-                board,
-                depth - 3,
-                opponent,
-                alpha,
-                alpha + 1,
-                ctx,
-                false,
-            );
+            let null_score = minimax(board, depth - 3, opponent, alpha, alpha + 1, ctx, false);
             board.en_passant = prev_ep;
             board.hash = prev_hash;
             if null_score <= alpha {
@@ -127,6 +129,7 @@ pub fn minimax(
         }
     }
 
+    //to compare with selective sort
     if active_player == Color::White {
         moves.sort_unstable_by_key(|mv| {
             std::cmp::Reverse(move_order_score(
@@ -139,7 +142,8 @@ pub fn minimax(
         });
         let mut max_eval = i32::MIN;
         for (i, &m) in moves.iter().enumerate() {
-            // Futility Pruning
+            // futility pruning : near the leafes, in a quiet situation, we want to seek moves that would give
+            // an advantage now, so we skip the quiet moves, except if it could give a queen advantage (estimation of a good gain)
             if depth == 1
                 && m.capture == Free
                 && !matches!(m.move_type, Promotion(_))
@@ -150,30 +154,46 @@ pub fn minimax(
             }
             board.apply_move(&m, active_player);
             let gives_check = is_king_exposed(board, &opponent);
+
+            // check extension : if we won't have the depth to evaluate the result of the answer to this check (d will be 0, then -1, in quiecence search),
+            // we check now with an extended depth to guarantee to have at least an answer to the check position, before geting a score
+            // depth == 1 : we don't want to generalise this check, only near the leafs
             let ext: u8 = u8::from(gives_check && depth == 1);
             ctx.stats.depth += 1;
             let score = if i == 0 {
                 minimax(board, depth - 1 + ext, opponent, alpha, beta, ctx, true)
             } else {
+                //for (as first sight) bad moves, we prune as much as possible
                 let is_quiet = m.capture == Free
                     && !matches!(m.move_type, Promotion(_))
                     && m.check.is_none()
                     && killer1 != Some(m)
                     && killer2 != Some(m);
+
+                //Late move reduction: in a quiet situation, early in the tree, but after 3 iterations in available moves,
+                // r works as ext, if we already iterated 3 times, this move might be bad or average
+                // So, we want to search r deeper now, scouting if this move worth to explore or to skip
                 let r: u8 = if is_quiet && depth >= 3 && i >= 3 {
                     if i >= 6 { 2 } else { 1 }
                 } else {
                     0
                 };
+                //Primary variation search : we send a null window for the first moves and the subs ones.
+                // It's betting it's bad, and reducing search in it, but still giving a chance to prove it could lead to something better
                 let scout = minimax(
                     board,
-                    (depth - 1 + ext).saturating_sub(r),
+                    (depth - 1 + ext).saturating_sub(r), //remplacer par - r et virer aussi satu add
                     opponent,
                     alpha,
                     alpha + 1,
                     ctx,
                     true,
                 );
+                // scout <= alpha : the move is bad as we bet, we won't research and benefit of the scout economy
+                // scout > alpha r == 0 : fail high: the cut is reliable, we return scout, and the cutoff will occure by the caller
+                // scout > alpha && r == 0 && scout > beta : the score was in the window, but we didnt gave the full window to search
+                //  So we want to research with full window to get the real value of this move
+                // scout > alpha && r > 0 : we were near the leafs and a may be a fail-high, so we want to research to confirm it and cut by caller if yes
                 if scout > alpha && (r > 0 || scout < beta) {
                     minimax(board, depth - 1 + ext, opponent, alpha, beta, ctx, true)
                 } else {
@@ -190,6 +210,7 @@ pub fn minimax(
                     ctx.killers.update(depth as usize, m);
                     let from = m.origin.row as usize * 8 + m.origin.col as usize;
                     let to = m.dest.row as usize * 8 + m.dest.col as usize;
+                    // history keep quiet moves which occured a cut, ponderated with depth : a high depth cut is more interesting to keep
                     ctx.history.update(from, to, depth);
                 }
                 ctx.stats.cutoffs += 1;
@@ -198,6 +219,7 @@ pub fn minimax(
                 break;
             }
         }
+        //faire une fonction get_flag
         let flag = if max_eval <= orig_alpha {
             TtFlag::UpperBound
         } else if max_eval >= orig_beta {
@@ -205,6 +227,7 @@ pub fn minimax(
         } else {
             TtFlag::Exact
         };
+        //a cut at a high depth is more interesting as a cut a low depth
         let should_store = ctx.tt.get(&board.hash).map_or(true, |e| depth >= e.depth);
         if should_store {
             ctx.tt.insert(
@@ -230,7 +253,6 @@ pub fn minimax(
         });
         let mut min_eval = i32::MAX;
         for (i, &m) in moves.iter().enumerate() {
-            // Futility Pruning
             if depth == 1
                 && m.capture == Free
                 && !matches!(m.move_type, Promotion(_))

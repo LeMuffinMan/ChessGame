@@ -75,6 +75,7 @@ impl HistoryTable {
     }
 
     pub fn update(&mut self, from: usize, to: usize, depth: u8) {
+        //pourquoi saturating add ?
         self.table[from][to] = self.table[from][to].saturating_add((depth as u32) * (depth as u32));
     }
 

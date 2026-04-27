@@ -49,7 +49,6 @@ pub fn move_order_score(
     let check_bonus = if mv.check.is_some() { 50 } else { 0 };
     let mvv_lva = capture_score * 10 - attacker_penalty;
 
-    // killers (1M, 900K) > captures (200K+) > quiet+history (0–199K)
     if capture_score > 0 {
         return 200_000 + mvv_lva + promotion_bonus + check_bonus;
     }

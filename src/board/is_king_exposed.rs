@@ -2,6 +2,7 @@ use crate::Board;
 use crate::board::cell::Color;
 use crate::board::cell::Piece;
 
+//we ray cast from king for sliding pieces, and check the 8 knight position
 pub fn is_king_exposed(board: &Board, active_player: &Color) -> bool {
     let king_pos = match active_player {
         Color::White => board.white_king,
