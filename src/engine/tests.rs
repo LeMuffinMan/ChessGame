@@ -15,6 +15,7 @@ fn coord(row: u8, col: u8) -> Coord {
     Coord { row, col }
 }
 
+//init_board possede un board deja rempli donc il faudrait renommer les methodes : init_empty_board et init_board
 fn empty_board(white_king: Coord, black_king: Coord) -> Board {
     let mut board = Board::init_board();
     for r in 0..8usize {
@@ -41,17 +42,19 @@ fn test_ctx() -> SearchContext {
     SearchContext::new()
 }
 
-// board.score n'est pas maintenu sur les boards construits manuellement → recalcul nécessaire
 fn recompute_score(board: &mut Board) {
     board.score = 0;
     board.non_pawn_material = 0;
-    for r in 0..8usize {
-        for c in 0..8usize {
+    for r in 0..8 {
+        for c in 0..8 {
             if let Occupied(piece, color) = board.grid[r][c] {
                 board.score += get_piece_value_at(
                     &piece,
                     &color,
-                    &Coord { row: r as u8, col: c as u8 },
+                    &Coord {
+                        row: r as u8,
+                        col: c as u8,
+                    },
                 );
                 board.non_pawn_material += non_pawn_raw(&piece);
             }
@@ -105,13 +108,10 @@ fn perft_d4() {
     assert_eq!(perft(&mut board, White, 4), 197281);
 }
 
-// --- evaluator ---
-
 #[test]
 fn test_evaluate_equal_material() {
     let mut board = empty_board(coord(0, 0), coord(7, 7));
     recompute_score(&mut board);
-    // Two kings cancel out → 0
     assert_eq!(evaluate(&board), 0);
 }
 
@@ -120,13 +120,10 @@ fn test_evaluate_white_queen_advantage() {
     let mut board = empty_board(coord(0, 0), coord(7, 7));
     board.grid[3][3] = Occupied(Queen, White);
     recompute_score(&mut board);
-    // 900 (material) + 5 (QUEEN_PST[35]) = 905, kings cancel out
     assert_eq!(evaluate(&board), 905);
 }
 
-// --- minimax ---
-
-// Tour blanche d4, Dame noire d5 non défendue — le bot doit capturer
+// White rook on d4 and black queen on d5 not defended : bot should take
 #[test]
 fn test_captures_free_queen() {
     let mut board = empty_board(coord(0, 0), coord(7, 7));
@@ -135,13 +132,12 @@ fn test_captures_free_queen() {
     recompute_score(&mut board);
     board.sync_hash(White);
 
-    let mv = find_best_move(&mut board, White, 2, &mut test_ctx())
-        .expect("should find a move");
+    let mv = find_best_move(&mut board, White, 2, &mut test_ctx()).expect("should find a move");
     assert_eq!(mv.origin, coord(3, 3));
     assert_eq!(mv.dest, coord(4, 3));
 }
 
-// Tour blanche d4, Pion noir e4, Tour noire g7 défend e4 — prendre le pion perd la tour
+// The bot should not take pawn with rook, as opponent rook is protecting the pawn
 #[test]
 fn test_avoids_losing_rook_depth2() {
     let mut board = empty_board(coord(0, 0), coord(7, 7));
@@ -154,8 +150,7 @@ fn test_avoids_losing_rook_depth2() {
     recompute_score(&mut board);
     board.sync_hash(White);
 
-    let mv = find_best_move(&mut board, White, 2, &mut test_ctx())
-        .expect("should find a move");
+    let mv = find_best_move(&mut board, White, 2, &mut test_ctx()).expect("should find a move");
     let is_bad_capture = mv.origin == coord(3, 3) && mv.dest == coord(3, 4);
     assert!(
         !is_bad_capture,
@@ -163,7 +158,7 @@ fn test_avoids_losing_rook_depth2() {
     );
 }
 
-// Pat classique : roi noir coincé en a8, dame blanche b6
+// Kink stucked in a8 with white queen in b6
 #[test]
 fn test_stalemate_returns_zero() {
     let mut board = empty_board(coord(5, 0), coord(7, 0));
@@ -172,42 +167,24 @@ fn test_stalemate_returns_zero() {
     board.sync_hash(Black);
 
     let mut ctx = test_ctx();
-    let score = minimax(
-        &mut board,
-        1,
-        Black,
-        -1_000_000,
-        1_000_000,
-        &mut ctx,
-        true,
+    let score = minimax(&mut board, 1, Black, -1_000_000, 1_000_000, &mut ctx, true);
+    assert_eq!(
+        score, -50,
+        "stalemate caused by winning side should return contempt penalty"
     );
-    // Stalemate with white queen advantage → contempt penalty (-50), not 0
-    assert_eq!(score, -50, "stalemate caused by winning side should return contempt penalty");
 }
 
-// Mat classique : roi noir en h8, dame blanche en g7, tour blanche en h1
 #[test]
 fn test_checkmate_returns_mate_score() {
     let mut board = empty_board(coord(5, 5), coord(7, 7));
     board.grid[6][6] = Occupied(Queen, White);
     board.grid[0][7] = Occupied(Rook, White);
-    // Le roi noir est en échec (dame diagonale g7→h8) — setter manuellement
-    // car board.check n'est pas maintenu sur les boards construits manuellement
     board.check = Some(coord(7, 7));
     recompute_score(&mut board);
     board.sync_hash(Black);
 
     let mut ctx = test_ctx();
-    let score = minimax(
-        &mut board,
-        1,
-        Black,
-        -1_000_000,
-        1_000_000,
-        &mut ctx,
-        true,
-    );
-    // Black est maté → White gagne → score large positif (convention board.score : positif = avantage blanc)
+    let score = minimax(&mut board, 1, Black, -1_000_000, 1_000_000, &mut ctx, true);
     assert!(
         score > 100_000,
         "checkmate should return a large positive score (white wins), got {score}"
