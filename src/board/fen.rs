@@ -6,7 +6,7 @@ use crate::board::cell::Color;
 use crate::board::cell::Color::*;
 use crate::board::cell::Coord;
 use crate::board::cell::Piece::*;
-use crate::engine::evaluator::get_piece_value_at;
+use crate::engine::evaluator::{get_piece_value_at, non_pawn_raw};
 
 pub struct FenInfo {
     pub board: Board,
@@ -32,6 +32,7 @@ impl Board {
             black_king: Coord { row: 7, col: 4 },
             check: None,
             score: 0,
+            non_pawn_material: 0,
             hash: 0,
         };
 
@@ -73,6 +74,7 @@ impl Board {
                     }
                     board.grid[row as usize][col as usize] = Occupied(piece, color);
                     board.score += get_piece_value_at(&piece, &color, &coord);
+                    board.non_pawn_material += non_pawn_raw(&piece);
                     col += 1;
                 }
             }

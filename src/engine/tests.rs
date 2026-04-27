@@ -7,7 +7,7 @@ use crate::board::cell::Coord;
 use crate::board::cell::Piece::{King, Pawn, Queen, Rook};
 use crate::board::moves::move_gen::generate_moves;
 use crate::board::moves::move_structs::MoveList;
-use crate::engine::evaluator::{evaluate, get_piece_value_at};
+use crate::engine::evaluator::{evaluate, get_piece_value_at, non_pawn_raw};
 use crate::engine::minimax::{find_best_move, minimax};
 use crate::engine::search_context::SearchContext;
 
@@ -44,6 +44,7 @@ fn test_ctx() -> SearchContext {
 // board.score n'est pas maintenu sur les boards construits manuellement → recalcul nécessaire
 fn recompute_score(board: &mut Board) {
     board.score = 0;
+    board.non_pawn_material = 0;
     for r in 0..8usize {
         for c in 0..8usize {
             if let Occupied(piece, color) = board.grid[r][c] {
@@ -52,6 +53,7 @@ fn recompute_score(board: &mut Board) {
                     &color,
                     &Coord { row: r as u8, col: c as u8 },
                 );
+                board.non_pawn_material += non_pawn_raw(&piece);
             }
         }
     }
@@ -179,7 +181,8 @@ fn test_stalemate_returns_zero() {
         &mut ctx,
         true,
     );
-    assert_eq!(score, 0, "stalemate should return 0");
+    // Stalemate with white queen advantage → contempt penalty (-50), not 0
+    assert_eq!(score, -50, "stalemate caused by winning side should return contempt penalty");
 }
 
 // Mat classique : roi noir en h8, dame blanche en g7, tour blanche en h1

@@ -76,5 +76,6 @@ impl Board {
         self.white_castle = m.white_castle;
         self.black_castle = m.black_castle;
         self.score = m.prev_score;
+        self.non_pawn_material = m.prev_non_pawn;
     }
 }

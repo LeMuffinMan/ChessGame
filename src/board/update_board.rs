@@ -7,7 +7,7 @@ use crate::board::cell::Cell::*;
 use crate::board::cell::Coord;
 use crate::board::cell::Piece::*;
 use crate::board::moves::move_structs::Move;
-use crate::engine::evaluator::get_piece_value_at;
+use crate::engine::evaluator::{get_piece_value_at, non_pawn_raw};
 
 impl Board {
     pub fn update_capture_rook(&mut self, m: &Move) {
@@ -30,10 +30,13 @@ impl Board {
     pub fn update_board_score(&mut self, cell: &Cell, target: &Coord, mode: bool) {
         if let Occupied(piece, color) = cell {
             let value = get_piece_value_at(piece, color, target);
+            let npm = non_pawn_raw(piece);
             if mode {
                 self.score += value;
+                self.non_pawn_material += npm;
             } else {
                 self.score -= value;
+                self.non_pawn_material -= npm;
             }
         }
     }
