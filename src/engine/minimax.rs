@@ -2,6 +2,7 @@ use crate::Board;
 use crate::board::cell::Cell::*;
 use crate::board::cell::Color;
 use crate::board::cell::Piece::*;
+use crate::board::is_king_exposed::is_king_exposed;
 use crate::board::moves::move_gen::generate_moves;
 use crate::board::moves::move_structs::Move;
 use crate::board::moves::move_structs::MoveList;
@@ -72,7 +73,11 @@ pub fn minimax(
         return if board.check.is_some() {
             is_mate_or_pat(active_player, depth)
         } else {
-            0
+            // Pat : pénalise le camp gagnant qui a créé le pat
+            const STALEMATE_CONTEMPT: i32 = 50;
+            if board.score > 300 { -STALEMATE_CONTEMPT }
+            else if board.score < -300 { STALEMATE_CONTEMPT }
+            else { 0 }
         };
     }
 
@@ -144,9 +149,11 @@ pub fn minimax(
                 continue;
             }
             board.apply_move(&m, active_player);
+            let gives_check = is_king_exposed(board, &opponent);
+            let ext: u8 = u8::from(gives_check && depth == 1);
             ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1, opponent, alpha, beta, ctx, true)
+                minimax(board, depth - 1 + ext, opponent, alpha, beta, ctx, true)
             } else {
                 let is_quiet = m.capture == Free
                     && !matches!(m.move_type, Promotion(_))
@@ -160,7 +167,7 @@ pub fn minimax(
                 };
                 let scout = minimax(
                     board,
-                    (depth - 1).saturating_sub(r),
+                    (depth - 1 + ext).saturating_sub(r),
                     opponent,
                     alpha,
                     alpha + 1,
@@ -168,7 +175,7 @@ pub fn minimax(
                     true,
                 );
                 if scout > alpha && (r > 0 || scout < beta) {
-                    minimax(board, depth - 1, opponent, alpha, beta, ctx, true)
+                    minimax(board, depth - 1 + ext, opponent, alpha, beta, ctx, true)
                 } else {
                     scout
                 }
@@ -233,9 +240,11 @@ pub fn minimax(
                 continue;
             }
             board.apply_move(&m, active_player);
+            let gives_check = is_king_exposed(board, &opponent);
+            let ext: u8 = u8::from(gives_check && depth == 1);
             ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1, opponent, alpha, beta, ctx, true)
+                minimax(board, depth - 1 + ext, opponent, alpha, beta, ctx, true)
             } else {
                 let is_quiet = m.capture == Free
                     && !matches!(m.move_type, Promotion(_))
@@ -249,7 +258,7 @@ pub fn minimax(
                 };
                 let scout = minimax(
                     board,
-                    (depth - 1).saturating_sub(r),
+                    (depth - 1 + ext).saturating_sub(r),
                     opponent,
                     beta - 1,
                     beta,
@@ -257,7 +266,7 @@ pub fn minimax(
                     true,
                 );
                 if scout < beta && (r > 0 || scout > alpha) {
-                    minimax(board, depth - 1, opponent, alpha, beta, ctx, true)
+                    minimax(board, depth - 1 + ext, opponent, alpha, beta, ctx, true)
                 } else {
                     scout
                 }
@@ -360,13 +369,15 @@ pub fn find_best_move(
         let mut alpha = i32::MIN;
         for (i, &m) in moves.iter().enumerate() {
             board.apply_move(&m, active_player);
+            let gives_check = is_king_exposed(board, &opponent);
+            let ext: u8 = u8::from(gives_check && depth == 1);
             ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1, opponent, alpha, i32::MAX, ctx, true)
+                minimax(board, depth - 1 + ext, opponent, alpha, i32::MAX, ctx, true)
             } else {
                 let scout = minimax(
                     board,
-                    depth - 1,
+                    depth - 1 + ext,
                     opponent,
                     alpha,
                     alpha + 1,
@@ -374,7 +385,7 @@ pub fn find_best_move(
                     true,
                 );
                 if scout > alpha {
-                    minimax(board, depth - 1, opponent, alpha, i32::MAX, ctx, true)
+                    minimax(board, depth - 1 + ext, opponent, alpha, i32::MAX, ctx, true)
                 } else {
                     scout
                 }
@@ -401,13 +412,15 @@ pub fn find_best_move(
         let mut beta = i32::MAX;
         for (i, &m) in moves.iter().enumerate() {
             board.apply_move(&m, active_player);
+            let gives_check = is_king_exposed(board, &opponent);
+            let ext: u8 = u8::from(gives_check && depth == 1);
             ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1, opponent, i32::MIN, beta, ctx, true)
+                minimax(board, depth - 1 + ext, opponent, i32::MIN, beta, ctx, true)
             } else {
-                let scout = minimax(board, depth - 1, opponent, beta - 1, beta, ctx, true);
+                let scout = minimax(board, depth - 1 + ext, opponent, beta - 1, beta, ctx, true);
                 if scout < beta {
-                    minimax(board, depth - 1, opponent, i32::MIN, beta, ctx, true)
+                    minimax(board, depth - 1 + ext, opponent, i32::MIN, beta, ctx, true)
                 } else {
                     scout
                 }

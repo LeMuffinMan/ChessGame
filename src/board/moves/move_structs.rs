@@ -20,6 +20,7 @@ pub struct Move {
     pub black_castle: CastleRights,
     pub move_type: MoveType,
     pub prev_score: i32,
+    pub prev_non_pawn: i32,
 }
 
 impl Move {
@@ -112,6 +113,7 @@ impl Board {
             black_castle: self.black_castle,
             move_type: m_type,
             prev_score: self.score,
+            prev_non_pawn: self.non_pawn_material,
         }
     }
 

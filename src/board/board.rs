@@ -4,7 +4,7 @@ use crate::Coord;
 use crate::board::cell::Cell;
 use crate::board::cell::Cell::Occupied;
 use crate::board::cell::Piece::*;
-use crate::engine::evaluator::get_piece_value_at;
+use crate::engine::evaluator::{get_piece_value_at, non_pawn_raw};
 use crate::engine::zobris_table::hash_from_scratch;
 
 #[derive(Clone, PartialEq)]
@@ -17,6 +17,7 @@ pub struct Board {
     pub en_passant: Option<Coord>,
     pub check: Option<Coord>,
     pub score: i32,
+    pub non_pawn_material: i32,
     pub hash: u64,
 }
 
@@ -43,6 +44,7 @@ impl Board {
             black_king: (Coord { row: 7, col: 4 }),
             check: None,
             score: 0,
+            non_pawn_material: 0,
             hash: 0,
         };
         board.fill_side(White);
@@ -52,6 +54,7 @@ impl Board {
                 let target = Coord { row: x, col: y };
                 if let Occupied(piece, color) = board.get(&target) {
                     board.score += get_piece_value_at(&piece, &color, &target);
+                    board.non_pawn_material += non_pawn_raw(&piece);
                 }
             }
         }
