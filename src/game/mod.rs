@@ -8,6 +8,7 @@ use crate::board::cell::Piece::*;
 use crate::board::is_king_exposed::is_king_exposed;
 use crate::board::moves::move_gen::generate_moves;
 use crate::board::moves::move_structs::{Move, MoveList};
+use crate::game::{DrawOption::*, DrawRule::*};
 use std::collections::HashMap;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -27,7 +28,7 @@ pub enum DrawOption {
 
 #[derive(Clone, PartialEq)]
 pub enum DrawRule {
-    TripleRepetition,
+    TripleRepetition(u64),
     FiftyMoves,
 }
 
@@ -87,6 +88,12 @@ impl Game {
         generate_moves(&mut board, &active_player, &mut move_list, false);
         let legals_moves = move_list.moves[..move_list.count].to_vec();
 
+        let draw = {
+            let mut d = DrawState::new();
+            d.board_hashs.insert(board.hash, 1);
+            d
+        };
+
         Self {
             board,
             active_player,
@@ -94,7 +101,7 @@ impl Game {
             turn: 1,
             threaten_cells,
             legals_moves,
-            draw: DrawState::new(),
+            draw,
             history: Vec::new(),
             initial_board,
         }
@@ -142,7 +149,7 @@ impl Game {
         }
         self.add_hash();
 
-        if self.draw.draw_option == Some(DrawOption::Available(DrawRule::TripleRepetition)) {
+        if let Some(Available(TripleRepetition(_))) = self.draw.draw_option {
             self.end = Some(End::Draw);
             return Some(GameEvent::Draw);
         }
@@ -182,6 +189,7 @@ impl Game {
         self.active_player = if idx % 2 == 0 { White } else { Black };
         self.turn = (idx / 2) as u32 + 1;
         self.end = None;
+        self.draw.draw_option = None;
 
         self.threaten_cells = self.board.update_threatens_cells(&self.active_player);
         let mut move_list = MoveList::new();
@@ -288,7 +296,7 @@ impl Game {
         let count = self.draw.board_hashs.entry(hash_value).or_insert(0);
         *count += 1;
         if *count >= 3 {
-            self.draw.draw_option = Some(DrawOption::Available(DrawRule::TripleRepetition));
+            self.draw.draw_option = Some(Available(TripleRepetition(hash_value)));
         }
     }
 

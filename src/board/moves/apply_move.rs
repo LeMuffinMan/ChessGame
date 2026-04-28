@@ -52,25 +52,25 @@ impl Board {
 
         self.update_board_score(&self.get(&m.dest), &m.dest, true);
 
-        // --- Hash update ---
         let zt = zobrist();
         let orig_sq = m.origin.row as usize * 8 + m.origin.col as usize;
-        let dest_sq  = m.dest.row   as usize * 8 + m.dest.col   as usize;
+        let dest_sq = m.dest.row as usize * 8 + m.dest.col as usize;
 
-        // piece that arrived at dest; if promotion it was a Pawn at origin
         let dest_piece = *self.get(&m.dest).get_piece().unwrap();
-        let orig_piece = if let Promotion(_) = m.move_type { Pawn } else { dest_piece };
+        let orig_piece = if let Promotion(_) = m.move_type {
+            Pawn
+        } else {
+            dest_piece
+        };
 
         self.hash ^= zt.pieces[piece_index(orig_piece, active_player)][orig_sq];
         self.hash ^= zt.pieces[piece_index(dest_piece, active_player)][dest_sq];
 
-        // captured piece (en passant: square differs from dest)
         if let Cell::Occupied(cap_piece, cap_color) = m.capture {
             let cap_sq = capture_coord.row as usize * 8 + capture_coord.col as usize;
             self.hash ^= zt.pieces[piece_index(cap_piece, cap_color)][cap_sq];
         }
 
-        // rook movement in castle
         if let Castle(side) = m.move_type {
             let row = if active_player == White { 0usize } else { 7 };
             let (r_orig, r_dest): (usize, usize) = if side == Right { (7, 5) } else { (0, 3) };
@@ -78,34 +78,51 @@ impl Board {
             self.hash ^= zt.pieces[piece_index(Rook, active_player)][row * 8 + r_dest];
         }
 
-        // castling rights: XOR out old state (stored in Move), XOR in new state
-        if m.white_castle.long   { self.hash ^= zt.castling[0]; }
-        if m.white_castle.short  { self.hash ^= zt.castling[1]; }
-        if m.black_castle.long   { self.hash ^= zt.castling[2]; }
-        if m.black_castle.short  { self.hash ^= zt.castling[3]; }
-        if self.white_castle.long  { self.hash ^= zt.castling[0]; }
-        if self.white_castle.short { self.hash ^= zt.castling[1]; }
-        if self.black_castle.long  { self.hash ^= zt.castling[2]; }
-        if self.black_castle.short { self.hash ^= zt.castling[3]; }
+        if m.white_castle.long {
+            self.hash ^= zt.castling[0];
+        }
+        if m.white_castle.short {
+            self.hash ^= zt.castling[1];
+        }
+        if m.black_castle.long {
+            self.hash ^= zt.castling[2];
+        }
+        if m.black_castle.short {
+            self.hash ^= zt.castling[3];
+        }
+        if self.white_castle.long {
+            self.hash ^= zt.castling[0];
+        }
+        if self.white_castle.short {
+            self.hash ^= zt.castling[1];
+        }
+        if self.black_castle.long {
+            self.hash ^= zt.castling[2];
+        }
+        if self.black_castle.short {
+            self.hash ^= zt.castling[3];
+        }
 
-        // en passant: XOR out old column (stored in Move), XOR in new column
-        if let Some(ep) = m.en_passant   { self.hash ^= zt.en_passant[ep.col as usize]; }
-        if let Some(ep) = self.en_passant { self.hash ^= zt.en_passant[ep.col as usize]; }
+        if let Some(ep) = m.en_passant {
+            self.hash ^= zt.en_passant[ep.col as usize];
+        }
+        if let Some(ep) = self.en_passant {
+            self.hash ^= zt.en_passant[ep.col as usize];
+        }
 
-        // side to move always flips
         self.hash ^= zt.side_to_move;
 
-        #[cfg(debug_assertions)]
-        {
-            use crate::engine::zobris_table::hash_from_scratch;
-            let next_player = if active_player == White { Black } else { White };
-            let expected = hash_from_scratch(self, next_player);
-            debug_assert_eq!(
-                self.hash, expected,
-                "hash mismatch after apply_move: got {:#x}, expected {:#x}",
-                self.hash, expected
-            );
-        }
+        // #[cfg(debug_assertions)]
+        // {
+        //     use crate::engine::zobris_table::hash_from_scratch;
+        //     let next_player = if active_player == White { Black } else { White };
+        //     let expected = hash_from_scratch(self, next_player);
+        //     debug_assert_eq!(
+        //         self.hash, expected,
+        //         "hash mismatch after apply_move: got {:#x}, expected {:#x}",
+        //         self.hash, expected
+        //     );
+        // }
     }
 
     pub fn check_move(

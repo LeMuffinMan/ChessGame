@@ -5,7 +5,7 @@ impl ChessApp {
     //The bot pannels show the white player name and its timer
     pub fn bot_white_panel_desktop(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::bottom("spacer_bottom").show(ctx, |ui| {
-            if !self.settings.flip {
+            if self.settings.flip {
                 self.player_bar(ui, &White);
             } else {
                 self.player_bar(ui, &Black);

@@ -1,7 +1,7 @@
-use crate::gui::chessapp::ChessApp;
 use crate::game::DrawOption::*;
 use crate::game::DrawRule;
 use crate::game::End::Draw;
+use crate::gui::chessapp::ChessApp;
 use crate::gui::hooks::windows::WinDia::*;
 
 impl ChessApp {
@@ -23,7 +23,7 @@ impl ChessApp {
     fn claim_draw_buttons(&mut self, ui: &mut egui::Ui) {
         ui.separator();
         match self.game.draw.draw_option {
-            Some(Available(DrawRule::TripleRepetition)) => {
+            Some(Available(DrawRule::TripleRepetition(_))) => {
                 self.draw_rule(ui, "Triple repetition :")
             }
             Some(Available(DrawRule::FiftyMoves)) => self.draw_rule(ui, "50 moves :"),

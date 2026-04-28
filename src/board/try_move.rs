@@ -17,7 +17,6 @@ impl ChessApp {
                 self.init_timer();
             }
 
-            // bot auto-claim draw (50 moves)
             if self.game.draw.draw_option.is_some() && self.is_bot_turn() {
                 self.game.end = Some(Draw);
             }
@@ -46,25 +45,40 @@ impl ChessApp {
                 GameEvent::Checkmate => {
                     self.app_mode = Versus(Some(Checkmate));
                     self.timer.active = false;
-                    self.add_history_san(&from, &to, &self.game.board_at(self.game.history.len() - 1).clone());
+                    self.add_history_san(
+                        &from,
+                        &to,
+                        &self.game.board_at(self.game.history.len() - 1).clone(),
+                    );
                 }
                 GameEvent::Stalemate => {
                     self.app_mode = Versus(Some(Pat));
                     self.timer.active = false;
-                    self.add_history_san(&from, &to, &self.game.board_at(self.game.history.len() - 1).clone());
+                    self.add_history_san(
+                        &from,
+                        &to,
+                        &self.game.board_at(self.game.history.len() - 1).clone(),
+                    );
                 }
                 GameEvent::Draw => {
                     self.app_mode = Versus(Some(Draw));
-                    self.add_history_san(&from, &to, &self.game.board_at(self.game.history.len() - 1).clone());
+                    self.add_history_san(
+                        &from,
+                        &to,
+                        &self.game.board_at(self.game.history.len() - 1).clone(),
+                    );
                 }
                 GameEvent::Ok | GameEvent::Check => {
                     let prev_board = self.game.board_at(self.game.history.len() - 1);
                     self.add_history_san(&from, &to, &prev_board);
-                    if self.game.end.is_none() && self.is_bot_turn() {
-                        self.bot_pending = true;
-                    }
+                    // if self.game.end.is_none() && self.is_bot_turn() {
+                    //     self.bot_pending = true;
+                    // }
                 }
             }
+        }
+        if self.is_bot_turn() {
+            self.bot_pending = true;
         }
     }
 
@@ -79,14 +93,22 @@ impl ChessApp {
     }
 
     pub fn update_threaten_cells(&mut self) {
-        self.game.threaten_cells = self.game.board.update_threatens_cells(&self.game.active_player);
+        self.game.threaten_cells = self
+            .game
+            .board
+            .update_threatens_cells(&self.game.active_player);
     }
 
     pub fn update_legals_moves(&mut self) {
         use crate::board::moves::move_gen::generate_moves;
         use crate::board::moves::move_structs::MoveList;
         let mut move_list = MoveList::new();
-        generate_moves(&mut self.game.board, &self.game.active_player, &mut move_list, false);
+        generate_moves(
+            &mut self.game.board,
+            &self.game.active_player,
+            &mut move_list,
+            false,
+        );
         self.game.legals_moves = move_list.moves[..move_list.count].to_vec();
     }
 }
