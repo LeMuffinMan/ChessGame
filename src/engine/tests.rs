@@ -20,11 +20,11 @@ fn empty_board(white_king: Coord, black_king: Coord) -> Board {
     let mut board = Board::init_board();
     for r in 0..8usize {
         for c in 0..8usize {
-            board.grid[r][c] = Free;
+            board[(r, c)] = Free;
         }
     }
-    board.grid[white_king.row as usize][white_king.col as usize] = Occupied(King, White);
-    board.grid[black_king.row as usize][black_king.col as usize] = Occupied(King, Black);
+    board[(white_king.row as usize, white_king.col as usize)] = Occupied(King, White);
+    board[(black_king.row as usize, black_king.col as usize)] = Occupied(King, Black);
     board.white_king = white_king;
     board.black_king = black_king;
     board.white_castle = CastleRights {
@@ -47,7 +47,7 @@ fn recompute_score(board: &mut Board) {
     board.non_pawn_material = 0;
     for r in 0..8 {
         for c in 0..8 {
-            if let Occupied(piece, color) = board.grid[r][c] {
+            if let Occupied(piece, color) = board[(r, c)] {
                 board.score += get_piece_value_at(
                     &piece,
                     &color,
@@ -118,7 +118,7 @@ fn test_evaluate_equal_material() {
 #[test]
 fn test_evaluate_white_queen_advantage() {
     let mut board = empty_board(coord(0, 0), coord(7, 7));
-    board.grid[3][3] = Occupied(Queen, White);
+    board[(3, 3)] = Occupied(Queen, White);
     recompute_score(&mut board);
     assert_eq!(evaluate(&board), 905);
 }
@@ -127,8 +127,8 @@ fn test_evaluate_white_queen_advantage() {
 #[test]
 fn test_captures_free_queen() {
     let mut board = empty_board(coord(0, 0), coord(7, 7));
-    board.grid[3][3] = Occupied(Rook, White);
-    board.grid[4][3] = Occupied(Queen, Black);
+    board[(3, 3)] = Occupied(Rook, White);
+    board[(4, 3)] = Occupied(Queen, Black);
     recompute_score(&mut board);
     board.sync_hash(White);
 
@@ -141,12 +141,12 @@ fn test_captures_free_queen() {
 #[test]
 fn test_avoids_losing_rook_depth2() {
     let mut board = empty_board(coord(0, 0), coord(7, 7));
-    board.grid[3][3] = Occupied(Rook, White);
-    board.grid[3][4] = Occupied(Pawn, Black);
-    board.grid[7][7] = Free;
-    board.grid[7][4] = Occupied(King, Black);
+    board[(3, 3)] = Occupied(Rook, White);
+    board[(3, 4)] = Occupied(Pawn, Black);
+    board[(7, 7)] = Free;
+    board[(7, 4)] = Occupied(King, Black);
     board.black_king = coord(7, 4);
-    board.grid[6][4] = Occupied(Rook, Black);
+    board[(6, 4)] = Occupied(Rook, Black);
     recompute_score(&mut board);
     board.sync_hash(White);
 
@@ -162,7 +162,7 @@ fn test_avoids_losing_rook_depth2() {
 #[test]
 fn test_stalemate_returns_zero() {
     let mut board = empty_board(coord(5, 0), coord(7, 0));
-    board.grid[5][1] = Occupied(Queen, White);
+    board[(5, 1)] = Occupied(Queen, White);
     recompute_score(&mut board);
     board.sync_hash(Black);
 
@@ -177,8 +177,8 @@ fn test_stalemate_returns_zero() {
 #[test]
 fn test_checkmate_returns_mate_score() {
     let mut board = empty_board(coord(5, 5), coord(7, 7));
-    board.grid[6][6] = Occupied(Queen, White);
-    board.grid[0][7] = Occupied(Rook, White);
+    board[(6, 6)] = Occupied(Queen, White);
+    board[(0, 7)] = Occupied(Rook, White);
     board.check = Some(coord(7, 7));
     recompute_score(&mut board);
     board.sync_hash(Black);

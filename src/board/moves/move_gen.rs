@@ -20,7 +20,7 @@ pub fn generate_moves(
     let info = pin_detection(board, *active_player);
     for x in 0..8 {
         for y in 0..8 {
-            if board.grid[x][y].is_color(active_player) {
+            if board[(x as usize, y as usize)].is_color(active_player) {
                 let origin = Coord {
                     row: x as u8,
                     col: y as u8,

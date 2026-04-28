@@ -132,7 +132,7 @@ fn king_safety(board: &Board, color: Color) -> i32 {
         let c = king.col as i8 + dc;
         if (0..8).contains(&r)
             && (0..8).contains(&c)
-            && board.grid[r as usize][c as usize] == Occupied(Pawn, color)
+            && board[(r as usize, c as usize)] == Occupied(Pawn, color)
         {
             score += 10;
         }
@@ -148,7 +148,7 @@ fn king_safety(board: &Board, color: Color) -> i32 {
             let c = king.col as i8 + dc;
             if (0..8).contains(&r)
                 && (0..8).contains(&c)
-                && board.grid[r as usize][c as usize].is_opponent_color(&color)
+                && board[(r as usize, c as usize)].is_opponent_color(&color)
             {
                 score -= 20;
             }

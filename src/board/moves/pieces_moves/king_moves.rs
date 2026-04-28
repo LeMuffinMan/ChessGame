@@ -19,7 +19,13 @@ pub fn king_moves(
     king_castles(board, *origin, active_player, list);
 }
 
-fn king_offsets(board: &mut Board, origin: Coord, capture_only: bool, active_player: &Color, list: &mut MoveList) {
+fn king_offsets(
+    board: &mut Board,
+    origin: Coord,
+    capture_only: bool,
+    active_player: &Color,
+    list: &mut MoveList,
+) {
     #[rustfmt::skip]
     let offsets = [
         (-1, 1),  (0, 1), (1, 1),
@@ -29,7 +35,7 @@ fn king_offsets(board: &mut Board, origin: Coord, capture_only: bool, active_pla
     for (dr, dc) in offsets {
         if let Some(dest) = Board::checked_coord(origin.row as i8 + dr, origin.col as i8 + dc) {
             if capture_only {
-                let cell = board.grid[dest.row as usize][dest.col as usize];
+                let cell = board[dest];
                 if !cell.is_color(active_player) && cell.get_piece().is_none() {
                     continue;
                 }
@@ -40,7 +46,6 @@ fn king_offsets(board: &mut Board, origin: Coord, capture_only: bool, active_pla
         }
     }
 }
-
 
 fn king_castles(board: &mut Board, origin: Coord, active_player: &Color, list: &mut MoveList) {
     if board.check.is_none() {
@@ -54,7 +59,7 @@ fn king_castles(board: &mut Board, origin: Coord, active_player: &Color, list: &
         let col = origin.col as usize;
 
         if rights.short {
-            if board.grid[row][col + 1] == Cell::Free && board.grid[row][col + 2] == Cell::Free {
+            if board[(row, col + 1)] == Cell::Free && board[(row, col + 2)] == Cell::Free {
                 if let (Some(t), Some(d)) = (
                     Board::checked_coord(origin.row as i8, origin.col as i8 + 1),
                     Board::checked_coord(origin.row as i8, origin.col as i8 + 2),
@@ -69,9 +74,9 @@ fn king_castles(board: &mut Board, origin: Coord, active_player: &Color, list: &
         }
 
         if rights.long {
-            if board.grid[row][col - 1] == Cell::Free
-                && board.grid[row][col - 2] == Cell::Free
-                && board.grid[row][col - 3] == Cell::Free
+            if board[(row, col - 1)] == Cell::Free
+                && board[(row, col - 2)] == Cell::Free
+                && board[(row, col - 3)] == Cell::Free
             {
                 if let (Some(t), Some(d)) = (
                     Board::checked_coord(origin.row as i8, origin.col as i8 - 1),

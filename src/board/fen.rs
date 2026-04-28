@@ -72,7 +72,7 @@ impl Board {
                             Black => board.black_king = coord,
                         }
                     }
-                    board.grid[row as usize][col as usize] = Occupied(piece, color);
+                    board[(row, col)] = Occupied(piece, color);
                     board.score += get_piece_value_at(&piece, &color, &coord);
                     board.non_pawn_material += non_pawn_raw(&piece);
                     col += 1;

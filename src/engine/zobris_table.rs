@@ -77,7 +77,7 @@ pub fn hash_from_scratch(board: &Board, active: Color) -> u64 {
 
     for row in 0..8 {
         for col in 0..8 {
-            if let Cell::Occupied(piece, color) = board.grid[row][col] {
+            if let Cell::Occupied(piece, color) = board[(row, col)] {
                 let sq = row * 8 + col;
                 h ^= zt.pieces[piece_index(piece, color)][sq];
             }

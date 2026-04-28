@@ -95,7 +95,7 @@ impl ChessApp {
             let bot_color = self.game.active_player;
             self.try_move(m.origin, m.dest);
             if let Promotion(piece) = m.move_type {
-                self.game.board.grid[m.dest.row as usize][m.dest.col as usize] =
+                self.game.board[(m.dest.row as usize, m.dest.col as usize)] =
                     Cell::Occupied(piece, bot_color);
                 self.promoteinfo = None;
                 self.win = None;

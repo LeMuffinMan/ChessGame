@@ -52,7 +52,7 @@ pub fn pin_detection(board: &Board, color: Color) -> PinInfos {
         let mut pin_candidate: Option<Coord> = None;
 
         while let Some(dest) = Board::checked_coord(r, c) {
-            match board.grid[dest.row as usize][dest.col as usize] {
+            match board[dest] {
                 Free => {}
                 Occupied(piece, cell_color) => {
                     if cell_color == color {
@@ -104,7 +104,7 @@ pub fn pin_detection(board: &Board, color: Color) -> PinInfos {
         let r = king.row as i8 + dr;
         let c = king.col as i8 + dc;
         if let Some(dest) = Board::checked_coord(r, c) {
-            if let Occupied(Knight, cell_color) = board.grid[dest.row as usize][dest.col as usize] {
+            if let Occupied(Knight, cell_color) = board[dest] {
                 if cell_color != color {
                     info.add_checker(dest);
                 }
@@ -120,7 +120,7 @@ pub fn pin_detection(board: &Board, color: Color) -> PinInfos {
         let r = king.row as i8 + pawn_dir;
         let c = king.col as i8 + dc;
         if let Some(dest) = Board::checked_coord(r, c) {
-            if let Occupied(Pawn, cell_color) = board.grid[dest.row as usize][dest.col as usize] {
+            if let Occupied(Pawn, cell_color) = board[dest] {
                 if cell_color != color {
                     info.add_checker(dest);
                 }
