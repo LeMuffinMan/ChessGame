@@ -1,7 +1,7 @@
 use crate::Color;
 use crate::Color::*;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Copy, Clone)]
 pub struct Timer {
     pub start: f64,
     pub increment: f64,
@@ -12,7 +12,7 @@ pub struct Timer {
     pub start_of_turn: (f64, Option<Color>),
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum GameMode {
     Rapid,
     Blitz,

@@ -4,6 +4,7 @@ use crate::board::cell::Color::*;
 use crate::engine::bot::BotDifficulty::*;
 use crate::engine::bot::PlayerType::*;
 use crate::engine::search_stats::MAX_SEARCH_DEPTH;
+use crate::gui::chessapp::AppMode::*;
 use crate::gui::features::timer::GameMode::NoTime;
 use crate::gui::panels::bot_panels::format_time;
 use egui::Align;
@@ -68,50 +69,54 @@ impl ChessApp {
                     _ => 5,
                 };
 
-                if let Bot(Depth(ref mut d)) = bot_setting {
-                    let depth_label = format!("d={}", d);
-                    ui.menu_button(depth_label, |ui| {
-                        for depth in 1..=MAX_SEARCH_DEPTH as u8 {
-                            if ui
-                                .selectable_label(*d == depth, format!("d={}", depth))
-                                .clicked()
-                            {
-                                *d = depth;
-                                // ui.close_menu();
+                let is_enabled = self.app_mode == Lobby || self.app_mode == Replay;
+
+                ui.add_enabled_ui(is_enabled, |ui| {
+                    if let Bot(Depth(ref mut d)) = bot_setting {
+                        let depth_label = format!("d={}", d);
+                        ui.menu_button(depth_label, |ui| {
+                            for depth in 1..=MAX_SEARCH_DEPTH as u8 {
+                                if ui
+                                    .selectable_label(*d == depth, format!("d={}", depth))
+                                    .clicked()
+                                {
+                                    *d = depth;
+                                    // ui.close_menu();
+                                }
                             }
+                        });
+                    }
+
+                    let type_label = match &bot_setting {
+                        Human => "Player",
+                        Bot(Random) => "Bot random",
+                        Bot(Depth(_)) => "Bot",
+                    };
+
+                    ui.menu_button(type_label, |ui| {
+                        if ui
+                            .selectable_label(bot_setting == Human, "Player")
+                            .clicked()
+                        {
+                            bot_setting = Human;
+                            // ui.close_menu();
+                        }
+                        if ui
+                            .selectable_label(bot_setting == Bot(Random), "Bot random")
+                            .clicked()
+                        {
+                            bot_setting = Bot(Random);
+                            // ui.close_menu();
+                        }
+                        if ui
+                            .selectable_label(matches!(bot_setting, Bot(Depth(_))), "Bot")
+                            .clicked()
+                        {
+                            bot_setting = Bot(Depth(current_depth));
+                            // ui.close_menu();
                         }
                     });
-                }
-
-                let type_label = match &bot_setting {
-                    Human => "Player",
-                    Bot(Random) => "Bot random",
-                    Bot(Depth(_)) => "Bot",
-                };
-                ui.menu_button(type_label, |ui| {
-                    if ui
-                        .selectable_label(bot_setting == Human, "Player")
-                        .clicked()
-                    {
-                        bot_setting = Human;
-                        // ui.close_menu();
-                    }
-                    if ui
-                        .selectable_label(bot_setting == Bot(Random), "Bot random")
-                        .clicked()
-                    {
-                        bot_setting = Bot(Random);
-                        // ui.close_menu();
-                    }
-                    if ui
-                        .selectable_label(matches!(bot_setting, Bot(Depth(_))), "Bot")
-                        .clicked()
-                    {
-                        bot_setting = Bot(Depth(current_depth));
-                        // ui.close_menu();
-                    }
                 });
-
                 let remaining_w = ui.available_width();
                 ui.allocate_ui_with_layout(
                     Vec2::new(remaining_w, row_h),

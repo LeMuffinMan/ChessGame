@@ -4,13 +4,24 @@ impl ChessApp {
     pub fn new_game_button(&mut self, ui: &mut egui::Ui) {
         if ui
             .add_enabled(
-                !self.game.history.is_empty(),
-                egui::Button::new("New game"),
+                !self.game.history.is_empty() || self.game.end.is_some(),
+                egui::Button::new("New"),
             )
             .clicked()
         {
             //revoir : ne pas changer les settings !
             *self = ChessApp::new(self.ui_type.clone());
+        }
+    }
+    pub fn revenge_button(&mut self, ui: &mut egui::Ui) {
+        if ui
+            .add_enabled(
+                !self.game.history.is_empty() || self.game.end.is_some(),
+                egui::Button::new("Revenge"),
+            )
+            .clicked()
+        {
+            *self = ChessApp::revenge(self.ui_type.clone(), &self);
         }
     }
 }

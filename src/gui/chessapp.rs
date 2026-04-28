@@ -49,9 +49,29 @@ impl ChessApp {
             black_last_score: 0,
         }
     }
+    pub fn revenge(ui_type: UiType, other: &ChessApp) -> Self {
+        let mut app = Self {
+            ui_type,
+            history_san: String::new(),
+            timer: other.timer.clone(),
+            win: None,
+            app_mode: other.app_mode.clone(),
+            replay_infos: ReplayInfos::new(),
+            game: Game::new(),
+            last_move: None,
+            settings: other.settings.clone(),
+            promoteinfo: None,
+            bot_pending: false,
+            search_ctx: SearchContext::new(),
+            white_last_score: 0,
+            black_last_score: 0,
+        };
+        app.settings.flip = !app.settings.flip;
+        app
+    }
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Copy, Clone)]
 pub enum AppMode {
     Versus(Option<End>),
     Replay,

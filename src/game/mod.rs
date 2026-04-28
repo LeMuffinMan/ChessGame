@@ -10,7 +10,7 @@ use crate::board::moves::move_gen::generate_moves;
 use crate::board::moves::move_structs::{Move, MoveList};
 use std::collections::HashMap;
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum End {
     Checkmate,
     TimeOut,
