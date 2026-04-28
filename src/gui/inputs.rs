@@ -85,6 +85,7 @@ impl ChessApp {
                 }
             } else {
                 self.settings.from_cell = None;
+                self.settings.piece_legals_moves.clear();
             }
         }
     }
