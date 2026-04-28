@@ -22,7 +22,7 @@ impl ChessApp {
                 Vec2::new(left_w, row_h),
                 Layout::top_down(Align::LEFT),
                 |ui| {
-                    if self.history.snapshots.is_empty() || self.current.end.is_some() {
+                    if self.game.history.is_empty() || self.game.end.is_some() {
                         match color {
                             White => {
                                 ui.text_edit_singleline(&mut self.settings.white_name);
@@ -121,7 +121,7 @@ impl ChessApp {
                             self.settings.white_bot != Human && self.settings.black_bot != Human;
                         if *color == White
                             && both_bots
-                            && self.history.snapshots.is_empty()
+                            && self.game.history.is_empty()
                             && ui.button("▶ Start").clicked()
                         {
                             self.start_bot_game();

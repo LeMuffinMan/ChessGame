@@ -27,7 +27,7 @@ impl ChessApp {
                             egui::Color32::from_rgb(255, 100, 100)
                         };
 
-                        let score_color = if self.current.board.score >= 0 {
+                        let score_color = if self.game.board.score >= 0 {
                             egui::Color32::from_rgb(140, 255, 140)
                         } else {
                             egui::Color32::from_rgb(255, 140, 140)
@@ -71,7 +71,7 @@ impl ChessApp {
 
                                 ui.label(egui::RichText::new("Board Score").small());
                                 ui.label(
-                                    egui::RichText::new(format!("{:.2}", self.current.board.score))
+                                    egui::RichText::new(format!("{:.2}", self.game.board.score))
                                         .color(score_color)
                                         .strong()
                                         .small(),

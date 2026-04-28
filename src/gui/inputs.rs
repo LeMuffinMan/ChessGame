@@ -6,10 +6,10 @@ impl ChessApp {
         if response.drag_started()
             && let Some(pos) = response.interact_pointer_pos()
             && let Some(c) = ui_to_board(inner, sq, self.settings.flip, pos)
-            && self.current.is_active_player_piece(&c)
-            && self.current.end.is_none()
+            && self.game.is_active_player_piece(&c)
+            && self.game.end.is_none()
             && let None = self.promoteinfo
-            && self.replay_infos.index == self.history.snapshots.len()
+            && self.replay_infos.index == self.game.history.len()
         {
             self.settings.drag_from = Some(c);
             self.settings.from_cell = Some(c);
@@ -50,22 +50,22 @@ impl ChessApp {
         ctx: &egui::Context,
     ) {
         if response.clicked()
-            && self.current.end.is_none()
+            && self.game.end.is_none()
             && self.promoteinfo.is_none()
             && let Some(pos) = response.interact_pointer_pos()
-            && self.replay_infos.index == self.history.snapshots.len()
+            && self.replay_infos.index == self.game.history.len()
         {
             if let Some(clicked) = ui_to_board(inner, sq, self.settings.flip, pos) {
                 match self.settings.from_cell {
                     None => {
                         if self
-                            .current
+                            .game
                             .board
                             .get(&clicked)
-                            .is_color(&self.current.active_player)
+                            .is_color(&self.game.active_player)
                         {
                             self.settings.piece_legals_moves.clear();
-                            for m in self.current.legals_moves.iter() {
+                            for m in self.game.legals_moves.iter() {
                                 if m.origin.row == clicked.row && m.origin.col == clicked.col {
                                     // println!("pushing {:?}", clicked);
                                     self.settings.piece_legals_moves.push(m.dest);

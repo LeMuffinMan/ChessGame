@@ -47,7 +47,7 @@ pub fn get_bot_move(
 
 impl ChessApp {
     pub fn get_depth(&self) -> u8 {
-        if let Bot(diff) = match self.current.active_player {
+        if let Bot(diff) = match self.game.active_player {
             White => self.settings.black_bot,
             Black => self.settings.white_bot,
         } {
@@ -60,16 +60,13 @@ impl ChessApp {
         }
     }
     pub fn is_bot_turn(&self) -> bool {
-        match self.current.active_player {
+        match self.game.active_player {
             White => matches!(self.settings.white_bot, Bot(_)),
             Black => matches!(self.settings.black_bot, Bot(_)),
         }
     }
 
     pub fn start_bot_game(&mut self) {
-        let snapshot = self.current.clone();
-        self.history.snapshots.push(snapshot);
-        self.replay_infos.index += 1;
         self.app_mode = Versus(None);
         self.timer.active = true;
         self.timer.start_of_turn.1 = Some(White);
@@ -78,7 +75,7 @@ impl ChessApp {
     }
 
     pub fn play_bot_turn(&mut self) {
-        let difficulty = match self.current.active_player {
+        let difficulty = match self.game.active_player {
             White => &self.settings.white_bot,
             Black => &self.settings.black_bot,
         };
@@ -87,22 +84,22 @@ impl ChessApp {
         let start = performance.now();
         let bot_move = get_bot_move(
             difficulty,
-            &mut self.current.board,
-            self.current.active_player,
+            &mut self.game.board,
+            self.game.active_player,
             &mut self.search_ctx,
         );
         let end = performance.now();
         self.search_ctx.stats.bot_time_thinking = end - start;
         self.search_ctx.stats.nps();
         if let Some(m) = bot_move {
-            let bot_color = self.current.active_player;
+            let bot_color = self.game.active_player;
             self.try_move(m.origin, m.dest);
             if let Promotion(piece) = m.move_type {
-                self.current.board.grid[m.dest.row as usize][m.dest.col as usize] =
+                self.game.board.grid[m.dest.row as usize][m.dest.col as usize] =
                     Cell::Occupied(piece, bot_color);
                 self.promoteinfo = None;
                 self.win = None;
-                if self.current.end.is_none() && self.is_bot_turn() {
+                if self.game.end.is_none() && self.is_bot_turn() {
                     self.bot_pending = true;
                 }
             }

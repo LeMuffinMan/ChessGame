@@ -1,6 +1,7 @@
 use crate::ChessApp;
+use crate::board::cell::Color::{Black, White};
+use crate::game::End::{self, Draw};
 use crate::gui::chessapp::AppMode::*;
-use crate::gui::hooks::windows::End::Draw;
 use crate::gui::layout::UiType::*;
 use egui::RichText;
 
@@ -15,14 +16,6 @@ pub enum WinDia {
     Pgn,
 }
 
-#[derive(Clone, PartialEq)]
-pub enum End {
-    Checkmate,
-    TimeOut,
-    Pat,
-    Draw,
-    Resign,
-}
 
 impl ChessApp {
     //Promote win ?
@@ -99,7 +92,7 @@ impl ChessApp {
                         ui.horizontal(|ui| {
                             ui.add_space(40.0);
                             if ui.button("Accept").clicked() {
-                                self.current.end = Some(End::Resign);
+                                self.game.end = Some(End::Resign);
                                 self.win = None;
                                 self.timer.active = false;
                                 self.app_mode = Versus(Some(End::Resign));
@@ -123,7 +116,7 @@ impl ChessApp {
                         ui.horizontal(|ui| {
                             ui.add_space(20.0);
                             if ui.button(RichText::new("Accept").size(40.0)).clicked() {
-                                self.current.end = Some(End::Resign);
+                                self.game.end = Some(End::Resign);
                                 self.timer.active = false;
                                 self.win = None;
                             }
@@ -151,7 +144,7 @@ impl ChessApp {
                         ui.horizontal(|ui| {
                             ui.add_space(40.0);
                             if ui.button("Accept").clicked() {
-                                self.current.end = Some(End::Draw);
+                                self.game.end = Some(End::Draw);
                                 self.timer.active = false;
                                 self.win = None;
                                 self.app_mode = Versus(Some(End::Draw));
@@ -175,7 +168,7 @@ impl ChessApp {
                         ui.horizontal(|ui| {
                             ui.add_space(40.0);
                             if ui.button(RichText::new("Accept").size(40.0)).clicked() {
-                                self.current.end = Some(Draw);
+                                self.game.end = Some(Draw);
                                 self.timer.active = false;
                                 self.win = None;
                                 //window dialog
@@ -208,7 +201,7 @@ impl ChessApp {
                         ui.horizontal(|ui| {
                             // ui.add_space(60.0);
                             ui.vertical_centered(|ui| {
-                                ui.label(&self.history.history_san);
+                                ui.label(&self.history_san);
                                 ui.add_space(20.0);
                                 ui.text_edit_singleline(&mut self.settings.file_name);
                                 if ui.button(RichText::new("Download").size(30.0)).clicked() {
@@ -242,7 +235,7 @@ impl ChessApp {
                         ui.horizontal(|ui| {
                             // ui.add_space(60.0);
                             ui.vertical_centered(|ui| {
-                                ui.label(&self.history.history_san);
+                                ui.label(&self.history_san);
                                 ui.add_space(20.0);
                                 ui.text_edit_singleline(&mut self.settings.file_name);
                                 ui.add_space(20.0);
@@ -276,20 +269,15 @@ impl ChessApp {
                     ui.add_space(100.0);
                     if ui.button("Accept").clicked() {
                         self.win = None;
-                        self.current = self.history.snapshots[self.replay_infos.index - 2].clone();
-                        if self.replay_infos.index == 2 {
-                            self.replay_infos.index -= 2;
-                            self.history.snapshots.clear();
-                        } else {
-                            self.replay_infos.index -= 1;
-                            self.history.snapshots.pop();
-                        }
-                        //une promote ajoute 2 indexs a l'historique ! a fix
+                        self.game.history.pop();
                         if self.promoteinfo.is_some() {
-                            self.replay_infos.index -= 1;
-                            self.history.snapshots.pop();
+                            self.game.history.pop();
                         }
-                        //il faut supprimer les derniers hashs pour la triple repetition
+                        self.replay_infos.index = self.game.history.len();
+                        self.game.board = self.game.board_at(self.replay_infos.index);
+                        self.game.active_player = if self.replay_infos.index % 2 == 0 { White } else { Black };
+                        self.update_threaten_cells();
+                        self.update_legals_moves();
                     }
                     ui.add_space(30.0);
                     if ui.button("Decline").clicked() {
