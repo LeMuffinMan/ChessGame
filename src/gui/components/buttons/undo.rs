@@ -8,11 +8,11 @@ impl ChessApp {
     }
 
     fn is_undo_to_display(&mut self) -> bool {
-        self.current.end.is_none()
+        self.game.end.is_none()
             && self.can_undo()
             && self.win.is_none()
-            && (self.history.snapshots.len() > 1
-                || self.history.snapshots.len() == 2 && self.current.active_player == White)
+            && (self.game.history.len() > 1
+                || self.game.history.len() == 2 && self.game.active_player == White)
     }
 
     pub fn undo_button(&mut self, ui: &mut egui::Ui) {
@@ -25,7 +25,7 @@ impl ChessApp {
         }
     }
     pub fn decremente_undo(&mut self) {
-        match self.current.opponent {
+        match self.game.opponent() {
             White => {
                 self.settings.white_undo -= 1;
             }

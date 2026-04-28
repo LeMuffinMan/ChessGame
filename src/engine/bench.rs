@@ -8,8 +8,9 @@ use wasm_bindgen::prelude::wasm_bindgen;
 const START_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const KIWIPETE_FEN: &str = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
 
-// --- Timer ---
-
+// Observing variations in benchmark cause of js module and web noise,
+// the benchmark runs 2 first times to let JIT optimise the wasm code
+// Then we run 5 measured iterations and return the iteration with minimum time
 #[cfg(target_arch = "wasm32")]
 fn now_ms() -> f64 {
     web_sys::window()
@@ -28,8 +29,6 @@ fn now_ms() -> f64 {
         * 1000.0
 }
 
-// --- BenchResult ---
-
 pub struct BenchResult {
     pub nodes: u64,
     pub time_ms: f64,
@@ -42,10 +41,7 @@ pub struct BenchResult {
     pub cutoffs_per_depth: [usize; MAX_SEARCH_DEPTH],
 }
 
-// --- Core bench ---
-
 // max_nodes = 0 means no limit.
-// depth >= 1: depth=0 would underflow u8 in find_best_move.
 pub fn bench_run(fen: &str, color: Color, depth: u8, max_nodes: u64) -> BenchResult {
     assert!(depth >= 1, "bench_run requires depth >= 1");
     let mut board = Board::board_from_fen(fen).board;
@@ -66,8 +62,6 @@ pub fn bench_run(fen: &str, color: Color, depth: u8, max_nodes: u64) -> BenchRes
         cutoffs_per_depth: ctx.stats.cutoffs_per_depth,
     }
 }
-
-// --- Derived metrics ---
 
 fn nps(nodes: u64, time_ms: f64) -> u64 {
     if time_ms > 0.0 {
@@ -118,11 +112,8 @@ fn entry_json(label: &str, depth: u8, r: &BenchResult, time_ms: f64) -> String {
     )
 }
 
-// --- WASM export ---
-
-// Called by bench.html once per depth (1..=max_depth).
-// max_nodes = 0 means no limit; values like 500_000 prevent browser freeze.
-// Runs 2 unmeasured warmup iterations then 5 measured; reports the minimum time.
+// Wasm export :
+// called by bench.html once per max depth level
 #[wasm_bindgen]
 pub fn run_bench(depth: u8, max_nodes: u32) -> String {
     if depth < 1 {

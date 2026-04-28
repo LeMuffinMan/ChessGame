@@ -1,9 +1,9 @@
 use crate::ChessApp;
 use crate::Color::*;
 use crate::gui::chessapp::AppMode::Replay;
-use crate::gui::features::gamestate::DrawOption;
-use crate::gui::features::gamestate::DrawOption::*;
-use crate::gui::hooks::windows::End::Draw;
+use crate::game::DrawOption;
+use crate::game::DrawOption::*;
+use crate::game::End::Draw;
 use crate::gui::hooks::windows::WinDia;
 use crate::gui::hooks::windows::WinDia::*;
 use egui::Context;
@@ -13,7 +13,7 @@ impl ChessApp {
 
     pub fn new_game_replay(&mut self, ui: &mut egui::Ui, _ctx: &Context) {
         ui.horizontal(|ui| {
-            if self.current.end.is_some() || self.app_mode == Replay {
+            if self.game.end.is_some() || self.app_mode == Replay {
                 self.new_game_button(ui);
                 self.replay_button(ui);
             }
@@ -38,12 +38,12 @@ impl ChessApp {
         self.settings_button(ui);
         ui.add_space(150.0);
         #[allow(clippy::collapsible_else_if)]
-        if let Some(option) = &self.current.draw.draw_option {
+        if let Some(option) = &self.game.draw.draw_option {
             #[allow(clippy::collapsible_else_if)]
             if let Available(_) = option {
                 #[allow(clippy::collapsible_else_if)]
                 if ui.button("Claim draw").clicked() {
-                    self.current.end = Some(Draw);
+                    self.game.end = Some(Draw);
                 }
             };
         } else {
@@ -55,7 +55,7 @@ impl ChessApp {
         if ui.button("Resign").clicked() {
             self.win = Some(Resign);
         }
-        if let Some(option) = &self.current.draw.draw_option
+        if let Some(option) = &self.game.draw.draw_option
             && let DrawOption::Available(_) = option
         {
             ui.add_space(60.0);
@@ -69,12 +69,12 @@ impl ChessApp {
             #[allow(clippy::collapsible_if)]
             if ui
                 .add_enabled(
-                    self.current.end.is_none()
+                    self.game.end.is_none()
                         && self.can_undo()
                         && self.win.is_none()
-                        && (self.history.snapshots.len() > 1
-                            || self.history.snapshots.len() == 2
-                                && self.current.active_player == White),
+                        && (self.game.history.len() > 1
+                            || self.game.history.len() == 2
+                                && self.game.active_player == White),
                     egui::Button::new("Undo"),
                 )
                 .clicked()

@@ -1,4 +1,5 @@
 use crate::ChessApp;
+use crate::board::cell::Color::{Black, White};
 use crate::gui::layout::UiType;
 
 pub struct ReplayInfos {
@@ -62,14 +63,16 @@ impl ChessApp {
     fn first_state(&mut self, ui: &mut egui::Ui) {
         if ui.button("|<").clicked() {
             self.replay_infos.index = 0;
-            self.current = self.history.snapshots[0].clone();
+            self.game.board = self.game.board_at(0);
+            self.game.active_player = White;
         }
     }
 
     fn prev_state(&mut self, ui: &mut egui::Ui) {
         if ui.button("<").clicked() && self.replay_infos.index > 0 {
             self.replay_infos.index -= 1;
-            self.current = self.history.snapshots[self.replay_infos.index].clone();
+            self.game.board = self.game.board_at(self.replay_infos.index);
+            self.game.active_player = if self.replay_infos.index % 2 == 0 { White } else { Black };
         }
     }
 
@@ -80,7 +83,8 @@ impl ChessApp {
                 .clicked()
             {
                 self.replay_infos.index = 0;
-                self.current = self.history.snapshots[0].clone();
+                self.game.board = self.game.board_at(0);
+                self.game.active_player = White;
 
                 let now = ui.input(|i| i.time);
                 let delay = self.replay_infos.sec_per_frame;
@@ -97,27 +101,29 @@ impl ChessApp {
     fn next_state(&mut self, ui: &mut egui::Ui) {
         if ui
             .add_enabled(
-                self.replay_infos.index < self.history.snapshots.len() - 1,
+                self.replay_infos.index < self.game.history.len() - 1,
                 egui::Button::new(">"),
             )
             .clicked()
-            && self.replay_infos.index < self.history.snapshots.len() - 1
+            && self.replay_infos.index < self.game.history.len() - 1
         {
             self.replay_infos.index += 1;
-            self.current = self.history.snapshots[self.replay_infos.index].clone();
+            self.game.board = self.game.board_at(self.replay_infos.index);
+            self.game.active_player = if self.replay_infos.index % 2 == 0 { White } else { Black };
         }
     }
 
     fn last_state(&mut self, ui: &mut egui::Ui) {
         if ui
             .add_enabled(
-                self.replay_infos.index < self.history.snapshots.len() - 1,
+                self.replay_infos.index < self.game.history.len() - 1,
                 egui::Button::new(">|"),
             )
             .clicked()
         {
-            self.replay_infos.index = self.history.snapshots.len() - 1;
-            self.current = self.history.snapshots[self.replay_infos.index].clone();
+            self.replay_infos.index = self.game.history.len() - 1;
+            self.game.board = self.game.board_at(self.replay_infos.index);
+            self.game.active_player = if self.replay_infos.index % 2 == 0 { White } else { Black };
         }
     }
 
@@ -125,13 +131,14 @@ impl ChessApp {
         if let Some(next_step) = self.replay_infos.next_step {
             let now = ctx.input(|i| i.time);
             if now >= next_step {
-                if self.replay_infos.index + 1 < self.history.snapshots.len() {
+                if self.replay_infos.index + 1 < self.game.history.len() {
                     self.replay_infos.index += 1;
-                    self.current = self.history.snapshots[self.replay_infos.index].clone();
+                    self.game.board = self.game.board_at(self.replay_infos.index);
+                    self.game.active_player = if self.replay_infos.index % 2 == 0 { White } else { Black };
                     let delay = self.replay_infos.sec_per_frame;
                     self.replay_infos.next_step = Some(now + delay);
                 } else {
-                    self.replay_infos.index = self.history.snapshots.len();
+                    self.replay_infos.index = self.game.history.len();
                     self.replay_infos.next_step = None;
                 }
             }

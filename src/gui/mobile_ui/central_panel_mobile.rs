@@ -107,7 +107,6 @@ impl ChessApp {
         ui.add_space(40.0);
         ui.horizontal(|ui| {
             let displayed_text: String = self
-                .history
                 .history_san
                 .chars()
                 .rev()

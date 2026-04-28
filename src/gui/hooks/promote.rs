@@ -30,8 +30,8 @@ impl ChessApp {
     ) -> Option<PromoteInfo> {
         let promote_row = if *color == White { 7 } else { 0 };
         for y in 0..8 {
-            if self.current.board.grid[promote_row][y].is_color(color)
-                && let Some(piece) = self.current.board.grid[promote_row][y].get_piece()
+            if self.game.board.grid[promote_row][y].is_color(color)
+                && let Some(piece) = self.game.board.grid[promote_row][y].get_piece()
                 && *piece == Pawn
             {
                 return Some(PromoteInfo {
@@ -50,33 +50,40 @@ impl ChessApp {
         if let Some(promote_info) = &self.promoteinfo
             && let Some(coord) = promote_info.pawn_to_promote
             && let Some(piece) = promote_info.promote
-            && self.replay_infos.index == self.history.snapshots.len()
+            && self.replay_infos.index == self.game.history.len()
         {
-            let color = if self.current.active_player == White {
+            let color = if self.game.active_player == White {
                 Black
             } else {
                 White
             };
-            self.current.board.grid[coord.row as usize][coord.col as usize] =
+            self.game.board.grid[coord.row as usize][coord.col as usize] =
                 Cell::Occupied(piece, color);
 
             self.update_threaten_cells();
             self.update_legals_moves();
 
-            self.check_endgame();
-            let k = match self.current.active_player {
-                White => self.current.board.white_king,
-                Black => self.current.board.black_king,
+            let k = match self.game.active_player {
+                White => self.game.board.white_king,
+                Black => self.game.board.black_king,
             };
-            if self.current.threaten_cells.contains(&k) {
-                self.current.board.check = Some(k);
+            if self.game.threaten_cells.contains(&k) {
+                self.game.board.check = Some(k);
+            }
+            if self.game.legals_moves.is_empty() {
+                use crate::game::End;
+                if self.game.threaten_cells.contains(&k) {
+                    self.game.end = Some(End::Checkmate);
+                } else {
+                    self.game.end = Some(End::Pat);
+                }
             }
             if let Some(promoteinfo) = &self.promoteinfo {
                 let from = promoteinfo.from;
                 let to = promoteinfo.to;
                 let prev_board = promoteinfo.prev_board.clone();
                 self.add_history_san(&from, &to, &prev_board);
-                if self.current.end.is_none() && self.is_bot_turn() {
+                if self.game.end.is_none() && self.is_bot_turn() {
                     self.bot_pending = true;
                 }
             }

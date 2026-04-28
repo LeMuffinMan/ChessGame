@@ -16,7 +16,7 @@ impl ChessApp {
                     self.draw_resign_undo_desktop(ui);
                 }
                 ui.separator();
-                self.engine_infos(ui, &self.current.active_player);
+                self.engine_infos(ui, &self.game.active_player);
                 self.new_game_replay(ui, ctx);
                 if self.app_mode == Lobby {
                     self.undo_limit(ui);
@@ -110,7 +110,7 @@ impl ChessApp {
     }
 
     pub fn can_undo(&mut self) -> bool {
-        match self.current.opponent {
+        match self.game.opponent() {
             White => self.settings.white_undo > 0,
             Black => self.settings.black_undo > 0,
         }
