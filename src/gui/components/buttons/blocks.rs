@@ -1,9 +1,9 @@
 use crate::ChessApp;
 use crate::Color::*;
-use crate::gui::chessapp::AppMode::Replay;
 use crate::game::DrawOption;
 use crate::game::DrawOption::*;
 use crate::game::End::Draw;
+use crate::gui::chessapp::AppMode::Replay;
 use crate::gui::hooks::windows::WinDia;
 use crate::gui::hooks::windows::WinDia::*;
 use egui::Context;
@@ -15,6 +15,7 @@ impl ChessApp {
         ui.horizontal(|ui| {
             if self.game.end.is_some() || self.app_mode == Replay {
                 self.new_game_button(ui);
+                self.revenge_button(ui);
                 self.replay_button(ui);
             }
         });
@@ -73,8 +74,7 @@ impl ChessApp {
                         && self.can_undo()
                         && self.win.is_none()
                         && (self.game.history.len() > 1
-                            || self.game.history.len() == 2
-                                && self.game.active_player == White),
+                            || self.game.history.len() == 2 && self.game.active_player == White),
                     egui::Button::new("Undo"),
                 )
                 .clicked()

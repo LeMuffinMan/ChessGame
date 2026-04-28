@@ -5,6 +5,7 @@ use crate::engine::bot::PlayerType::*;
 use egui::Pos2;
 use std::path::PathBuf;
 
+#[derive(Clone)]
 pub struct Settings {
     pub from_cell: Option<Coord>,
     pub drag_from: Option<Coord>,
