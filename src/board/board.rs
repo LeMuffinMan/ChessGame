@@ -6,6 +6,8 @@ use crate::board::cell::Cell::Occupied;
 use crate::board::cell::Piece::*;
 use crate::engine::evaluator::{get_piece_value_at, non_pawn_raw};
 use crate::engine::zobris_table::hash_from_scratch;
+use std::ops::Index;
+use std::ops::IndexMut;
 
 #[derive(Clone, PartialEq)]
 pub struct Board {
@@ -25,6 +27,62 @@ pub struct Board {
 pub struct CastleRights {
     pub long: bool,
     pub short: bool,
+}
+
+impl IndexMut<Coord> for Board {
+    fn index_mut(&mut self, coord: Coord) -> &mut Cell {
+        &mut self.grid[coord.row as usize][coord.col as usize]
+    }
+}
+
+impl Index<Coord> for Board {
+    type Output = Cell;
+
+    fn index(&self, coord: Coord) -> &Cell {
+        &self.grid[coord.row as usize][coord.col as usize]
+    }
+}
+
+impl IndexMut<(usize, usize)> for Board {
+    fn index_mut(&mut self, coord: (usize, usize)) -> &mut Cell {
+        &mut self.grid[coord.0][coord.1]
+    }
+}
+
+impl Index<(usize, usize)> for Board {
+    type Output = Cell;
+
+    fn index(&self, coord: (usize, usize)) -> &Cell {
+        &self.grid[coord.0][coord.1]
+    }
+}
+
+impl IndexMut<(i8, i8)> for Board {
+    fn index_mut(&mut self, coord: (i8, i8)) -> &mut Cell {
+        &mut self.grid[coord.0 as usize][coord.1 as usize]
+    }
+}
+
+impl Index<(i8, i8)> for Board {
+    type Output = Cell;
+
+    fn index(&self, coord: (i8, i8)) -> &Cell {
+        &self.grid[coord.0 as usize][coord.1 as usize]
+    }
+}
+
+impl Index<(i32, i32)> for Board {
+    type Output = Cell;
+
+    fn index(&self, coord: (i32, i32)) -> &Cell {
+        &self.grid[coord.0 as usize][coord.1 as usize]
+    }
+}
+
+impl IndexMut<(i32, i32)> for Board {
+    fn index_mut(&mut self, coord: (i32, i32)) -> &mut Cell {
+        &mut self.grid[coord.0 as usize][coord.1 as usize]
+    }
 }
 
 impl Board {

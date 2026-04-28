@@ -134,7 +134,7 @@ pub fn minimax(
         moves.sort_unstable_by_key(|mv| {
             std::cmp::Reverse(move_order_score(
                 mv,
-                board.grid[mv.origin.row as usize][mv.origin.col as usize].get_piece(),
+                board[(mv.origin.row as usize, mv.origin.col as usize)].get_piece(),
                 killer1,
                 killer2,
                 &ctx.history,
@@ -245,7 +245,7 @@ pub fn minimax(
         moves.sort_unstable_by_key(|mv| {
             std::cmp::Reverse(move_order_score(
                 mv,
-                board.grid[mv.origin.row as usize][mv.origin.col as usize].get_piece(),
+                board[(mv.origin.row as usize, mv.origin.col as usize)].get_piece(),
                 killer1,
                 killer2,
                 &ctx.history,
@@ -337,7 +337,7 @@ pub fn minimax(
 fn has_non_pawn_material(board: &Board, color: Color) -> bool {
     for row in 0..8usize {
         for col in 0..8usize {
-            if let Occupied(piece, c) = board.grid[row][col] {
+            if let Occupied(piece, c) = board[(row, col)] {
                 if c == color && !matches!(piece, Pawn | King) {
                     return true;
                 }
@@ -381,7 +381,7 @@ pub fn find_best_move(
         moves.sort_unstable_by_key(|mv| {
             std::cmp::Reverse(move_order_score(
                 mv,
-                board.grid[mv.origin.row as usize][mv.origin.col as usize].get_piece(),
+                board[(mv.origin.row as usize, mv.origin.col as usize)].get_piece(),
                 killer1,
                 killer2,
                 &ctx.history,
@@ -424,7 +424,7 @@ pub fn find_best_move(
         moves.sort_unstable_by_key(|mv| {
             std::cmp::Reverse(move_order_score(
                 mv,
-                board.grid[mv.origin.row as usize][mv.origin.col as usize].get_piece(),
+                board[(mv.origin.row as usize, mv.origin.col as usize)].get_piece(),
                 killer1,
                 killer2,
                 &ctx.history,

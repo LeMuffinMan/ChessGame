@@ -30,8 +30,8 @@ impl ChessApp {
     ) -> Option<PromoteInfo> {
         let promote_row = if *color == White { 7 } else { 0 };
         for y in 0..8 {
-            if self.game.board.grid[promote_row][y].is_color(color)
-                && let Some(piece) = self.game.board.grid[promote_row][y].get_piece()
+            if self.game.board[(promote_row as usize, y as usize)].is_color(color)
+                && let Some(piece) = self.game.board[(promote_row as usize, y as usize)].get_piece()
                 && *piece == Pawn
             {
                 return Some(PromoteInfo {
@@ -57,7 +57,7 @@ impl ChessApp {
             } else {
                 White
             };
-            self.game.board.grid[coord.row as usize][coord.col as usize] =
+            self.game.board[(coord.row as usize, coord.col as usize)] =
                 Cell::Occupied(piece, color);
 
             self.update_threaten_cells();

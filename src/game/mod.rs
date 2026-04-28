@@ -160,7 +160,7 @@ impl Game {
 
     pub fn apply_promotion(&mut self, coord: Coord, piece: Piece) -> GameEvent {
         let color = self.active_player;
-        self.board.grid[coord.row as usize][coord.col as usize] = Cell::Occupied(piece, color);
+        self.board[(coord.row as usize, coord.col as usize)] = Cell::Occupied(piece, color);
         self.after_move()
     }
 
@@ -216,8 +216,8 @@ impl Game {
     fn find_promotion(&self) -> Option<Coord> {
         let promote_row = if self.active_player == White { 7 } else { 0 };
         for y in 0..8 {
-            if self.board.grid[promote_row][y].is_color(&self.active_player)
-                && self.board.grid[promote_row][y].get_piece() == Some(&Pawn)
+            if self.board[(promote_row as usize, y as usize)].is_color(&self.active_player)
+                && self.board[(promote_row as usize, y as usize)].get_piece() == Some(&Pawn)
             {
                 return Some(Coord {
                     row: promote_row as u8,
@@ -296,8 +296,8 @@ impl Game {
         let mut pieces = Vec::new();
         for x in 0..8 {
             for y in 0..8 {
-                if let Some(piece) = self.board.grid[x][y].get_piece()
-                    && let Some(color) = self.board.grid[x][y].get_color()
+                if let Some(piece) = self.board[(x as usize, y as usize)].get_piece()
+                    && let Some(color) = self.board[(x as usize, y as usize)].get_color()
                 {
                     let cell_color = if (x + y) % 2 == 0 { White } else { Black };
                     pieces.push((*piece, *color, cell_color));
