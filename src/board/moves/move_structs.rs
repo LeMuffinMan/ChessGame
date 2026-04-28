@@ -74,7 +74,7 @@ impl Board {
         let m_type = self.get_move_type(
             origin,
             dest,
-            self.grid[origin.row as usize][origin.col as usize].get_piece(),
+            self[origin].get_piece(),
         );
         self.create_move(origin, dest, active_player, m_type)
     }
@@ -88,10 +88,10 @@ impl Board {
     ) -> Move {
         let capture_cell = match m_type {
             MoveType::EnPassant => match active_player {
-                Color::White => self.grid[(dest.row - 1) as usize][dest.col as usize],
-                Color::Black => self.grid[(dest.row + 1) as usize][dest.col as usize],
+                Color::White => self[Coord { row: dest.row - 1, col: dest.col }],
+                Color::Black => self[Coord { row: dest.row + 1, col: dest.col }],
             },
-            _ => self.grid[dest.row as usize][dest.col as usize],
+            _ => self[dest],
         };
 
         self.new_move(origin, dest, capture_cell, m_type)
@@ -121,7 +121,7 @@ impl Board {
         match piece_moving {
             Some(Pawn) => {
                 if dest.col != origin.col
-                    && self.grid[dest.row as usize][dest.col as usize] == Cell::Free
+                    && self[dest] == Cell::Free
                 {
                     EnPassant
                 } else {

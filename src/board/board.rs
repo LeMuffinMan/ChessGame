@@ -126,7 +126,7 @@ impl Board {
             Black => 7,
         };
         for x in 0..8 {
-            self.grid[color_idx][x] = match x {
+            self[(color_idx, x)] = match x {
                 0 | 7 => Cell::Occupied(Rook, color),
                 1 | 6 => Cell::Occupied(Knight, color),
                 2 | 5 => Cell::Occupied(Bishop, color),
@@ -135,15 +135,10 @@ impl Board {
                 _ => unreachable!(),
             };
             match color_idx {
-                0 => self.grid[color_idx + 1][x] = Cell::Occupied(Pawn, color),
-                7 => self.grid[color_idx - 1][x] = Cell::Occupied(Pawn, color),
+                0 => self[(color_idx + 1, x)] = Cell::Occupied(Pawn, color),
+                7 => self[(color_idx - 1, x)] = Cell::Occupied(Pawn, color),
                 _ => unreachable!(),
             };
-            if color_idx == 0 {
-                self.grid[color_idx + 1][x] = Cell::Occupied(Pawn, color);
-            } else {
-                self.grid[color_idx - 1][x] = Cell::Occupied(Pawn, color);
-            }
         }
     }
 
