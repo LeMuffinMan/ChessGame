@@ -1,5 +1,6 @@
 use crate::ChessApp;
 use crate::Color::*;
+use crate::engine::bot::PlayerType::*;
 use crate::gui::chessapp::AppMode;
 use crate::gui::chessapp::AppMode::*;
 
@@ -18,7 +19,10 @@ impl ChessApp {
                 ui.separator();
                 self.engine_infos(ui, &self.game.active_player);
                 self.new_game_replay(ui, ctx);
-                if self.app_mode == Lobby {
+                if self.app_mode == Lobby
+                    && self.settings.white_bot == Human
+                    && self.settings.black_bot == Human
+                {
                     self.undo_limit(ui);
                     self.timer_increment(ui, ctx);
                 }
