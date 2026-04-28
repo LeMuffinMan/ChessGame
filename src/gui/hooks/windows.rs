@@ -1,5 +1,6 @@
 use crate::ChessApp;
 use crate::board::cell::Color::{Black, White};
+use crate::engine::bot::PlayerType::*;
 use crate::game::End::{self, Draw};
 use crate::gui::chessapp::AppMode::*;
 use crate::gui::layout::UiType::*;
@@ -15,7 +16,6 @@ pub enum WinDia {
     Undo,
     Pgn,
 }
-
 
 impl ChessApp {
     //Promote win ?
@@ -259,7 +259,7 @@ impl ChessApp {
         }
     }
     pub fn ask_undo(&mut self, ctx: &egui::Context) {
-        egui::Window::new("Accept undo ?") //opponent
+        egui::Window::new("Accept undo ?")
             .collapsible(false)
             .resizable(false)
             .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
@@ -273,9 +273,19 @@ impl ChessApp {
                         if self.promoteinfo.is_some() {
                             self.game.history.pop();
                         }
+                        if self.settings.white_bot != Human || self.settings.black_bot != Human {
+                            self.game.history.pop();
+                            if self.promoteinfo.is_some() {
+                                self.game.history.pop();
+                            }
+                        }
                         self.replay_infos.index = self.game.history.len();
                         self.game.board = self.game.board_at(self.replay_infos.index);
-                        self.game.active_player = if self.replay_infos.index % 2 == 0 { White } else { Black };
+                        self.game.active_player = if self.replay_infos.index % 2 == 0 {
+                            White
+                        } else {
+                            Black
+                        };
                         self.update_threaten_cells();
                         self.update_legals_moves();
                     }
