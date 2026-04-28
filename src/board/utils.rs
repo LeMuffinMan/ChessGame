@@ -4,7 +4,7 @@ use crate::board::cell::Cell;
 
 impl Board {
     pub fn get(&self, coord: &Coord) -> Cell {
-        self.grid[coord.row as usize][coord.col as usize]
+        self[*coord]
     }
 
     pub fn print(&self) {
@@ -22,7 +22,7 @@ impl Board {
             println!();
             print!("{} ", y + 1);
             for x in 0..8 {
-                print!("| {} ", self.grid[y][x]);
+                print!("| {} ", self[(y, x)]);
             }
             println!("|");
         }

@@ -37,8 +37,8 @@ pub struct BenchResult {
     pub tt_hits: usize,
     pub quiescence_nodes: u64,
     pub aborted: bool,
-    pub nodes_per_depth: [usize; MAX_SEARCH_DEPTH],
-    pub cutoffs_per_depth: [usize; MAX_SEARCH_DEPTH],
+    // pub nodes_per_depth: [usize; MAX_SEARCH_DEPTH],
+    // pub cutoffs_per_depth: [usize; MAX_SEARCH_DEPTH],
 }
 
 // max_nodes = 0 means no limit.
@@ -58,8 +58,8 @@ pub fn bench_run(fen: &str, color: Color, depth: u8, max_nodes: u64) -> BenchRes
         tt_hits: ctx.stats.tt_hits,
         quiescence_nodes: ctx.stats.quiescence_nodes,
         aborted: ctx.stats.aborted,
-        nodes_per_depth: ctx.stats.nodes_per_depth,
-        cutoffs_per_depth: ctx.stats.cutoffs_per_depth,
+        // nodes_per_depth: ctx.stats.nodes_per_depth,
+        // cutoffs_per_depth: ctx.stats.cutoffs_per_depth,
     }
 }
 

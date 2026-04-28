@@ -28,8 +28,8 @@ impl Board {
 
     fn undo_regular(&mut self, m: &Move, active_player: Color) {
         let moving_piece = self.get(&m.dest);
-        self.grid[m.origin.row as usize][m.origin.col as usize] = moving_piece;
-        self.grid[m.dest.row as usize][m.dest.col as usize] = m.capture;
+        self[m.origin] = moving_piece;
+        self[m.dest] = m.capture;
 
         if let Some(King) = moving_piece.get_piece() {
             match active_player {
@@ -40,9 +40,8 @@ impl Board {
     }
 
     fn undo_promotion(&mut self, m: &Move, active_player: Color) {
-        self.grid[m.origin.row as usize][m.origin.col as usize] =
-            Cell::Occupied(Pawn, active_player);
-        self.grid[m.dest.row as usize][m.dest.col as usize] = m.capture;
+        self[m.origin] = Cell::Occupied(Pawn, active_player);
+        self[m.dest] = m.capture;
     }
 
     fn undo_castle(&mut self, m: &Move, active_player: Color, side: CastleSide) {
@@ -50,11 +49,11 @@ impl Board {
         let (r_orig, r_dest) = if side == Right { (7, 5) } else { (0, 3) };
         let rook = Cell::Occupied(Rook, active_player);
 
-        self.grid[row as usize][r_dest as usize] = Cell::Free;
-        self.grid[row as usize][r_orig as usize] = rook;
+        self[(row as usize, r_dest as usize)] = Cell::Free;
+        self[(row as usize, r_orig as usize)] = rook;
 
-        self.grid[row as usize][4] = Cell::Occupied(King, active_player);
-        self.grid[m.dest.row as usize][m.dest.col as usize] = Cell::Free;
+        self[(row as usize, 4usize)] = Cell::Occupied(King, active_player);
+        self[m.dest] = Cell::Free;
 
         if active_player == White {
             self.white_king = Coord { row: 0, col: 4 };
@@ -64,10 +63,9 @@ impl Board {
     }
 
     fn undo_en_passant(&mut self, m: &Move, active_player: Color, capture_coord: &Coord) {
-        self.grid[m.dest.row as usize][m.dest.col as usize] = Cell::Free;
-        self.grid[capture_coord.row as usize][capture_coord.col as usize] = m.capture;
-        self.grid[m.origin.row as usize][m.origin.col as usize] =
-            Cell::Occupied(Pawn, active_player);
+        self[m.dest] = Cell::Free;
+        self[*capture_coord] = m.capture;
+        self[m.origin] = Cell::Occupied(Pawn, active_player);
     }
 
     fn copy_move_infos(&mut self, m: &Move) {

@@ -28,7 +28,7 @@ impl Board {
         self.update_capture_rook(m);
 
         if let EnPassant = m.move_type {
-            self.grid[capture_coord.row as usize][capture_coord.col as usize] = Cell::Free;
+            self[capture_coord] = Cell::Free;
         }
 
         self.grid[m.dest.row as usize][m.dest.col as usize] = std::mem::replace(
@@ -37,8 +37,7 @@ impl Board {
         );
 
         if let Promotion(promoted) = m.move_type {
-            self.grid[m.dest.row as usize][m.dest.col as usize] =
-                Cell::Occupied(promoted, active_player);
+            self[m.dest] = Cell::Occupied(promoted, active_player);
         }
 
         if let Castle(side) = m.move_type {
@@ -46,8 +45,8 @@ impl Board {
             let (r_orig, r_dest) = if side == Right { (7, 5) } else { (0, 3) };
             let rook = Cell::Occupied(Rook, active_player);
             self.update_board_score(&rook, &Coord { row, col: r_orig }, false);
-            self.grid[row as usize][r_orig as usize] = Cell::Free;
-            self.grid[row as usize][r_dest as usize] = rook;
+            self[(row as usize, r_orig as usize)] = Cell::Free;
+            self[(row as usize, r_dest as usize)] = rook;
             self.update_board_score(&rook, &Coord { row, col: r_dest }, true);
         }
 
