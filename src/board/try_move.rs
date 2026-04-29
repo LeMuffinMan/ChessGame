@@ -2,8 +2,8 @@ use crate::Board;
 use crate::ChessApp;
 use crate::Color::*;
 use crate::Coord;
-use crate::game::End::*;
-use crate::game::GameEvent;
+use crate::game::End;
+use crate::game::GameEvent::*;
 use crate::gui::chessapp::AppMode::*;
 
 impl ChessApp {
@@ -18,7 +18,7 @@ impl ChessApp {
             }
 
             if self.game.draw.draw_option.is_some() && self.is_bot_turn() {
-                self.game.end = Some(Draw);
+                self.game.end = Some(End::Draw);
             }
 
             self.last_move = Some((from, to));
@@ -32,7 +32,7 @@ impl ChessApp {
             }
 
             match event {
-                GameEvent::PromotionPending(coord) => {
+                PromotionPending(coord) => {
                     let prev_board = self.game.board_at(self.game.history.len() - 1);
                     self.promoteinfo = Some(crate::gui::hooks::promote::PromoteInfo {
                         from,
@@ -42,8 +42,8 @@ impl ChessApp {
                         promote: None,
                     });
                 }
-                GameEvent::Checkmate => {
-                    self.app_mode = Versus(Some(Checkmate));
+                Checkmate => {
+                    self.app_mode = Versus(Some(End::Checkmate));
                     self.timer.active = false;
                     self.add_history_san(
                         &from,
@@ -51,8 +51,8 @@ impl ChessApp {
                         &self.game.board_at(self.game.history.len() - 1).clone(),
                     );
                 }
-                GameEvent::Stalemate => {
-                    self.app_mode = Versus(Some(Pat));
+                Stalemate => {
+                    self.app_mode = Versus(Some(End::Pat));
                     self.timer.active = false;
                     self.add_history_san(
                         &from,
@@ -60,15 +60,15 @@ impl ChessApp {
                         &self.game.board_at(self.game.history.len() - 1).clone(),
                     );
                 }
-                GameEvent::Draw => {
-                    self.app_mode = Versus(Some(Draw));
+                Draw => {
+                    self.app_mode = Versus(Some(End::Draw));
                     self.add_history_san(
                         &from,
                         &to,
                         &self.game.board_at(self.game.history.len() - 1).clone(),
                     );
                 }
-                GameEvent::Ok | GameEvent::Check => {
+                Ok | Check => {
                     let prev_board = self.game.board_at(self.game.history.len() - 1);
                     self.add_history_san(&from, &to, &prev_board);
                     // if self.game.end.is_none() && self.is_bot_turn() {

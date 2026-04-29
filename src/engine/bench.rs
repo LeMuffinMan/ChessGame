@@ -2,6 +2,7 @@ use crate::Board;
 use crate::board::cell::Color;
 use crate::engine::minimax::find_best_move;
 use crate::engine::search_context::SearchContext;
+use std::collections::HashMap;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 const START_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -46,8 +47,9 @@ pub fn bench_run(fen: &str, color: Color, depth: u8, max_nodes: u64) -> BenchRes
     let mut board = Board::board_from_fen(fen).board;
     let mut ctx = SearchContext::new();
     ctx.stats.max_nodes = max_nodes;
+    let hashmap: HashMap<u64, usize> = HashMap::new();
     let t0 = now_ms();
-    find_best_move(&mut board, color, depth, &mut ctx);
+    find_best_move(&mut board, color, depth, &mut ctx, &hashmap);
     let time_ms = now_ms() - t0;
     BenchResult {
         nodes: ctx.stats.nodes,
@@ -129,16 +131,28 @@ pub fn run_bench(depth: u8, max_nodes: u32) -> String {
 }
 
 fn run_n(fen: &str, color: Color, depth: u8, max_nodes: u64) -> (BenchResult, f64) {
-    for _ in 0..2 {
-        bench_run(fen, color, depth, max_nodes);
-    }
-    let first = bench_run(fen, color, depth, max_nodes);
-    let mut min = first.time_ms;
-    for _ in 1..5 {
+    // warmup for JIT opt : run for 500ms
+    // let warmup_start = now_ms();
+    // while now_ms() - warmup_start < 500.0 {
+    //     let warmup_depth = if depth > 8 { 5 } else { depth };
+    //     bench_run(fen, color, warmup_depth, max_nodes);
+    // }
+
+    const NB_RUNS: usize = 5;
+    let mut times = Vec::with_capacity(NB_RUNS);
+
+    let mut stats_result = bench_run(fen, color, depth, max_nodes);
+    times.push(stats_result.time_ms);
+
+    for _ in 1..NB_RUNS {
         let r = bench_run(fen, color, depth, max_nodes);
-        if r.time_ms < min {
-            min = r.time_ms;
-        }
+        times.push(r.time_ms);
     }
-    (first, min)
+
+    times.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    let median_time = times[NB_RUNS / 2];
+
+    stats_result.time_ms = median_time;
+
+    (stats_result, median_time)
 }

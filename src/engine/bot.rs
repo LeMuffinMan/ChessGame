@@ -13,6 +13,7 @@ use crate::engine::minimax::iterative_deepening;
 use crate::engine::search_context::SearchContext;
 use crate::gui::chessapp::AppMode::*;
 use js_sys::Math;
+use std::collections::HashMap;
 use web_sys::window;
 
 #[derive(PartialEq, Debug, Copy, Clone)]
@@ -31,9 +32,10 @@ pub fn get_bot_move(
     board: &mut Board,
     active_player: Color,
     ctx: &mut SearchContext,
+    game_history: &HashMap<u64, usize>,
 ) -> Option<Move> {
     match difficulty {
-        Bot(Depth(d)) => iterative_deepening(board, active_player, *d, ctx),
+        Bot(Depth(d)) => iterative_deepening(board, active_player, *d, ctx, game_history),
         Bot(Random) => {
             let mut move_list = MoveList::new();
             generate_moves(board, &active_player, &mut move_list, false);
@@ -87,6 +89,7 @@ impl ChessApp {
             &mut self.game.board,
             self.game.active_player,
             &mut self.search_ctx,
+            &self.game.draw.board_hashs,
         );
         let end = performance.now();
         self.search_ctx.stats.bot_time_thinking = end - start;

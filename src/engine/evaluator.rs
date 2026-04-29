@@ -98,7 +98,7 @@ pub fn evaluate(board: &Board) -> i32 {
     let phase = game_phase(board);
     let safety = king_safety(board, White) - king_safety(board, Black);
     let safety_weight = (phase * 60.0) as i32;
-    board.score + safety * safety_weight / 100 + king_pst_delta(board, phase)
+    board.score + safety * safety_weight / 100 + king_pst_delta(board, phase) + mop_up_eval(board)
 }
 
 pub fn non_pawn_raw(piece: &Piece) -> i32 {
@@ -167,6 +167,111 @@ fn king_pst_delta(board: &Board, phase: f32) -> i32 {
     let w_delta = KING_PST_EG[w_idx] - KING_PST[w_idx];
     let b_delta = KING_PST_EG[b_idx] - KING_PST[b_idx];
     ((w_delta - b_delta) as f32 * eg_weight) as i32
+}
+
+// Mop-up eval : active when weak side has only a king and strong side has at least one R or Q.
+// reward if the weak king is in a corner, and if the two kings are close to each other
+fn mop_up_eval(board: &Board) -> i32 {
+    let (white_npm, black_npm) = per_side_npm(board);
+
+    let (sign, weak_king, strong_king, strong_color) =
+        if black_npm == 0 && has_rook_or_queen(board, White) {
+            (1i32, board.black_king, board.white_king, White)
+        } else if white_npm == 0 && has_rook_or_queen(board, Black) {
+            (-1i32, board.white_king, board.black_king, Black)
+        } else {
+            return 0;
+        };
+
+    let cmd = king_corner_pressure(weak_king);
+    let kd = king_manhattan_dist(strong_king, weak_king);
+    let cut = rook_cut_bonus(board, strong_color, weak_king);
+    let bcut = bishop_cut_bonus(board, strong_color, weak_king);
+    sign * (80 * cmd + 30 * (14 - kd) + cut + bcut)
+}
+
+fn per_side_npm(board: &Board) -> (i32, i32) {
+    let mut white = 0;
+    let mut black = 0;
+    for row in &board.grid {
+        for cell in row {
+            if let Occupied(piece, color) = cell {
+                let npm = non_pawn_raw(piece);
+                if npm > 0 {
+                    if *color == White {
+                        white += npm;
+                    } else {
+                        black += npm;
+                    }
+                }
+            }
+        }
+    }
+    (white, black)
+}
+
+// Reward rooks on the same rank or file as the weak king — the "cutting" technique.
+// Each rook on the same rank gives +40, each rook on the same file gives +40.
+// Queens get +20 (they already dominate the board).
+fn rook_cut_bonus(board: &Board, strong_color: Color, weak_king: Coord) -> i32 {
+    let mut bonus = 0i32;
+    for r in 0..8usize {
+        for c in 0..8usize {
+            match board[(r, c)] {
+                Occupied(Rook, color) if color == strong_color => {
+                    if r == weak_king.row as usize || c == weak_king.col as usize {
+                        bonus += 40;
+                    }
+                }
+                Occupied(Queen, color) if color == strong_color => {
+                    if r == weak_king.row as usize || c == weak_king.col as usize {
+                        bonus += 20;
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+    bonus
+}
+
+// Reward bishops on the same diagonal as the weak king — covers escape squares.
+// +35 per bishop sharing a positive or anti-diagonal with the weak king.
+fn bishop_cut_bonus(board: &Board, strong_color: Color, weak_king: Coord) -> i32 {
+    let mut bonus = 0i32;
+    let k_diag = weak_king.row as i8 - weak_king.col as i8;
+    let k_anti = weak_king.row as i8 + weak_king.col as i8;
+    for r in 0..8usize {
+        for c in 0..8usize {
+            if let Occupied(Bishop, color) = board[(r, c)] {
+                if color == strong_color {
+                    let b_diag = r as i8 - c as i8;
+                    let b_anti = r as i8 + c as i8;
+                    if b_diag == k_diag || b_anti == k_anti {
+                        bonus += 35;
+                    }
+                }
+            }
+        }
+    }
+    bonus
+}
+
+fn has_rook_or_queen(board: &Board, color: Color) -> bool {
+    board.grid.iter().flatten().any(|cell| {
+        matches!(cell, Occupied(Rook, c) | Occupied(Queen, c) if *c == color)
+    })
+}
+
+// 0 = center  6 = corner
+fn king_corner_pressure(king: Coord) -> i32 {
+    let r = king.row as i32;
+    let c = king.col as i32;
+    (3 - r).max(r - 4).max(0) + (3 - c).max(c - 4).max(0)
+}
+
+fn king_manhattan_dist(origin: Coord, dest: Coord) -> i32 {
+    (origin.row as i32 - dest.row as i32).abs() + (origin.col as i32 - dest.col as i32).abs()
 }
 
 pub fn get_piece_value_at(piece: &Piece, color: &Color, target: &Coord) -> i32 {

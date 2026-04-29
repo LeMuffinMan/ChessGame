@@ -10,6 +10,7 @@ use crate::board::moves::move_structs::MoveList;
 use crate::engine::evaluator::{evaluate, get_piece_value_at, non_pawn_raw};
 use crate::engine::minimax::{find_best_move, minimax};
 use crate::engine::search_context::SearchContext;
+use std::collections::HashMap;
 
 fn coord(row: u8, col: u8) -> Coord {
     Coord { row, col }
@@ -120,7 +121,7 @@ fn test_evaluate_white_queen_advantage() {
     let mut board = empty_board(coord(0, 0), coord(7, 7));
     board[(3, 3)] = Occupied(Queen, White);
     recompute_score(&mut board);
-    assert_eq!(evaluate(&board), 905);
+    assert_eq!(evaluate(&board), 1385);
 }
 
 // White rook on d4 and black queen on d5 not defended : bot should take
@@ -132,7 +133,7 @@ fn test_captures_free_queen() {
     recompute_score(&mut board);
     board.sync_hash(White);
 
-    let mv = find_best_move(&mut board, White, 2, &mut test_ctx()).expect("should find a move");
+    let mv = find_best_move(&mut board, White, 2, &mut test_ctx(), &HashMap::new()).expect("should find a move");
     assert_eq!(mv.origin, coord(3, 3));
     assert_eq!(mv.dest, coord(4, 3));
 }
@@ -150,7 +151,7 @@ fn test_avoids_losing_rook_depth2() {
     recompute_score(&mut board);
     board.sync_hash(White);
 
-    let mv = find_best_move(&mut board, White, 2, &mut test_ctx()).expect("should find a move");
+    let mv = find_best_move(&mut board, White, 2, &mut test_ctx(), &HashMap::new()).expect("should find a move");
     let is_bad_capture = mv.origin == coord(3, 3) && mv.dest == coord(3, 4);
     assert!(
         !is_bad_capture,
@@ -167,7 +168,7 @@ fn test_stalemate_returns_zero() {
     board.sync_hash(Black);
 
     let mut ctx = test_ctx();
-    let score = minimax(&mut board, 1, Black, -1_000_000, 1_000_000, &mut ctx, true);
+    let score = minimax(&mut board, 1, Black, -1_000_000, 1_000_000, &mut ctx, true, &HashMap::new());
     assert_eq!(
         score, -50,
         "stalemate caused by winning side should return contempt penalty"
@@ -179,12 +180,11 @@ fn test_checkmate_returns_mate_score() {
     let mut board = empty_board(coord(5, 5), coord(7, 7));
     board[(6, 6)] = Occupied(Queen, White);
     board[(0, 7)] = Occupied(Rook, White);
-    board.check = Some(coord(7, 7));
     recompute_score(&mut board);
     board.sync_hash(Black);
 
     let mut ctx = test_ctx();
-    let score = minimax(&mut board, 1, Black, -1_000_000, 1_000_000, &mut ctx, true);
+    let score = minimax(&mut board, 1, Black, -1_000_000, 1_000_000, &mut ctx, true, &HashMap::new());
     assert!(
         score > 100_000,
         "checkmate should return a large positive score (white wins), got {score}"
