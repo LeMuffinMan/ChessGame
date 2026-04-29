@@ -30,6 +30,7 @@ impl SearchContext {
 
     pub fn reset_stats(&mut self) {
         self.killers = KillerTable::new();
+        self.tt.clear();
         self.stats.reset();
     }
 

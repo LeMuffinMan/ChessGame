@@ -8,6 +8,7 @@ use crate::board::cell::Piece::*;
 use crate::board::is_king_exposed::is_king_exposed;
 use crate::board::moves::move_gen::generate_moves;
 use crate::board::moves::move_structs::{Move, MoveList};
+use crate::game::GameEvent::*;
 use crate::game::{DrawOption::*, DrawRule::*};
 use std::collections::HashMap;
 
@@ -145,13 +146,13 @@ impl Game {
 
         if self.impossible_mate_check() {
             self.end = Some(End::Draw);
-            return Some(GameEvent::Draw);
+            return Some(Draw);
         }
         self.add_hash();
 
         if let Some(Available(TripleRepetition(_))) = self.draw.draw_option {
             self.end = Some(End::Draw);
-            return Some(GameEvent::Draw);
+            return Some(Draw);
         }
 
         if self.active_player == Black {
@@ -159,7 +160,7 @@ impl Game {
         }
 
         if let Some(coord) = self.find_promotion() {
-            return Some(GameEvent::PromotionPending(coord));
+            return Some(PromotionPending(coord));
         }
 
         Some(self.after_move())
@@ -212,13 +213,16 @@ impl Game {
     fn validate_and_build(&mut self, from: Coord, to: Coord) -> Option<Move> {
         let mut move_list = MoveList::new();
         generate_moves(&mut self.board, &self.active_player, &mut move_list, false);
-        let legal = move_list.moves[..move_list.count]
+        // Use the pre-built move from the legal list directly — avoids rebuilding with
+        // wrong move_type (e.g. promotions) and prevents king-capture moves from leaking through.
+        move_list.moves[..move_list.count]
             .iter()
-            .any(|m| m.origin == from && m.dest == to);
-        if !legal {
-            return None;
-        }
-        Some(self.board.build_move(from, to, self.active_player))
+            .find(|m| {
+                m.origin == from
+                    && m.dest == to
+                    && !matches!(m.capture, Cell::Occupied(King, _))
+            })
+            .copied()
     }
 
     fn find_promotion(&self) -> Option<Coord> {
@@ -256,20 +260,20 @@ impl Game {
             if self.threaten_cells.contains(&king) {
                 self.end = Some(End::Checkmate);
                 self.board.check = Some(king);
-                return GameEvent::Checkmate;
+                return Checkmate;
             } else {
                 self.end = Some(End::Pat);
-                return GameEvent::Stalemate;
+                return Stalemate;
             }
         }
 
         if self.threaten_cells.contains(&king) {
             self.board.check = Some(king);
-            return GameEvent::Check;
+            return Check;
         }
 
         self.board.check = None;
-        GameEvent::Ok
+        Ok
     }
 
     fn fifty_moves_draw_check(&mut self, m: &Move) {

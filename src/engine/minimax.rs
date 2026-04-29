@@ -14,6 +14,7 @@ use crate::engine::move_ordering::move_order_score;
 use crate::engine::search_context::SearchContext;
 use crate::engine::ttentry::{TtEntry, TtFlag};
 use crate::engine::zobris_table::zobrist;
+use std::collections::HashMap;
 
 const MATE_SCORE: i32 = 1_000_000;
 
@@ -25,11 +26,17 @@ pub fn minimax(
     mut beta: i32,
     ctx: &mut SearchContext,
     null_move_allowed: bool,
+    game_history: &HashMap<u64, usize>,
 ) -> i32 {
     ctx.incremente_node();
 
     if ctx.stats.max_nodes > 0 && ctx.stats.nodes >= ctx.stats.max_nodes {
         ctx.stats.aborted = true;
+        return 0;
+    }
+
+    // A position seen 2+ times in the real game becomes a draw on the 3rd occurrence.
+    if game_history.get(&board.hash).copied().unwrap_or(0) >= 2 {
         return 0;
     }
 
@@ -70,7 +77,7 @@ pub fn minimax(
     let moves = &mut move_list.moves[..move_list.count];
 
     if moves.is_empty() {
-        return if board.check.is_some() {
+        return if is_king_exposed(board, &active_player) {
             is_mate_or_pat(active_player, depth)
         } else {
             //we want a winning bot to see a pat as not a good option
@@ -103,6 +110,7 @@ pub fn minimax(
         && depth >= 3
         && board.check.is_none()
         && has_non_pawn_material(board, active_player)
+        && has_non_pawn_material(board, opponent)
     {
         let zt = zobrist();
         let prev_ep = board.en_passant;
@@ -113,14 +121,14 @@ pub fn minimax(
         }
         board.en_passant = None;
         if active_player == Color::White {
-            let null_score = minimax(board, depth - 3, opponent, beta - 1, beta, ctx, false);
+            let null_score = minimax(board, depth - 3, opponent, beta.saturating_sub(1), beta, ctx, false, game_history);
             board.en_passant = prev_ep;
             board.hash = prev_hash;
             if null_score >= beta {
                 return beta;
             }
         } else {
-            let null_score = minimax(board, depth - 3, opponent, alpha, alpha + 1, ctx, false);
+            let null_score = minimax(board, depth - 3, opponent, alpha, alpha.saturating_add(1), ctx, false, game_history);
             board.en_passant = prev_ep;
             board.hash = prev_hash;
             if null_score <= alpha {
@@ -161,7 +169,7 @@ pub fn minimax(
             let ext: u8 = u8::from(gives_check && depth == 1);
             ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1 + ext, opponent, alpha, beta, ctx, true)
+                minimax(board, depth - 1 + ext, opponent, alpha, beta, ctx, true, game_history)
             } else {
                 //for (as first sight) bad moves, we prune as much as possible
                 let is_quiet = m.capture == Free
@@ -173,7 +181,7 @@ pub fn minimax(
                 //Late move reduction: in a quiet situation, early in the tree, but after 3 iterations in available moves,
                 // r works as ext, if we already iterated 3 times, this move might be bad or average
                 // So, we want to search r deeper now, scouting if this move worth to explore or to skip
-                let r: u8 = if is_quiet && depth >= 3 && i >= 3 {
+                let r: u8 = if is_quiet && !gives_check && depth >= 3 && i >= 3 {
                     if i >= 6 { 2 } else { 1 }
                 } else {
                     0
@@ -182,12 +190,13 @@ pub fn minimax(
                 // It's betting it's bad, and reducing search in it, but still giving a chance to prove it could lead to something better
                 let scout = minimax(
                     board,
-                    (depth - 1 + ext).saturating_sub(r), //remplacer par - r et virer aussi satu add
+                    (depth - 1 + ext).saturating_sub(r),
                     opponent,
                     alpha,
-                    alpha + 1,
+                    alpha.saturating_add(1),
                     ctx,
                     true,
+                    game_history,
                 );
                 // scout <= alpha : the move is bad as we bet, we won't research and benefit of the scout economy
                 // scout > alpha r == 0 : fail high: the cut is reliable, we return scout, and the cutoff will occure by the caller
@@ -195,7 +204,7 @@ pub fn minimax(
                 //  So we want to research with full window to get the real value of this move
                 // scout > alpha && r > 0 : we were near the leafs and a may be a fail-high, so we want to research to confirm it and cut by caller if yes
                 if scout > alpha && (r > 0 || scout < beta) {
-                    minimax(board, depth - 1 + ext, opponent, alpha, beta, ctx, true)
+                    minimax(board, depth - 1 + ext, opponent, alpha, beta, ctx, true, game_history)
                 } else {
                     scout
                 }
@@ -227,7 +236,7 @@ pub fn minimax(
         } else {
             TtFlag::Exact
         };
-        //a cut at a high depth is more interesting as a cut a low depth
+        //a cut at a high depth is more interesting as a cut at low depth
         let should_store = ctx.tt.get(&board.hash).map_or(true, |e| depth >= e.depth);
         if should_store {
             ctx.tt.insert(
@@ -266,14 +275,14 @@ pub fn minimax(
             let ext: u8 = u8::from(gives_check && depth == 1);
             ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1 + ext, opponent, alpha, beta, ctx, true)
+                minimax(board, depth - 1 + ext, opponent, alpha, beta, ctx, true, game_history)
             } else {
                 let is_quiet = m.capture == Free
                     && !matches!(m.move_type, Promotion(_))
                     && m.check.is_none()
                     && killer1 != Some(m)
                     && killer2 != Some(m);
-                let r: u8 = if is_quiet && depth >= 3 && i >= 3 {
+                let r: u8 = if is_quiet && !gives_check && depth >= 3 && i >= 3 {
                     if i >= 6 { 2 } else { 1 }
                 } else {
                     0
@@ -282,13 +291,14 @@ pub fn minimax(
                     board,
                     (depth - 1 + ext).saturating_sub(r),
                     opponent,
-                    beta - 1,
+                    beta.saturating_sub(1),
                     beta,
                     ctx,
                     true,
+                    game_history,
                 );
                 if scout < beta && (r > 0 || scout > alpha) {
-                    minimax(board, depth - 1 + ext, opponent, alpha, beta, ctx, true)
+                    minimax(board, depth - 1 + ext, opponent, alpha, beta, ctx, true, game_history)
                 } else {
                     scout
                 }
@@ -360,6 +370,7 @@ pub fn find_best_move(
     active_player: Color,
     depth: u8,
     ctx: &mut SearchContext,
+    game_history: &HashMap<u64, usize>,
 ) -> Option<Move> {
     let mut move_list = MoveList::new();
     generate_moves(board, &active_player, &mut move_list, false);
@@ -395,19 +406,20 @@ pub fn find_best_move(
             let ext: u8 = u8::from(gives_check && depth == 1);
             ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1 + ext, opponent, alpha, i32::MAX, ctx, true)
+                minimax(board, depth - 1 + ext, opponent, alpha, i32::MAX, ctx, true, game_history)
             } else {
                 let scout = minimax(
                     board,
                     depth - 1 + ext,
                     opponent,
                     alpha,
-                    alpha + 1,
+                    alpha.saturating_add(1),
                     ctx,
                     true,
+                    game_history,
                 );
                 if scout > alpha {
-                    minimax(board, depth - 1 + ext, opponent, alpha, i32::MAX, ctx, true)
+                    minimax(board, depth - 1 + ext, opponent, alpha, i32::MAX, ctx, true, game_history)
                 } else {
                     scout
                 }
@@ -438,11 +450,11 @@ pub fn find_best_move(
             let ext: u8 = u8::from(gives_check && depth == 1);
             ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1 + ext, opponent, i32::MIN, beta, ctx, true)
+                minimax(board, depth - 1 + ext, opponent, i32::MIN, beta, ctx, true, game_history)
             } else {
-                let scout = minimax(board, depth - 1 + ext, opponent, beta - 1, beta, ctx, true);
+                let scout = minimax(board, depth - 1 + ext, opponent, beta.saturating_sub(1), beta, ctx, true, game_history);
                 if scout < beta {
-                    minimax(board, depth - 1 + ext, opponent, i32::MIN, beta, ctx, true)
+                    minimax(board, depth - 1 + ext, opponent, i32::MIN, beta, ctx, true, game_history)
                 } else {
                     scout
                 }
@@ -465,11 +477,12 @@ pub fn iterative_deepening(
     active_player: Color,
     max_depth: u8,
     ctx: &mut SearchContext,
+    game_history: &HashMap<u64, usize>,
 ) -> Option<Move> {
     let mut best_move = None;
     for depth in 1..=max_depth {
         ctx.stats.reset();
-        let candidate = find_best_move(board, active_player, depth, ctx);
+        let candidate = find_best_move(board, active_player, depth, ctx, game_history);
         if ctx.stats.aborted {
             break;
         }
