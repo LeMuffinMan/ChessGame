@@ -121,7 +121,7 @@ fn test_evaluate_white_queen_advantage() {
     let mut board = empty_board(coord(0, 0), coord(7, 7));
     board[(3, 3)] = Occupied(Queen, White);
     recompute_score(&mut board);
-    assert_eq!(evaluate(&board), 1385);
+    assert_eq!(evaluate(&board), 1340);
 }
 
 // White rook on d4 and black queen on d5 not defended : bot should take
@@ -133,7 +133,7 @@ fn test_captures_free_queen() {
     recompute_score(&mut board);
     board.sync_hash(White);
 
-    let mv = find_best_move(&mut board, White, 2, &mut test_ctx(), &HashMap::new()).expect("should find a move");
+    let mv = find_best_move(&mut board, White, 2, &mut test_ctx(), &HashMap::new(), 0).expect("should find a move");
     assert_eq!(mv.origin, coord(3, 3));
     assert_eq!(mv.dest, coord(4, 3));
 }
@@ -151,7 +151,7 @@ fn test_avoids_losing_rook_depth2() {
     recompute_score(&mut board);
     board.sync_hash(White);
 
-    let mv = find_best_move(&mut board, White, 2, &mut test_ctx(), &HashMap::new()).expect("should find a move");
+    let mv = find_best_move(&mut board, White, 2, &mut test_ctx(), &HashMap::new(), 0).expect("should find a move");
     let is_bad_capture = mv.origin == coord(3, 3) && mv.dest == coord(3, 4);
     assert!(
         !is_bad_capture,
@@ -168,7 +168,7 @@ fn test_stalemate_returns_zero() {
     board.sync_hash(Black);
 
     let mut ctx = test_ctx();
-    let score = minimax(&mut board, 1, Black, -1_000_000, 1_000_000, &mut ctx, true, &HashMap::new());
+    let score = minimax(&mut board, 1, Black, -1_000_000, 1_000_000, &mut ctx, true, &HashMap::new(), 0);
     assert_eq!(
         score, -50,
         "stalemate caused by winning side should return contempt penalty"
@@ -184,7 +184,7 @@ fn test_checkmate_returns_mate_score() {
     board.sync_hash(Black);
 
     let mut ctx = test_ctx();
-    let score = minimax(&mut board, 1, Black, -1_000_000, 1_000_000, &mut ctx, true, &HashMap::new());
+    let score = minimax(&mut board, 1, Black, -1_000_000, 1_000_000, &mut ctx, true, &HashMap::new(), 0);
     assert!(
         score > 100_000,
         "checkmate should return a large positive score (white wins), got {score}"

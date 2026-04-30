@@ -187,7 +187,8 @@ fn mop_up_eval(board: &Board) -> i32 {
     let kd = king_manhattan_dist(strong_king, weak_king);
     let cut = rook_cut_bonus(board, strong_color, weak_king);
     let bcut = bishop_cut_bonus(board, strong_color, weak_king);
-    sign * (80 * cmd + 30 * (14 - kd) + cut + bcut)
+    let freedom = king_freedom(weak_king, board, strong_color);
+    sign * (80 * cmd + 30 * (14 - kd) + cut + bcut - 15 * freedom)
 }
 
 fn per_side_npm(board: &Board) -> (i32, i32) {
@@ -268,6 +269,26 @@ fn king_corner_pressure(king: Coord) -> i32 {
     let r = king.row as i32;
     let c = king.col as i32;
     (3 - r).max(r - 4).max(0) + (3 - c).max(c - 4).max(0)
+}
+
+// Count squares around the weak king not occupied by the strong side — fewer = better for strong.
+fn king_freedom(weak_king: Coord, board: &Board, strong_color: Color) -> i32 {
+    let mut count = 0i32;
+    for dr in -1i8..=1 {
+        for dc in -1i8..=1 {
+            if dr == 0 && dc == 0 {
+                continue;
+            }
+            let r = weak_king.row as i8 + dr;
+            let c = weak_king.col as i8 + dc;
+            if (0..8).contains(&r) && (0..8).contains(&c)
+                && !matches!(board[(r as usize, c as usize)], Occupied(_, color) if color == strong_color)
+            {
+                count += 1;
+            }
+        }
+    }
+    count
 }
 
 fn king_manhattan_dist(origin: Coord, dest: Coord) -> i32 {
