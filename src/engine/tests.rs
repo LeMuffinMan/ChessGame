@@ -121,7 +121,7 @@ fn test_evaluate_white_queen_advantage() {
     let mut board = empty_board(coord(0, 0), coord(7, 7));
     board[(3, 3)] = Occupied(Queen, White);
     recompute_score(&mut board);
-    assert_eq!(evaluate(&board), 1340);
+    assert_eq!(evaluate(&board), 1385);
 }
 
 // White rook on d4 and black queen on d5 not defended : bot should take

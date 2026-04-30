@@ -126,14 +126,34 @@ pub fn minimax(
         }
         board.en_passant = None;
         if active_player == Color::White {
-            let null_score = minimax(board, depth - 3, opponent, beta.saturating_sub(1), beta, ctx, false, game_history, fifty_count);
+            let null_score = minimax(
+                board,
+                depth - 3,
+                opponent,
+                beta.saturating_sub(1),
+                beta,
+                ctx,
+                false,
+                game_history,
+                fifty_count,
+            );
             board.en_passant = prev_ep;
             board.hash = prev_hash;
             if null_score >= beta {
                 return beta;
             }
         } else {
-            let null_score = minimax(board, depth - 3, opponent, alpha, alpha.saturating_add(1), ctx, false, game_history, fifty_count);
+            let null_score = minimax(
+                board,
+                depth - 3,
+                opponent,
+                alpha,
+                alpha.saturating_add(1),
+                ctx,
+                false,
+                game_history,
+                fifty_count,
+            );
             board.en_passant = prev_ep;
             board.hash = prev_hash;
             if null_score <= alpha {
@@ -165,8 +185,7 @@ pub fn minimax(
             {
                 continue;
             }
-            let is_pawn_move = board[(m.origin.row as usize, m.origin.col as usize)].get_piece() == Some(&Pawn);
-            let new_fifty = if m.capture != Free || is_pawn_move { 0 } else { fifty_count + 1 };
+            let new_fifty = update_fifty_count(board, &m, fifty_count);
             board.apply_move(&m, active_player);
             let gives_check = is_king_exposed(board, &opponent);
 
@@ -176,7 +195,17 @@ pub fn minimax(
             let ext: u8 = u8::from(gives_check && depth == 1);
             ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1 + ext, opponent, alpha, beta, ctx, true, game_history, new_fifty)
+                minimax(
+                    board,
+                    depth - 1 + ext,
+                    opponent,
+                    alpha,
+                    beta,
+                    ctx,
+                    true,
+                    game_history,
+                    new_fifty,
+                )
             } else {
                 //for (as first sight) bad moves, we prune as much as possible
                 let is_quiet = m.capture == Free
@@ -212,7 +241,17 @@ pub fn minimax(
                 //  So we want to research with full window to get the real value of this move
                 // scout > alpha && r > 0 : we were near the leafs and a may be a fail-high, so we want to research to confirm it and cut by caller if yes
                 if scout > alpha && (r > 0 || scout < beta) {
-                    minimax(board, depth - 1 + ext, opponent, alpha, beta, ctx, true, game_history, new_fifty)
+                    minimax(
+                        board,
+                        depth - 1 + ext,
+                        opponent,
+                        alpha,
+                        beta,
+                        ctx,
+                        true,
+                        game_history,
+                        new_fifty,
+                    )
                 } else {
                     scout
                 }
@@ -278,14 +317,23 @@ pub fn minimax(
             {
                 continue;
             }
-            let is_pawn_move = board[(m.origin.row as usize, m.origin.col as usize)].get_piece() == Some(&Pawn);
-            let new_fifty = if m.capture != Free || is_pawn_move { 0 } else { fifty_count + 1 };
+            let new_fifty = update_fifty_count(board, &m, fifty_count);
             board.apply_move(&m, active_player);
             let gives_check = is_king_exposed(board, &opponent);
             let ext: u8 = u8::from(gives_check && depth == 1);
             ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1 + ext, opponent, alpha, beta, ctx, true, game_history, new_fifty)
+                minimax(
+                    board,
+                    depth - 1 + ext,
+                    opponent,
+                    alpha,
+                    beta,
+                    ctx,
+                    true,
+                    game_history,
+                    new_fifty,
+                )
             } else {
                 let is_quiet = m.capture == Free
                     && !matches!(m.move_type, Promotion(_))
@@ -309,7 +357,17 @@ pub fn minimax(
                     new_fifty,
                 );
                 if scout < beta && (r > 0 || scout > alpha) {
-                    minimax(board, depth - 1 + ext, opponent, alpha, beta, ctx, true, game_history, new_fifty)
+                    minimax(
+                        board,
+                        depth - 1 + ext,
+                        opponent,
+                        alpha,
+                        beta,
+                        ctx,
+                        true,
+                        game_history,
+                        new_fifty,
+                    )
                 } else {
                     scout
                 }
@@ -352,6 +410,15 @@ pub fn minimax(
             ctx.stats.tt_stores += 1;
         }
         min_eval
+    }
+}
+
+fn update_fifty_count(board: &Board, m: &Move, fifty_count: u32) -> u32 {
+    let is_pawn = board[(m.origin.row as usize, m.origin.col as usize)].get_piece() == Some(&Pawn);
+    if m.capture != Free || is_pawn {
+        0
+    } else {
+        fifty_count + 1
     }
 }
 
@@ -413,14 +480,23 @@ pub fn find_best_move(
         let mut best_score = i32::MIN;
         let mut alpha = i32::MIN;
         for (i, &m) in moves.iter().enumerate() {
-            let is_pawn_move = board[(m.origin.row as usize, m.origin.col as usize)].get_piece() == Some(&Pawn);
-            let new_fifty = if m.capture != Free || is_pawn_move { 0 } else { fifty_count + 1 };
+            let new_fifty = update_fifty_count(board, &m, fifty_count);
             board.apply_move(&m, active_player);
             let gives_check = is_king_exposed(board, &opponent);
             let ext: u8 = u8::from(gives_check && depth == 1);
             ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1 + ext, opponent, alpha, i32::MAX, ctx, true, game_history, new_fifty)
+                minimax(
+                    board,
+                    depth - 1 + ext,
+                    opponent,
+                    alpha,
+                    i32::MAX,
+                    ctx,
+                    true,
+                    game_history,
+                    new_fifty,
+                )
             } else {
                 let scout = minimax(
                     board,
@@ -434,7 +510,17 @@ pub fn find_best_move(
                     new_fifty,
                 );
                 if scout > alpha {
-                    minimax(board, depth - 1 + ext, opponent, alpha, i32::MAX, ctx, true, game_history, new_fifty)
+                    minimax(
+                        board,
+                        depth - 1 + ext,
+                        opponent,
+                        alpha,
+                        i32::MAX,
+                        ctx,
+                        true,
+                        game_history,
+                        new_fifty,
+                    )
                 } else {
                     scout
                 }
@@ -460,18 +546,47 @@ pub fn find_best_move(
         let mut best_score = i32::MAX;
         let mut beta = i32::MAX;
         for (i, &m) in moves.iter().enumerate() {
-            let is_pawn_move = board[(m.origin.row as usize, m.origin.col as usize)].get_piece() == Some(&Pawn);
-            let new_fifty = if m.capture != Free || is_pawn_move { 0 } else { fifty_count + 1 };
+            let new_fifty = update_fifty_count(board, &m, fifty_count);
             board.apply_move(&m, active_player);
             let gives_check = is_king_exposed(board, &opponent);
             let ext: u8 = u8::from(gives_check && depth == 1);
             ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1 + ext, opponent, i32::MIN, beta, ctx, true, game_history, new_fifty)
+                minimax(
+                    board,
+                    depth - 1 + ext,
+                    opponent,
+                    i32::MIN,
+                    beta,
+                    ctx,
+                    true,
+                    game_history,
+                    new_fifty,
+                )
             } else {
-                let scout = minimax(board, depth - 1 + ext, opponent, beta.saturating_sub(1), beta, ctx, true, game_history, new_fifty);
+                let scout = minimax(
+                    board,
+                    depth - 1 + ext,
+                    opponent,
+                    beta.saturating_sub(1),
+                    beta,
+                    ctx,
+                    true,
+                    game_history,
+                    new_fifty,
+                );
                 if scout < beta {
-                    minimax(board, depth - 1 + ext, opponent, i32::MIN, beta, ctx, true, game_history, new_fifty)
+                    minimax(
+                        board,
+                        depth - 1 + ext,
+                        opponent,
+                        i32::MIN,
+                        beta,
+                        ctx,
+                        true,
+                        game_history,
+                        new_fifty,
+                    )
                 } else {
                     scout
                 }
