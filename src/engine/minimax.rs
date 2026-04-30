@@ -18,6 +18,7 @@ use std::collections::HashMap;
 use web_sys::window;
 
 const MATE_SCORE: i32 = 1_000_000;
+const MATE_THRESHOLD: i32 = 990_000;
 const BOT_TIME_LIMIT: f64 = 250.0;
 
 pub fn minimax(
@@ -30,6 +31,7 @@ pub fn minimax(
     null_move_allowed: bool,
     game_history: &HashMap<u64, usize>,
     fifty_count: u32,
+    ply: u8,
 ) -> i32 {
     ctx.incremente_node();
 
@@ -64,7 +66,8 @@ pub fn minimax(
                     ctx.stats.cutoffs_per_depth[ctx.stats.depth] += 1;
                     ctx.stats.total_cutoffs_depth += ctx.stats.depth;
                     ctx.stats.tt_hits += 1;
-                    return entry.score;
+                    let score = score_from_tt(entry.score, ply as i32);
+                    return score;
                 }
                 TtFlag::LowerBound => alpha = alpha.max(entry.score),
                 TtFlag::UpperBound => beta = beta.min(entry.score),
@@ -74,7 +77,8 @@ pub fn minimax(
                 ctx.stats.cutoffs_per_depth[ctx.stats.depth] += 1;
                 ctx.stats.total_cutoffs_depth += ctx.stats.depth;
                 ctx.stats.tt_hits += 1;
-                return entry.score;
+                let score = score_from_tt(entry.score, ply as i32);
+                return score;
             }
         }
     }
@@ -85,7 +89,7 @@ pub fn minimax(
 
     if moves.is_empty() {
         return if is_king_exposed(board, &active_player) {
-            is_mate_or_pat(active_player, depth)
+            is_mate_or_pat(active_player, ply)
         } else {
             //we want a winning bot to see a pat as not a good option
             const STALEMATE_CONTEMPT: i32 = 50;
@@ -138,6 +142,7 @@ pub fn minimax(
                 false,
                 game_history,
                 fifty_count,
+                ply + 1,
             );
             board.en_passant = prev_ep;
             board.hash = prev_hash;
@@ -155,6 +160,7 @@ pub fn minimax(
                 false,
                 game_history,
                 fifty_count,
+                ply + 1,
             );
             board.en_passant = prev_ep;
             board.hash = prev_hash;
@@ -207,6 +213,7 @@ pub fn minimax(
                     true,
                     game_history,
                     new_fifty,
+                    ply + 1,
                 )
             } else {
                 //for (as first sight) bad moves, we prune as much as possible
@@ -236,6 +243,7 @@ pub fn minimax(
                     true,
                     game_history,
                     new_fifty,
+                    ply + 1,
                 );
                 // scout <= alpha : the move is bad as we bet, we won't research and benefit of the scout economy
                 // scout > alpha r == 0 : fail high: the cut is reliable, we return scout, and the cutoff will occure by the caller
@@ -253,6 +261,7 @@ pub fn minimax(
                         true,
                         game_history,
                         new_fifty,
+                        0,
                     )
                 } else {
                     scout
@@ -291,7 +300,7 @@ pub fn minimax(
             ctx.tt.insert(
                 board.hash,
                 TtEntry {
-                    score: max_eval,
+                    score: score_to_tt(max_eval, ply as i32),
                     depth,
                     flag,
                 },
@@ -335,6 +344,7 @@ pub fn minimax(
                     true,
                     game_history,
                     new_fifty,
+                    ply + 1,
                 )
             } else {
                 let is_quiet = m.capture == Free
@@ -357,6 +367,7 @@ pub fn minimax(
                     true,
                     game_history,
                     new_fifty,
+                    ply + 1,
                 );
                 if scout < beta && (r > 0 || scout > alpha) {
                     minimax(
@@ -369,6 +380,7 @@ pub fn minimax(
                         true,
                         game_history,
                         new_fifty,
+                        ply + 1,
                     )
                 } else {
                     scout
@@ -437,11 +449,11 @@ fn has_non_pawn_material(board: &Board, color: Color) -> bool {
     false
 }
 
-fn is_mate_or_pat(active_player: Color, depth: u8) -> i32 {
+fn is_mate_or_pat(active_player: Color, ply: u8) -> i32 {
     if active_player == Color::White {
-        -MATE_SCORE + depth as i32
+        -MATE_SCORE + ply as i32
     } else {
-        MATE_SCORE - depth as i32
+        MATE_SCORE - ply as i32
     }
 }
 
@@ -498,6 +510,7 @@ pub fn find_best_move(
                     true,
                     game_history,
                     new_fifty,
+                    0,
                 )
             } else {
                 let scout = minimax(
@@ -510,6 +523,7 @@ pub fn find_best_move(
                     true,
                     game_history,
                     new_fifty,
+                    0,
                 );
                 if scout > alpha {
                     minimax(
@@ -522,6 +536,7 @@ pub fn find_best_move(
                         true,
                         game_history,
                         new_fifty,
+                        0,
                     )
                 } else {
                     scout
@@ -564,6 +579,7 @@ pub fn find_best_move(
                     true,
                     game_history,
                     new_fifty,
+                    0,
                 )
             } else {
                 let scout = minimax(
@@ -576,6 +592,7 @@ pub fn find_best_move(
                     true,
                     game_history,
                     new_fifty,
+                    0,
                 );
                 if scout < beta {
                     minimax(
@@ -588,6 +605,7 @@ pub fn find_best_move(
                         true,
                         game_history,
                         new_fifty,
+                        0,
                     )
                 } else {
                     scout
@@ -748,5 +766,25 @@ pub fn quiescence_minimax(
         alpha
     } else {
         beta
+    }
+}
+
+fn score_to_tt(score: i32, ply: i32) -> i32 {
+    if score > MATE_THRESHOLD {
+        score + ply
+    } else if score < -MATE_THRESHOLD {
+        score - ply
+    } else {
+        score
+    }
+}
+
+fn score_from_tt(score: i32, ply: i32) -> i32 {
+    if score > MATE_THRESHOLD {
+        score - ply
+    } else if score < -MATE_THRESHOLD {
+        score + ply
+    } else {
+        score
     }
 }
