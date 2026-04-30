@@ -60,7 +60,6 @@ impl ChessApp {
                                 ui.end_row();
 
                                 ui.label(egui::RichText::new("Thinking Time").small());
-                                // If format_time expects seconds, divide time_ms by 1000.0
                                 ui.label(
                                     egui::RichText::new(SearchStats::format_time(time_ms))
                                         .color(time_color)

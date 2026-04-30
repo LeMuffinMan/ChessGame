@@ -90,6 +90,7 @@ impl ChessApp {
                     let type_label = match &bot_setting {
                         Human => "Player",
                         Bot(Random) => "Bot random",
+                        Bot(Adaptive) => "Bot adaptive",
                         Bot(Depth(_)) => "Bot",
                     };
 
@@ -106,6 +107,13 @@ impl ChessApp {
                             .clicked()
                         {
                             bot_setting = Bot(Random);
+                            // ui.close_menu();
+                        }
+                        if ui
+                            .selectable_label(bot_setting == Bot(Adaptive), "Bot adaptive")
+                            .clicked()
+                        {
+                            bot_setting = Bot(Adaptive);
                             // ui.close_menu();
                         }
                         if ui

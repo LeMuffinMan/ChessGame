@@ -15,8 +15,10 @@ use crate::engine::search_context::SearchContext;
 use crate::engine::ttentry::{TtEntry, TtFlag};
 use crate::engine::zobris_table::zobrist;
 use std::collections::HashMap;
+use web_sys::window;
 
 const MATE_SCORE: i32 = 1_000_000;
+const BOT_TIME_LIMIT: f64 = 250.0;
 
 pub fn minimax(
     board: &mut Board,
@@ -601,6 +603,35 @@ pub fn find_best_move(
         }
     }
 
+    best_move
+}
+
+pub fn timed_out_iterative_deepening(
+    board: &mut Board,
+    active_player: Color,
+    max_depth: u8,
+    ctx: &mut SearchContext,
+    game_history: &HashMap<u64, usize>,
+    fifty_count: u32,
+    reached_depth: &mut u8,
+) -> Option<Move> {
+    let mut best_move = None;
+    let performance = window().unwrap().performance().unwrap();
+    let start = performance.now();
+    for depth in 1..=max_depth {
+        ctx.stats.reset();
+        let candidate = find_best_move(board, active_player, depth, ctx, game_history, fifty_count);
+        if ctx.stats.aborted {
+            break;
+        }
+        if candidate.is_some() {
+            *reached_depth = depth;
+            best_move = candidate;
+        }
+        if performance.now() - start > BOT_TIME_LIMIT {
+            break;
+        }
+    }
     best_move
 }
 
