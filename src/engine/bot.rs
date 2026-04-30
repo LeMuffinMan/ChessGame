@@ -10,7 +10,9 @@ use crate::board::moves::move_structs::MoveType::Promotion;
 use crate::engine::bot::BotDifficulty::*;
 use crate::engine::bot::PlayerType::*;
 use crate::engine::minimax::iterative_deepening;
+use crate::engine::minimax::timed_out_iterative_deepening;
 use crate::engine::search_context::SearchContext;
+use crate::engine::search_stats::MAX_SEARCH_DEPTH;
 use crate::gui::chessapp::AppMode::*;
 use js_sys::Math;
 use std::collections::HashMap;
@@ -20,6 +22,7 @@ use web_sys::window;
 pub enum BotDifficulty {
     Random,
     Depth(u8),
+    Adaptive,
 }
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum PlayerType {
@@ -34,9 +37,21 @@ pub fn get_bot_move(
     ctx: &mut SearchContext,
     game_history: &HashMap<u64, usize>,
     fifty_count: u32,
+    depth: &mut u8,
 ) -> Option<Move> {
     match difficulty {
-        Bot(Depth(d)) => iterative_deepening(board, active_player, *d, ctx, game_history, fifty_count),
+        Bot(Depth(d)) => {
+            iterative_deepening(board, active_player, *d, ctx, game_history, fifty_count)
+        }
+        Bot(Adaptive) => timed_out_iterative_deepening(
+            board,
+            active_player,
+            MAX_SEARCH_DEPTH as u8,
+            ctx,
+            game_history,
+            fifty_count,
+            depth,
+        ),
         Bot(Random) => {
             let mut move_list = MoveList::new();
             generate_moves(board, &active_player, &mut move_list, false);
@@ -57,6 +72,7 @@ impl ChessApp {
             match diff {
                 BotDifficulty::Depth(d) => d,
                 BotDifficulty::Random => 0,
+                BotDifficulty::Adaptive => self.game.depth,
             }
         } else {
             0
@@ -92,6 +108,7 @@ impl ChessApp {
             &mut self.search_ctx,
             &self.game.draw.board_hashs,
             self.game.draw.draw_moves_count,
+            &mut self.game.depth,
         );
         let end = performance.now();
         self.search_ctx.stats.bot_time_thinking = end - start;

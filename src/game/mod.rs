@@ -50,7 +50,6 @@ impl DrawState {
     }
 }
 
-//returned to chessapp
 pub enum GameEvent {
     Ok,
     Check,
@@ -70,6 +69,7 @@ pub struct Game {
     pub draw: DrawState,
     pub history: Vec<Move>,
     pub initial_board: Board,
+    pub depth: u8,
 }
 
 impl Default for Game {
@@ -105,6 +105,7 @@ impl Game {
             draw,
             history: Vec::new(),
             initial_board,
+            depth: 5,
         }
     }
 
@@ -213,14 +214,10 @@ impl Game {
     fn validate_and_build(&mut self, from: Coord, to: Coord) -> Option<Move> {
         let mut move_list = MoveList::new();
         generate_moves(&mut self.board, &self.active_player, &mut move_list, false);
-        // Use the pre-built move from the legal list directly — avoids rebuilding with
-        // wrong move_type (e.g. promotions) and prevents king-capture moves from leaking through.
         move_list.moves[..move_list.count]
             .iter()
             .find(|m| {
-                m.origin == from
-                    && m.dest == to
-                    && !matches!(m.capture, Cell::Occupied(King, _))
+                m.origin == from && m.dest == to && !matches!(m.capture, Cell::Occupied(King, _))
             })
             .copied()
     }
