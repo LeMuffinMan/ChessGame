@@ -176,9 +176,9 @@ fn mop_up_eval(board: &Board) -> i32 {
 
     let (sign, weak_king, strong_king, strong_color) =
         if black_npm == 0 && has_rook_or_queen(board, White) {
-            (1i32, board.black_king, board.white_king, White)
+            (1, board.black_king, board.white_king, White)
         } else if white_npm == 0 && has_rook_or_queen(board, Black) {
-            (-1i32, board.white_king, board.black_king, Black)
+            (-1, board.white_king, board.black_king, Black)
         } else {
             return 0;
         };
@@ -187,8 +187,8 @@ fn mop_up_eval(board: &Board) -> i32 {
     let kd = king_manhattan_dist(strong_king, weak_king);
     let cut = rook_cut_bonus(board, strong_color, weak_king);
     let bcut = bishop_cut_bonus(board, strong_color, weak_king);
-    // let freedom = king_freedom(weak_king, board, strong_color); // disabled for comparison
-    sign * (80 * cmd + 30 * (14 - kd) + cut + bcut)
+    let freedom = king_freedom(weak_king, board, strong_color); // disabled for comparison
+    sign * (80 * cmd + 30 * (14 - kd) + cut + bcut - 10 * freedom)
 }
 
 fn per_side_npm(board: &Board) -> (i32, i32) {
@@ -211,39 +211,36 @@ fn per_side_npm(board: &Board) -> (i32, i32) {
     (white, black)
 }
 
-// Reward rooks on the same rank or file as the weak king — the "cutting" technique.
-// Each rook on the same rank gives +40, each rook on the same file gives +40.
-// Queens get +20 (they already dominate the board).
 fn rook_cut_bonus(board: &Board, strong_color: Color, weak_king: Coord) -> i32 {
-    let mut bonus = 0i32;
-    for r in 0..8usize {
-        for c in 0..8usize {
-            match board[(r, c)] {
-                Occupied(Rook, color) if color == strong_color => {
-                    if r == weak_king.row as usize || c == weak_king.col as usize {
-                        bonus += 40;
+    let mut bonus = 0;
+    for r in 0..8 {
+        for c in 0..8 {
+            if let Occupied(piece, color) = board[(r, c)] {
+                if color == strong_color && (piece == Rook || piece == Queen) {
+                    let r_dist = (r as i32 - weak_king.row as i32).abs();
+                    let c_dist = (c as i32 - weak_king.col as i32).abs();
+
+                    if r_dist == 0 || c_dist == 0 {
+                        bonus += if piece == Rook { 40 } else { 20 };
+                    }
+
+                    if r_dist == 1 || c_dist == 1 {
+                        bonus += 25;
                     }
                 }
-                Occupied(Queen, color) if color == strong_color => {
-                    if r == weak_king.row as usize || c == weak_king.col as usize {
-                        bonus += 20;
-                    }
-                }
-                _ => {}
             }
         }
     }
     bonus
 }
 
-// Reward bishops on the same diagonal as the weak king — covers escape squares.
 // +35 per bishop sharing a positive or anti-diagonal with the weak king.
 fn bishop_cut_bonus(board: &Board, strong_color: Color, weak_king: Coord) -> i32 {
     let mut bonus = 0i32;
     let k_diag = weak_king.row as i8 - weak_king.col as i8;
     let k_anti = weak_king.row as i8 + weak_king.col as i8;
     for r in 0..8usize {
-        for c in 0..8usize {
+        for c in 0..8 {
             if let Occupied(Bishop, color) = board[(r, c)] {
                 if color == strong_color {
                     let b_diag = r as i8 - c as i8;
@@ -259,9 +256,11 @@ fn bishop_cut_bonus(board: &Board, strong_color: Color, weak_king: Coord) -> i32
 }
 
 fn has_rook_or_queen(board: &Board, color: Color) -> bool {
-    board.grid.iter().flatten().any(|cell| {
-        matches!(cell, Occupied(Rook, c) | Occupied(Queen, c) if *c == color)
-    })
+    board
+        .grid
+        .iter()
+        .flatten()
+        .any(|cell| matches!(cell, Occupied(Rook, c) | Occupied(Queen, c) if *c == color))
 }
 
 // 0 = center  6 = corner
@@ -281,7 +280,8 @@ fn king_freedom(weak_king: Coord, board: &Board, strong_color: Color) -> i32 {
             }
             let r = weak_king.row as i8 + dr;
             let c = weak_king.col as i8 + dc;
-            if (0..8).contains(&r) && (0..8).contains(&c)
+            if (0..8).contains(&r)
+                && (0..8).contains(&c)
                 && !matches!(board[(r as usize, c as usize)], Occupied(_, color) if color == strong_color)
             {
                 count += 1;
