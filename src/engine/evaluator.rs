@@ -187,8 +187,8 @@ fn mop_up_eval(board: &Board) -> i32 {
     let kd = king_manhattan_dist(strong_king, weak_king);
     let cut = rook_cut_bonus(board, strong_color, weak_king);
     let bcut = bishop_cut_bonus(board, strong_color, weak_king);
-    let freedom = king_freedom(weak_king, board, strong_color);
-    sign * (80 * cmd + 30 * (14 - kd) + cut + bcut - 15 * freedom)
+    // let freedom = king_freedom(weak_king, board, strong_color); // disabled for comparison
+    sign * (80 * cmd + 30 * (14 - kd) + cut + bcut)
 }
 
 fn per_side_npm(board: &Board) -> (i32, i32) {
