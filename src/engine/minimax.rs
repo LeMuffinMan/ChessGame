@@ -40,7 +40,6 @@ pub fn minimax(
         return 0;
     }
 
-    // A position seen 2+ times in the real game becomes a draw on the 3rd occurrence.
     if game_history.get(&board.hash).copied().unwrap_or(0) >= 2 {
         return 0;
     }
@@ -216,7 +215,7 @@ pub fn minimax(
                     ply + 1,
                 )
             } else {
-                //for (as first sight) bad moves, we prune as much as possible
+                //for (at first sight) bad moves, we prune as much as possible
                 let is_quiet = m.capture == Free
                     && !matches!(m.move_type, Promotion(_))
                     && m.check.is_none()
@@ -294,7 +293,6 @@ pub fn minimax(
         } else {
             TtFlag::Exact
         };
-        //a cut at a high depth is more interesting as a cut at low depth
         let should_store = ctx.tt.get(&board.hash).map_or(true, |e| depth >= e.depth);
         if should_store {
             ctx.tt.insert(

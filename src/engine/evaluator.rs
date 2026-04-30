@@ -5,6 +5,7 @@ use crate::board::cell::Color::{Black, White};
 use crate::board::cell::Coord;
 use crate::board::cell::Piece;
 use crate::board::cell::Piece::{Bishop, King, Knight, Pawn, Queen, Rook};
+use crate::engine::pst_maps::*;
 
 pub const PAWN_VALUE: i32 = 100;
 pub const KNIGHT_VALUE: i32 = 320;
@@ -12,87 +13,6 @@ pub const BISHOP_VALUE: i32 = 330;
 pub const ROOK_VALUE: i32 = 500;
 pub const QUEEN_VALUE: i32 = 900;
 pub const KING_VALUE: i32 = 20000;
-
-// PST : rank 8 first (index 0) / rank 1 last (index 56).
-// White → (7-row)*8+col  |  Black → row*8+col
-#[rustfmt::skip]
-const PAWN_PST: [i32; 64] = [
-     0,  0,  0,  0,  0,  0,  0,  0,
-    50, 50, 50, 50, 50, 50, 50, 50,
-    10, 10, 20, 30, 30, 20, 10, 10,
-     5,  5, 10, 25, 25, 10,  5,  5,
-     0,  0,  0, 20, 20,  0,  0,  0,
-     5, -5,-10,  0,  0,-10, -5,  5,
-     5, 10, 10,-20,-20, 10, 10,  5,
-     0,  0,  0,  0,  0,  0,  0,  0,
-];
-#[rustfmt::skip]
-const KNIGHT_PST: [i32; 64] = [
-    -50,-40,-30,-30,-30,-30,-40,-50,
-    -40,-20,  0,  0,  0,  0,-20,-40,
-    -30,  0, 10, 15, 15, 10,  0,-30,
-    -30,  5, 15, 20, 20, 15,  5,-30,
-    -30,  0, 15, 20, 20, 15,  0,-30,
-    -30,  5, 10, 15, 15, 10,  5,-30,
-    -40,-20,  0,  5,  5,  0,-20,-40,
-    -50,-40,-30,-30,-30,-30,-40,-50,
-];
-#[rustfmt::skip]
-const BISHOP_PST: [i32; 64] = [
-    -20,-10,-10,-10,-10,-10,-10,-20,
-    -10,  0,  0,  0,  0,  0,  0,-10,
-    -10,  0,  5, 10, 10,  5,  0,-10,
-    -10,  5,  5, 10, 10,  5,  5,-10,
-    -10,  0, 10, 10, 10, 10,  0,-10,
-    -10, 10, 10, 10, 10, 10, 10,-10,
-    -10,  5,  0,  0,  0,  0,  5,-10,
-    -20,-10,-10,-10,-10,-10,-10,-20,
-];
-#[rustfmt::skip]
-const ROOK_PST: [i32; 64] = [
-     0,  0,  0,  0,  0,  0,  0,  0,
-     5, 10, 10, 10, 10, 10, 10,  5,
-    -5,  0,  0,  0,  0,  0,  0, -5,
-    -5,  0,  0,  0,  0,  0,  0, -5,
-    -5,  0,  0,  0,  0,  0,  0, -5,
-    -5,  0,  0,  0,  0,  0,  0, -5,
-    -5,  0,  0,  0,  0,  0,  0, -5,
-     0,  0,  0,  5,  5,  0,  0,  0,
-];
-#[rustfmt::skip]
-const QUEEN_PST: [i32; 64] = [
-    -20,-10,-10, -5, -5,-10,-10,-20,
-    -10,  0,  0,  0,  0,  0,  0,-10,
-    -10,  0,  5,  5,  5,  5,  0,-10,
-     -5,  0,  5,  5,  5,  5,  0, -5,
-      0,  0,  5,  5,  5,  5,  0, -5,
-    -10,  5,  5,  5,  5,  5,  0,-10,
-    -10,  0,  5,  0,  0,  0,  0,-10,
-    -20,-10,-10, -5, -5,-10,-10,-20,
-];
-#[rustfmt::skip]
-const KING_PST: [i32; 64] = [
-    -30,-40,-40,-50,-50,-40,-40,-30,
-    -30,-40,-40,-50,-50,-40,-40,-30,
-    -30,-40,-40,-50,-50,-40,-40,-30,
-    -30,-40,-40,-50,-50,-40,-40,-30,
-    -20,-30,-30,-40,-40,-30,-30,-20,
-    -10,-20,-20,-20,-20,-20,-20,-10,
-     20, 20,  0,  0,  0,  0, 20, 20,
-     20, 30, 10,  0,  0, 10, 30, 20,
-];
-
-#[rustfmt::skip]
-const KING_PST_EG: [i32; 64] = [
-    -50,-40,-30,-20,-20,-30,-40,-50,
-    -30,-20,-10,  0,  0,-10,-20,-30,
-    -30,-10, 20, 30, 30, 20,-10,-30,
-    -30,-10, 30, 40, 40, 30,-10,-30,
-    -30,-10, 30, 40, 40, 30,-10,-30,
-    -30,-10, 20, 30, 30, 20,-10,-30,
-    -30,-20,-10,  0,  0,-10,-20,-30,
-    -50,-40,-30,-20,-20,-30,-40,-50,
-];
 
 pub fn evaluate(board: &Board) -> i32 {
     let phase = game_phase(board);
@@ -211,6 +131,7 @@ fn per_side_npm(board: &Board) -> (i32, i32) {
     (white, black)
 }
 
+// +25 per rook sharing a line with the weak king
 fn rook_cut_bonus(board: &Board, strong_color: Color, weak_king: Coord) -> i32 {
     let mut bonus = 0;
     for r in 0..8 {
@@ -234,7 +155,7 @@ fn rook_cut_bonus(board: &Board, strong_color: Color, weak_king: Coord) -> i32 {
     bonus
 }
 
-// +35 per bishop sharing a positive or anti-diagonal with the weak king.
+// +35 per bishop sharing a diag with the weak king
 fn bishop_cut_bonus(board: &Board, strong_color: Color, weak_king: Coord) -> i32 {
     let mut bonus = 0i32;
     let k_diag = weak_king.row as i8 - weak_king.col as i8;
@@ -270,7 +191,7 @@ fn king_corner_pressure(king: Coord) -> i32 {
     (3 - r).max(r - 4).max(0) + (3 - c).max(c - 4).max(0)
 }
 
-// Count squares around the weak king not occupied by the strong side — fewer = better for strong.
+// the less  mobility the weak king has, the better the score is
 fn king_freedom(weak_king: Coord, board: &Board, strong_color: Color) -> i32 {
     let mut count = 0i32;
     for dr in -1i8..=1 {
