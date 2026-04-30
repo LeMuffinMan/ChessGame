@@ -33,9 +33,10 @@ pub fn get_bot_move(
     active_player: Color,
     ctx: &mut SearchContext,
     game_history: &HashMap<u64, usize>,
+    fifty_count: u32,
 ) -> Option<Move> {
     match difficulty {
-        Bot(Depth(d)) => iterative_deepening(board, active_player, *d, ctx, game_history),
+        Bot(Depth(d)) => iterative_deepening(board, active_player, *d, ctx, game_history, fifty_count),
         Bot(Random) => {
             let mut move_list = MoveList::new();
             generate_moves(board, &active_player, &mut move_list, false);
@@ -90,6 +91,7 @@ impl ChessApp {
             self.game.active_player,
             &mut self.search_ctx,
             &self.game.draw.board_hashs,
+            self.game.draw.draw_moves_count,
         );
         let end = performance.now();
         self.search_ctx.stats.bot_time_thinking = end - start;
