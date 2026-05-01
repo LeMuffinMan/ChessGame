@@ -52,7 +52,7 @@ pub fn bench_run(fen: &str, color: Color, depth: u8, max_nodes: u64) -> BenchRes
 
     ctx.stats.max_nodes = max_nodes;
     let t0 = now_ms();
-    find_best_move(&mut board, color, depth, &mut ctx, &hashmap, 0);
+    find_best_move(&mut board, color, depth, &mut ctx, &hashmap, 0, i32::MIN, i32::MAX);
     let time_ms = now_ms() - t0;
     BenchResult {
         nodes: ctx.stats.nodes,

@@ -477,13 +477,15 @@ pub fn find_best_move(
     ctx: &mut SearchContext,
     game_history: &HashMap<u64, usize>,
     fifty_count: u32,
-) -> Option<Move> {
+    alpha: i32,
+    beta: i32,
+) -> (Option<Move>, i32) {
     let mut move_list = MoveList::new();
     generate_moves(board, &active_player, &mut move_list, false);
     let moves = &mut move_list.moves[..move_list.count];
 
     if moves.is_empty() {
-        return None;
+        return (None, 0);
     }
 
     let opponent = match active_player {
@@ -493,6 +495,7 @@ pub fn find_best_move(
 
     let tt_move = ctx.tt.get(&board.hash).and_then(|e| e.best_move);
     let mut best_move = None;
+    let mut best_score;
     let [killer1, killer2] = ctx.killers.get(depth as usize);
 
     if active_player == Color::White {
@@ -506,8 +509,8 @@ pub fn find_best_move(
                 tt_move,
             ))
         });
-        let mut best_score = i32::MIN;
-        let mut alpha = i32::MIN;
+        best_score = i32::MIN;
+        let mut alpha = alpha;
         for (i, &m) in moves.iter().enumerate() {
             let new_fifty = update_fifty_count(board, &m, fifty_count);
             board.apply_move(&m, active_player);
@@ -520,7 +523,7 @@ pub fn find_best_move(
                     depth - 1 + ext,
                     opponent,
                     alpha,
-                    i32::MAX,
+                    beta,
                     ctx,
                     true,
                     game_history,
@@ -546,7 +549,7 @@ pub fn find_best_move(
                         depth - 1 + ext,
                         opponent,
                         alpha,
-                        i32::MAX,
+                        beta,
                         ctx,
                         true,
                         game_history,
@@ -576,8 +579,8 @@ pub fn find_best_move(
                 tt_move,
             ))
         });
-        let mut best_score = i32::MAX;
-        let mut beta = i32::MAX;
+        best_score = i32::MAX;
+        let mut beta = beta;
         for (i, &m) in moves.iter().enumerate() {
             let new_fifty = update_fifty_count(board, &m, fifty_count);
             board.apply_move(&m, active_player);
@@ -589,7 +592,7 @@ pub fn find_best_move(
                     board,
                     depth - 1 + ext,
                     opponent,
-                    i32::MIN,
+                    alpha,
                     beta,
                     ctx,
                     true,
@@ -615,7 +618,7 @@ pub fn find_best_move(
                         board,
                         depth - 1 + ext,
                         opponent,
-                        i32::MIN,
+                        alpha,
                         beta,
                         ctx,
                         true,
@@ -637,7 +640,53 @@ pub fn find_best_move(
         }
     }
 
-    best_move
+    (best_move, best_score)
+}
+
+// Aspiration window search for a single depth.
+// Tries a narrow window [prev_score - delta, prev_score + delta] and widens on fail.
+// Falls back to full window after MATE_SCORE widening to guarantee termination.
+fn aspiration_search(
+    board: &mut Board,
+    active_player: Color,
+    depth: u8,
+    ctx: &mut SearchContext,
+    game_history: &HashMap<u64, usize>,
+    fifty_count: u32,
+    prev_score: i32,
+) -> (Option<Move>, i32) {
+    const INIT_DELTA: i32 = 50;
+    let mut delta = INIT_DELTA;
+    let mut alpha = prev_score.saturating_sub(delta);
+    let mut beta = prev_score.saturating_add(delta);
+
+    loop {
+        ctx.stats.reset();
+        let (mv, score) =
+            find_best_move(board, active_player, depth, ctx, game_history, fifty_count, alpha, beta);
+
+        if ctx.stats.aborted {
+            return (mv, score);
+        }
+
+        if score <= alpha {
+            alpha = score.saturating_sub(delta);
+            delta = delta.saturating_mul(2);
+        } else if score >= beta {
+            beta = score.saturating_add(delta);
+            delta = delta.saturating_mul(2);
+        } else {
+            return (mv, score);
+        }
+
+        if delta >= MATE_SCORE {
+            ctx.stats.reset();
+            return find_best_move(
+                board, active_player, depth, ctx, game_history, fifty_count,
+                i32::MIN, i32::MAX,
+            );
+        }
+    }
 }
 
 pub fn timed_out_iterative_deepening(
@@ -651,17 +700,23 @@ pub fn timed_out_iterative_deepening(
     timeout: f64,
 ) -> Option<Move> {
     let mut best_move = None;
+    let mut prev_score = 0i32;
     let performance = window().unwrap().performance().unwrap();
     let start = performance.now();
     for depth in 1..=max_depth {
-        ctx.stats.reset();
-        let candidate = find_best_move(board, active_player, depth, ctx, game_history, fifty_count);
+        let (candidate, score) = if depth <= 2 {
+            ctx.stats.reset();
+            find_best_move(board, active_player, depth, ctx, game_history, fifty_count, i32::MIN, i32::MAX)
+        } else {
+            aspiration_search(board, active_player, depth, ctx, game_history, fifty_count, prev_score)
+        };
         if ctx.stats.aborted {
             break;
         }
         if candidate.is_some() {
             *reached_depth = depth;
             best_move = candidate;
+            prev_score = score;
         }
         if performance.now() - start > timeout {
             break;
@@ -679,14 +734,20 @@ pub fn iterative_deepening(
     fifty_count: u32,
 ) -> Option<Move> {
     let mut best_move = None;
+    let mut prev_score = 0i32;
     for depth in 1..=max_depth {
-        ctx.stats.reset();
-        let candidate = find_best_move(board, active_player, depth, ctx, game_history, fifty_count);
+        let (candidate, score) = if depth <= 2 {
+            ctx.stats.reset();
+            find_best_move(board, active_player, depth, ctx, game_history, fifty_count, i32::MIN, i32::MAX)
+        } else {
+            aspiration_search(board, active_player, depth, ctx, game_history, fifty_count, prev_score)
+        };
         if ctx.stats.aborted {
             break;
         }
         if candidate.is_some() {
             best_move = candidate;
+            prev_score = score;
         }
     }
     best_move
