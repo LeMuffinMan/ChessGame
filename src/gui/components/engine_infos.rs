@@ -141,9 +141,7 @@ impl ChessApp {
                                         egui::Grid::new("depth_tree").striped(true).show(
                                             ui,
                                             |ui| {
-                                                for depth in
-                                                    1..self.search_ctx.stats.nodes_per_depth.len()
-                                                {
+                                                for depth in 1..=self.game.depth {
                                                     ui.label(
                                                         egui::RichText::new(format!("D {}", depth))
                                                             .weak()
@@ -153,7 +151,7 @@ impl ChessApp {
                                                         egui::RichText::new(format!(
                                                             "{} n",
                                                             self.search_ctx.stats.nodes_per_depth
-                                                                [depth]
+                                                                [depth as usize]
                                                         ))
                                                         .small(),
                                                     );
@@ -161,7 +159,7 @@ impl ChessApp {
                                                         egui::RichText::new(format!(
                                                             "{} cut",
                                                             self.search_ctx.stats.cutoffs_per_depth
-                                                                [depth]
+                                                                [depth as usize]
                                                         ))
                                                         .small(),
                                                     );
@@ -248,7 +246,4 @@ impl ChessApp {
             };
         }
     }
-    // pub fn engine_infos(&self, ui: &mut egui::Ui) {
-
-    // }
 }
