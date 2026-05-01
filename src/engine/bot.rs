@@ -18,7 +18,7 @@ use js_sys::Math;
 use std::collections::HashMap;
 use web_sys::window;
 
-const BOT_TIME_LIMIT: f64 = 250.0;
+const BOT_TIME_LIMIT: f64 = 200.0;
 
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum BotDifficulty {
@@ -48,7 +48,7 @@ pub fn get_bot_move(
         Bot(Adaptive) => timed_out_iterative_deepening(
             board,
             active_player,
-            MAX_SEARCH_DEPTH as u8,
+            12 as u8, //Fix crash si changement de SEARCHLimit
             ctx,
             game_history,
             fifty_count,
