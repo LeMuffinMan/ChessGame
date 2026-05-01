@@ -133,7 +133,8 @@ fn test_captures_free_queen() {
     recompute_score(&mut board);
     board.sync_hash(White);
 
-    let mv = find_best_move(&mut board, White, 2, &mut test_ctx(), &HashMap::new(), 0).expect("should find a move");
+    let (mv, _) = find_best_move(&mut board, White, 2, &mut test_ctx(), &HashMap::new(), 0, i32::MIN, i32::MAX);
+    let mv = mv.expect("should find a move");
     assert_eq!(mv.origin, coord(3, 3));
     assert_eq!(mv.dest, coord(4, 3));
 }
@@ -151,7 +152,8 @@ fn test_avoids_losing_rook_depth2() {
     recompute_score(&mut board);
     board.sync_hash(White);
 
-    let mv = find_best_move(&mut board, White, 2, &mut test_ctx(), &HashMap::new(), 0).expect("should find a move");
+    let (mv, _) = find_best_move(&mut board, White, 2, &mut test_ctx(), &HashMap::new(), 0, i32::MIN, i32::MAX);
+    let mv = mv.expect("should find a move");
     let is_bad_capture = mv.origin == coord(3, 3) && mv.dest == coord(3, 4);
     assert!(
         !is_bad_capture,
