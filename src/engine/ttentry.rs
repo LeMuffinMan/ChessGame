@@ -1,9 +1,11 @@
 use crate::board::moves::move_structs::Move;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct TtEntry {
+    pub key: u64,
     pub score: i32,
     pub depth: u8,
+    pub generation: u8,
     pub flag: TtFlag,
     pub best_move: Option<Move>,
 }
@@ -16,9 +18,10 @@ pub struct TtEntry {
 // Exact : return score directly
 // LowerBound : elevate alpha to our "at least" good score
 // UpperBound : lower beta to our score (which is may be even lower)
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Default)]
 pub enum TtFlag {
     Exact,
     LowerBound,
+    #[default]
     UpperBound,
 }

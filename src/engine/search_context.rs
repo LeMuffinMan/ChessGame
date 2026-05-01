@@ -2,12 +2,14 @@ use crate::board::moves::move_structs::Move;
 use crate::engine::search_stats::MAX_SEARCH_DEPTH;
 use crate::engine::search_stats::SearchStats;
 use crate::engine::ttentry::TtEntry;
-use std::collections::HashMap;
+
+pub const TT_SIZE: usize = 1 << 20; // 1 M entrées ≈ 24 MB
 
 pub struct SearchContext {
     pub killers: KillerTable,
     pub history: HistoryTable,
-    pub tt: HashMap<u64, TtEntry>,
+    pub tt: Vec<TtEntry>,
+    pub tt_generation: u8,
     pub stats: SearchStats,
 }
 
@@ -16,7 +18,8 @@ impl SearchContext {
         Self {
             killers: KillerTable::new(),
             history: HistoryTable::new(),
-            tt: HashMap::new(),
+            tt: vec![TtEntry::default(); TT_SIZE],
+            tt_generation: 0,
             stats: SearchStats::new(),
         }
     }
@@ -27,10 +30,12 @@ impl SearchContext {
     }
 
     // Réinitialise les heuristiques liées à la partie (killers, history).
-    // La TT est conservée entre parties.
+    // La TT est conservée entre parties — la génération est incrémentée pour
+    // invalider les scores cross-parties (fifty_count / game_history différents).
     pub fn reset_game_context(&mut self) {
         self.killers = KillerTable::new();
         self.history = HistoryTable::new();
+        self.tt_generation = self.tt_generation.wrapping_add(1);
     }
 
     // Réinitialise les compteurs et les killers avant chaque coup.
