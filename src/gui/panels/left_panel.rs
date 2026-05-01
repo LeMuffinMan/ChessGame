@@ -65,52 +65,25 @@ impl ChessApp {
             }
             if self.settings.allow_undo {
                 ui.menu_button(format!("{}", &self.settings.undo_limit), |ui| {
-                    if ui
-                        .selectable_value(&mut self.settings.undo_limit, 0, "0")
-                        .clicked()
-                    {
-                        self.settings.white_undo = 0;
-                        self.settings.black_undo = 0;
-                        self.settings.allow_undo = false;
-                    };
-                    if ui
-                        .selectable_value(&mut self.settings.undo_limit, 1, "1")
-                        .clicked()
-                    {
-                        self.settings.white_undo = 1;
-                        self.settings.black_undo = 1;
-                    };
-                    if ui
-                        .selectable_value(&mut self.settings.undo_limit, 2, "2")
-                        .clicked()
-                    {
-                        self.settings.white_undo = 2;
-                        self.settings.black_undo = 2;
-                    };
-                    if ui
-                        .selectable_value(&mut self.settings.undo_limit, 3, "3")
-                        .clicked()
-                    {
-                        self.settings.white_undo = 3;
-                        self.settings.black_undo = 3;
-                    };
-                    if ui
-                        .selectable_value(&mut self.settings.undo_limit, 4, "4")
-                        .clicked()
-                    {
-                        self.settings.white_undo = 4;
-                        self.settings.black_undo = 4;
-                    };
-                    if ui
-                        .selectable_value(&mut self.settings.undo_limit, 5, "5")
-                        .clicked()
-                    {
-                        self.settings.white_undo = 5;
-                        self.settings.black_undo = 5;
-                    };
+                    for i in 0..6 {
+                        self.selectable_value_undo(ui, i);
+                    }
                 });
             }
         });
+    }
+
+    pub fn selectable_value_undo(&mut self, ui: &mut egui::Ui, value: u8) {
+        if ui
+            .selectable_value(&mut self.settings.undo_limit, value, format!("{}", value))
+            .clicked()
+        {
+            self.settings.white_undo = value;
+            self.settings.black_undo = value;
+            if value == 0 {
+                self.settings.allow_undo = false;
+            }
+        };
     }
 
     pub fn can_undo(&mut self) -> bool {
