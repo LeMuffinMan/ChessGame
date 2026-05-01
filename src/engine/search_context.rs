@@ -53,14 +53,16 @@ impl KillerTable {
     }
 
     pub fn update(&mut self, depth: usize, mv: Move) {
-        if self.moves[depth][0] != Some(mv) {
-            self.moves[depth][1] = self.moves[depth][0];
-            self.moves[depth][0] = Some(mv);
+        let d = depth.min(MAX_SEARCH_DEPTH - 1);
+        if self.moves[d][0] != Some(mv) {
+            self.moves[d][1] = self.moves[d][0];
+            self.moves[d][0] = Some(mv);
         }
     }
 
     pub fn get(&self, depth: usize) -> [Option<Move>; 2] {
-        [self.moves[depth][0], self.moves[depth][1]]
+        let d = depth.min(MAX_SEARCH_DEPTH - 1);
+        [self.moves[d][0], self.moves[d][1]]
     }
 }
 

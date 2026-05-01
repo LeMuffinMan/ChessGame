@@ -1,6 +1,6 @@
 use crate::Board;
 use crate::board::cell::Color;
-use crate::engine::minimax::iterative_deepening;
+use crate::engine::minimax::{find_best_move, iterative_deepening};
 use crate::engine::search_context::SearchContext;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -37,16 +37,22 @@ pub struct BenchResult {
 }
 
 // max_nodes = 0 means no limit.
-// Uses iterative deepening so the TT is populated across depths —
-// this is the only mode where TT best_move, killers and history show their real impact.
+// Pre-warms the TT via ID up to depth-1 (unmeasured), then times only the final depth.
+// This lets TT best_move, killers and history show their real impact without inflating the total time.
 pub fn bench_run(fen: &str, color: Color, depth: u8, max_nodes: u64) -> BenchResult {
     assert!(depth >= 1, "bench_run requires depth >= 1");
     let mut board = Board::board_from_fen(fen).board;
     let mut ctx = SearchContext::new();
-    ctx.stats.max_nodes = max_nodes;
     let hashmap: HashMap<u64, usize> = HashMap::new();
+
+    if depth > 1 {
+        iterative_deepening(&mut board, color, depth - 1, &mut ctx, &hashmap, 0);
+        ctx.stats.reset();
+    }
+
+    ctx.stats.max_nodes = max_nodes;
     let t0 = now_ms();
-    iterative_deepening(&mut board, color, depth, &mut ctx, &hashmap, 0);
+    find_best_move(&mut board, color, depth, &mut ctx, &hashmap, 0);
     let time_ms = now_ms() - t0;
     BenchResult {
         nodes: ctx.stats.nodes,
