@@ -7,7 +7,7 @@ impl ChessApp {
             ui.with_layout(
                 egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
                 |ui| {
-                    ui.heading("ChessGame");
+                    ui.label(egui::RichText::new("ChessGame").size(50.0).strong());
                 },
             );
         });
