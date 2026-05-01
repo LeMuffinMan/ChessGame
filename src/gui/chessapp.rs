@@ -52,6 +52,8 @@ impl ChessApp {
         }
     }
     pub fn revenge(ui_type: UiType, other: &ChessApp) -> Self {
+        let mut ctx = SearchContext::new();
+        ctx.tt = other.search_ctx.tt.clone();
         let mut app = Self {
             ui_type,
             history_san: String::new(),
@@ -64,7 +66,7 @@ impl ChessApp {
             settings: other.settings.clone(),
             promoteinfo: None,
             bot_pending: false,
-            search_ctx: SearchContext::new(),
+            search_ctx: ctx,
             white_last_score: 0,
             black_last_score: 0,
             hint_highlight: 0,

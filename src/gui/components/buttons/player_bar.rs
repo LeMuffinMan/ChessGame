@@ -15,6 +15,8 @@ use egui::Layout;
 use egui::RichText;
 use egui::Vec2;
 
+const HINT_TIMEOUT: f64 = 100.0;
+
 impl ChessApp {
     pub fn player_bar(&mut self, ui: &mut egui::Ui, color: &Color) {
         let left_w = ui.available_width() * 0.35;
@@ -151,7 +153,7 @@ impl ChessApp {
                                     &self.game.draw.board_hashs,
                                     self.game.draw.draw_moves_count,
                                     &mut self.game.depth,
-                                    150.0,
+                                    HINT_TIMEOUT,
                                 ) {
                                     self.game.hint = Some((hint_move.origin, hint_move.dest));
                                 }

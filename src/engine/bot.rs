@@ -1,5 +1,6 @@
 use crate::Board;
 use crate::ChessApp;
+use crate::engine::search_stats::MAX_SEARCH_DEPTH;
 use crate::Color;
 use crate::board::cell::Cell;
 use crate::board::cell::Color::*;
@@ -12,13 +13,12 @@ use crate::engine::bot::PlayerType::*;
 use crate::engine::minimax::iterative_deepening;
 use crate::engine::minimax::timed_out_iterative_deepening;
 use crate::engine::search_context::SearchContext;
-use crate::engine::search_stats::MAX_SEARCH_DEPTH;
 use crate::gui::chessapp::AppMode::*;
 use js_sys::Math;
 use std::collections::HashMap;
 use web_sys::window;
 
-const BOT_TIME_LIMIT: f64 = 200.0;
+const BOT_TIMEOUT: f64 = 150.0;
 
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum BotDifficulty {
@@ -48,12 +48,12 @@ pub fn get_bot_move(
         Bot(Adaptive) => timed_out_iterative_deepening(
             board,
             active_player,
-            12 as u8, //Fix crash si changement de SEARCHLimit
+             11 as u8,
             ctx,
             game_history,
             fifty_count,
             depth,
-            BOT_TIME_LIMIT,
+            BOT_TIMEOUT,
         ),
         Bot(Random) => {
             let mut move_list = MoveList::new();
@@ -102,7 +102,7 @@ impl ChessApp {
             Black => &self.settings.black_bot,
         };
         let performance = window().unwrap().performance().unwrap();
-        self.search_ctx.reset_stats();
+        self.search_ctx.reset_search_stats();
         let start = performance.now();
         let bot_move = get_bot_move(
             difficulty,
