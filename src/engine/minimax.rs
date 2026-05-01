@@ -49,7 +49,7 @@ pub fn minimax(
 
     if depth == 0 {
         ctx.stats.leafs += 1;
-        return quiescence_minimax(board, alpha, beta, active_player, ctx, 4);
+        return quiescence_minimax(board, alpha, beta, active_player, ctx, 4, ply + 1);
     }
 
     let orig_alpha = alpha;
@@ -760,13 +760,41 @@ pub fn quiescence_minimax(
     active_player: Color,
     ctx: &mut SearchContext,
     depth: i8,
+    ply: u8,
 ) -> i32 {
     ctx.stats.quiescence_nodes += 1;
 
+    let orig_alpha = alpha;
+    let orig_beta = beta;
+    let q_depth = depth.max(0) as u8;
+
+    if let Some(entry) = ctx.tt.get(&board.hash).copied() {
+        if entry.depth >= q_depth {
+            let s = score_from_tt(entry.score, ply as i32);
+            match entry.flag {
+                TtFlag::Exact => return s,
+                TtFlag::LowerBound => alpha = alpha.max(s),
+                TtFlag::UpperBound => beta = beta.min(s),
+            }
+            if alpha >= beta {
+                return s;
+            }
+        }
+    }
+
     let stand_pat = evaluate(board);
+    let mut best_move_found: Option<Move> = None;
 
     if active_player == Color::White {
         if stand_pat >= beta {
+            if ctx.tt.get(&board.hash).map_or(true, |e| q_depth >= e.depth) {
+                ctx.tt.insert(board.hash, TtEntry {
+                    score: score_to_tt(stand_pat, ply as i32),
+                    depth: q_depth,
+                    flag: TtFlag::LowerBound,
+                    best_move: None,
+                });
+            }
             return beta;
         }
         if stand_pat > alpha {
@@ -774,6 +802,14 @@ pub fn quiescence_minimax(
         }
     } else {
         if stand_pat <= alpha {
+            if ctx.tt.get(&board.hash).map_or(true, |e| q_depth >= e.depth) {
+                ctx.tt.insert(board.hash, TtEntry {
+                    score: score_to_tt(stand_pat, ply as i32),
+                    depth: q_depth,
+                    flag: TtFlag::UpperBound,
+                    best_move: None,
+                });
+            }
             return alpha;
         }
         if stand_pat < beta {
@@ -782,11 +818,23 @@ pub fn quiescence_minimax(
     }
 
     if depth <= 0 {
-        return if active_player == Color::White {
-            alpha
+        let result = if active_player == Color::White { alpha } else { beta };
+        let flag = if result <= orig_alpha {
+            TtFlag::UpperBound
+        } else if result >= orig_beta {
+            TtFlag::LowerBound
         } else {
-            beta
+            TtFlag::Exact
         };
+        if ctx.tt.get(&board.hash).map_or(true, |e| q_depth >= e.depth) {
+            ctx.tt.insert(board.hash, TtEntry {
+                score: score_to_tt(result, ply as i32),
+                depth: q_depth,
+                flag,
+                best_move: None,
+            });
+        }
+        return result;
     }
 
     let mut move_list = MoveList::new();
@@ -799,7 +847,6 @@ pub fn quiescence_minimax(
 
     for i in 0..move_list.count {
         let m = move_list.moves[i];
-        // Delta Pruning
         let capture_value = match m.capture {
             Occupied(piece, _) => match piece {
                 Pawn => PAWN_VALUE,
@@ -820,31 +867,61 @@ pub fn quiescence_minimax(
         }
 
         board.apply_move(&m, active_player);
-        let score = quiescence_minimax(board, alpha, beta, opponent, ctx, depth - 1);
+        let score = quiescence_minimax(board, alpha, beta, opponent, ctx, depth - 1, ply + 1);
         board.undo_move(m, active_player);
 
         if active_player == Color::White {
             if score > alpha {
                 alpha = score;
+                best_move_found = Some(m);
             }
             if alpha >= beta {
+                if ctx.tt.get(&board.hash).map_or(true, |e| q_depth >= e.depth) {
+                    ctx.tt.insert(board.hash, TtEntry {
+                        score: score_to_tt(alpha, ply as i32),
+                        depth: q_depth,
+                        flag: TtFlag::LowerBound,
+                        best_move: best_move_found,
+                    });
+                }
                 return beta;
             }
         } else {
             if score < beta {
                 beta = score;
+                best_move_found = Some(m);
             }
             if alpha >= beta {
+                if ctx.tt.get(&board.hash).map_or(true, |e| q_depth >= e.depth) {
+                    ctx.tt.insert(board.hash, TtEntry {
+                        score: score_to_tt(beta, ply as i32),
+                        depth: q_depth,
+                        flag: TtFlag::UpperBound,
+                        best_move: best_move_found,
+                    });
+                }
                 return alpha;
             }
         }
     }
 
-    if active_player == Color::White {
-        alpha
+    let result = if active_player == Color::White { alpha } else { beta };
+    let flag = if result <= orig_alpha {
+        TtFlag::UpperBound
+    } else if result >= orig_beta {
+        TtFlag::LowerBound
     } else {
-        beta
+        TtFlag::Exact
+    };
+    if ctx.tt.get(&board.hash).map_or(true, |e| q_depth >= e.depth) {
+        ctx.tt.insert(board.hash, TtEntry {
+            score: score_to_tt(result, ply as i32),
+            depth: q_depth,
+            flag,
+            best_move: best_move_found,
+        });
     }
+    result
 }
 
 fn score_to_tt(score: i32, ply: i32) -> i32 {

@@ -77,7 +77,7 @@ impl ChessApp {
                     if let Bot(Depth(ref mut d)) = bot_setting {
                         let depth_label = format!("d={}", d);
                         ui.menu_button(depth_label, |ui| {
-                            for depth in 1..=MAX_SEARCH_DEPTH as u8 {
+                            for depth in 6..=MAX_SEARCH_DEPTH as u8 {
                                 if ui
                                     .selectable_label(*d == depth, format!("d={}", depth))
                                     .clicked()
