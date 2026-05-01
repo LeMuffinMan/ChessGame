@@ -22,7 +22,6 @@ impl ChessApp {
                     |ui| {
                         self.mobile_turn_infos(ui);
 
-                        ui.add_space(40.0);
                         ui.separator();
                         self.player_bar(ui, &Black);
                         ui.add_space(30.0);
@@ -34,14 +33,12 @@ impl ChessApp {
                         ui.add_space(20.0);
 
                         ui.separator();
-                        ui.add_space(40.0);
 
+                        let color = self.game.active_player;
+                        self.engine_infos(ui, &color);
                         self.display_history(ui);
 
-                        if matches!(self.app_mode, AppMode::Versus(_)) {
-                            ui.add_space(20.0);
-                        }
-                        ui.add_space(100.0);
+                        ui.add_space(70.0);
                         self.speed_replay_slider(ui);
                         self.display_bottom_buttons(ui);
                     },

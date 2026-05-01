@@ -1,3 +1,5 @@
+use crate::Color::*;
+use crate::engine::bot::PlayerType::*;
 use crate::gui::chessapp::ChessApp;
 
 impl ChessApp {
@@ -22,6 +24,9 @@ impl ChessApp {
             .clicked()
         {
             *self = ChessApp::revenge(self.ui_type.clone(), &self);
+            if self.game.active_player == White && self.settings.white_bot != Human {
+                self.bot_pending = true;
+            }
         }
     }
 }

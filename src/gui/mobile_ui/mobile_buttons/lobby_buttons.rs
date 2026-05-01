@@ -5,42 +5,48 @@ use crate::gui::features::timer::GameMode;
 use crate::gui::features::timer::GameMode::*;
 use crate::gui::features::timer::Timer;
 use crate::gui::hooks::windows::WinDia;
-use crate::gui::layout::UiType::*;
 use egui::RichText;
 
 impl ChessApp {
     pub fn lobby_buttons(&mut self, ui: &mut egui::Ui) {
-        ui.add_space(60.0);
+        let gap = ((ui.available_width() - 350.0) / 4.0).max(8.0);
+        ui.add_space(gap);
         self.settings_button(ui);
-        ui.add_space(180.0);
+        ui.add_space(gap);
         if ui
             .add_enabled(self.win.is_none(), egui::Button::new("Timer"))
             .clicked()
         {
             self.win = Some(WinDia::Timer);
         }
-        ui.add_space(180.0);
+        ui.add_space(gap);
         self.new_game_button(ui);
     }
+
     pub fn draw_endgame_buttons(&mut self, ui: &mut egui::Ui) {
-        ui.add_space(60.0);
-        self.settings_button(ui);
-        ui.add_space(180.0);
-        if ui
-            .add_enabled(self.win.is_none(), egui::Button::new("Replay"))
-            .clicked()
-        {
-            self.app_mode = Replay;
-            self.game.board = self.game.board_at(self.replay_infos.index);
-            self.game.active_player = if self.replay_infos.index % 2 == 0 { White } else { Black };
-        }
-        ui.add_space(170.0);
-        if ui
-            .add_enabled(self.win.is_none(), egui::Button::new("New Game"))
-            .clicked()
-        {
-            *self = ChessApp::new(Mobile);
-        }
+        ui.vertical_centered(|ui| {
+            ui.horizontal_centered(|ui| {
+                let gap = ((ui.available_width() - 460.0) / 4.0).max(8.0);
+                ui.add_space(gap);
+                if ui
+                    .add_enabled(self.win.is_none(), egui::Button::new("Replay"))
+                    .clicked()
+                {
+                    self.app_mode = Replay;
+                    self.game.board = self.game.board_at(self.replay_infos.index);
+                    self.game.active_player =
+                        if self.replay_infos.index % 2 == 0 { White } else { Black };
+                }
+                ui.add_space(gap);
+                self.revenge_button(ui);
+                ui.add_space(gap);
+                self.new_game_button(ui);
+            });
+            ui.add_space(20.0);
+            ui.horizontal_centered(|ui| {
+                self.settings_button(ui);
+            });
+        });
     }
 
     pub fn set_timer(&mut self, ctx: &egui::Context) {

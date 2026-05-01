@@ -1,6 +1,5 @@
 use crate::ChessApp;
 use crate::Color;
-use crate::Color::*;
 use crate::engine::bot::BotDifficulty::*;
 use crate::engine::bot::PlayerType::*;
 use crate::engine::search_stats::SearchStats;
@@ -8,10 +7,13 @@ use crate::gui::chessapp::AppMode::*;
 use crate::gui::layout::UiType::*;
 
 impl ChessApp {
-    pub fn engine_infos(&self, ui: &mut egui::Ui, color: &Color) {
+    pub fn engine_infos(&self, ui: &mut egui::Ui, _color: &Color) {
+        let has_engine_bot = |pt: &crate::engine::bot::PlayerType| {
+            *pt != Human && *pt != Bot(Random)
+        };
         if self.app_mode == Versus(None)
-            && self.settings.black_bot != Human
-            && self.settings.black_bot != Bot(Random)
+            && (has_engine_bot(&self.settings.white_bot)
+                || has_engine_bot(&self.settings.black_bot))
         {
             match self.ui_type {
                 Desktop => {
@@ -192,59 +194,101 @@ impl ChessApp {
                 }
                 Mobile => {
                     ui.vertical(|ui| {
+                        let time_ms = self.search_ctx.stats.bot_time_thinking;
+
+                        let time_color = if time_ms < 300.0 {
+                            egui::Color32::LIGHT_GREEN
+                        } else if time_ms < 1000.0 {
+                            egui::Color32::KHAKI
+                        } else {
+                            egui::Color32::from_rgb(255, 100, 100)
+                        };
+
+                        let score_color = if self.game.board.score >= 0 {
+                            egui::Color32::from_rgb(140, 255, 140)
+                        } else {
+                            egui::Color32::from_rgb(255, 140, 140)
+                        };
+
                         ui.horizontal(|ui| {
-                            ui.label(
-                                egui::RichText::new(format!("Depth: {}", self.get_depth())).small(),
-                            );
-                            ui.label(
-                                egui::RichText::new(format!(
-                                    "Time: {}",
-                                    SearchStats::format_time(
-                                        self.search_ctx.stats.bot_time_thinking
-                                    )
-                                ))
-                                .small(),
-                            );
-                            match color {
-                                White => ui.label(
-                                    egui::RichText::new(format!(
-                                        "Score: {:.0}",
-                                        self.white_last_score
-                                    ))
-                                    .small(),
-                                ),
-                                Black => ui.label(
-                                    egui::RichText::new(format!(
-                                        "Score: {:.0}",
-                                        self.black_last_score
-                                    ))
-                                    .small(),
-                                ),
-                            }
-                        });
-                        ui.horizontal(|ui| {
-                            ui.label(
-                                egui::RichText::new(format!(
-                                    "Nodes: {}",
-                                    self.search_ctx.stats.nodes
-                                ))
-                                .small(),
-                            );
-                            ui.label(
-                                egui::RichText::new(format!(
-                                    "Cutoffs: {}",
-                                    self.search_ctx.stats.cutoffs
-                                ))
-                                .small(),
-                            );
-                            ui.label(
-                                egui::RichText::new(format!(
-                                    "NPS: {:.0}",
-                                    self.search_ctx.stats.nps
-                                ))
-                                .small(),
+                            ui.label(egui::RichText::new("Minimax engine").weak());
+                            ui.with_layout(
+                                egui::Layout::right_to_left(egui::Align::Center),
+                                |ui| {
+                                    let (rect, _) = ui.allocate_exact_size(
+                                        egui::vec2(12.0, 12.0),
+                                        egui::Sense::hover(),
+                                    );
+                                    ui.painter().circle_filled(rect.center(), 6.0, time_color);
+                                },
                             );
                         });
+
+                        ui.add_space(2.0);
+                        ui.separator();
+                        ui.add_space(4.0);
+
+                        let prun_rate = (self.search_ctx.stats.cutoffs as f64
+                            / self.search_ctx.stats.nodes.max(1) as f64)
+                            * 100.0;
+                        let tt_hit_pct = self.search_ctx.stats.tt_hits as f64
+                            / self.search_ctx.stats.nodes.max(1) as f64
+                            * 100.0;
+
+                        egui::Frame::new()
+                            .fill(ui.visuals().faint_bg_color)
+                            .inner_margin(8.0)
+                            .show(ui, |ui| {
+                                let col_w = (ui.available_width() - 32.0) / 2.0;
+                                egui::Grid::new("mobile_stats")
+                                    .num_columns(4)
+                                    .min_col_width(col_w / 2.0)
+                                    .spacing([0.0, 8.0])
+                                    .show(ui, |ui| {
+                                        ui.label(egui::RichText::new("Depth").weak());
+                                        ui.label(
+                                            egui::RichText::new(format!("{}", self.get_depth()))
+                                                .strong(),
+                                        );
+                                        ui.label(egui::RichText::new("Time").weak());
+                                        ui.label(
+                                            egui::RichText::new(SearchStats::format_time(time_ms))
+                                                .color(time_color)
+                                                .strong(),
+                                        );
+                                        ui.end_row();
+
+                                        ui.label(egui::RichText::new("Score").weak());
+                                        ui.label(
+                                            egui::RichText::new(format!(
+                                                "{:.2}",
+                                                self.game.board.score
+                                            ))
+                                            .color(score_color)
+                                            .strong(),
+                                        );
+                                        ui.label(egui::RichText::new("Nodes").weak());
+                                        ui.label(egui::RichText::new(format!(
+                                            "{} ({:.0}/ms)",
+                                            self.search_ctx.stats.nodes,
+                                            self.search_ctx.stats.nps / 1000.0
+                                        )));
+                                        ui.end_row();
+
+                                        ui.label(egui::RichText::new("Pruning").weak());
+                                        ui.label(egui::RichText::new(format!(
+                                            "{:.1}%",
+                                            prun_rate
+                                        )));
+                                        ui.label(egui::RichText::new("TT Hits").weak());
+                                        ui.label(egui::RichText::new(format!(
+                                            "{} ({:.1}%)",
+                                            self.search_ctx.stats.tt_hits,
+                                            tt_hit_pct
+                                        )));
+                                        ui.end_row();
+                                    });
+                            });
                     });
                 }
             };
