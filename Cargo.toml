@@ -5,18 +5,32 @@ edition = "2024"
 
 [dependencies]
 chrono = "0.4.42"
-console_log = "1.0.0"
 eframe = "0.32.2"
 egui = "0.32.2"
 log = "0.4.28"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+console_log = "1.0.0"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = ["Window", "Document", "HtmlCanvasElement", "HtmlAnchorElement",
-  "Blob", "Url", "Node",   "Performance"] }
+  "Blob", "Url", "Node", "Performance"] }
 js-sys = "0.3"
+
+[features]
+native = []
 
 [lib]
 crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "chess_game"
+required-features = ["native"]
+
+[[bin]]
+name = "bench"
+path = "src/bin/bench.rs"
+required-features = ["native"]
 
 [profile.release]
 opt-level = 3

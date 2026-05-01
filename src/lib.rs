@@ -1,5 +1,5 @@
-mod board;
-mod engine;
+pub mod board;
+pub mod engine;
 pub mod game;
 pub mod gui;
 use crate::board::cell::Color;
