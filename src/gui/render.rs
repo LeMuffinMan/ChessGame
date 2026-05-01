@@ -32,6 +32,10 @@ impl ChessApp {
             egui::Color32::from_rgb(240, 200, 200),
             egui::Color32::from_rgb(200, 150, 150),
         ];
+        let hint = [
+            egui::Color32::from_rgb(220, 210, 240),
+            egui::Color32::from_rgb(180, 160, 210),
+        ];
         for row in 0..8 {
             for col in 0..8 {
                 let min = inner.min + egui::vec2(col as f32 * sq, row as f32 * sq);
@@ -62,8 +66,7 @@ impl ChessApp {
                     }
                     continue;
                 }
-                if self.settings.show_threaten_cells && self.game.threaten_cells.contains(&coord)
-                {
+                if self.settings.show_threaten_cells && self.game.threaten_cells.contains(&coord) {
                     p.rect_filled(cell, 0.0, red[idx as usize]);
                 } else if self.settings.piece_legals_moves.contains(&coord)
                     && self.settings.show_legals_moves
@@ -78,6 +81,16 @@ impl ChessApp {
                     && coord == from
                 {
                     p.rect_filled(cell, 0.0, blue[idx as usize]);
+                } else if let Some((origin, _)) = self.game.hint
+                    && origin == coord
+                    && self.hint_highlight > 0
+                {
+                    p.rect_filled(cell, 0.0, hint[idx as usize]);
+                } else if let Some((_, dest)) = self.game.hint
+                    && dest == coord
+                    && self.hint_highlight > 1
+                {
+                    p.rect_filled(cell, 0.0, hint[idx as usize]);
                 } else {
                     p.rect_filled(cell, 0.0, colors[idx as usize]);
                 }

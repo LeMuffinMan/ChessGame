@@ -61,7 +61,7 @@ impl ChessApp {
                     } else {
                         ui.add_space(40.0);
                     }
-                    self.undo_limit(ui);
+                    self.undo_limit_hint(ui);
                 });
                 ui.add_space(20.0);
                 ui.vertical_centered(|ui| {

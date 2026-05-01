@@ -80,6 +80,8 @@ impl ChessApp {
         if self.is_bot_turn() {
             self.bot_pending = true;
         }
+        self.hint_highlight = 0;
+        self.game.hint = None;
     }
 
     pub fn add_history_san(&mut self, from: &Coord, to: &Coord, prev_board: &Board) {

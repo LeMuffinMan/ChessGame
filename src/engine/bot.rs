@@ -18,6 +18,8 @@ use js_sys::Math;
 use std::collections::HashMap;
 use web_sys::window;
 
+const BOT_TIME_LIMIT: f64 = 250.0;
+
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum BotDifficulty {
     Random,
@@ -51,6 +53,7 @@ pub fn get_bot_move(
             game_history,
             fifty_count,
             depth,
+            BOT_TIME_LIMIT,
         ),
         Bot(Random) => {
             let mut move_list = MoveList::new();

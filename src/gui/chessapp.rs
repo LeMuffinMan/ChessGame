@@ -28,6 +28,7 @@ pub struct ChessApp {
     pub search_ctx: SearchContext,
     pub white_last_score: i32,
     pub black_last_score: i32,
+    pub hint_highlight: u8,
 }
 
 impl ChessApp {
@@ -47,6 +48,7 @@ impl ChessApp {
             search_ctx: SearchContext::new(),
             white_last_score: 0,
             black_last_score: 0,
+            hint_highlight: 0,
         }
     }
     pub fn revenge(ui_type: UiType, other: &ChessApp) -> Self {
@@ -65,6 +67,7 @@ impl ChessApp {
             search_ctx: SearchContext::new(),
             white_last_score: 0,
             black_last_score: 0,
+            hint_highlight: 0,
         };
         app.settings.flip = !app.settings.flip;
         app

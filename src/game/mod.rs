@@ -70,6 +70,7 @@ pub struct Game {
     pub history: Vec<Move>,
     pub initial_board: Board,
     pub depth: u8,
+    pub hint: Option<(Coord, Coord)>,
 }
 
 impl Default for Game {
@@ -106,6 +107,7 @@ impl Game {
             history: Vec::new(),
             initial_board,
             depth: 5,
+            hint: None,
         }
     }
 
