@@ -10,7 +10,7 @@ impl ChessApp {
     pub fn mobile_layout(&mut self, ctx: &egui::Context) {
         self.apply_styles(ctx);
         self.top_title_panel(ctx);
-        self.central_panel_mobile(ctx);
+        self.central_panel(ctx);
     }
     pub fn desktop_layout(&mut self, ctx: &egui::Context) {
         self.apply_desktop_styles(ctx);
@@ -20,6 +20,6 @@ impl ChessApp {
         self.right_panel_desktop(ctx);
         self.top_black_panel_desktop(ctx);
         self.bot_white_panel_desktop(ctx);
-        self.central_panel_desktop(ctx);
+        self.central_panel(ctx);
     }
 }

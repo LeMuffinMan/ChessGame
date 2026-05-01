@@ -52,7 +52,7 @@ impl Settings {
             black_undo: 0,
             undo_limit: 0,
             white_bot: Human,
-            black_bot: Bot(Depth(8)),
+            black_bot: Bot(Adaptive),
             allow_hint: false,
         }
     }

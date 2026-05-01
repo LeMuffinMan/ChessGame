@@ -17,7 +17,7 @@ impl ChessApp {
                     self.draw_resign_undo_desktop(ui);
                 }
                 self.engine_infos(ui, &self.game.active_player);
-                self.new_game_replay(ui, ctx);
+                self.new_game_replay(ui);
                 if self.app_mode == Lobby {
                     self.undo_limit_hint(ui);
                     if self.settings.white_bot == Human && self.settings.black_bot == Human {

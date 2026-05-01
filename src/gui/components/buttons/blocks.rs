@@ -1,17 +1,12 @@
 use crate::ChessApp;
 use crate::Color::*;
-use crate::game::DrawOption;
-use crate::game::DrawOption::*;
-use crate::game::End::Draw;
-use crate::gui::chessapp::AppMode::Replay;
+use crate::gui::chessapp::AppMode::*;
 use crate::gui::hooks::windows::WinDia;
-use crate::gui::hooks::windows::WinDia::*;
-use egui::Context;
 
 impl ChessApp {
-    //Desktop
+    // Desktop
 
-    pub fn new_game_replay(&mut self, ui: &mut egui::Ui, _ctx: &Context) {
+    pub fn new_game_replay(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             if self.game.end.is_some() || self.app_mode == Replay {
                 self.new_game_button(ui);
@@ -34,55 +29,60 @@ impl ChessApp {
         ui.separator();
     }
 
-    //Mobile : to adapt using desktop components
-    pub fn draw_resign_undo_mobile(&mut self, ui: &mut egui::Ui) {
-        ui.add_space(60.0);
+    // Mobile
+
+    pub fn lobby_buttons(&mut self, ui: &mut egui::Ui) {
+        let gap = ((ui.available_width() - 350.0) / 4.0).max(8.0);
+        ui.add_space(gap);
         self.settings_button(ui);
-        ui.add_space(150.0);
-        #[allow(clippy::collapsible_else_if)]
-        if let Some(option) = &self.game.draw.draw_option {
-            #[allow(clippy::collapsible_else_if)]
-            if let Available(_) = option {
-                #[allow(clippy::collapsible_else_if)]
-                if ui.button("Claim draw").clicked() {
-                    self.game.end = Some(Draw);
+        ui.add_space(gap);
+        if ui
+            .add_enabled(self.win.is_none(), egui::Button::new("Timer"))
+            .clicked()
+        {
+            self.win = Some(WinDia::Timer);
+        }
+        ui.add_space(gap);
+        self.new_game_button(ui);
+    }
+
+    pub fn draw_endgame_buttons(&mut self, ui: &mut egui::Ui) {
+        ui.vertical_centered(|ui| {
+            ui.horizontal_centered(|ui| {
+                let gap = ((ui.available_width() - 460.0) / 4.0).max(8.0);
+                ui.add_space(gap);
+                if ui
+                    .add_enabled(self.win.is_none(), egui::Button::new("Replay"))
+                    .clicked()
+                {
+                    self.app_mode = Replay;
+                    self.game.board = self.game.board_at(self.replay_infos.index);
+                    self.game.active_player =
+                        if self.replay_infos.index % 2 == 0 { White } else { Black };
                 }
-            };
-        } else {
-            if ui.button("Draw").clicked() {
-                self.win = Some(DrawRequest);
-            }
-        }
-        ui.add_space(20.0);
-        if ui.button("Resign").clicked() {
-            self.win = Some(Resign);
-        }
-        if let Some(option) = &self.game.draw.draw_option
-            && let DrawOption::Available(_) = option
-        {
-            ui.add_space(60.0);
-        } else {
-            ui.add_space(150.0);
-        }
-        #[allow(clippy::collapsible_if)]
-        if self.settings.allow_undo
-            && (self.settings.white_undo > 0 || self.settings.black_undo > 0)
-        {
-            #[allow(clippy::collapsible_if)]
-            if ui
-                .add_enabled(
-                    self.game.end.is_none()
-                        && self.can_undo()
-                        && self.win.is_none()
-                        && (self.game.history.len() > 1
-                            || self.game.history.len() == 2 && self.game.active_player == White),
-                    egui::Button::new("Undo"),
-                )
-                .clicked()
-            {
-                self.win = Some(WinDia::Undo);
-                self.decremente_undo();
-            }
+                ui.add_space(gap);
+                self.revenge_button(ui);
+                ui.add_space(gap);
+                self.new_game_button(ui);
+            });
+            ui.add_space(20.0);
+            ui.horizontal_centered(|ui| {
+                self.settings_button(ui);
+            });
+        });
+    }
+
+    pub fn draw_resign_undo_mobile(&mut self, ui: &mut egui::Ui) {
+        let gap = ((ui.available_width() - 350.0) / 4.0).max(8.0);
+        ui.add_space(gap);
+        self.settings_button(ui);
+        ui.add_space(gap);
+        self.draw_buttons(ui);
+        ui.add_space(gap);
+        self.resign_button(ui);
+        if self.is_undoable() {
+            ui.add_space(gap);
+            self.undo_button(ui);
         }
     }
 }
