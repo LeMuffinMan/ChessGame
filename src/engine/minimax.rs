@@ -11,7 +11,7 @@ use crate::engine::evaluator::{
     BISHOP_VALUE, KNIGHT_VALUE, PAWN_VALUE, QUEEN_VALUE, ROOK_VALUE, evaluate,
 };
 use crate::engine::move_ordering::move_order_score;
-use crate::engine::search_context::SearchContext;
+use crate::engine::search_context::{SearchContext, TT_SIZE};
 use crate::engine::ttentry::{TtEntry, TtFlag};
 use crate::engine::zobris_table::zobrist;
 use std::collections::HashMap;
@@ -57,11 +57,25 @@ pub fn minimax(
 
     // we probe the tt first
     let mut tt_move: Option<Move> = None;
-    if let Some(entry) = ctx.tt.get(&board.hash) {
-        tt_move = entry.best_move;
-        if entry.depth >= depth {
-            match entry.flag {
-                TtFlag::Exact => {
+    {
+        let idx = (board.hash as usize) & (TT_SIZE - 1);
+        let entry = ctx.tt[idx];
+        if entry.key == board.hash {
+            tt_move = entry.best_move;
+            if entry.generation == ctx.tt_generation && entry.depth >= depth {
+                match entry.flag {
+                    TtFlag::Exact => {
+                        ctx.stats.cutoffs += 1;
+                        ctx.stats.cutoffs_per_depth[ctx.stats.depth] += 1;
+                        ctx.stats.total_cutoffs_depth += ctx.stats.depth;
+                        ctx.stats.tt_hits += 1;
+                        let score = score_from_tt(entry.score, ply as i32);
+                        return score;
+                    }
+                    TtFlag::LowerBound => alpha = alpha.max(entry.score),
+                    TtFlag::UpperBound => beta = beta.min(entry.score),
+                }
+                if alpha >= beta {
                     ctx.stats.cutoffs += 1;
                     ctx.stats.cutoffs_per_depth[ctx.stats.depth] += 1;
                     ctx.stats.total_cutoffs_depth += ctx.stats.depth;
@@ -69,16 +83,6 @@ pub fn minimax(
                     let score = score_from_tt(entry.score, ply as i32);
                     return score;
                 }
-                TtFlag::LowerBound => alpha = alpha.max(entry.score),
-                TtFlag::UpperBound => beta = beta.min(entry.score),
-            }
-            if alpha >= beta {
-                ctx.stats.cutoffs += 1;
-                ctx.stats.cutoffs_per_depth[ctx.stats.depth] += 1;
-                ctx.stats.total_cutoffs_depth += ctx.stats.depth;
-                ctx.stats.tt_hits += 1;
-                let score = score_from_tt(entry.score, ply as i32);
-                return score;
             }
         }
     }
@@ -299,19 +303,13 @@ pub fn minimax(
         } else {
             TtFlag::Exact
         };
-        let should_store =
-            max_eval != i32::MIN && ctx.tt.get(&board.hash).map_or(true, |e| depth >= e.depth);
-        if should_store {
-            ctx.tt.insert(
-                board.hash,
-                TtEntry {
-                    score: score_to_tt(max_eval, ply as i32),
-                    depth,
-                    flag,
-                    best_move: best_move_found,
-                },
-            );
-            ctx.stats.tt_stores += 1;
+        if max_eval != i32::MIN {
+            let idx = (board.hash as usize) & (TT_SIZE - 1);
+            let slot = &ctx.tt[idx];
+            if slot.key == 0 || slot.generation != ctx.tt_generation || depth >= slot.depth {
+                ctx.tt[idx] = TtEntry { key: board.hash, score: score_to_tt(max_eval, ply as i32), depth, generation: ctx.tt_generation, flag, best_move: best_move_found };
+                ctx.stats.tt_stores += 1;
+            }
         }
         max_eval
     } else {
@@ -422,19 +420,13 @@ pub fn minimax(
         } else {
             TtFlag::Exact
         };
-        let should_store =
-            min_eval != i32::MAX && ctx.tt.get(&board.hash).map_or(true, |e| depth >= e.depth);
-        if should_store {
-            ctx.tt.insert(
-                board.hash,
-                TtEntry {
-                    score: score_to_tt(min_eval, ply as i32),
-                    depth,
-                    flag,
-                    best_move: best_move_found,
-                },
-            );
-            ctx.stats.tt_stores += 1;
+        if min_eval != i32::MAX {
+            let idx = (board.hash as usize) & (TT_SIZE - 1);
+            let slot = &ctx.tt[idx];
+            if slot.key == 0 || slot.generation != ctx.tt_generation || depth >= slot.depth {
+                ctx.tt[idx] = TtEntry { key: board.hash, score: score_to_tt(min_eval, ply as i32), depth, generation: ctx.tt_generation, flag, best_move: best_move_found };
+                ctx.stats.tt_stores += 1;
+            }
         }
         min_eval
     }
@@ -493,7 +485,11 @@ pub fn find_best_move(
         Color::Black => Color::White,
     };
 
-    let tt_move = ctx.tt.get(&board.hash).and_then(|e| e.best_move);
+    let tt_move = {
+        let idx = (board.hash as usize) & (TT_SIZE - 1);
+        let e = ctx.tt[idx];
+        if e.key == board.hash { e.best_move } else { None }
+    };
     let mut best_move = None;
     let mut best_score;
     let [killer1, killer2] = ctx.killers.get(depth as usize);
@@ -768,8 +764,10 @@ pub fn quiescence_minimax(
     let orig_beta = beta;
     let q_depth = depth.max(0) as u8;
 
-    if let Some(entry) = ctx.tt.get(&board.hash).copied() {
-        if entry.depth >= q_depth {
+    {
+        let idx = (board.hash as usize) & (TT_SIZE - 1);
+        let entry = ctx.tt[idx];
+        if entry.key == board.hash && entry.generation == ctx.tt_generation && entry.depth >= q_depth {
             let s = score_from_tt(entry.score, ply as i32);
             match entry.flag {
                 TtFlag::Exact => return s,
@@ -787,13 +785,12 @@ pub fn quiescence_minimax(
 
     if active_player == Color::White {
         if stand_pat >= beta {
-            if ctx.tt.get(&board.hash).map_or(true, |e| q_depth >= e.depth) {
-                ctx.tt.insert(board.hash, TtEntry {
-                    score: score_to_tt(stand_pat, ply as i32),
-                    depth: q_depth,
-                    flag: TtFlag::LowerBound,
-                    best_move: None,
-                });
+            {
+                let idx = (board.hash as usize) & (TT_SIZE - 1);
+                let slot = &ctx.tt[idx];
+                if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {
+                    ctx.tt[idx] = TtEntry { key: board.hash, score: score_to_tt(stand_pat, ply as i32), depth: q_depth, generation: ctx.tt_generation, flag: TtFlag::LowerBound, best_move: None };
+                }
             }
             return beta;
         }
@@ -802,13 +799,12 @@ pub fn quiescence_minimax(
         }
     } else {
         if stand_pat <= alpha {
-            if ctx.tt.get(&board.hash).map_or(true, |e| q_depth >= e.depth) {
-                ctx.tt.insert(board.hash, TtEntry {
-                    score: score_to_tt(stand_pat, ply as i32),
-                    depth: q_depth,
-                    flag: TtFlag::UpperBound,
-                    best_move: None,
-                });
+            {
+                let idx = (board.hash as usize) & (TT_SIZE - 1);
+                let slot = &ctx.tt[idx];
+                if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {
+                    ctx.tt[idx] = TtEntry { key: board.hash, score: score_to_tt(stand_pat, ply as i32), depth: q_depth, generation: ctx.tt_generation, flag: TtFlag::UpperBound, best_move: None };
+                }
             }
             return alpha;
         }
@@ -826,13 +822,12 @@ pub fn quiescence_minimax(
         } else {
             TtFlag::Exact
         };
-        if ctx.tt.get(&board.hash).map_or(true, |e| q_depth >= e.depth) {
-            ctx.tt.insert(board.hash, TtEntry {
-                score: score_to_tt(result, ply as i32),
-                depth: q_depth,
-                flag,
-                best_move: None,
-            });
+        {
+            let idx = (board.hash as usize) & (TT_SIZE - 1);
+            let slot = &ctx.tt[idx];
+            if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {
+                ctx.tt[idx] = TtEntry { key: board.hash, score: score_to_tt(result, ply as i32), depth: q_depth, generation: ctx.tt_generation, flag, best_move: None };
+            }
         }
         return result;
     }
@@ -876,13 +871,12 @@ pub fn quiescence_minimax(
                 best_move_found = Some(m);
             }
             if alpha >= beta {
-                if ctx.tt.get(&board.hash).map_or(true, |e| q_depth >= e.depth) {
-                    ctx.tt.insert(board.hash, TtEntry {
-                        score: score_to_tt(alpha, ply as i32),
-                        depth: q_depth,
-                        flag: TtFlag::LowerBound,
-                        best_move: best_move_found,
-                    });
+                {
+                    let idx = (board.hash as usize) & (TT_SIZE - 1);
+                    let slot = &ctx.tt[idx];
+                    if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {
+                        ctx.tt[idx] = TtEntry { key: board.hash, score: score_to_tt(alpha, ply as i32), depth: q_depth, generation: ctx.tt_generation, flag: TtFlag::LowerBound, best_move: best_move_found };
+                    }
                 }
                 return beta;
             }
@@ -892,13 +886,12 @@ pub fn quiescence_minimax(
                 best_move_found = Some(m);
             }
             if alpha >= beta {
-                if ctx.tt.get(&board.hash).map_or(true, |e| q_depth >= e.depth) {
-                    ctx.tt.insert(board.hash, TtEntry {
-                        score: score_to_tt(beta, ply as i32),
-                        depth: q_depth,
-                        flag: TtFlag::UpperBound,
-                        best_move: best_move_found,
-                    });
+                {
+                    let idx = (board.hash as usize) & (TT_SIZE - 1);
+                    let slot = &ctx.tt[idx];
+                    if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {
+                        ctx.tt[idx] = TtEntry { key: board.hash, score: score_to_tt(beta, ply as i32), depth: q_depth, generation: ctx.tt_generation, flag: TtFlag::UpperBound, best_move: best_move_found };
+                    }
                 }
                 return alpha;
             }
@@ -913,13 +906,12 @@ pub fn quiescence_minimax(
     } else {
         TtFlag::Exact
     };
-    if ctx.tt.get(&board.hash).map_or(true, |e| q_depth >= e.depth) {
-        ctx.tt.insert(board.hash, TtEntry {
-            score: score_to_tt(result, ply as i32),
-            depth: q_depth,
-            flag,
-            best_move: best_move_found,
-        });
+    {
+        let idx = (board.hash as usize) & (TT_SIZE - 1);
+        let slot = &ctx.tt[idx];
+        if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {
+            ctx.tt[idx] = TtEntry { key: board.hash, score: score_to_tt(result, ply as i32), depth: q_depth, generation: ctx.tt_generation, flag, best_move: best_move_found };
+        }
     }
     result
 }
