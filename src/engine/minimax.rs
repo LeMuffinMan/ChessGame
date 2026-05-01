@@ -15,7 +15,23 @@ use crate::engine::search_context::{SearchContext, TT_SIZE};
 use crate::engine::ttentry::{TtEntry, TtFlag};
 use crate::engine::zobris_table::zobrist;
 use std::collections::HashMap;
-use web_sys::window;
+#[cfg(target_arch = "wasm32")]
+fn now_ms() -> f64 {
+    web_sys::window()
+        .and_then(|w| w.performance())
+        .map(|p| p.now())
+        .unwrap_or(0.0)
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn now_ms() -> f64 {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs_f64()
+        * 1000.0
+}
 
 const MATE_SCORE: i32 = 1_000_000;
 const MATE_THRESHOLD: i32 = 990_000;
@@ -697,8 +713,7 @@ pub fn timed_out_iterative_deepening(
 ) -> Option<Move> {
     let mut best_move = None;
     let mut prev_score = 0i32;
-    let performance = window().unwrap().performance().unwrap();
-    let start = performance.now();
+    let start = now_ms();
     for depth in 1..=max_depth {
         let (candidate, score) = if depth <= 2 {
             ctx.stats.reset();
@@ -714,7 +729,7 @@ pub fn timed_out_iterative_deepening(
             best_move = candidate;
             prev_score = score;
         }
-        if performance.now() - start > timeout {
+        if now_ms() - start > timeout {
             break;
         }
     }

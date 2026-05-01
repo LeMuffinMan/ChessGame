@@ -1,6 +1,5 @@
 use crate::Board;
 use crate::ChessApp;
-use crate::engine::search_stats::MAX_SEARCH_DEPTH;
 use crate::Color;
 use crate::board::cell::Cell;
 use crate::board::cell::Color::*;
@@ -14,9 +13,40 @@ use crate::engine::minimax::iterative_deepening;
 use crate::engine::minimax::timed_out_iterative_deepening;
 use crate::engine::search_context::SearchContext;
 use crate::gui::chessapp::AppMode::*;
-use js_sys::Math;
 use std::collections::HashMap;
-use web_sys::window;
+
+#[cfg(target_arch = "wasm32")]
+fn now_ms() -> f64 {
+    web_sys::window()
+        .and_then(|w| w.performance())
+        .map(|p| p.now())
+        .unwrap_or(0.0)
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn now_ms() -> f64 {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs_f64()
+        * 1000.0
+}
+
+#[cfg(target_arch = "wasm32")]
+fn random_index(len: usize) -> usize {
+    (js_sys::Math::random() * len as f64).floor() as usize
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn random_index(len: usize) -> usize {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .subsec_nanos() as usize;
+    nanos % len
+}
 
 const BOT_TIMEOUT: f64 = 150.0;
 
@@ -48,7 +78,7 @@ pub fn get_bot_move(
         Bot(Adaptive) => timed_out_iterative_deepening(
             board,
             active_player,
-             11 as u8,
+            11 as u8,
             ctx,
             game_history,
             fifty_count,
@@ -59,7 +89,7 @@ pub fn get_bot_move(
             let mut move_list = MoveList::new();
             generate_moves(board, &active_player, &mut move_list, false);
             let moves = &mut move_list.moves[..move_list.count];
-            let index = (Math::random() * moves.len() as f64).floor() as usize;
+            let index = random_index(moves.len());
             Some(moves[index])
         }
         _ => None,
@@ -101,9 +131,8 @@ impl ChessApp {
             White => &self.settings.white_bot,
             Black => &self.settings.black_bot,
         };
-        let performance = window().unwrap().performance().unwrap();
         self.search_ctx.reset_search_stats();
-        let start = performance.now();
+        let start = now_ms();
         let bot_move = get_bot_move(
             difficulty,
             &mut self.game.board,
@@ -113,7 +142,7 @@ impl ChessApp {
             self.game.draw.draw_moves_count,
             &mut self.game.depth,
         );
-        let end = performance.now();
+        let end = now_ms();
         self.search_ctx.stats.bot_time_thinking = end - start;
         self.search_ctx.stats.nps();
         if let Some(m) = bot_move {

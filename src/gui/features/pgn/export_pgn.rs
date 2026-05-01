@@ -3,11 +3,16 @@ use crate::gui::features::timer::GameMode;
 use crate::gui::panels::bot_panels::format_time;
 
 use chrono::Utc;
+#[cfg(target_arch = "wasm32")]
 use js_sys::Array;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsCast;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsValue;
+#[cfg(target_arch = "wasm32")]
 use web_sys::{Blob, HtmlAnchorElement, HtmlElement, Url, window};
 
+#[cfg(target_arch = "wasm32")]
 impl ChessApp {
     //error handling todo
     pub fn export_pgn(&mut self) -> Result<(), JsValue> {

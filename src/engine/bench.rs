@@ -3,6 +3,7 @@ use crate::board::cell::Color;
 use crate::engine::minimax::{find_best_move, iterative_deepening};
 use crate::engine::search_context::SearchContext;
 use std::collections::HashMap;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
 const START_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -98,7 +99,7 @@ fn ebf(nodes: u64, depth: u8) -> f64 {
     }
 }
 
-fn entry_json(label: &str, depth: u8, r: &BenchResult, time_ms: f64) -> String {
+pub fn entry_json(label: &str, depth: u8, r: &BenchResult, time_ms: f64) -> String {
     format!(
         r#"{{"label":"{}","depth":{},"nodes":{},"q_nodes":{},"time_ms":{:.1},"nps":{},"tt_pct":{:.1},"cut_pct":{:.1},"ebf":{:.2},"aborted":{}}}"#,
         label,
@@ -116,7 +117,7 @@ fn entry_json(label: &str, depth: u8, r: &BenchResult, time_ms: f64) -> String {
 
 // Wasm export :
 // called by bench.html once per max depth level
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub fn run_bench(depth: u8, max_nodes: u32) -> String {
     if depth < 1 {
         return "[]".to_string();
@@ -131,7 +132,7 @@ pub fn run_bench(depth: u8, max_nodes: u32) -> String {
     )
 }
 
-fn run_n(fen: &str, color: Color, depth: u8, max_nodes: u64) -> (BenchResult, f64) {
+pub fn run_n(fen: &str, color: Color, depth: u8, max_nodes: u64) -> (BenchResult, f64) {
     const NB_RUNS: usize = 5;
 
     let stats_result = bench_run(fen, color, depth, max_nodes);
