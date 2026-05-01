@@ -20,7 +20,7 @@ impl ChessApp {
                     egui::Vec2::new(available_width, total_height),
                     egui::Layout::top_down_justified(egui::Align::Center),
                     |ui| {
-                        self.mobile_turn_infos(ui);
+                        self.turn_infos(ui);
 
                         ui.separator();
                         self.player_bar(ui, &Black);

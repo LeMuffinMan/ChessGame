@@ -1,31 +1,40 @@
 use crate::ChessApp;
 use crate::game::End;
+use crate::gui::layout::UiType::*;
+use egui::RichText;
 
 impl ChessApp {
-    //Inform on the current game state, player to move, check, or endgame
     pub fn turn_infos(&mut self, ui: &mut egui::Ui) {
-        ui.label(format!("Turn #{}", self.game.turn));
+        let sz = match self.ui_type { Mobile => 40.0, Desktop => 30.0 };
+        let rt = |s: String| RichText::new(s).size(sz);
+
+        ui.label(rt(format!("Turn #{}", self.game.turn)));
         if let Some(end) = &self.game.end {
             match end {
-                End::Checkmate => ui.label(format!("Checkmate ! {:?} win", self.game.opponent())),
-                End::TimeOut => ui.label(format!(
-                    "{:?} out of time !\n{:?} win",
-                    self.game.active_player, self.game.opponent()
-                )),
-                End::Pat => ui.label("Pat !"),
-                End::Draw => ui.label("Draw"),
-                End::Resign => ui.label(format!(
-                    "{:?} resigned : {:?} win",
-                    self.game.active_player, self.game.opponent()
-                )),
+                End::Checkmate => {
+                    ui.label(rt(format!("Checkmate ! {:?} win", self.game.opponent())));
+                }
+                End::TimeOut => {
+                    ui.label(rt(format!(
+                        "{:?} out of time ! {:?} win",
+                        self.game.active_player,
+                        self.game.opponent()
+                    )));
+                }
+                End::Pat => { ui.label(rt("Pat !".into())); }
+                End::Draw => { ui.label(rt("Draw".into())); }
+                End::Resign => {
+                    ui.label(rt(format!(
+                        "{:?} resigned : {:?} win",
+                        self.game.active_player,
+                        self.game.opponent()
+                    )));
+                }
             };
+        } else if self.game.board.check.is_some() {
+            ui.label(rt(format!("Check ! {:?} to move", self.game.active_player)));
         } else {
-            if self.game.board.check.is_some() {
-                ui.label("Check !");
-            }
-            ui.horizontal(|ui| {
-                ui.label(format!("{:?} to move", self.game.active_player));
-            });
+            ui.label(rt(format!("{:?} to move", self.game.active_player)));
         }
     }
 }

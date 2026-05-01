@@ -26,7 +26,7 @@ impl ChessApp {
                 WinDia::Resign => self.resign_win(ctx),
                 WinDia::DrawRequest => self.offer_draw_win(ctx),
                 WinDia::Promote => {} // self.promote_win(ctx),
-                WinDia::Timer => self.set_timer(ctx),
+                WinDia::Timer => self.timer_window(ctx),
                 WinDia::Undo => self.ask_undo(ctx),
                 WinDia::Pgn => self.pgn_win(ctx),
             }
