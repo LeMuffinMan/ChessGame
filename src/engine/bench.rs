@@ -131,8 +131,6 @@ pub fn run_bench(depth: u8, max_nodes: u32) -> String {
     )
 }
 
-// Nodes are deterministic (same search tree every run), so stats come from the first run.
-// Time uses the minimum over NB_RUNS to reduce OS scheduling noise.
 fn run_n(fen: &str, color: Color, depth: u8, max_nodes: u64) -> (BenchResult, f64) {
     const NB_RUNS: usize = 5;
 

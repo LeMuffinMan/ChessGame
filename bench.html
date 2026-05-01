@@ -192,13 +192,12 @@
             <label>
                 Max depth
                 <select id="max-depth">
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5" selected>5</option>
                     <option value="6">6</option>
                     <option value="7">7</option>
                     <option value="8">8</option>
                     <option value="9">9</option>
+                    <option value="10" selected>10</option>
+                    <option value="11">11</option>
                 </select>
             </label>
             <label>
@@ -309,7 +308,7 @@
                 tbody.innerHTML = "";
                 runBtn.disabled = true;
 
-                for (let d = 1; d <= maxDepth; d++) {
+                for (let d = 6; d <= maxDepth; d++) {
                     statusEl.textContent = `Running depth ${d} / ${maxDepth}…`;
                     await new Promise((r) => setTimeout(r, 0)); // yield so status renders
 
