@@ -19,7 +19,6 @@ use web_sys::window;
 
 const MATE_SCORE: i32 = 1_000_000;
 const MATE_THRESHOLD: i32 = 990_000;
-const BOT_TIME_LIMIT: f64 = 250.0;
 
 pub fn minimax(
     board: &mut Board,
@@ -300,8 +299,8 @@ pub fn minimax(
         } else {
             TtFlag::Exact
         };
-        let should_store = max_eval != i32::MIN
-            && ctx.tt.get(&board.hash).map_or(true, |e| depth >= e.depth);
+        let should_store =
+            max_eval != i32::MIN && ctx.tt.get(&board.hash).map_or(true, |e| depth >= e.depth);
         if should_store {
             ctx.tt.insert(
                 board.hash,
@@ -423,8 +422,8 @@ pub fn minimax(
         } else {
             TtFlag::Exact
         };
-        let should_store = min_eval != i32::MAX
-            && ctx.tt.get(&board.hash).map_or(true, |e| depth >= e.depth);
+        let should_store =
+            min_eval != i32::MAX && ctx.tt.get(&board.hash).map_or(true, |e| depth >= e.depth);
         if should_store {
             ctx.tt.insert(
                 board.hash,
@@ -649,6 +648,7 @@ pub fn timed_out_iterative_deepening(
     game_history: &HashMap<u64, usize>,
     fifty_count: u32,
     reached_depth: &mut u8,
+    timeout: f64,
 ) -> Option<Move> {
     let mut best_move = None;
     let performance = window().unwrap().performance().unwrap();
@@ -663,7 +663,7 @@ pub fn timed_out_iterative_deepening(
             *reached_depth = depth;
             best_move = candidate;
         }
-        if performance.now() - start > BOT_TIME_LIMIT {
+        if performance.now() - start > timeout {
             break;
         }
     }

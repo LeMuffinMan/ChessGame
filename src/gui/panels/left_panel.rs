@@ -16,15 +16,13 @@ impl ChessApp {
                 if matches!(&self.app_mode, AppMode::Versus(None)) {
                     self.draw_resign_undo_desktop(ui);
                 }
-                ui.separator();
                 self.engine_infos(ui, &self.game.active_player);
                 self.new_game_replay(ui, ctx);
-                if self.app_mode == Lobby
-                    && self.settings.white_bot == Human
-                    && self.settings.black_bot == Human
-                {
-                    self.undo_limit(ui);
-                    self.timer_increment(ui, ctx);
+                if self.app_mode == Lobby {
+                    self.undo_limit_hint(ui);
+                    if self.settings.white_bot == Human && self.settings.black_bot == Human {
+                        self.timer_increment(ui, ctx);
+                    }
                 }
 
                 if self.app_mode == Replay {
@@ -48,9 +46,11 @@ impl ChessApp {
             });
     }
 
-    pub fn undo_limit(&mut self, ui: &mut egui::Ui) {
+    pub fn undo_limit_hint(&mut self, ui: &mut egui::Ui) {
         ui.separator();
         ui.horizontal(|ui| {
+            ui.toggle_value(&mut self.settings.allow_hint, "Hint");
+
             if ui
                 .toggle_value(&mut self.settings.allow_undo, "Allow undo")
                 .changed()

@@ -3,6 +3,8 @@ use crate::board::cell::Color;
 use crate::board::cell::Color::*;
 use crate::engine::bot::BotDifficulty::*;
 use crate::engine::bot::PlayerType::*;
+use crate::engine::minimax::timed_out_iterative_deepening;
+use crate::engine::search_context::SearchContext;
 use crate::engine::search_stats::MAX_SEARCH_DEPTH;
 use crate::gui::chessapp::AppMode::*;
 use crate::gui::features::timer::GameMode::NoTime;
@@ -81,7 +83,6 @@ impl ChessApp {
                                     .clicked()
                                 {
                                     *d = depth;
-                                    // ui.close_menu();
                                 }
                             }
                         });
@@ -100,28 +101,24 @@ impl ChessApp {
                             .clicked()
                         {
                             bot_setting = Human;
-                            // ui.close_menu();
                         }
                         if ui
                             .selectable_label(bot_setting == Bot(Random), "Bot random")
                             .clicked()
                         {
                             bot_setting = Bot(Random);
-                            // ui.close_menu();
                         }
                         if ui
                             .selectable_label(bot_setting == Bot(Adaptive), "Bot adaptive")
                             .clicked()
                         {
                             bot_setting = Bot(Adaptive);
-                            // ui.close_menu();
                         }
                         if ui
                             .selectable_label(matches!(bot_setting, Bot(Depth(_))), "Bot")
                             .clicked()
                         {
                             bot_setting = Bot(Depth(current_depth));
-                            // ui.close_menu();
                         }
                     });
                 });
@@ -138,6 +135,28 @@ impl ChessApp {
                             && ui.button("▶ Start").clicked()
                         {
                             self.start_bot_game();
+                        }
+                        if self.settings.allow_hint
+                            && *color == self.game.active_player
+                            && ui
+                                .add_enabled(self.hint_highlight < 2, egui::Button::new("Hint"))
+                                .clicked()
+                        {
+                            if self.hint_highlight == 0 {
+                                if let Some(hint_move) = timed_out_iterative_deepening(
+                                    &mut self.game.board,
+                                    self.game.active_player,
+                                    MAX_SEARCH_DEPTH as u8,
+                                    &mut SearchContext::new(),
+                                    &self.game.draw.board_hashs,
+                                    self.game.draw.draw_moves_count,
+                                    &mut self.game.depth,
+                                    150.0,
+                                ) {
+                                    self.game.hint = Some((hint_move.origin, hint_move.dest));
+                                }
+                            }
+                            self.hint_highlight += 1;
                         }
                     },
                 );

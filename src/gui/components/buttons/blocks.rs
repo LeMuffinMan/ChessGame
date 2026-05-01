@@ -17,9 +17,9 @@ impl ChessApp {
                 self.new_game_button(ui);
                 self.revenge_button(ui);
                 self.replay_button(ui);
+                ui.separator();
             }
         });
-        ui.separator();
     }
 
     pub fn draw_resign_undo_desktop(&mut self, ui: &mut egui::Ui) {
@@ -31,6 +31,7 @@ impl ChessApp {
                 self.undo_button(ui);
             }
         });
+        ui.separator();
     }
 
     //Mobile : to adapt using desktop components
