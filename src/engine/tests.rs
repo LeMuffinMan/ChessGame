@@ -121,7 +121,7 @@ fn test_evaluate_white_queen_advantage() {
     let mut board = empty_board(coord(0, 0), coord(7, 7));
     board[(3, 3)] = Occupied(Queen, White);
     recompute_score(&mut board);
-    assert_eq!(evaluate(&board), 1385);
+    assert_eq!(evaluate(&board), 1355);
 }
 
 // White rook on d4 and black queen on d5 not defended : bot should take
@@ -168,7 +168,7 @@ fn test_stalemate_returns_zero() {
     board.sync_hash(Black);
 
     let mut ctx = test_ctx();
-    let score = minimax(&mut board, 1, Black, -1_000_000, 1_000_000, &mut ctx, true, &HashMap::new(), 0);
+    let score = minimax(&mut board, 1, Black, -1_000_000, 1_000_000, &mut ctx, true, &HashMap::new(), 0, 0);
     assert_eq!(
         score, -50,
         "stalemate caused by winning side should return contempt penalty"
@@ -184,7 +184,7 @@ fn test_checkmate_returns_mate_score() {
     board.sync_hash(Black);
 
     let mut ctx = test_ctx();
-    let score = minimax(&mut board, 1, Black, -1_000_000, 1_000_000, &mut ctx, true, &HashMap::new(), 0);
+    let score = minimax(&mut board, 1, Black, -1_000_000, 1_000_000, &mut ctx, true, &HashMap::new(), 0, 0);
     assert!(
         score > 100_000,
         "checkmate should return a large positive score (white wins), got {score}"

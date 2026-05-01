@@ -11,7 +11,11 @@ pub fn move_order_score(
     killer1: Option<Move>,
     killer2: Option<Move>,
     history: &HistoryTable,
+    tt_move: Option<Move>,
 ) -> i32 {
+    if tt_move == Some(*mv) {
+        return 3_000_000;
+    }
     if killer1 == Some(*mv) {
         return 1_000_000;
     }

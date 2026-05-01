@@ -1,8 +1,11 @@
+use crate::board::moves::move_structs::Move;
+
 #[derive(Clone, Copy)]
 pub struct TtEntry {
     pub score: i32,
     pub depth: u8,
     pub flag: TtFlag,
+    pub best_move: Option<Move>,
 }
 
 //using alpha beta pruning, we often return not the exact score, but an information about the exploration of a branch

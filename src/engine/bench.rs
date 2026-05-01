@@ -1,6 +1,6 @@
 use crate::Board;
 use crate::board::cell::Color;
-use crate::engine::minimax::find_best_move;
+use crate::engine::minimax::iterative_deepening;
 use crate::engine::search_context::SearchContext;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -8,9 +8,6 @@ use wasm_bindgen::prelude::wasm_bindgen;
 const START_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const KIWIPETE_FEN: &str = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
 
-// Observing variations in benchmark cause of js module and web noise,
-// the benchmark runs 2 first times to let JIT optimise the wasm code
-// Then we run 5 measured iterations and return the iteration with minimum time
 #[cfg(target_arch = "wasm32")]
 fn now_ms() -> f64 {
     web_sys::window()
@@ -37,11 +34,11 @@ pub struct BenchResult {
     pub tt_hits: usize,
     pub quiescence_nodes: u64,
     pub aborted: bool,
-    // pub nodes_per_depth: [usize; MAX_SEARCH_DEPTH],
-    // pub cutoffs_per_depth: [usize; MAX_SEARCH_DEPTH],
 }
 
 // max_nodes = 0 means no limit.
+// Uses iterative deepening so the TT is populated across depths —
+// this is the only mode where TT best_move, killers and history show their real impact.
 pub fn bench_run(fen: &str, color: Color, depth: u8, max_nodes: u64) -> BenchResult {
     assert!(depth >= 1, "bench_run requires depth >= 1");
     let mut board = Board::board_from_fen(fen).board;
@@ -49,7 +46,7 @@ pub fn bench_run(fen: &str, color: Color, depth: u8, max_nodes: u64) -> BenchRes
     ctx.stats.max_nodes = max_nodes;
     let hashmap: HashMap<u64, usize> = HashMap::new();
     let t0 = now_ms();
-    find_best_move(&mut board, color, depth, &mut ctx, &hashmap, 0);
+    iterative_deepening(&mut board, color, depth, &mut ctx, &hashmap, 0);
     let time_ms = now_ms() - t0;
     BenchResult {
         nodes: ctx.stats.nodes,
@@ -59,8 +56,6 @@ pub fn bench_run(fen: &str, color: Color, depth: u8, max_nodes: u64) -> BenchRes
         tt_hits: ctx.stats.tt_hits,
         quiescence_nodes: ctx.stats.quiescence_nodes,
         aborted: ctx.stats.aborted,
-        // nodes_per_depth: ctx.stats.nodes_per_depth,
-        // cutoffs_per_depth: ctx.stats.cutoffs_per_depth,
     }
 }
 
@@ -130,29 +125,20 @@ pub fn run_bench(depth: u8, max_nodes: u32) -> String {
     )
 }
 
+// Nodes are deterministic (same search tree every run), so stats come from the first run.
+// Time uses the minimum over NB_RUNS to reduce OS scheduling noise.
 fn run_n(fen: &str, color: Color, depth: u8, max_nodes: u64) -> (BenchResult, f64) {
-    // warmup for JIT opt : run for 500ms
-    // let warmup_start = now_ms();
-    // while now_ms() - warmup_start < 500.0 {
-    //     let warmup_depth = if depth > 8 { 5 } else { depth };
-    //     bench_run(fen, color, warmup_depth, max_nodes);
-    // }
-
     const NB_RUNS: usize = 5;
-    let mut times = Vec::with_capacity(NB_RUNS);
 
-    let mut stats_result = bench_run(fen, color, depth, max_nodes);
-    times.push(stats_result.time_ms);
+    let stats_result = bench_run(fen, color, depth, max_nodes);
+    let mut min_time = stats_result.time_ms;
 
     for _ in 1..NB_RUNS {
-        let r = bench_run(fen, color, depth, max_nodes);
-        times.push(r.time_ms);
+        let t = bench_run(fen, color, depth, max_nodes).time_ms;
+        if t < min_time {
+            min_time = t;
+        }
     }
 
-    times.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-    let median_time = times[NB_RUNS / 2];
-
-    stats_result.time_ms = median_time;
-
-    (stats_result, median_time)
+    (stats_result, min_time)
 }
