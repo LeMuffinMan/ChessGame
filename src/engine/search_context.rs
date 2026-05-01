@@ -22,15 +22,21 @@ impl SearchContext {
     }
 
     pub fn reset_for_new_game(&mut self) {
-        self.killers = KillerTable::new();
-        self.history = HistoryTable::new();
-        self.tt.clear();
+        self.reset_game_context();
         self.stats = SearchStats::new();
     }
 
-    pub fn reset_stats(&mut self) {
+    // Réinitialise les heuristiques liées à la partie (killers, history).
+    // La TT est conservée entre parties.
+    pub fn reset_game_context(&mut self) {
         self.killers = KillerTable::new();
-        self.tt.clear();
+        self.history = HistoryTable::new();
+    }
+
+    // Réinitialise les compteurs et les killers avant chaque coup.
+    // La TT et l'history ne sont pas touchées.
+    pub fn reset_search_stats(&mut self) {
+        self.killers = KillerTable::new();
         self.stats.reset();
     }
 

@@ -1,4 +1,4 @@
-pub const MAX_SEARCH_DEPTH: usize = 16;
+pub const MAX_SEARCH_DEPTH: usize = 128;
 
 pub struct SearchStats {
     pub depth: usize,
