@@ -20,7 +20,10 @@ impl ChessApp {
                     egui::Vec2::new(available_width, total_height),
                     egui::Layout::top_down_justified(egui::Align::Center),
                     |ui| {
-                        ui.add_space(20.0);
+                        self.mobile_turn_infos(ui);
+
+                        ui.add_space(40.0);
+                        ui.separator();
                         self.player_bar(ui, &Black);
                         ui.add_space(30.0);
 
@@ -32,11 +35,6 @@ impl ChessApp {
 
                         ui.separator();
                         ui.add_space(40.0);
-
-                        self.mobile_turn_infos(ui);
-
-                        ui.add_space(40.0);
-                        ui.separator();
 
                         self.display_history(ui);
 
