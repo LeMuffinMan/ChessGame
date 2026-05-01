@@ -57,7 +57,9 @@ pub fn minimax(
     let orig_beta = beta;
 
     // we probe the tt first
+    let mut tt_move: Option<Move> = None;
     if let Some(entry) = ctx.tt.get(&board.hash) {
+        tt_move = entry.best_move;
         if entry.depth >= depth {
             match entry.flag {
                 TtFlag::Exact => {
@@ -178,9 +180,11 @@ pub fn minimax(
                 killer1,
                 killer2,
                 &ctx.history,
+                tt_move,
             ))
         });
         let mut max_eval = i32::MIN;
+        let mut best_move_found: Option<Move> = None;
         for (i, &m) in moves.iter().enumerate() {
             // futility pruning : near the leafes, in a quiet situation, we want to seek moves that would give
             // an advantage now, so we skip the quiet moves, except if it could give a queen advantage (estimation of a good gain)
@@ -260,7 +264,7 @@ pub fn minimax(
                         true,
                         game_history,
                         new_fifty,
-                        0,
+                        ply + 1,
                     )
                 } else {
                     scout
@@ -269,7 +273,10 @@ pub fn minimax(
             ctx.stats.depth -= 1;
             board.undo_move(m, active_player);
 
-            max_eval = max_eval.max(score);
+            if score > max_eval {
+                max_eval = score;
+                best_move_found = Some(m);
+            }
             alpha = alpha.max(score);
             if alpha >= beta {
                 if m.capture == Free {
@@ -293,7 +300,8 @@ pub fn minimax(
         } else {
             TtFlag::Exact
         };
-        let should_store = ctx.tt.get(&board.hash).map_or(true, |e| depth >= e.depth);
+        let should_store = max_eval != i32::MIN
+            && ctx.tt.get(&board.hash).map_or(true, |e| depth >= e.depth);
         if should_store {
             ctx.tt.insert(
                 board.hash,
@@ -301,6 +309,7 @@ pub fn minimax(
                     score: score_to_tt(max_eval, ply as i32),
                     depth,
                     flag,
+                    best_move: best_move_found,
                 },
             );
             ctx.stats.tt_stores += 1;
@@ -314,9 +323,11 @@ pub fn minimax(
                 killer1,
                 killer2,
                 &ctx.history,
+                tt_move,
             ))
         });
         let mut min_eval = i32::MAX;
+        let mut best_move_found: Option<Move> = None;
         for (i, &m) in moves.iter().enumerate() {
             if depth == 1
                 && m.capture == Free
@@ -387,7 +398,10 @@ pub fn minimax(
             ctx.stats.depth -= 1;
             board.undo_move(m, active_player);
 
-            min_eval = min_eval.min(score);
+            if score < min_eval {
+                min_eval = score;
+                best_move_found = Some(m);
+            }
             beta = beta.min(score);
             if alpha >= beta {
                 if m.capture == Free {
@@ -409,14 +423,16 @@ pub fn minimax(
         } else {
             TtFlag::Exact
         };
-        let should_store = ctx.tt.get(&board.hash).map_or(true, |e| depth >= e.depth);
+        let should_store = min_eval != i32::MAX
+            && ctx.tt.get(&board.hash).map_or(true, |e| depth >= e.depth);
         if should_store {
             ctx.tt.insert(
                 board.hash,
                 TtEntry {
-                    score: min_eval,
+                    score: score_to_tt(min_eval, ply as i32),
                     depth,
                     flag,
+                    best_move: best_move_found,
                 },
             );
             ctx.stats.tt_stores += 1;
@@ -476,6 +492,7 @@ pub fn find_best_move(
         Color::Black => Color::White,
     };
 
+    let tt_move = ctx.tt.get(&board.hash).and_then(|e| e.best_move);
     let mut best_move = None;
     let [killer1, killer2] = ctx.killers.get(depth as usize);
 
@@ -487,6 +504,7 @@ pub fn find_best_move(
                 killer1,
                 killer2,
                 &ctx.history,
+                tt_move,
             ))
         });
         let mut best_score = i32::MIN;
@@ -556,6 +574,7 @@ pub fn find_best_move(
                 killer1,
                 killer2,
                 &ctx.history,
+                tt_move,
             ))
         });
         let mut best_score = i32::MAX;
