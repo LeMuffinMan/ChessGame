@@ -58,7 +58,7 @@ impl ChessApp {
             history_san: String::new(),
             timer: other.timer.clone(),
             win: None,
-            app_mode: other.app_mode.clone(),
+            app_mode: Versus(None),
             replay_infos: ReplayInfos::new(),
             game: Game::new(),
             last_move: None,
@@ -71,6 +71,9 @@ impl ChessApp {
             hint_highlight: 0,
         };
         app.settings.flip = !app.settings.flip;
+        std::mem::swap(&mut app.settings.white_bot, &mut app.settings.black_bot);
+        std::mem::swap(&mut app.settings.white_name, &mut app.settings.black_name);
+        std::mem::swap(&mut app.settings.white_undo, &mut app.settings.black_undo);
         app
     }
 }

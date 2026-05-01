@@ -10,7 +10,6 @@ use crate::gui::chessapp::AppMode::*;
 use crate::gui::features::timer::GameMode::NoTime;
 use crate::gui::panels::bot_panels::format_time;
 use egui::Align;
-use egui::Direction;
 use egui::Layout;
 use egui::RichText;
 use egui::Vec2;
@@ -125,9 +124,10 @@ impl ChessApp {
                     });
                 });
                 let remaining_w = ui.available_width();
+                let available_h = ui.available_height();
                 ui.allocate_ui_with_layout(
-                    Vec2::new(remaining_w, row_h),
-                    Layout::centered_and_justified(Direction::TopDown),
+                    Vec2::new(remaining_w, available_h),
+                    Layout::top_down(Align::Center),
                     |ui| {
                         let both_bots =
                             self.settings.white_bot != Human && self.settings.black_bot != Human;
