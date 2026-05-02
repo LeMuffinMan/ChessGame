@@ -3,7 +3,6 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link data-trunk rel="copy-file" href="public/native_bench.json" />
         <title>chess_engine — bench</title>
         <style>
             :root {
@@ -361,23 +360,62 @@
                         <input type="checkbox" id="pos-all" />
                         <label for="pos-all">All</label>
                     </div>
-                    <div class="pos-row"><input type="checkbox" class="pos-cb" value="Start|rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" checked /><label>Start</label></div>
-                    <div class="pos-row"><input type="checkbox" class="pos-cb" value="Kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1" checked /><label>Kiwipete</label></div>
-                    <div class="pos-row"><input type="checkbox" class="pos-cb" value="KingAttack|4rrk1/pp1n3p/3q2pQ/2p1pb2/2PP4/2P3N1/P2B2PP/4RRK1 b - - 7 19" /><label>KingAttack</label></div>
-                    <div class="pos-row"><input type="checkbox" class="pos-cb" value="PawnEnding|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 11" /><label>PawnEnding</label></div>
-                    <div class="pos-row"><input type="checkbox" class="pos-cb" value="RookQueen|3q2k1/pb3p1p/4pbp1/2r5/PpN2N2/1P2P2P/5PP1/Q2R2K1 b - - 4 26" /><label>RookQueen</label></div>
-                    <div class="pos-row"><input type="checkbox" class="pos-cb" value="RookPawns|8/pp2r1k1/2p1p3/3pP2p/1P1P1P1P/P5KR/8/8 w - - 0 1" /><label>RookPawns</label></div>
-                    <div class="pos-row"><input type="checkbox" class="pos-cb" value="BishopEnding|8/3p3B/5p2/5P2/p7/PP5b/k7/6K1 w - - 0 1" /><label>BishopEnding</label></div>
+                    <div class="pos-row">
+                        <input
+                            type="checkbox"
+                            class="pos-cb"
+                            value="Start|rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+                            checked
+                        /><label>Start</label>
+                    </div>
+                    <div class="pos-row">
+                        <input
+                            type="checkbox"
+                            class="pos-cb"
+                            value="Kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
+                            checked
+                        /><label>Kiwipete</label>
+                    </div>
+                    <div class="pos-row">
+                        <input
+                            type="checkbox"
+                            class="pos-cb"
+                            value="KingAttack|4rrk1/pp1n3p/3q2pQ/2p1pb2/2PP4/2P3N1/P2B2PP/4RRK1 b - - 7 19"
+                        /><label>KingAttack</label>
+                    </div>
+                    <div class="pos-row">
+                        <input
+                            type="checkbox"
+                            class="pos-cb"
+                            value="PawnEnding|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 11"
+                        /><label>PawnEnding</label>
+                    </div>
+                    <div class="pos-row">
+                        <input
+                            type="checkbox"
+                            class="pos-cb"
+                            value="RookQueen|3q2k1/pb3p1p/4pbp1/2r5/PpN2N2/1P2P2P/5PP1/Q2R2K1 b - - 4 26"
+                        /><label>RookQueen</label>
+                    </div>
+                    <div class="pos-row">
+                        <input
+                            type="checkbox"
+                            class="pos-cb"
+                            value="RookPawns|8/pp2r1k1/2p1p3/3pP2p/1P1P1P1P/P5KR/8/8 w - - 0 1"
+                        /><label>RookPawns</label>
+                    </div>
+                    <div class="pos-row">
+                        <input
+                            type="checkbox"
+                            class="pos-cb"
+                            value="BishopEnding|8/3p3B/5p2/5P2/p7/PP5b/k7/6K1 w - - 0 1"
+                        /><label>BishopEnding</label>
+                    </div>
                 </div>
             </div>
             <div class="field">
                 <label for="min-depth">Min depth</label>
                 <select id="min-depth">
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
                     <option value="6" selected>6</option>
                     <option value="7">7</option>
                     <option value="8">8</option>
@@ -449,7 +487,8 @@
                 posPanel.classList.toggle("open");
             });
             document.addEventListener("click", (e) => {
-                if (!posPanel.contains(e.target)) posPanel.classList.remove("open");
+                if (!posPanel.contains(e.target))
+                    posPanel.classList.remove("open");
             });
 
             // master checkbox + count label
@@ -486,7 +525,8 @@
             fetch("./native_bench.json")
                 .then((r) => (r.ok ? r.json() : null))
                 .then((entries) => {
-                    if (entries) loadNativeEntries(entries);
+                    if (entries && entries.length > 0)
+                        loadNativeEntries(entries);
                 })
                 .catch(() => {});
 
@@ -629,7 +669,8 @@
                 await fetch("./native_bench.json")
                     .then((r) => (r.ok ? r.json() : null))
                     .then((entries) => {
-                        if (entries) loadNativeEntries(entries);
+                        if (entries && entries.length > 0)
+                            loadNativeEntries(entries);
                     })
                     .catch(() => {});
 
