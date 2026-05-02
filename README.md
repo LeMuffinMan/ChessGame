@@ -15,6 +15,10 @@ Without parallelism on WASM or threads on native, the goal was to push depth as 
 
 ---
 
+<p align="center">
+  <img src="assets/screenshot_demo1.png" width="750" alt="Desktop demo" />
+</p>
+
 ## What it does
 
 - **Play chess** — human vs human, human vs bot, or bot vs bot with all common chess features
@@ -27,7 +31,6 @@ Without parallelism on WASM or threads on native, the goal was to push depth as 
 - **Responsive** — dedicated UI for desktop and mobile
 
 <p align="center">
-  <img src="assets/screenshot_demo1.png" width="750" alt="Desktop demo" />
   <img src="assets/mobile_demo.gif" width="225" alt="Mobile demo" />
 </p>
 
