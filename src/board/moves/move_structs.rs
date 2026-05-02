@@ -21,6 +21,7 @@ pub struct Move {
     pub move_type: MoveType,
     pub prev_score: i32,
     pub prev_non_pawn: i32,
+    pub prev_hash: u64,
 }
 
 impl Move {
@@ -120,6 +121,7 @@ impl Board {
             move_type: m_type,
             prev_score: self.score,
             prev_non_pawn: self.non_pawn_material,
+            prev_hash: self.hash,
         }
     }
 
