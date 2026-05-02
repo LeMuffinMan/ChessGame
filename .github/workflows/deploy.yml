@@ -1,48 +1,48 @@
- name: Deploy Wasm ChessGame on GitHub Pages
+name: Deploy Wasm ChessGame on GitHub Pages
 
- on:
-   push:
-     branches:
-       - main
+on:
+  push:
+    branches:
+      - main
 
- jobs:
-   deploy:
-     runs-on: ubuntu-latest
-     steps:
-       - name: Checkout
-         uses: actions/checkout@v3
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-       - name: Install Rust
-         uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: rustfmt, clippy
 
-       - name: Add wasm target
-         run: rustup target add wasm32-unknown-unknown
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
 
-       - name: Install cargo fmt
-         run: rustup component add rustfmt
+      - name: Format check
+        run: cargo fmt --all -- --check
 
-       - name: Format test
-         run: cargo fmt --all -- --check
+      - name: Cargo clippy (wasm)
+        run: cargo clippy --target wasm32-unknown-unknown -- -D warnings
 
-       - name: Cargo check 
-         run: cargo check --target wasm32-unknown-unknown
+      - name: Cargo clippy (native)
+        run: cargo clippy -- -D warnings
 
-       - name: Install Clippy
-         run: rustup component add clippy
+      - name: Cargo test
+        run: cargo test
 
-       - name: Cargo clippy
-         run: cargo clippy --target wasm32-unknown-unknown -- -D warnings
+      - name: Install Trunk
+        run: |
+          curl -sL https://github.com/thedodd/trunk/releases/latest/download/trunk-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          mv trunk ~/.cargo/bin/
 
-       - name: Install Trunk
-         run: cargo install --locked trunk
+      - name: Build
+        run: trunk build --release --public-url "/${{ github.event.repository.name }}/"
 
-       - name: Build
-         run: trunk build --release --public-url "/${{ github.event.repository.name }}/"
-
-       - name: Deploy
-         uses: peaceiris/actions-gh-pages@v3
-         with:
-           github_token: ${{ secrets.GITHUB_TOKEN }}
-           publish_dir: ./dist
-
-
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
