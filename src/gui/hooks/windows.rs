@@ -272,7 +272,7 @@ impl ChessApp {
                         }
                         self.replay_infos.index = self.game.history.len();
                         self.game.board = self.game.board_at(self.replay_infos.index);
-                        self.game.active_player = if self.replay_infos.index % 2 == 0 {
+                        self.game.active_player = if self.replay_infos.index.is_multiple_of(2) {
                             White
                         } else {
                             Black

@@ -72,7 +72,7 @@ impl ChessApp {
         if ui.button("<").clicked() && self.replay_infos.index > 0 {
             self.replay_infos.index -= 1;
             self.game.board = self.game.board_at(self.replay_infos.index);
-            self.game.active_player = if self.replay_infos.index % 2 == 0 {
+            self.game.active_player = if self.replay_infos.index.is_multiple_of(2) {
                 White
             } else {
                 Black
@@ -113,7 +113,7 @@ impl ChessApp {
         {
             self.replay_infos.index += 1;
             self.game.board = self.game.board_at(self.replay_infos.index);
-            self.game.active_player = if self.replay_infos.index % 2 == 0 {
+            self.game.active_player = if self.replay_infos.index.is_multiple_of(2) {
                 White
             } else {
                 Black
@@ -131,7 +131,7 @@ impl ChessApp {
         {
             self.replay_infos.index = self.game.history.len() - 1;
             self.game.board = self.game.board_at(self.replay_infos.index);
-            self.game.active_player = if self.replay_infos.index % 2 == 0 {
+            self.game.active_player = if self.replay_infos.index.is_multiple_of(2) {
                 White
             } else {
                 Black
@@ -162,7 +162,7 @@ impl ChessApp {
                 if self.replay_infos.index + 1 < self.game.history.len() {
                     self.replay_infos.index += 1;
                     self.game.board = self.game.board_at(self.replay_infos.index);
-                    self.game.active_player = if self.replay_infos.index % 2 == 0 {
+                    self.game.active_player = if self.replay_infos.index.is_multiple_of(2) {
                         White
                     } else {
                         Black
