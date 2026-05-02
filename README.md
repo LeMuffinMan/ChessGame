@@ -1,15 +1,7 @@
-<table>
-<tr>
 <td><h1>ChessGame ♟️</h1></td>
 <td align="right">
-  <a href="https://lemuffinman.github.io/ChessGame/"><img src="https://img.shields.io/badge/demo-live-brightgreen" alt="Live Demo" /></a>
-  &nbsp;
   <strong><a href="https://lemuffinman.github.io/ChessGame/">▶ Play</a></strong>
 </td>
-</tr>
-</table>
-
-[![CI](https://github.com/LeMuffinMan/ChessGame/actions/workflows/deploy.yml/badge.svg)](https://github.com/LeMuffinMan/ChessGame/actions/workflows/deploy.yml)
 
 ---
 
