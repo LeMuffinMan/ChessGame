@@ -13,7 +13,7 @@ use crate::engine::evaluator::{
 use crate::engine::move_ordering::move_order_score;
 use crate::engine::search_context::{SearchContext, SearchParams, TT_SIZE};
 use crate::engine::ttentry::{TtEntry, TtFlag};
-use crate::engine::zobris_table::zobrist;
+use crate::engine::zobrist::zobrist;
 
 #[cfg(target_arch = "wasm32")]
 fn now_ms() -> f64 {

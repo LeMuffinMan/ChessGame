@@ -5,8 +5,11 @@ use crate::gui::hooks::windows::WinDia;
 
 fn btn_w(ui: &egui::Ui, text: &str) -> f32 {
     let font_id = egui::TextStyle::Button.resolve(ui.style());
-    ui.fonts(|f| f.layout_no_wrap(text.to_owned(), font_id, egui::Color32::WHITE).size().x)
-        + ui.spacing().button_padding.x * 2.0
+    ui.fonts(|f| {
+        f.layout_no_wrap(text.to_owned(), font_id, egui::Color32::WHITE)
+            .size()
+            .x
+    }) + ui.spacing().button_padding.x * 2.0
 }
 
 fn centered_indent(ui: &egui::Ui, labels: &[&str], spacing: f32) -> f32 {

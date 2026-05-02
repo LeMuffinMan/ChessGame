@@ -18,7 +18,7 @@ use crate::board::cell::Cell;
 use crate::board::cell::Cell::Occupied;
 use crate::board::cell::Piece::*;
 use crate::engine::evaluator::{get_piece_value_at, non_pawn_raw};
-use crate::engine::zobris_table::hash_from_scratch;
+use crate::engine::zobrist::hash_from_scratch;
 use std::ops::Index;
 use std::ops::IndexMut;
 
