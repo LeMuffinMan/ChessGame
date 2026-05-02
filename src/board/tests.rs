@@ -6,7 +6,6 @@ use crate::board::cell::Coord;
 use crate::board::cell::Piece::{Bishop, King, Knight, Pawn, Queen, Rook};
 use crate::board::is_king_exposed::is_king_exposed;
 use crate::board::moves::move_gen::generate_moves;
-// use crate::board::moves::move_structs::MoveType;
 use crate::board::moves::move_structs::{Move, MoveList};
 fn gen_moves(board: &mut Board, color: &crate::board::cell::Color) -> Vec<Move> {
     let mut list = MoveList::new();
@@ -21,7 +20,6 @@ fn board_core_eq(a: &Board, b: &Board) -> bool {
         && a.black_castle == b.black_castle
         && a.white_king == b.white_king
         && a.black_king == b.black_king
-    //Je devrais ajouter plus de comparaisons ?
 }
 
 fn coord(row: u8, col: u8) -> Coord {
@@ -241,7 +239,6 @@ fn test_generate_moves_after_e4_black() {
 
 #[test]
 fn test_generate_moves_stalemate() {
-    // pat classique : roi noir en a8, dame blanche en c7, roi blanc en c6
     let mut board = Board::init_board();
     for r in 0..8usize {
         for c in 0..8usize {
@@ -327,8 +324,6 @@ fn test_castle_denied_rights_lost() {
     assert!(!has_move(&mut board, &White, coord(0, 4), coord(0, 6)));
 }
 
-// generate_moves — comportements spécifiques (bugs fixés)
-
 #[test]
 fn test_pawn_cannot_move_straight_to_occupied() {
     let mut board = Board::init_board();
@@ -350,7 +345,6 @@ fn test_pawn_cannot_move_straight_to_occupied() {
 #[test]
 fn test_pawn_cannot_move_diagonal_to_empty() {
     let mut board = Board::init_board();
-    // case d3 est vide : le pion en e2 ne doit pas pouvoir aller en d3
     board[(2, 3)] = Free;
     let moves = gen_moves(&mut board, &White);
     assert!(
@@ -363,7 +357,6 @@ fn test_pawn_cannot_move_diagonal_to_empty() {
 #[test]
 fn test_pawn_double_push_blocked_by_intermediate() {
     let mut board = Board::init_board();
-    // pion blanc en e3 bloque la double poussée du pion en e2
     board[(2, 4)] = Occupied(Pawn, White);
     board[(1, 4)] = Free;
     board.sync_hash(White);
@@ -378,7 +371,6 @@ fn test_pawn_double_push_blocked_by_intermediate() {
 #[test]
 fn test_rook_stops_after_capture() {
     let mut board = Board::init_board();
-    // tour blanche en a1, pion noir en a4 — la tour doit s'arrêter à a4
     for r in 0..8usize {
         for c in 0..8usize {
             board[(r, c)] = Free;
@@ -400,7 +392,6 @@ fn test_rook_stops_after_capture() {
     board[(3, 0)] = Occupied(Pawn, Black);
     board.sync_hash(White);
     let moves = gen_moves(&mut board, &White);
-    // la tour peut aller en a2, a3, a4 (capture) mais PAS a5+
     assert!(
         moves
             .iter()
@@ -540,7 +531,6 @@ fn test_fen_castling_rights() {
 
 #[test]
 fn test_fen_en_passant() {
-    // After 1.e4 — en passant square e3, tour noir
     let fi = Board::board_from_fen("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
     assert_eq!(fi.board.en_passant, Some(coord(2, 4))); // e3 = row 2, col 4
     assert_eq!(fi.active_color, Black);
@@ -548,7 +538,6 @@ fn test_fen_en_passant() {
 
 #[test]
 fn test_fen_kings_tracked() {
-    // Rois hors cases initiales
     let fi = Board::board_from_fen("8/8/3k4/8/8/3K4/8/8 w - - 0 1");
     assert_eq!(fi.board.white_king, coord(2, 3)); // d3
     assert_eq!(fi.board.black_king, coord(5, 3)); // d6

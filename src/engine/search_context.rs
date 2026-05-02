@@ -17,7 +17,12 @@ impl<'a> SearchParams<'a> {
         game_history: &'a HashMap<u64, usize>,
         fifty_count: u32,
     ) -> Self {
-        Self { ctx, game_history, fifty_count, null_move_allowed: true }
+        Self {
+            ctx,
+            game_history,
+            fifty_count,
+            null_move_allowed: true,
+        }
     }
 }
 
@@ -53,17 +58,14 @@ impl SearchContext {
         self.stats = SearchStats::new();
     }
 
-    // Réinitialise les heuristiques liées à la partie (killers, history).
-    // La TT est conservée entre parties — la génération est incrémentée pour
-    // invalider les scores cross-parties (fifty_count / game_history différents).
+    // TT are preserved between games, but we reinit game related infos (killers, history)
+    // generation TT is incremented for fifity_count and game_history
     pub fn reset_game_context(&mut self) {
         self.killers = KillerTable::new();
         self.history = HistoryTable::new();
         self.tt_generation = self.tt_generation.wrapping_add(1);
     }
 
-    // Réinitialise les compteurs et les killers avant chaque coup.
-    // La TT et l'history ne sont pas touchées.
     pub fn reset_search_stats(&mut self) {
         self.killers = KillerTable::new();
         self.stats.reset();

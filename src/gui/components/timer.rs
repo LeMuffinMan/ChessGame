@@ -4,7 +4,6 @@ use crate::gui::features::timer::Timer;
 
 use egui::Context;
 
-//a refacto
 impl ChessApp {
     pub fn timer_increment(&mut self, ui: &mut egui::Ui, _ctx: &Context) {
         self.timer_header(ui);

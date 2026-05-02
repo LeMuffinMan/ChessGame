@@ -178,7 +178,6 @@ pub fn minimax(
         }
     }
 
-    // All recursive calls in the move loop use null_move_allowed = true
     params.null_move_allowed = true;
 
     if active_player == Color::White {
@@ -210,7 +209,15 @@ pub fn minimax(
             let ext: u8 = u8::from(gives_check && depth == 1);
             params.ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1 + ext, opponent, alpha, beta, ply + 1, params)
+                minimax(
+                    board,
+                    depth - 1 + ext,
+                    opponent,
+                    alpha,
+                    beta,
+                    ply + 1,
+                    params,
+                )
             } else {
                 let is_quiet = m.capture == Free
                     && !matches!(m.move_type, Promotion(_))
@@ -233,7 +240,15 @@ pub fn minimax(
                     params,
                 );
                 if scout > alpha && (r > 0 || scout < beta) {
-                    minimax(board, depth - 1 + ext, opponent, alpha, beta, ply + 1, params)
+                    minimax(
+                        board,
+                        depth - 1 + ext,
+                        opponent,
+                        alpha,
+                        beta,
+                        ply + 1,
+                        params,
+                    )
                 } else {
                     scout
                 }
@@ -312,7 +327,15 @@ pub fn minimax(
             let ext: u8 = u8::from(gives_check && depth == 1);
             params.ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(board, depth - 1 + ext, opponent, alpha, beta, ply + 1, params)
+                minimax(
+                    board,
+                    depth - 1 + ext,
+                    opponent,
+                    alpha,
+                    beta,
+                    ply + 1,
+                    params,
+                )
             } else {
                 let is_quiet = m.capture == Free
                     && !matches!(m.move_type, Promotion(_))
@@ -334,7 +357,15 @@ pub fn minimax(
                     params,
                 );
                 if scout < beta && (r > 0 || scout > alpha) {
-                    minimax(board, depth - 1 + ext, opponent, alpha, beta, ply + 1, params)
+                    minimax(
+                        board,
+                        depth - 1 + ext,
+                        opponent,
+                        alpha,
+                        beta,
+                        ply + 1,
+                        params,
+                    )
                 } else {
                     scout
                 }
@@ -401,9 +432,11 @@ fn has_non_pawn_material(board: &Board, color: Color) -> bool {
     for row in 0..8usize {
         for col in 0..8usize {
             if let Occupied(piece, c) = board[(row, col)]
-                && c == color && !matches!(piece, Pawn | King) {
-                    return true;
-                }
+                && c == color
+                && !matches!(piece, Pawn | King)
+            {
+                return true;
+            }
         }
     }
     false
@@ -441,7 +474,11 @@ pub fn find_best_move(
     let tt_move = {
         let idx = (board.hash as usize) & (TT_SIZE - 1);
         let e = params.ctx.tt[idx];
-        if e.key == board.hash { e.best_move } else { None }
+        if e.key == board.hash {
+            e.best_move
+        } else {
+            None
+        }
     };
     let mut best_move = None;
     let mut best_score;
@@ -660,7 +697,10 @@ pub fn quiescence_minimax(
     {
         let idx = (board.hash as usize) & (TT_SIZE - 1);
         let entry = ctx.tt[idx];
-        if entry.key == board.hash && entry.generation == ctx.tt_generation && entry.depth >= q_depth {
+        if entry.key == board.hash
+            && entry.generation == ctx.tt_generation
+            && entry.depth >= q_depth
+        {
             let s = score_from_tt(entry.score, ply as i32);
             match entry.flag {
                 TtFlag::Exact => return s,
@@ -721,7 +761,11 @@ pub fn quiescence_minimax(
     }
 
     if depth <= 0 {
-        let result = if active_player == Color::White { alpha } else { beta };
+        let result = if active_player == Color::White {
+            alpha
+        } else {
+            beta
+        };
         let flag = if result <= orig_alpha {
             TtFlag::UpperBound
         } else if result >= orig_beta {
@@ -788,7 +832,10 @@ pub fn quiescence_minimax(
                 {
                     let idx = (board.hash as usize) & (TT_SIZE - 1);
                     let slot = &ctx.tt[idx];
-                    if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {
+                    if slot.key == 0
+                        || slot.generation != ctx.tt_generation
+                        || q_depth >= slot.depth
+                    {
                         ctx.tt[idx] = TtEntry {
                             key: board.hash,
                             score: score_to_tt(alpha, ply as i32),
@@ -810,7 +857,10 @@ pub fn quiescence_minimax(
                 {
                     let idx = (board.hash as usize) & (TT_SIZE - 1);
                     let slot = &ctx.tt[idx];
-                    if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {
+                    if slot.key == 0
+                        || slot.generation != ctx.tt_generation
+                        || q_depth >= slot.depth
+                    {
                         ctx.tt[idx] = TtEntry {
                             key: board.hash,
                             score: score_to_tt(beta, ply as i32),
@@ -826,7 +876,11 @@ pub fn quiescence_minimax(
         }
     }
 
-    let result = if active_player == Color::White { alpha } else { beta };
+    let result = if active_player == Color::White {
+        alpha
+    } else {
+        beta
+    };
     let flag = if result <= orig_alpha {
         TtFlag::UpperBound
     } else if result >= orig_beta {

@@ -16,7 +16,6 @@ fn coord(row: u8, col: u8) -> Coord {
     Coord { row, col }
 }
 
-//init_board possede un board deja rempli donc il faudrait renommer les methodes : init_empty_board et init_board
 fn empty_board(white_king: Coord, black_king: Coord) -> Board {
     let mut board = Board::init_board();
     for r in 0..8usize {

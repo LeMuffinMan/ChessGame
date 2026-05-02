@@ -14,13 +14,10 @@ use web_sys::{Blob, HtmlAnchorElement, HtmlElement, Url, window};
 
 #[cfg(target_arch = "wasm32")]
 impl ChessApp {
-    //error handling todo
     pub fn export_pgn(&mut self) -> Result<(), JsValue> {
         let pgn = self.generate_pgn_content();
         self.url_with_blob_export(pgn)
     }
-    //error handling
-    //Documenter
     fn url_with_blob_export(&mut self, pgn: String) -> Result<(), JsValue> {
         //we create a Js to build the sequence needed for the blob
         let parts = Array::new();

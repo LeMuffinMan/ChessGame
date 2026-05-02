@@ -1,5 +1,7 @@
 use crate::board::moves::move_structs::Move;
 
+//using a preallocated vec for TT
+// generation is used for fifty_move and game_history, preserving TT entries for minimax compute
 #[derive(Clone, Copy, Default)]
 pub struct TtEntry {
     pub key: u64,
