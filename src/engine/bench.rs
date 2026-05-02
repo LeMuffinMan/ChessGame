@@ -7,18 +7,39 @@ use std::collections::HashMap;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 pub const QUICK_POSITIONS: &[(&str, &str)] = &[
-    ("Start",    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"),
-    ("Kiwipete", "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"),
+    (
+        "Start",
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    ),
+    (
+        "Kiwipete",
+        "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+    ),
 ];
 
 pub const FULL_POSITIONS: &[(&str, &str)] = &[
-    ("Start",       "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"),
-    ("Kiwipete",    "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"),
-    ("KingAttack",  "4rrk1/pp1n3p/3q2pQ/2p1pb2/2PP4/2P3N1/P2B2PP/4RRK1 b - - 7 19"),
-    ("PawnEnding",  "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 11"),
-    ("RookQueen",   "3q2k1/pb3p1p/4pbp1/2r5/PpN2N2/1P2P2P/5PP1/Q2R2K1 b - - 4 26"),
-    ("RookPawns",   "8/pp2r1k1/2p1p3/3pP2p/1P1P1P1P/P5KR/8/8 w - - 0 1"),
-    ("BishopEnding","8/3p3B/5p2/5P2/p7/PP5b/k7/6K1 w - - 0 1"),
+    (
+        "Start",
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    ),
+    (
+        "Kiwipete",
+        "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+    ),
+    (
+        "KingAttack",
+        "4rrk1/pp1n3p/3q2pQ/2p1pb2/2PP4/2P3N1/P2B2PP/4RRK1 b - - 7 19",
+    ),
+    ("PawnEnding", "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 11"),
+    (
+        "RookQueen",
+        "3q2k1/pb3p1p/4pbp1/2r5/PpN2N2/1P2P2P/5PP1/Q2R2K1 b - - 4 26",
+    ),
+    (
+        "RookPawns",
+        "8/pp2r1k1/2p1p3/3pP2p/1P1P1P1P/P5KR/8/8 w - - 0 1",
+    ),
+    ("BishopEnding", "8/3p3B/5p2/5P2/p7/PP5b/k7/6K1 w - - 0 1"),
 ];
 
 #[cfg(target_arch = "wasm32")]
@@ -54,7 +75,11 @@ pub struct BenchResult {
 // This lets TT best_move, killers and history show their real impact without inflating the total time.
 pub fn bench_run(fen: &str, depth: u8, max_nodes: u64) -> BenchResult {
     assert!(depth >= 1, "bench_run requires depth >= 1");
-    let FenInfo { mut board, active_color, .. } = Board::board_from_fen(fen);
+    let FenInfo {
+        mut board,
+        active_color,
+        ..
+    } = Board::board_from_fen(fen);
     let mut ctx = SearchContext::new();
     let hashmap: HashMap<u64, usize> = HashMap::new();
 
@@ -67,7 +92,14 @@ pub fn bench_run(fen: &str, depth: u8, max_nodes: u64) -> BenchResult {
     let t0 = now_ms();
     {
         let mut params = SearchParams::new(&mut ctx, &hashmap, 0);
-        find_best_move(&mut board, active_color, depth, i32::MIN, i32::MAX, &mut params);
+        find_best_move(
+            &mut board,
+            active_color,
+            depth,
+            i32::MIN,
+            i32::MAX,
+            &mut params,
+        );
     }
     let time_ms = now_ms() - t0;
     BenchResult {
@@ -145,7 +177,11 @@ pub fn run_bench(depth: u8, mode: u8) -> String {
     if depth < 1 {
         return "[]".to_string();
     }
-    let positions = if mode == 0 { QUICK_POSITIONS } else { FULL_POSITIONS };
+    let positions = if mode == 0 {
+        QUICK_POSITIONS
+    } else {
+        FULL_POSITIONS
+    };
     let entries: Vec<String> = positions
         .iter()
         .map(|(label, fen)| {

@@ -72,7 +72,11 @@ impl ChessApp {
         if ui.button("<").clicked() && self.replay_infos.index > 0 {
             self.replay_infos.index -= 1;
             self.game.board = self.game.board_at(self.replay_infos.index);
-            self.game.active_player = if self.replay_infos.index % 2 == 0 { White } else { Black };
+            self.game.active_player = if self.replay_infos.index % 2 == 0 {
+                White
+            } else {
+                Black
+            };
         }
     }
 
@@ -109,7 +113,11 @@ impl ChessApp {
         {
             self.replay_infos.index += 1;
             self.game.board = self.game.board_at(self.replay_infos.index);
-            self.game.active_player = if self.replay_infos.index % 2 == 0 { White } else { Black };
+            self.game.active_player = if self.replay_infos.index % 2 == 0 {
+                White
+            } else {
+                Black
+            };
         }
     }
 
@@ -123,7 +131,11 @@ impl ChessApp {
         {
             self.replay_infos.index = self.game.history.len() - 1;
             self.game.board = self.game.board_at(self.replay_infos.index);
-            self.game.active_player = if self.replay_infos.index % 2 == 0 { White } else { Black };
+            self.game.active_player = if self.replay_infos.index % 2 == 0 {
+                White
+            } else {
+                Black
+            };
         }
     }
 
@@ -150,7 +162,11 @@ impl ChessApp {
                 if self.replay_infos.index + 1 < self.game.history.len() {
                     self.replay_infos.index += 1;
                     self.game.board = self.game.board_at(self.replay_infos.index);
-                    self.game.active_player = if self.replay_infos.index % 2 == 0 { White } else { Black };
+                    self.game.active_player = if self.replay_infos.index % 2 == 0 {
+                        White
+                    } else {
+                        Black
+                    };
                     let delay = self.replay_infos.sec_per_frame;
                     self.replay_infos.next_step = Some(now + delay);
                 } else {

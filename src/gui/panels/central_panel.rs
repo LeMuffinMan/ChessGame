@@ -8,11 +8,9 @@ use egui::Sense;
 
 impl ChessApp {
     pub fn central_panel(&mut self, ctx: &egui::Context) {
-        egui::CentralPanel::default().show(ctx, |ui| {
-            match self.ui_type {
-                Desktop => self.central_panel_desktop_body(ui, ctx),
-                Mobile => self.central_panel_mobile_body(ui, ctx),
-            }
+        egui::CentralPanel::default().show(ctx, |ui| match self.ui_type {
+            Desktop => self.central_panel_desktop_body(ui, ctx),
+            Mobile => self.central_panel_mobile_body(ui, ctx),
         });
     }
 

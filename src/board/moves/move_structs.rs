@@ -78,11 +78,7 @@ impl MoveList {
 
 impl Board {
     pub fn build_move(&self, origin: Coord, dest: Coord, active_player: Color) -> Move {
-        let m_type = self.get_move_type(
-            origin,
-            dest,
-            self[origin].get_piece(),
-        );
+        let m_type = self.get_move_type(origin, dest, self[origin].get_piece());
         self.create_move(origin, dest, active_player, m_type)
     }
 
@@ -95,8 +91,18 @@ impl Board {
     ) -> Move {
         let capture_cell = match m_type {
             MoveType::EnPassant => match active_player {
-                Color::White => self[Coord { row: dest.row - 1, col: dest.col }],
-                Color::Black => self[Coord { row: dest.row + 1, col: dest.col }],
+                Color::White => {
+                    self[Coord {
+                        row: dest.row - 1,
+                        col: dest.col,
+                    }]
+                }
+                Color::Black => {
+                    self[Coord {
+                        row: dest.row + 1,
+                        col: dest.col,
+                    }]
+                }
             },
             _ => self[dest],
         };
@@ -128,9 +134,7 @@ impl Board {
     fn get_move_type(&self, origin: Coord, dest: Coord, piece_moving: Option<&Piece>) -> MoveType {
         match piece_moving {
             Some(Pawn) => {
-                if dest.col != origin.col
-                    && self[dest] == Cell::Free
-                {
+                if dest.col != origin.col && self[dest] == Cell::Free {
                     EnPassant
                 } else {
                     Regular

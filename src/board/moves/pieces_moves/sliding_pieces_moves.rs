@@ -1,10 +1,9 @@
 use crate::Coord;
 use crate::board::Board;
 use crate::board::cell::Color;
-use crate::board::pin_detection::PinInfos;
-use crate::board::moves::move_structs::MoveList;
 use crate::board::moves::move_gen::push_if_legal;
-
+use crate::board::moves::move_structs::MoveList;
+use crate::board::pin_detection::PinInfos;
 
 pub fn rook_moves(
     origin: &Coord,

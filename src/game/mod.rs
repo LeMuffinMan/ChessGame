@@ -188,9 +188,10 @@ impl Game {
 
         let hash = self.board.hash;
         if let Some(count) = self.draw.board_hashs.get_mut(&hash)
-            && *count > 0 {
-                *count -= 1;
-            }
+            && *count > 0
+        {
+            *count -= 1;
+        }
 
         self.history.pop();
         let idx = self.history.len();

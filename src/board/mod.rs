@@ -1,4 +1,5 @@
 pub mod cell;
+pub mod fen;
 pub mod is_king_exposed;
 pub mod moves;
 pub mod pin_detection;
@@ -6,7 +7,6 @@ pub mod threat;
 pub mod try_move;
 pub mod update_board;
 pub mod utils;
-pub mod fen;
 
 #[cfg(test)]
 mod tests;
