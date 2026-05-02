@@ -1,2 +1,6 @@
 [build]
 filehash = false
+
+[[copy-file]]
+src = "public/native_bench.json"
+dest = "native_bench.json"

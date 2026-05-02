@@ -3,6 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link data-trunk rel="copy-file" href="public/native_bench.json" />
         <title>chess_engine — bench</title>
         <style>
             :root {
@@ -153,7 +154,7 @@
                 margin-bottom: 10px;
             }
 
-/* table */
+            /* table */
             .table-wrapper {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
@@ -382,7 +383,7 @@
 
         <div id="status"></div>
 
-<div class="table-wrapper">
+        <div class="table-wrapper">
             <table id="main-table">
                 <thead>
                     <tr id="thead-row">
@@ -410,25 +411,6 @@
                 </thead>
                 <tbody id="tbody"></tbody>
             </table>
-        </div>
-
-        <div class="native-section">
-            <h2>native comparison</h2>
-            <p class="desc">
-                Native results are fetched automatically at each run when
-                <code>dist/native_bench.json</code> is present.<br />
-                Generate or refresh with:
-            </p>
-            <div class="cmd-block">cargo run --release --features native --bin bench -- 11 > dist/native_bench.json</div>
-            <details class="native-manual">
-                <summary>paste JSON manually</summary>
-                <textarea
-                    id="native-json"
-                    placeholder='[{"label":"Start","depth":6,"nodes":...}, ...]'
-                ></textarea>
-                <button id="load-native" style="margin-top: 6px">Apply</button>
-                <div id="native-error"></div>
-            </details>
         </div>
 
         <script type="module">
@@ -595,26 +577,6 @@
                 statusEl.textContent = "done.";
                 runBtn.disabled = false;
             });
-
-            document
-                .getElementById("load-native")
-                .addEventListener("click", () => {
-                    const errEl = document.getElementById("native-error");
-                    errEl.style.display = "none";
-                    try {
-                        const raw = document
-                            .getElementById("native-json")
-                            .value.trim();
-                        const entries = JSON.parse(raw);
-                        if (!Array.isArray(entries))
-                            throw new Error("Expected a JSON array");
-                        loadNativeEntries(entries);
-                        redrawTable();
-                    } catch (err) {
-                        errEl.textContent = `parse error: ${err.message}`;
-                        errEl.style.display = "block";
-                    }
-                });
         </script>
     </body>
 </html>
