@@ -56,7 +56,9 @@ impl Board {
         let orig_sq = m.origin.row as usize * 8 + m.origin.col as usize;
         let dest_sq = m.dest.row as usize * 8 + m.dest.col as usize;
 
-        let dest_piece = *self.get(&m.dest).get_piece()
+        let dest_piece = *self
+            .get(&m.dest)
+            .get_piece()
             .expect("apply_move: dest must be occupied after move");
         let orig_piece = if let Promotion(_) = m.move_type {
             Pawn
@@ -112,18 +114,6 @@ impl Board {
         }
 
         self.hash ^= zt.side_to_move;
-
-        // #[cfg(debug_assertions)]
-        // {
-        //     use crate::engine::zobris_table::hash_from_scratch;
-        //     let next_player = if active_player == White { Black } else { White };
-        //     let expected = hash_from_scratch(self, next_player);
-        //     debug_assert_eq!(
-        //         self.hash, expected,
-        //         "hash mismatch after apply_move: got {:#x}, expected {:#x}",
-        //         self.hash, expected
-        //     );
-        // }
     }
 
     pub fn check_move(

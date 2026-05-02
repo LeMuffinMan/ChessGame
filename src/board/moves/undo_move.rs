@@ -9,7 +9,6 @@ use crate::board::moves::move_structs::CastleSide;
 use crate::board::moves::move_structs::CastleSide::*;
 use crate::board::moves::move_structs::Move;
 use crate::board::moves::move_structs::MoveType::*;
-use crate::engine::zobris_table::hash_from_scratch;
 
 impl Board {
     pub fn undo_move(&mut self, m: Move, active_player: Color) {
@@ -22,8 +21,6 @@ impl Board {
             Regular => self.undo_regular(&m, active_player),
         }
         self.copy_move_infos(&m);
-        // board state fully restored — recompute hash from scratch
-        self.hash = hash_from_scratch(self, active_player);
     }
 
     fn undo_regular(&mut self, m: &Move, active_player: Color) {
@@ -75,5 +72,6 @@ impl Board {
         self.black_castle = m.black_castle;
         self.score = m.prev_score;
         self.non_pawn_material = m.prev_non_pawn;
+        self.hash = m.prev_hash;
     }
 }
