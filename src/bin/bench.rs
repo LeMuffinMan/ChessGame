@@ -1,8 +1,4 @@
-use chess_game::board::cell::Color;
-use chess_game::engine::bench::{entry_json, run_n};
-
-const START_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-const KIWIPETE_FEN: &str = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+use chess_game::engine::bench::{entry_json, run_n, FULL_POSITIONS};
 
 fn main() {
     let max_depth: u8 = std::env::args()
@@ -11,7 +7,7 @@ fn main() {
         .unwrap_or(8);
 
     let header = format!(
-        "{:<10} {:>3}  {:>10}  {:>10}  {:>8}  {:>10}  {:>5}  {:>5}  {:>5}",
+        "{:<12} {:>3}  {:>10}  {:>10}  {:>8}  {:>10}  {:>5}  {:>5}  {:>5}",
         "Pos", "D", "Nodes", "Q-Nodes", "ms", "NPS", "TT%", "Cut%", "EBF"
     );
     eprintln!("{}", header);
@@ -20,8 +16,8 @@ fn main() {
     let mut json_entries: Vec<String> = Vec::new();
 
     for depth in 1..=max_depth {
-        for (label, fen) in [("Start", START_FEN), ("Kiwipete", KIWIPETE_FEN)] {
-            let (r, t) = run_n(fen, Color::White, depth, 0);
+        for (label, fen) in FULL_POSITIONS {
+            let (r, t) = run_n(fen, depth, 0);
 
             let nps = if t > 0.0 { (r.nodes as f64 / (t / 1000.0)) as u64 } else { 0 };
             let cut_pct = {
@@ -32,7 +28,7 @@ fn main() {
             let ebf = if r.nodes == 0 || depth == 0 { 0.0 } else { (r.nodes as f64).powf(1.0 / depth as f64) };
 
             eprintln!(
-                "{:<10} {:>3}  {:>10}  {:>10}  {:>8.1}  {:>10}  {:>5.1}  {:>5.1}  {:>5.2}{}",
+                "{:<12} {:>3}  {:>10}  {:>10}  {:>8.1}  {:>10}  {:>5.1}  {:>5.1}  {:>5.2}{}",
                 label, depth,
                 fmt_num(r.nodes), fmt_num(r.quiescence_nodes as u64),
                 t, fmt_num(nps),

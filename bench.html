@@ -6,23 +6,27 @@
         <title>chess_engine — bench</title>
         <style>
             :root {
-                --bg:         #1b1b1b;
-                --panel:      #252525;
-                --widget:     #3a3a3a;
-                --widget-hv:  #525252;
-                --border:     #3f3f3f;
-                --stroke:     #6a6a6a;
-                --text:       #c8c8c8;
-                --text-strong:#ffffff;
-                --text-weak:  #7a7a7a;
-                --accent:     #90b4f8;
-                --green:      #8bba63;
-                --orange:     #ff9500;
-                --red:        #f44336;
-                --sep:        #272727;
+                --bg: #1b1b1b;
+                --panel: #252525;
+                --widget: #3a3a3a;
+                --widget-hv: #525252;
+                --border: #3f3f3f;
+                --stroke: #6a6a6a;
+                --text: #c8c8c8;
+                --text-strong: #ffffff;
+                --text-weak: #7a7a7a;
+                --accent: #90b4f8;
+                --green: #8bba63;
+                --orange: #ff9500;
+                --red: #f44336;
+                --sep: #272727;
             }
 
-            * { box-sizing: border-box; margin: 0; padding: 0; }
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
 
             body {
                 font-family: "Segoe UI", system-ui, sans-serif;
@@ -108,7 +112,10 @@
                 background-repeat: no-repeat;
                 background-position: right 6px center;
             }
-            select:hover, select:focus { border-color: var(--accent); }
+            select:hover,
+            select:focus {
+                border-color: var(--accent);
+            }
 
             button {
                 background: var(--widget);
@@ -119,11 +126,23 @@
                 font-size: 12px;
                 font-family: inherit;
                 cursor: pointer;
-                transition: background 0.1s, border-color 0.1s;
+                transition:
+                    background 0.1s,
+                    border-color 0.1s;
             }
-            button:hover { background: var(--widget-hv); border-color: var(--accent); }
-            button:disabled { color: var(--text-weak); border-color: var(--border); cursor: not-allowed; }
-            button:disabled:hover { background: var(--widget); border-color: var(--border); }
+            button:hover {
+                background: var(--widget-hv);
+                border-color: var(--accent);
+            }
+            button:disabled {
+                color: var(--text-weak);
+                border-color: var(--border);
+                cursor: not-allowed;
+            }
+            button:disabled:hover {
+                background: var(--widget);
+                border-color: var(--border);
+            }
 
             /* status */
             #status {
@@ -134,20 +153,7 @@
                 margin-bottom: 10px;
             }
 
-            /* legend */
-            .legend {
-                display: flex;
-                gap: 16px;
-                font-size: 11px;
-                color: var(--text-weak);
-                margin-bottom: 10px;
-            }
-            .legend span::before { content: "● "; }
-            .legend .fast::before  { color: var(--green); }
-            .legend .warn::before  { color: var(--orange); }
-            .legend .slow::before  { color: var(--red); }
-
-            /* table */
+/* table */
             .table-wrapper {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
@@ -159,7 +165,9 @@
                 border-collapse: collapse;
                 font-size: 12px;
             }
-            thead { background: var(--panel); }
+            thead {
+                background: var(--panel);
+            }
             th {
                 text-align: left;
                 padding: 6px 10px;
@@ -180,21 +188,57 @@
                 font-variant-numeric: tabular-nums;
                 white-space: nowrap;
             }
-            tr:last-child td { border-bottom: none; }
-            tbody tr:hover td { background: #202020; }
-            .col-pos { color: var(--text-weak); font-size: 11px; }
-            .num { font-family: monospace; }
-            .fast    { color: var(--green); }
-            .warn    { color: var(--orange); }
-            .slow    { color: var(--red); }
-            .aborted { color: var(--orange); font-style: italic; }
-            .sep td  { background: var(--panel); padding: 2px; border: none; }
-            .msg td  { color: var(--text-weak); font-style: italic; padding: 10px; }
-            .ratio-up   { color: var(--green); }
-            .ratio-down { color: var(--red); }
-            .ratio-eq   { color: var(--text-weak); }
-            .native-col { color: var(--accent); }
-            .native-th  { color: var(--accent); }
+            tr:last-child td {
+                border-bottom: none;
+            }
+            tbody tr:hover td {
+                background: #202020;
+            }
+            .col-pos {
+                color: var(--text-weak);
+                font-size: 11px;
+            }
+            .num {
+                font-family: monospace;
+            }
+            .fast {
+                color: var(--green);
+            }
+            .warn {
+                color: var(--orange);
+            }
+            .slow {
+                color: var(--red);
+            }
+            .aborted {
+                color: var(--orange);
+                font-style: italic;
+            }
+            .sep td {
+                background: var(--panel);
+                padding: 2px;
+                border: none;
+            }
+            .msg td {
+                color: var(--text-weak);
+                font-style: italic;
+                padding: 10px;
+            }
+            .ratio-up {
+                color: var(--green);
+            }
+            .ratio-down {
+                color: var(--red);
+            }
+            .ratio-eq {
+                color: var(--text-weak);
+            }
+            .native-col {
+                color: var(--accent);
+            }
+            .native-th {
+                color: var(--accent);
+            }
 
             /* native section */
             .native-section {
@@ -244,10 +288,19 @@
                 color: var(--text-weak);
                 width: fit-content;
             }
-            .native-manual > summary::-webkit-details-marker { display: none; }
-            .native-manual > summary::before { content: "▸  "; font-size: 10px; }
-            .native-manual[open] > summary::before { content: "▾  "; }
-            .native-manual > summary:hover { color: var(--text); }
+            .native-manual > summary::-webkit-details-marker {
+                display: none;
+            }
+            .native-manual > summary::before {
+                content: "▸  ";
+                font-size: 10px;
+            }
+            .native-manual[open] > summary::before {
+                content: "▾  ";
+            }
+            .native-manual > summary:hover {
+                color: var(--text);
+            }
             textarea {
                 margin-top: 8px;
                 width: 100%;
@@ -262,7 +315,9 @@
                 resize: vertical;
                 outline: none;
             }
-            textarea:focus { border-color: var(--stroke); }
+            textarea:focus {
+                border-color: var(--stroke);
+            }
             #native-error {
                 display: none;
                 margin-top: 5px;
@@ -273,24 +328,44 @@
 
             /* responsive */
             @media (max-width: 600px) {
-                body { padding: 16px 12px 32px; }
-                .controls { flex-direction: column; align-items: stretch; }
-                .field { justify-content: space-between; }
-                select, button { font-size: 13px; padding: 6px 10px; }
+                body {
+                    padding: 16px 12px 32px;
+                }
+                .controls {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+                .field {
+                    justify-content: space-between;
+                }
+                select,
+                button {
+                    font-size: 13px;
+                    padding: 6px 10px;
+                }
             }
         </style>
     </head>
     <body>
         <header>
             <div class="title-line">
-                <h1>chess_engine</h1>
+                <h1>ChessGame</h1>
                 <span class="tag">bench</span>
             </div>
-            <p class="meta">Alpha-beta · iterative deepening · quiescence search — Rust compiled to WASM, single-threaded</p>
-            <p id="native-badge">▸ native results loaded — WASM / native comparison active</p>
+            <p class="meta">Rust → WASM · single-threaded</p>
+            <p id="native-badge">
+                ▸ native results loaded — WASM / native comparison active
+            </p>
         </header>
 
         <div class="controls">
+            <div class="field">
+                <label for="bench-mode">Mode</label>
+                <select id="bench-mode">
+                    <option value="0" selected>Quick (2 pos)</option>
+                    <option value="1">Full (8 pos)</option>
+                </select>
+            </div>
             <div class="field">
                 <label for="max-depth">Max depth</label>
                 <select id="max-depth">
@@ -302,37 +377,35 @@
                     <option value="11">11</option>
                 </select>
             </div>
-            <div class="field">
-                <label for="position">Position</label>
-                <select id="position">
-                    <option value="both" selected>Both</option>
-                    <option value="start">Start</option>
-                    <option value="kiwipete">Kiwipete</option>
-                </select>
-            </div>
             <button id="run">▶ Run</button>
         </div>
 
         <div id="status"></div>
 
-        <div class="legend">
-            <span class="fast">&lt; 200 ms</span>
-            <span class="warn">200 – 500 ms</span>
-            <span class="slow">&gt; 500 ms</span>
-        </div>
-
-        <div class="table-wrapper">
+<div class="table-wrapper">
             <table id="main-table">
                 <thead>
                     <tr id="thead-row">
                         <th>Depth</th>
                         <th>Position</th>
                         <th title="Total alpha-beta nodes visited">Nodes</th>
-                        <th title="Quiescence search nodes (captures only, depth=0 extension)">Q-nodes</th>
+                        <th
+                            title="Quiescence search nodes (captures only, depth=0 extension)"
+                        >
+                            Q-nodes
+                        </th>
                         <th title="Time to return a move">Time</th>
                         <th title="Nodes per second">NPS</th>
-                        <th title="Cutoffs / interior nodes × 100. Higher = better move ordering.">Cut%</th>
-                        <th title="Effective Branching Factor = nodes^(1/depth). Lower = better pruning.">EBF</th>
+                        <th
+                            title="Cutoffs / interior nodes × 100. Higher = better move ordering."
+                        >
+                            Cut%
+                        </th>
+                        <th
+                            title="Effective Branching Factor = nodes^(1/depth). Lower = better pruning."
+                        >
+                            EBF
+                        </th>
                     </tr>
                 </thead>
                 <tbody id="tbody"></tbody>
@@ -342,14 +415,18 @@
         <div class="native-section">
             <h2>native comparison</h2>
             <p class="desc">
-                When <code>dist/native_bench.json</code> is present, native results load automatically at startup.<br>
-                Generate with:
+                Native results are fetched automatically at each run when
+                <code>dist/native_bench.json</code> is present.<br />
+                Generate or refresh with:
             </p>
             <div class="cmd-block">cargo run --release --features native --bin bench -- 11 > dist/native_bench.json</div>
             <details class="native-manual">
                 <summary>paste JSON manually</summary>
-                <textarea id="native-json" placeholder='[{"label":"Start","depth":6,"nodes":...}, ...]'></textarea>
-                <button id="load-native" style="margin-top:6px;">Apply</button>
+                <textarea
+                    id="native-json"
+                    placeholder='[{"label":"Start","depth":6,"nodes":...}, ...]'
+                ></textarea>
+                <button id="load-native" style="margin-top: 6px">Apply</button>
                 <div id="native-error"></div>
             </details>
         </div>
@@ -360,15 +437,18 @@
 
             async function loadNativeEntries(entries) {
                 nativeResults = {};
-                for (const e of entries) nativeResults[`${e.depth}-${e.label}`] = e;
+                for (const e of entries)
+                    nativeResults[`${e.depth}-${e.label}`] = e;
                 compareMode = true;
                 setCompareHeaders(true);
                 document.getElementById("native-badge").style.display = "block";
             }
 
             fetch("./native_bench.json")
-                .then(r => r.ok ? r.json() : null)
-                .then(entries => { if (entries) loadNativeEntries(entries); })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((entries) => {
+                    if (entries) loadNativeEntries(entries);
+                })
                 .catch(() => {});
 
             const runBtn = document.getElementById("run");
@@ -394,7 +474,9 @@
             function fmtNum(n) {
                 return Number(n).toLocaleString("en-US");
             }
-            function colCount() { return compareMode ? 11 : 8; }
+            function colCount() {
+                return compareMode ? 11 : 8;
+            }
 
             function addSeparator() {
                 const tr = document.createElement("tr");
@@ -418,9 +500,10 @@
                 const timeCol = e.aborted
                     ? `<span class="aborted">${fmtTime(e.time_ms)} (aborted)</span>`
                     : `<span class="${timeClass(e.time_ms)}">${fmtTime(e.time_ms)}</span>`;
-                const qNodes = e.q_nodes > 0
-                    ? fmtNum(e.q_nodes)
-                    : `<span style="color:var(--text-weak)">—</span>`;
+                const qNodes =
+                    e.q_nodes > 0
+                        ? fmtNum(e.q_nodes)
+                        : `<span style="color:var(--text-weak)">—</span>`;
 
                 let extra = "";
                 if (compareMode) {
@@ -451,9 +534,9 @@
 
             function setCompareHeaders(on) {
                 const existing = theadRow.querySelectorAll(".native-th");
-                existing.forEach(el => el.remove());
+                existing.forEach((el) => el.remove());
                 if (on) {
-                    ["Native NPS", "Native Time", "Ratio"].forEach(label => {
+                    ["Native NPS", "Native Time", "Ratio"].forEach((label) => {
                         const th = document.createElement("th");
                         th.className = "native-th native-col";
                         th.textContent = label;
@@ -464,7 +547,6 @@
 
             function redrawTable() {
                 tbody.innerHTML = "";
-                const pos = document.getElementById("position").value;
                 const keys = Object.keys(wasmResults).sort((a, b) => {
                     const [da, la] = a.split("-");
                     const [db, lb] = b.split("-");
@@ -473,8 +555,8 @@
                 let lastDepth = null;
                 for (const k of keys) {
                     const e = wasmResults[k];
-                    if (pos !== "both" && pos !== e.label.toLowerCase()) continue;
-                    if (e.depth !== lastDepth && lastDepth !== null) addSeparator();
+                    if (e.depth !== lastDepth && lastDepth !== null)
+                        addSeparator();
                     lastDepth = e.depth;
                     addRow(e);
                 }
@@ -482,24 +564,29 @@
 
             runBtn.addEventListener("click", async () => {
                 const maxDepth = +document.getElementById("max-depth").value;
+                const mode = +document.getElementById("bench-mode").value;
                 tbody.innerHTML = "";
+                Object.keys(wasmResults).forEach((k) => delete wasmResults[k]);
                 runBtn.disabled = true;
+
+                statusEl.textContent = "loading native results…";
+                await fetch("./native_bench.json")
+                    .then((r) => (r.ok ? r.json() : null))
+                    .then((entries) => {
+                        if (entries) loadNativeEntries(entries);
+                    })
+                    .catch(() => {});
 
                 for (let d = 6; d <= maxDepth; d++) {
                     statusEl.textContent = `running depth ${d} / ${maxDepth}…`;
                     await new Promise((r) => setTimeout(r, 0));
 
-                    const entries = JSON.parse(run_bench(d, 0));
-                    const pos = document.getElementById("position").value;
+                    const entries = JSON.parse(run_bench(d, mode));
 
                     if (d > 6) addSeparator();
                     for (const e of entries) {
                         wasmResults[`${e.depth}-${e.label}`] = e;
-                        if (
-                            pos === "both" ||
-                            (pos === "start" && e.label === "Start") ||
-                            (pos === "kiwipete" && e.label === "Kiwipete")
-                        ) addRow(e);
+                        addRow(e);
                     }
 
                     await new Promise((r) => setTimeout(r, 0));
@@ -509,20 +596,25 @@
                 runBtn.disabled = false;
             });
 
-            document.getElementById("load-native").addEventListener("click", () => {
-                const errEl = document.getElementById("native-error");
-                errEl.style.display = "none";
-                try {
-                    const raw = document.getElementById("native-json").value.trim();
-                    const entries = JSON.parse(raw);
-                    if (!Array.isArray(entries)) throw new Error("Expected a JSON array");
-                    loadNativeEntries(entries);
-                    redrawTable();
-                } catch (err) {
-                    errEl.textContent = `parse error: ${err.message}`;
-                    errEl.style.display = "block";
-                }
-            });
+            document
+                .getElementById("load-native")
+                .addEventListener("click", () => {
+                    const errEl = document.getElementById("native-error");
+                    errEl.style.display = "none";
+                    try {
+                        const raw = document
+                            .getElementById("native-json")
+                            .value.trim();
+                        const entries = JSON.parse(raw);
+                        if (!Array.isArray(entries))
+                            throw new Error("Expected a JSON array");
+                        loadNativeEntries(entries);
+                        redrawTable();
+                    } catch (err) {
+                        errEl.textContent = `parse error: ${err.message}`;
+                        errEl.style.display = "block";
+                    }
+                });
         </script>
     </body>
 </html>
