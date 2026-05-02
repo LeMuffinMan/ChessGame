@@ -7,7 +7,7 @@ pub mod pst_maps;
 pub mod search_context;
 pub mod search_stats;
 pub mod ttentry;
-pub mod zobris_table;
+pub mod zobrist;
 
 #[cfg(test)]
 mod tests;

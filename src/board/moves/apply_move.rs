@@ -8,7 +8,7 @@ use crate::board::is_king_exposed::is_king_exposed;
 use crate::board::moves::move_structs::CastleSide::*;
 use crate::board::moves::move_structs::Move;
 use crate::board::moves::move_structs::MoveType::*;
-use crate::engine::zobris_table::{piece_index, zobrist};
+use crate::engine::zobrist::{piece_index, zobrist};
 
 impl Board {
     pub fn apply_move(&mut self, m: &Move, active_player: Color) {
