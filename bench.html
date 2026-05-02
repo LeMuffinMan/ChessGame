@@ -3,228 +3,296 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>ChessGame — Benchmark</title>
+        <title>chess_engine — bench</title>
         <style>
-            body {
-                font-family: system-ui, sans-serif;
-                max-width: 900px;
-                margin: 40px auto;
-                padding: 0 20px;
-                background: #0f1117;
-                color: #e2e8f0;
-            }
-            h1 {
-                font-size: 1.4rem;
-                margin-bottom: 4px;
-            }
-            .subtitle {
-                color: #64748b;
-                font-size: 0.85rem;
-                margin-bottom: 28px;
+            :root {
+                --bg:         #1b1b1b;
+                --panel:      #252525;
+                --widget:     #3a3a3a;
+                --widget-hv:  #525252;
+                --border:     #3f3f3f;
+                --stroke:     #6a6a6a;
+                --text:       #c8c8c8;
+                --text-strong:#ffffff;
+                --text-weak:  #7a7a7a;
+                --accent:     #90b4f8;
+                --green:      #8bba63;
+                --orange:     #ff9500;
+                --red:        #f44336;
+                --sep:        #272727;
             }
 
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+
+            body {
+                font-family: "Segoe UI", system-ui, sans-serif;
+                font-size: 13px;
+                line-height: 1.5;
+                background: var(--bg);
+                color: var(--text);
+                max-width: 960px;
+                margin: 0 auto;
+                padding: 24px 20px 56px;
+            }
+
+            /* header */
+            header {
+                margin-bottom: 20px;
+                padding-bottom: 14px;
+                border-bottom: 1px solid var(--border);
+            }
+            .title-line {
+                display: flex;
+                align-items: baseline;
+                gap: 8px;
+                margin-bottom: 5px;
+            }
+            h1 {
+                font-size: 14px;
+                font-weight: 600;
+                font-family: monospace;
+                color: var(--text-strong);
+            }
+            .tag {
+                font-size: 11px;
+                font-family: monospace;
+                color: var(--text-weak);
+                background: var(--widget);
+                border: 1px solid var(--border);
+                border-radius: 3px;
+                padding: 1px 6px;
+            }
+            .meta {
+                font-size: 11px;
+                color: var(--text-weak);
+            }
+            #native-badge {
+                display: none;
+                margin-top: 5px;
+                font-size: 11px;
+                font-family: monospace;
+                color: var(--green);
+            }
+
+            /* controls */
             .controls {
                 display: flex;
                 align-items: center;
-                gap: 16px;
-                margin-bottom: 24px;
+                gap: 14px;
+                margin-bottom: 14px;
                 flex-wrap: wrap;
             }
-            label {
-                font-size: 0.9rem;
-                color: #94a3b8;
+            .field {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .field label {
+                font-size: 12px;
+                color: var(--text-weak);
             }
             select {
-                background: #1e293b;
-                color: #e2e8f0;
-                border: 1px solid #334155;
-                border-radius: 6px;
-                padding: 6px 10px;
-                font-size: 0.9rem;
+                background: var(--widget);
+                color: var(--text);
+                border: 1px solid var(--stroke);
+                border-radius: 3px;
+                padding: 3px 8px;
+                font-size: 12px;
+                font-family: inherit;
                 cursor: pointer;
+                outline: none;
+                appearance: none;
+                -webkit-appearance: none;
+                padding-right: 20px;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a7a7a'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 6px center;
             }
+            select:hover, select:focus { border-color: var(--accent); }
+
             button {
-                background: #3b82f6;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                padding: 7px 18px;
-                font-size: 0.9rem;
+                background: var(--widget);
+                color: var(--text-strong);
+                border: 1px solid var(--stroke);
+                border-radius: 3px;
+                padding: 4px 14px;
+                font-size: 12px;
+                font-family: inherit;
                 cursor: pointer;
-                transition: background 0.15s;
+                transition: background 0.1s, border-color 0.1s;
             }
-            button:hover {
-                background: #2563eb;
-            }
-            button:disabled {
-                background: #334155;
-                cursor: not-allowed;
-            }
+            button:hover { background: var(--widget-hv); border-color: var(--accent); }
+            button:disabled { color: var(--text-weak); border-color: var(--border); cursor: not-allowed; }
+            button:disabled:hover { background: var(--widget); border-color: var(--border); }
 
+            /* status */
             #status {
-                font-size: 0.85rem;
-                color: #64748b;
-                min-height: 1.2em;
-                margin-bottom: 12px;
-            }
-
-            .legend {
-                display: flex;
-                gap: 20px;
-                font-size: 0.78rem;
-                margin-bottom: 16px;
-                color: #64748b;
-            }
-            .legend span::before {
-                content: "● ";
-            }
-            .legend .fast::before {
-                color: #4ade80;
-            }
-            .legend .warn::before {
-                color: #fbbf24;
-            }
-            .legend .slow::before {
-                color: #f87171;
-            }
-
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 0.88rem;
-            }
-            th {
-                text-align: left;
-                padding: 8px 10px;
-                border-bottom: 1px solid #334155;
-                color: #64748b;
-                font-weight: 500;
-                font-size: 0.75rem;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-            }
-            td {
-                padding: 7px 10px;
-                border-bottom: 1px solid #1e293b;
-                font-variant-numeric: tabular-nums;
-            }
-            tr:last-child td {
-                border-bottom: none;
-            }
-            .col-pos {
-                color: #94a3b8;
-            }
-            .num {
+                font-size: 11px;
                 font-family: monospace;
-            }
-            .fast {
-                color: #4ade80;
-            }
-            .warn {
-                color: #fbbf24;
-            }
-            .slow {
-                color: #f87171;
-            }
-            .aborted {
-                color: #fbbf24;
-                font-style: italic;
-            }
-            .sep td {
-                background: #1e293b;
-                padding: 2px;
-            }
-            .msg td {
-                color: #64748b;
-                font-style: italic;
-                padding: 10px;
-            }
-
-            th[title] {
-                cursor: help;
-                border-bottom: 1px dashed #475569;
-            }
-            .native-section {
-                margin-top: 40px;
-                padding-top: 24px;
-                border-top: 1px solid #1e293b;
-            }
-            .native-section h2 {
-                font-size: 1rem;
-                font-weight: 500;
-                color: #94a3b8;
-                margin-bottom: 8px;
-            }
-            .native-section p {
-                font-size: 0.82rem;
-                color: #475569;
+                color: var(--text-weak);
+                min-height: 16px;
                 margin-bottom: 10px;
             }
-            textarea {
-                width: 100%;
-                height: 80px;
-                background: #1e293b;
-                color: #e2e8f0;
-                border: 1px solid #334155;
-                border-radius: 6px;
-                padding: 8px 10px;
-                font-family: monospace;
-                font-size: 0.8rem;
-                resize: vertical;
-                box-sizing: border-box;
-            }
-            .ratio-up { color: #4ade80; }
-            .ratio-down { color: #f87171; }
-            .ratio-eq { color: #94a3b8; }
-            .native-col { color: #93c5fd; }
 
+            /* legend */
+            .legend {
+                display: flex;
+                gap: 16px;
+                font-size: 11px;
+                color: var(--text-weak);
+                margin-bottom: 10px;
+            }
+            .legend span::before { content: "● "; }
+            .legend .fast::before  { color: var(--green); }
+            .legend .warn::before  { color: var(--orange); }
+            .legend .slow::before  { color: var(--red); }
+
+            /* table */
             .table-wrapper {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
+                border: 1px solid var(--border);
+                border-radius: 4px;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 12px;
+            }
+            thead { background: var(--panel); }
+            th {
+                text-align: left;
+                padding: 6px 10px;
+                border-bottom: 1px solid var(--border);
+                color: var(--text-weak);
+                font-weight: 500;
+                font-size: 11px;
+                white-space: nowrap;
+            }
+            th[title] {
+                cursor: help;
+                text-decoration: underline dotted var(--stroke);
+                text-underline-offset: 2px;
+            }
+            td {
+                padding: 5px 10px;
+                border-bottom: 1px solid var(--sep);
+                font-variant-numeric: tabular-nums;
+                white-space: nowrap;
+            }
+            tr:last-child td { border-bottom: none; }
+            tbody tr:hover td { background: #202020; }
+            .col-pos { color: var(--text-weak); font-size: 11px; }
+            .num { font-family: monospace; }
+            .fast    { color: var(--green); }
+            .warn    { color: var(--orange); }
+            .slow    { color: var(--red); }
+            .aborted { color: var(--orange); font-style: italic; }
+            .sep td  { background: var(--panel); padding: 2px; border: none; }
+            .msg td  { color: var(--text-weak); font-style: italic; padding: 10px; }
+            .ratio-up   { color: var(--green); }
+            .ratio-down { color: var(--red); }
+            .ratio-eq   { color: var(--text-weak); }
+            .native-col { color: var(--accent); }
+            .native-th  { color: var(--accent); }
+
+            /* native section */
+            .native-section {
+                margin-top: 32px;
+                padding-top: 20px;
+                border-top: 1px solid var(--border);
+            }
+            .native-section h2 {
+                font-size: 12px;
+                font-weight: 600;
+                font-family: monospace;
+                color: var(--text);
+                margin-bottom: 8px;
+            }
+            .native-section .desc {
+                font-size: 11px;
+                color: var(--text-weak);
+                margin-bottom: 8px;
+                line-height: 1.7;
+            }
+            .native-section code {
+                font-family: monospace;
+                background: var(--panel);
+                border: 1px solid var(--border);
+                border-radius: 3px;
+                padding: 1px 5px;
+                font-size: 11px;
+                color: var(--text);
+            }
+            .cmd-block {
+                margin-bottom: 12px;
+                background: var(--panel);
+                border: 1px solid var(--border);
+                border-radius: 4px;
+                padding: 8px 12px;
+                font-family: monospace;
+                font-size: 11px;
+                color: var(--accent);
+                overflow-x: auto;
+                white-space: pre;
+            }
+            .native-manual > summary {
+                cursor: pointer;
+                list-style: none;
+                user-select: none;
+                font-size: 11px;
+                color: var(--text-weak);
+                width: fit-content;
+            }
+            .native-manual > summary::-webkit-details-marker { display: none; }
+            .native-manual > summary::before { content: "▸  "; font-size: 10px; }
+            .native-manual[open] > summary::before { content: "▾  "; }
+            .native-manual > summary:hover { color: var(--text); }
+            textarea {
+                margin-top: 8px;
+                width: 100%;
+                height: 70px;
+                background: var(--panel);
+                color: var(--text);
+                border: 1px solid var(--border);
+                border-radius: 3px;
+                padding: 6px 8px;
+                font-family: monospace;
+                font-size: 11px;
+                resize: vertical;
+                outline: none;
+            }
+            textarea:focus { border-color: var(--stroke); }
+            #native-error {
+                display: none;
+                margin-top: 5px;
+                font-size: 11px;
+                font-family: monospace;
+                color: var(--red);
             }
 
-            @media (max-width: 768px) {
-                body {
-                    margin: 20px auto;
-                    padding: 0 12px;
-                }
-                h1 {
-                    font-size: 1.15rem;
-                }
-                .controls {
-                    flex-direction: column;
-                    align-items: stretch;
-                    gap: 10px;
-                }
-                .controls label {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 4px;
-                }
-                .controls select,
-                .controls button {
-                    width: 100%;
-                    padding: 10px;
-                    font-size: 1rem;
-                }
-                table {
-                    font-size: 0.78rem;
-                }
-                th,
-                td {
-                    padding: 6px 8px;
-                }
+            /* responsive */
+            @media (max-width: 600px) {
+                body { padding: 16px 12px 32px; }
+                .controls { flex-direction: column; align-items: stretch; }
+                .field { justify-content: space-between; }
+                select, button { font-size: 13px; padding: 6px 10px; }
             }
         </style>
     </head>
     <body>
-        <h1>ChessGame — Benchmark</h1>
-        <p class="subtitle">Rust → WASM, single-threaded</p>
-        <p id="native-badge" style="display:none;font-size:0.8rem;color:#4ade80;margin-top:-20px;margin-bottom:20px;">✓ Native results loaded — comparison active</p>
+        <header>
+            <div class="title-line">
+                <h1>chess_engine</h1>
+                <span class="tag">bench</span>
+            </div>
+            <p class="meta">Alpha-beta · iterative deepening · quiescence search — Rust compiled to WASM, single-threaded</p>
+            <p id="native-badge">▸ native results loaded — WASM / native comparison active</p>
+        </header>
 
         <div class="controls">
-            <label>
-                Max depth
+            <div class="field">
+                <label for="max-depth">Max depth</label>
                 <select id="max-depth">
                     <option value="6">6</option>
                     <option value="7">7</option>
@@ -233,19 +301,25 @@
                     <option value="10" selected>10</option>
                     <option value="11">11</option>
                 </select>
-            </label>
-            <label>
-                Position
+            </div>
+            <div class="field">
+                <label for="position">Position</label>
                 <select id="position">
                     <option value="both" selected>Both</option>
-                    <option value="start">Start only</option>
-                    <option value="kiwipete">Kiwipete only</option>
+                    <option value="start">Start</option>
+                    <option value="kiwipete">Kiwipete</option>
                 </select>
-            </label>
+            </div>
             <button id="run">▶ Run</button>
         </div>
 
         <div id="status"></div>
+
+        <div class="legend">
+            <span class="fast">&lt; 200 ms</span>
+            <span class="warn">200 – 500 ms</span>
+            <span class="slow">&gt; 500 ms</span>
+        </div>
 
         <div class="table-wrapper">
             <table id="main-table">
@@ -266,16 +340,36 @@
         </div>
 
         <div class="native-section">
-            <h2>Compare with native</h2>
-            <p>Run <code>cargo run --release --features native --bin bench -- 8 2>/dev/null</code> and paste the JSON output below.</p>
-            <textarea id="native-json" placeholder='[{"label":"Start","depth":6,"nodes":...}, ...]'></textarea>
-            <button id="load-native" style="margin-top:8px;">Load native results</button>
-            <div id="native-error" style="color:#f87171;font-size:0.82rem;margin-top:6px;display:none;"></div>
+            <h2>native comparison</h2>
+            <p class="desc">
+                When <code>dist/native_bench.json</code> is present, native results load automatically at startup.<br>
+                Generate with:
+            </p>
+            <div class="cmd-block">cargo run --release --features native --bin bench -- 11 > dist/native_bench.json</div>
+            <details class="native-manual">
+                <summary>paste JSON manually</summary>
+                <textarea id="native-json" placeholder='[{"label":"Start","depth":6,"nodes":...}, ...]'></textarea>
+                <button id="load-native" style="margin-top:6px;">Apply</button>
+                <div id="native-error"></div>
+            </details>
         </div>
 
         <script type="module">
             import init, { run_bench } from "./chess_game.js";
             await init();
+
+            async function loadNativeEntries(entries) {
+                nativeResults = {};
+                for (const e of entries) nativeResults[`${e.depth}-${e.label}`] = e;
+                compareMode = true;
+                setCompareHeaders(true);
+                document.getElementById("native-badge").style.display = "block";
+            }
+
+            fetch("./native_bench.json")
+                .then(r => r.ok ? r.json() : null)
+                .then(entries => { if (entries) loadNativeEntries(entries); })
+                .catch(() => {});
 
             const runBtn = document.getElementById("run");
             const statusEl = document.getElementById("status");
@@ -326,7 +420,7 @@
                     : `<span class="${timeClass(e.time_ms)}">${fmtTime(e.time_ms)}</span>`;
                 const qNodes = e.q_nodes > 0
                     ? fmtNum(e.q_nodes)
-                    : `<span style="color:#475569">—</span>`;
+                    : `<span style="color:var(--text-weak)">—</span>`;
 
                 let extra = "";
                 if (compareMode) {
@@ -338,7 +432,7 @@
                             `<td class="num native-col">${fmtTime(n.time_ms)}</td>` +
                             `<td class="num ${ratioClass(ratio)}">${ratioStr(ratio)}</td>`;
                     } else {
-                        extra = `<td colspan="3" style="color:#475569">—</td>`;
+                        extra = `<td colspan="3" style="color:var(--text-weak)">—</td>`;
                     }
                 }
 
@@ -371,7 +465,6 @@
             function redrawTable() {
                 tbody.innerHTML = "";
                 const pos = document.getElementById("position").value;
-                const seen = new Set();
                 const keys = Object.keys(wasmResults).sort((a, b) => {
                     const [da, la] = a.split("-");
                     const [db, lb] = b.split("-");
@@ -393,7 +486,7 @@
                 runBtn.disabled = true;
 
                 for (let d = 6; d <= maxDepth; d++) {
-                    statusEl.textContent = `Running depth ${d} / ${maxDepth}…`;
+                    statusEl.textContent = `running depth ${d} / ${maxDepth}…`;
                     await new Promise((r) => setTimeout(r, 0));
 
                     const entries = JSON.parse(run_bench(d, 0));
@@ -412,7 +505,7 @@
                     await new Promise((r) => setTimeout(r, 0));
                 }
 
-                statusEl.textContent = "Done.";
+                statusEl.textContent = "done.";
                 runBtn.disabled = false;
             });
 
@@ -423,16 +516,10 @@
                     const raw = document.getElementById("native-json").value.trim();
                     const entries = JSON.parse(raw);
                     if (!Array.isArray(entries)) throw new Error("Expected a JSON array");
-                    nativeResults = {};
-                    for (const e of entries) {
-                        nativeResults[`${e.depth}-${e.label}`] = e;
-                    }
-                    compareMode = true;
-                    setCompareHeaders(true);
-                    document.getElementById("native-badge").style.display = "block";
+                    loadNativeEntries(entries);
                     redrawTable();
                 } catch (err) {
-                    errEl.textContent = `Parse error: ${err.message}`;
+                    errEl.textContent = `parse error: ${err.message}`;
                     errEl.style.display = "block";
                 }
             });
