@@ -36,5 +36,5 @@ bench-all *args:
 test *args:
     cargo test {{args}}
 
-perf:
+perft:
     cargo test perft
