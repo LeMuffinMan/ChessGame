@@ -1,13 +1,16 @@
 # ChessGame ♟️
 
 [![CI](https://github.com/LeMuffinMan/ChessGame/actions/workflows/deploy.yml/badge.svg)](https://github.com/LeMuffinMan/ChessGame/actions/workflows/deploy.yml)
-[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://lemuffinman.github.io/ChessGame/)
 
-<p align="center"><strong><a href="https://lemuffinman.github.io/ChessGame/">▶ Play</a></strong></p>
+<p align="center">
+  <a href="https://lemuffinman.github.io/ChessGame/"><img src="https://img.shields.io/badge/demo-live-brightgreen" alt="Live Demo" /></a>
+  &nbsp;
+  <strong><a href="https://lemuffinman.github.io/ChessGame/">▶ Play</a></strong>
+</p>
 
 ---
 
-I built this project to learn Rust on something real, not exercises or tutorials. Chess felt like the right choice: the rules are complex enough to punish bad design (and they did), the algorithms are well-documented, and the Chess Programming Wiki became my bible over the two intense sprints I spent on this project. Seeing how simple evaluation criteria can lead to natural openings, then improving until you get mated by the algorithm you built... that was quite the motivation to keep going. I now aim to integrate UCI to measure its Elo against other engines.
+I built this project to learn Rust on something real, not exercises or tutorials. Chess felt like the right choice: the rules are complex enough to punish bad design (and they did), the algorithms are well-documented, and the Chess Programming Wiki became my bible over the intense sprints I spent on this project. Seeing how simple evaluation criteria can lead to natural openings, then improving until you get mated by the algorithm you built... that was quite the motivation to keep going. I now aim to integrate UCI to measure its Elo against other engines.
 
 **A well-placed hint.**
 A friend who pushed me to start this project gave me one early nudge: model the board around `enum Cell { Occupied(Piece, Color), Free }`. That was enough to get started. Following that thread, I found myself reaching naturally for exhaustive pattern matching, `Option<Coord>` for en passant and check state where null is impossible by construction, traits for abstraction without overhead. Rust’s design makes good patterns feel obvious, and I gradually came to appreciate how much the language was guiding me.
