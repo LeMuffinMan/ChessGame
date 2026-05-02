@@ -1,13 +1,25 @@
 use crate::Board;
-use crate::board::cell::Color;
+use crate::board::fen::FenInfo;
 use crate::engine::minimax::{find_best_move, iterative_deepening};
 use crate::engine::search_context::SearchContext;
 use std::collections::HashMap;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
-const START_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-const KIWIPETE_FEN: &str = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+pub const QUICK_POSITIONS: &[(&str, &str)] = &[
+    ("Start",    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"),
+    ("Kiwipete", "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"),
+];
+
+pub const FULL_POSITIONS: &[(&str, &str)] = &[
+    ("Start",       "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"),
+    ("Kiwipete",    "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"),
+    ("KingAttack",  "4rrk1/pp1n3p/3q2pQ/2p1pb2/2PP4/2P3N1/P2B2PP/4RRK1 b - - 7 19"),
+    ("PawnEnding",  "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 11"),
+    ("RookQueen",   "3q2k1/pb3p1p/4pbp1/2r5/PpN2N2/1P2P2P/5PP1/Q2R2K1 b - - 4 26"),
+    ("RookPawns",   "8/pp2r1k1/2p1p3/3pP2p/1P1P1P1P/P5KR/8/8 w - - 0 1"),
+    ("BishopEnding","8/3p3B/5p2/5P2/p7/PP5b/k7/6K1 w - - 0 1"),
+];
 
 #[cfg(target_arch = "wasm32")]
 fn now_ms() -> f64 {
@@ -40,20 +52,20 @@ pub struct BenchResult {
 // max_nodes = 0 means no limit.
 // Pre-warms the TT via ID up to depth-1 (unmeasured), then times only the final depth.
 // This lets TT best_move, killers and history show their real impact without inflating the total time.
-pub fn bench_run(fen: &str, color: Color, depth: u8, max_nodes: u64) -> BenchResult {
+pub fn bench_run(fen: &str, depth: u8, max_nodes: u64) -> BenchResult {
     assert!(depth >= 1, "bench_run requires depth >= 1");
-    let mut board = Board::board_from_fen(fen).board;
+    let FenInfo { mut board, active_color, .. } = Board::board_from_fen(fen);
     let mut ctx = SearchContext::new();
     let hashmap: HashMap<u64, usize> = HashMap::new();
 
     if depth > 1 {
-        iterative_deepening(&mut board, color, depth - 1, &mut ctx, &hashmap, 0);
+        iterative_deepening(&mut board, active_color, depth - 1, &mut ctx, &hashmap, 0);
         ctx.stats.reset();
     }
 
     ctx.stats.max_nodes = max_nodes;
     let t0 = now_ms();
-    find_best_move(&mut board, color, depth, &mut ctx, &hashmap, 0, i32::MIN, i32::MAX);
+    find_best_move(&mut board, active_color, depth, &mut ctx, &hashmap, 0, i32::MIN, i32::MAX);
     let time_ms = now_ms() - t0;
     BenchResult {
         nodes: ctx.stats.nodes,
@@ -115,31 +127,32 @@ pub fn entry_json(label: &str, depth: u8, r: &BenchResult, time_ms: f64) -> Stri
     )
 }
 
-// Wasm export :
-// called by bench.html once per max depth level
+// Wasm export: called by bench.html once per depth level.
+// mode 0 = Quick (2 positions), mode 1 = Full (8 positions).
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-pub fn run_bench(depth: u8, max_nodes: u32) -> String {
+pub fn run_bench(depth: u8, mode: u8) -> String {
     if depth < 1 {
         return "[]".to_string();
     }
-    let limit = max_nodes as u64;
-    let (r1, t1) = run_n(START_FEN, Color::White, depth, limit);
-    let (r2, t2) = run_n(KIWIPETE_FEN, Color::White, depth, limit);
-    format!(
-        "[{},{}]",
-        entry_json("Start", depth, &r1, t1),
-        entry_json("Kiwipete", depth, &r2, t2),
-    )
+    let positions = if mode == 0 { QUICK_POSITIONS } else { FULL_POSITIONS };
+    let entries: Vec<String> = positions
+        .iter()
+        .map(|(label, fen)| {
+            let (r, t) = run_n(fen, depth, 0);
+            entry_json(label, depth, &r, t)
+        })
+        .collect();
+    format!("[{}]", entries.join(","))
 }
 
-pub fn run_n(fen: &str, color: Color, depth: u8, max_nodes: u64) -> (BenchResult, f64) {
+pub fn run_n(fen: &str, depth: u8, max_nodes: u64) -> (BenchResult, f64) {
     const NB_RUNS: usize = 5;
 
-    let stats_result = bench_run(fen, color, depth, max_nodes);
+    let stats_result = bench_run(fen, depth, max_nodes);
     let mut min_time = stats_result.time_ms;
 
     for _ in 1..NB_RUNS {
-        let t = bench_run(fen, color, depth, max_nodes).time_ms;
+        let t = bench_run(fen, depth, max_nodes).time_ms;
         if t < min_time {
             min_time = t;
         }
