@@ -1,19 +1,22 @@
-# ChessGame ♟️
-
-[![CI](https://github.com/LeMuffinMan/ChessGame/actions/workflows/deploy.yml/badge.svg)](https://github.com/LeMuffinMan/ChessGame/actions/workflows/deploy.yml)
-
-<p align="center">
+<table>
+<tr>
+<td><h1>ChessGame ♟️</h1></td>
+<td align="right">
   <a href="https://lemuffinman.github.io/ChessGame/"><img src="https://img.shields.io/badge/demo-live-brightgreen" alt="Live Demo" /></a>
   &nbsp;
   <strong><a href="https://lemuffinman.github.io/ChessGame/">▶ Play</a></strong>
-</p>
+</td>
+</tr>
+</table>
+
+[![CI](https://github.com/LeMuffinMan/ChessGame/actions/workflows/deploy.yml/badge.svg)](https://github.com/LeMuffinMan/ChessGame/actions/workflows/deploy.yml)
 
 ---
 
 I built this project to learn Rust on something real, not exercises or tutorials. Chess felt like the right choice: the rules are complex enough to punish bad design (and they did), the algorithms are well-documented, and the Chess Programming Wiki became my bible over the intense sprints I spent on this project. Seeing how simple evaluation criteria can lead to natural openings, then improving until you get mated by the algorithm you built... that was quite the motivation to keep going. I now aim to integrate UCI to measure its Elo against other engines.
 
 **A well-placed hint.**
-A friend who pushed me to start this project gave me one early nudge: model the board around `enum Cell { Occupied(Piece, Color), Free }`. That was enough to get started. Following that thread, I found myself reaching naturally for exhaustive pattern matching, `Option<Coord>` for en passant and check state where null is impossible by construction, traits for abstraction without overhead. Rust’s design makes good patterns feel obvious, and I gradually came to appreciate how much the language was guiding me.
+A friend who suggested I give Rust a try pointed me toward one early design choice: model the board around `enum Cell { Occupied(Piece, Color), Free }`. That was enough to get started. Following that thread, I found myself reaching naturally for exhaustive pattern matching, `Option<Coord>` for en passant and check state where null is impossible by construction, traits for abstraction without overhead. Rust’s design makes good patterns feel obvious, and I gradually came to appreciate how much the language was guiding me.
 
 **From 3 seconds to 300ms.**
 Without parallelism on WASM or threads on native, the goal was to push depth as far as possible within a 300ms budget. What made it satisfying was that each bottleneck was measurable: clearing one felt like unlocking resources to invest in intelligence instead. The story starts at depth 5 taking 3 seconds, purest minimax with no pruning. Alpha-beta alone cut that by an order of magnitude. Move ordering (MVV-LVA, killers, history) pushed the branching factor down further. Replacing the per-leaf evaluation with an incremental score inside `apply` and `undo` removed that overhead entirely. Then a Transposition Table (1M entries in a fixed `Vec`, indexed by Zobrist hash, with generation counters) collapsed the tree on repeated positions. Depth 5 now runs in under 30ms, depth 11 around 300ms.
