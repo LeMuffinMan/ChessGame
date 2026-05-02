@@ -130,9 +130,17 @@ pub fn entry_json(label: &str, depth: u8, r: &BenchResult, time_ms: f64) -> Stri
     )
 }
 
-// Wasm export: called by bench.html once per depth level.
-// mode 0 = Quick (2 positions), mode 1 = Full (8 positions).
+// Wasm export: runs a single position at a given depth, returns one JSON entry.
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+pub fn run_bench_single(fen: &str, label: &str, depth: u8) -> String {
+    if depth < 1 {
+        return "{}".to_string();
+    }
+    let (r, t) = run_n(fen, depth, 0);
+    entry_json(label, depth, &r, t)
+}
+
+// Kept for backwards compatibility with the native bench binary.
 pub fn run_bench(depth: u8, mode: u8) -> String {
     if depth < 1 {
         return "[]".to_string();
