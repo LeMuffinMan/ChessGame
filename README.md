@@ -11,7 +11,9 @@ I built this project to learn Rust on something real and not exercises or tutori
 
 Since I haven't yet implemented parallelism on WASM or threads on native, the goal was to push my bots to a decent difficulty level at the highest depth possible, trying to limit the time thinking to 300ms time thinking to prevent the ui freeze to be perceptible. Implementing a Transposition Table was probably the most valuable gain. But speed is not enough, the other major challenge was making the bot actually close out a won endgame. King activity changes completely in late game, and the evaluator needed to reflect that. The ladder mate logic might be where I'm spending too many resources now (following tests and benchmarks), but at least the bot doesn't miss an easy rook-and-king ladder mate.
 
-The Rust was itself a journey. I realize now how much good data structures from the start pay off later. After almost 9,000 lines, I'm considering switching to bitboards for one of the lasts big performance gains still on the table. The path went from evaluating the board through a generic trait at every leaf, to maintaining an incremental score directly inside `apply` and `undo`, then fitting a 1M-entry transposition table into a fixed `Vec` with generation counters to isolate games. I was celebrating when my bot took 3 secondes to play at depth 5 in first day running my minimax without even alpha beta pruning for the first time. Now i aim to have less 300ms response in depth 12, and depth 5 takes less than 30ms to process.
+The Rust was its own journey. `enum Cell { Occupied(Piece, Color), Free }` sounds obvious in hindsight, but exhaustive pattern matching — the compiler rejecting any unhandled case — changes how you think. `Option<Coord>` for en passant or check state: null is impossible by construction. These aren't just syntax; they shape the design.
+
+The performance story starts at depth 5 taking 3 seconds — no pruning, full board evaluation through a generic `Evaluator` trait at every node. Alpha-beta alone cut that by an order of magnitude. Move ordering (MVV-LVA, killers, history) pushed the branching factor down further. Replacing the per-leaf trait evaluation with an incremental score maintained directly inside `apply` and `undo` removed the evaluation overhead entirely. Then a Transposition Table — 1M entries in a fixed `Vec`, indexed by Zobrist hash, with generation counters to isolate games — collapsed the tree on repeated positions. After almost 9,000 lines: depth 5 in under 30ms, depth 12 under 300ms. The next jump would be bitboards — but that's a rewrite, not an optimization.
 
 ---
 
@@ -57,12 +59,16 @@ The `engine/` module has zero dependency on `egui`. It allows us to run our sepa
 
 See [docs/ALGORITHMS.md](docs/ALGORITHMS.md) for context and implementation notes on each technique.
 
+<table>
+<tr>
+<td valign="top">
+
 **Search**
 
-| Technique | Reference |
+| Technique | Ref |
 |---|---|
 | Alpha-Beta Pruning | [CPW](https://www.chessprogramming.org/Alpha-Beta) |
-| Principal Variation Search (PVS) | [CPW](https://www.chessprogramming.org/Principal_Variation_Search) |
+| Principal Variation Search | [CPW](https://www.chessprogramming.org/Principal_Variation_Search) |
 | Iterative Deepening | [CPW](https://www.chessprogramming.org/Iterative_Deepening) |
 | Aspiration Windows | [CPW](https://www.chessprogramming.org/Aspiration_Windows) |
 | Null Move Pruning | [CPW](https://www.chessprogramming.org/Null_Move_Pruning) |
@@ -72,9 +78,12 @@ See [docs/ALGORITHMS.md](docs/ALGORITHMS.md) for context and implementation note
 | Quiescence Search | [CPW](https://www.chessprogramming.org/Quiescence_Search) |
 | Delta Pruning (in quiescence) | [CPW](https://www.chessprogramming.org/Delta_Pruning) |
 
+</td>
+<td valign="top">
+
 **Move ordering**
 
-| Technique | Reference |
+| Technique | Ref |
 |---|---|
 | MVV-LVA | [CPW](https://www.chessprogramming.org/MVV-LVA) |
 | Killer Move Heuristic | [CPW](https://www.chessprogramming.org/Killer_Move) |
@@ -83,21 +92,25 @@ See [docs/ALGORITHMS.md](docs/ALGORITHMS.md) for context and implementation note
 
 **Hashing & memory**
 
-| Technique | Reference |
+| Technique | Ref |
 |---|---|
 | Zobrist Hashing (incremental) | [CPW](https://www.chessprogramming.org/Zobrist_Hashing) |
-| Transposition Table (fixed Vec 1M + generation counter) | [CPW](https://www.chessprogramming.org/Transposition_Table) |
+| Transposition Table (fixed Vec 1M) | [CPW](https://www.chessprogramming.org/Transposition_Table) |
 
 **Evaluation**
 
-| Technique | Reference |
+| Technique | Ref |
 |---|---|
-| Piece-Square Tables (opening/endgame interpolated) | [CPW](https://www.chessprogramming.org/Piece-Square_Tables) |
-| King Safety (pawn shield + attacker proximity) | [CPW](https://www.chessprogramming.org/King_Safety) |
+| Piece-Square Tables (opening/endgame) | [CPW](https://www.chessprogramming.org/Piece-Square_Tables) |
+| King Safety (pawn shield + attackers) | [CPW](https://www.chessprogramming.org/King_Safety) |
 | Pin Detection | [CPW](https://www.chessprogramming.org/Pin) |
 | Mop-up Evaluation | [CPW](https://www.chessprogramming.org/Mop-up_Evaluation) |
 | King Corner Pressure | [CPW](https://www.chessprogramming.org/King_Centralization) |
-| Rook & Bishop Cut Bonus (ladder mate) | [CPW](https://www.chessprogramming.org/Rook_Endgames) |
+| Rook & Bishop Cut Bonus | [CPW](https://www.chessprogramming.org/Rook_Endgames) |
+
+</td>
+</tr>
+</table>
 
 ---
 
@@ -107,7 +120,7 @@ The project includes a standalone benchmark page (`bench.html`) that runs the en
 
 The native vs WASM comparison requires a local setup — run `just bench-all` after cloning to generate `public/native_bench.json` and open `bench.html` in your browser. This comparison is not available on the live demo.
 
-> **Note on reliability:** comparing native and WASM numbers is only meaningful on the same machine. Even then, WASM performance is harder to measure accurately: the browser introduces scheduling noise, lacks SIMD optimizations, and runs single-threaded in a sandboxed environment. Treat WASM NPS as a relative indicator across depths or positions, not an absolute measure — and never compare it directly to native figures from a different machine.
+> **Note on reliability:** comparing native and WASM numbers is only meaningful on the same machine. Even then, WASM performance is harder to measure accurately: the browser introduces scheduling noise, lacks SIMD optimizations, and runs single-threaded in a sandboxed environment. Treat WASM NPS as a relative indicator across depths or positions — comparing it to native figures from a different machine has limited value.
 
 <p align="center">
   <img src="assets/260502_20h39m56s_screenshot.png" width="750" alt="Bench depth 10 WASM - Native" />
@@ -134,20 +147,23 @@ cargo install just
 
 ### Commands
 
-`just` wraps the underlying `cargo` commands to handle the different compilation targets (WASM vs native, debug vs release) and pipelines multi-step workflows like generating `native_bench.json` before launching the bench viewer. You can always use raw `cargo` commands instead.
+`just` wraps `cargo` to handle compilation targets (WASM vs native) and debug/release profiles, and pipelines multi-step workflows. You can always use raw `cargo` commands instead.
 
 ```bash
-just          # list all available commands
+# WASM — runs in the browser via trunk
+just wasm          # dev server with hot-reload → http://127.0.0.1:8080
+just wasm-release  # release build (optimized, use before benchmarking WASM)
 
-just wasm     # trunk serve → http://127.0.0.1:8080 (WASM, hot-reload)
-just native   # cargo run --features=native (debug)
-just n        # cargo run --release --features=native
+# Native — runs as a desktop binary
+just native        # debug build (fast compile, use during development)
+just n             # release build (full optimizations, use for actual play)
 
-just test     # cargo test
-just clippy   # clippy for both native and wasm32 targets
+# Bench — native vs WASM comparison
+just bench-all     # generate native_bench.json then start WASM → bench.html
 
-just bench-native   # cargo run --release --bin bench → public/native_bench.json
-just bench-all      # bench-native (if missing) then just wasm → bench.html compares both
+# Quality
+just test          # cargo test
+just clippy        # clippy for both native and wasm32 targets
 ```
 
 See [docs/JUSTFILE.md](docs/JUSTFILE.md) for the full command reference.
