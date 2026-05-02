@@ -3,7 +3,7 @@
 [![CI](https://github.com/LeMuffinMan/ChessGame/actions/workflows/deploy.yml/badge.svg)](https://github.com/LeMuffinMan/ChessGame/actions/workflows/deploy.yml)
 [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://lemuffinman.github.io/ChessGame/)
 
-**[▶ Play in browser](https://lemuffinman.github.io/ChessGame/)**
+Try it live on GitHub Pages: **[▶ Play](https://lemuffinman.github.io/ChessGame/)**
 
 ---
 
@@ -17,13 +17,14 @@ The Rust was itself a journey. I realize now how much good data structures from 
 
 ## What it does
 
-- **Play chess** — human vs human, human vs bot, or bot vs bot, with standard time controls (blitz, rapid…)
+- **Play chess** — human vs human, human vs bot, or bot vs bot with all common chess features
+- **Standard Timers** —  with standard time controls (blitz, rapid…) in human vs human games
 - **AI opponent** — alpha-beta engine at configurable depth, three difficulty levels with iterative deepening
 - **Hint system** — ask for the engine's best move suggestion at any point
-- **Replay & PGN** — move replay and PGN export
-- **Bench page** — standalone `bench.html` comparing engine performance across positions and depths (native vs WASM too if running localy)
+- **Replay & PGN** — game replay and PGN export
+- **Bench page** — standalone `bench.html` comparing performance across positions and depths (native vs WASM if running localy)
 - **Portable** — WASM build runs in any browser on any device; native binary available for desktop and benchmarking
-- **Responsive** — UI for desktop and mobile
+- **Responsive** — dedicated UI for desktop and mobile
 
 <p align="center">
   <img src="assets/screenshot_demo1.png" width="750" alt="Desktop demo" />
@@ -48,7 +49,7 @@ lib.rs           — WASM entry point
 main.rs          — native entry point
 ```
 
-The `engine/` module has zero dependency on `egui`. It allows us to run a separate benchmark binary with it, and open the path for UCI implementation.
+The `engine/` module has zero dependency on `egui`. It allows us to run our separate benchmark binary with it, and open the path for UCI implementation.
 
 ---
 
@@ -185,19 +186,19 @@ Key Rust dependencies: `eframe` / `egui` (GUI), `wasm-bindgen` + `web-sys` (WASM
 ## Resources
 
 **Rust**
-- [The Rust Book](https://doc.rust-lang.org/book/) — the reference
-- [Rust by Example](https://doc.rust-lang.org/rust-by-example/) — concise, hands-on
-- [The Rustonomicon](https://doc.rust-lang.org/nomicon/) — unsafe Rust and advanced internals
+- [The Rust Book](https://doc.rust-lang.org/book/)
+- [Rust by Example](https://doc.rust-lang.org/rust-by-example/)
+- [Other Rust Chess Engines](https://www.chessprogramming.org/Category:Rust)
 
 **WebAssembly**
 - [Rust and WebAssembly book](https://rustwasm.github.io/docs/book/)
 - [wasm-bindgen docs](https://rustwasm.github.io/docs/wasm-bindgen/)
 
 **Chess programming**
-- [Chess Programming Wiki](https://www.chessprogramming.org/Main_Page) — the bible
+- [Chess Programming Wiki](https://www.chessprogramming.org/Main_Page)
 - [Minimax](https://www.chessprogramming.org/Minimax) · [Alpha-Beta](https://www.chessprogramming.org/Alpha-Beta) · [Quiescence Search](https://www.chessprogramming.org/Quiescence_Search)
 - [Transposition Table](https://www.chessprogramming.org/Transposition_Table) · [Zobrist Hashing](https://www.chessprogramming.org/Zobrist_Hashing)
-- [rustic-chess — MVV-LVA](https://rustic-chess.org/search/ordering/mvv_lva.html) — practical move ordering walkthrough
+- [rustic-chess — MVV-LVA](https://rustic-chess.org/search/ordering/mvv_lva.html)
 
 **Tools**
 - [egui](https://github.com/emilk/egui)
