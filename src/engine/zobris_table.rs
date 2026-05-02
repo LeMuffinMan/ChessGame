@@ -70,7 +70,6 @@ fn lcg_rand(state: &mut u64) -> u64 {
     *state
 }
 
-// on utilise toujours cette fonction a defaut de bien gerer en_passant castle
 pub fn hash_from_scratch(board: &Board, active: Color) -> u64 {
     let zt = zobrist();
     let mut h: u64 = 0;

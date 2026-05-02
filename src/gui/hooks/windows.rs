@@ -18,7 +18,6 @@ pub enum WinDia {
 }
 
 impl ChessApp {
-    //Promote win ?
     pub fn hook_win(&mut self, ctx: &egui::Context) {
         if let Some(win) = &self.win {
             match win {
@@ -51,10 +50,7 @@ impl ChessApp {
                     });
                 });
                 ui.add_space(20.0);
-                // if !self.history.is_empty() {
-                //     self.mobile_save_button(ui);
-                // }
-                //
+
                 ui.horizontal(|ui| {
                     if self.settings.allow_undo {
                         ui.add_space(20.0);
@@ -75,7 +71,6 @@ impl ChessApp {
                     ui.add_space(30.0);
                     ui.hyperlink_to("Source code", "https://github.com/LeMuffinMan/ChessGame");
                 });
-                //ajouter le nombre de undo max par joueur
                 ui.add_space(20.0);
             });
     }
@@ -199,14 +194,13 @@ impl ChessApp {
 
                         ui.add_space(20.0);
                         ui.horizontal(|ui| {
-                            // ui.add_space(60.0);
                             ui.vertical_centered(|ui| {
                                 ui.label(&self.history_san);
                                 ui.add_space(20.0);
                                 ui.text_edit_singleline(&mut self.settings.file_name);
                                 if ui.button(RichText::new("Download").size(30.0)).clicked() {
                                     #[cfg(target_arch = "wasm32")]
-                                    let _ = self.export_pgn(); //Todo : handle error
+                                    let _ = self.export_pgn();
                                     self.win = None;
                                 }
                                 ui.add_space(40.0);
@@ -217,7 +211,6 @@ impl ChessApp {
                                 self.win = None;
                             }
                         });
-                        //ajouter le nombre de undo max par joueur
                         ui.add_space(20.0);
                     });
             }
@@ -228,12 +221,11 @@ impl ChessApp {
                     .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
                     .show(ctx, |ui| {
                         let style = ui.style_mut();
-                        style.spacing.icon_width = 40.0; // largeur de la checkbox
-                        style.spacing.icon_spacing = 8.0; // espace entre checkbox et texte
+                        style.spacing.icon_width = 40.0;
+                        style.spacing.icon_spacing = 8.0;
 
                         ui.add_space(20.0);
                         ui.horizontal(|ui| {
-                            // ui.add_space(60.0);
                             ui.vertical_centered(|ui| {
                                 ui.label(&self.history_san);
                                 ui.add_space(20.0);
@@ -252,7 +244,6 @@ impl ChessApp {
                                 self.win = None;
                             }
                         });
-                        //ajouter le nombre de undo max par joueur
                         ui.add_space(20.0);
                     });
             }

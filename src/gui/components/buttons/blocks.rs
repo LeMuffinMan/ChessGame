@@ -57,8 +57,11 @@ impl ChessApp {
                 {
                     self.app_mode = Replay;
                     self.game.board = self.game.board_at(self.replay_infos.index);
-                    self.game.active_player =
-                        if self.replay_infos.index % 2 == 0 { White } else { Black };
+                    self.game.active_player = if self.replay_infos.index % 2 == 0 {
+                        White
+                    } else {
+                        Black
+                    };
                 }
                 ui.add_space(gap);
                 self.revenge_button(ui);

@@ -131,24 +131,28 @@ fn per_side_npm(board: &Board) -> (i32, i32) {
     (white, black)
 }
 
+// -- ladder mate --
+
 // +25 per rook sharing a line with the weak king
 fn rook_cut_bonus(board: &Board, strong_color: Color, weak_king: Coord) -> i32 {
     let mut bonus = 0;
     for r in 0..8 {
         for c in 0..8 {
             if let Occupied(piece, color) = board[(r, c)]
-                && color == strong_color && (piece == Rook || piece == Queen) {
-                    let r_dist = (r - weak_king.row as i32).abs();
-                    let c_dist = (c - weak_king.col as i32).abs();
+                && color == strong_color
+                && (piece == Rook || piece == Queen)
+            {
+                let r_dist = (r - weak_king.row as i32).abs();
+                let c_dist = (c - weak_king.col as i32).abs();
 
-                    if r_dist == 0 || c_dist == 0 {
-                        bonus += if piece == Rook { 40 } else { 20 };
-                    }
-
-                    if r_dist == 1 || c_dist == 1 {
-                        bonus += 25;
-                    }
+                if r_dist == 0 || c_dist == 0 {
+                    bonus += if piece == Rook { 40 } else { 20 };
                 }
+
+                if r_dist == 1 || c_dist == 1 {
+                    bonus += 25;
+                }
+            }
         }
     }
     bonus
@@ -162,13 +166,14 @@ fn bishop_cut_bonus(board: &Board, strong_color: Color, weak_king: Coord) -> i32
     for r in 0..8usize {
         for c in 0..8 {
             if let Occupied(Bishop, color) = board[(r, c)]
-                && color == strong_color {
-                    let b_diag = r as i8 - c as i8;
-                    let b_anti = r as i8 + c as i8;
-                    if b_diag == k_diag || b_anti == k_anti {
-                        bonus += 35;
-                    }
+                && color == strong_color
+            {
+                let b_diag = r as i8 - c as i8;
+                let b_anti = r as i8 + c as i8;
+                if b_diag == k_diag || b_anti == k_anti {
+                    bonus += 35;
                 }
+            }
         }
     }
     bonus
