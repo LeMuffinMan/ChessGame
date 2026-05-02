@@ -108,12 +108,19 @@ impl ChessApp {
     }
 
     fn display_bottom_buttons_mobile(&mut self, ui: &mut egui::Ui) {
-        ui.horizontal_centered(|ui| match &self.app_mode {
-            AppMode::Replay => self.replay_buttons(ui),
-            AppMode::Lobby => self.lobby_buttons(ui),
-            AppMode::Versus(Some(_end)) => self.draw_endgame_buttons(ui),
-            AppMode::Versus(None) => self.draw_resign_undo_mobile(ui),
-        });
+        let is_replay = matches!(self.app_mode, AppMode::Replay);
+        let is_endgame = matches!(self.app_mode, AppMode::Versus(Some(_)));
+        if is_replay {
+            self.replay_buttons(ui);
+        } else if is_endgame {
+            self.draw_endgame_buttons(ui);
+        } else {
+            match &self.app_mode {
+                AppMode::Lobby => self.lobby_buttons(ui),
+                AppMode::Versus(None) => self.draw_resign_undo_mobile(ui),
+                _ => {}
+            }
+        }
     }
 
     fn display_history(&mut self, ui: &mut egui::Ui) {
