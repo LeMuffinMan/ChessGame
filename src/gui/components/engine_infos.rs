@@ -26,9 +26,8 @@ fn score_color(score: i32) -> egui::Color32 {
 
 impl ChessApp {
     pub fn engine_infos(&self, ui: &mut egui::Ui, _color: &Color) {
-        let has_engine_bot = |pt: &crate::engine::bot::PlayerType| {
-            *pt != Human && *pt != Bot(Random)
-        };
+        let has_engine_bot =
+            |pt: &crate::engine::bot::PlayerType| *pt != Human && *pt != Bot(Random);
         if self.app_mode == Versus(None)
             && (has_engine_bot(&self.settings.white_bot)
                 || has_engine_bot(&self.settings.black_bot))
@@ -47,7 +46,8 @@ impl ChessApp {
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 let (rect, _) =
                     ui.allocate_exact_size(egui::vec2(dot_size, dot_size), egui::Sense::hover());
-                ui.painter().circle_filled(rect.center(), dot_radius, time_color);
+                ui.painter()
+                    .circle_filled(rect.center(), dot_radius, time_color);
             });
         });
     }
@@ -118,9 +118,7 @@ impl ChessApp {
                             / self.search_ctx.stats.nodes.max(1) as f64)
                             * 100.0;
                         ui.label(egui::RichText::new("Pruning").small());
-                        ui.label(
-                            egui::RichText::new(format!("{:.1}%", prun_rate)).small(),
-                        );
+                        ui.label(egui::RichText::new(format!("{:.1}%", prun_rate)).small());
                         ui.end_row();
 
                         let tt_hit_pct = self.search_ctx.stats.tt_hits as f64
@@ -177,9 +175,7 @@ impl ChessApp {
 
                 let avg_depth = self.search_ctx.stats.total_node_depth as f64
                     / self.search_ctx.stats.nodes.max(1) as f64;
-                ui.label(
-                    egui::RichText::new(format!("Avg Node Depth: {:.2}", avg_depth)).small(),
-                );
+                ui.label(egui::RichText::new(format!("Avg Node Depth: {:.2}", avg_depth)).small());
             });
     }
 
@@ -233,9 +229,7 @@ impl ChessApp {
                         .spacing([0.0, 8.0])
                         .show(ui, |ui| {
                             ui.label(egui::RichText::new("Depth").weak());
-                            ui.label(
-                                egui::RichText::new(format!("{}", self.get_depth())).strong(),
-                            );
+                            ui.label(egui::RichText::new(format!("{}", self.get_depth())).strong());
                             ui.label(egui::RichText::new("Time").weak());
                             ui.label(
                                 egui::RichText::new(SearchStats::format_time(time_ms))

@@ -105,9 +105,10 @@ pub fn pin_detection(board: &Board, color: Color) -> PinInfos {
         let c = king.col as i8 + dc;
         if let Some(dest) = Board::checked_coord(r, c)
             && let Occupied(Knight, cell_color) = board[dest]
-                && cell_color != color {
-                    info.add_checker(dest);
-                }
+            && cell_color != color
+        {
+            info.add_checker(dest);
+        }
     }
 
     let pawn_dir: i8 = match color {
@@ -119,9 +120,10 @@ pub fn pin_detection(board: &Board, color: Color) -> PinInfos {
         let c = king.col as i8 + dc;
         if let Some(dest) = Board::checked_coord(r, c)
             && let Occupied(Pawn, cell_color) = board[dest]
-                && cell_color != color {
-                    info.add_checker(dest);
-                }
+            && cell_color != color
+        {
+            info.add_checker(dest);
+        }
     }
 
     info

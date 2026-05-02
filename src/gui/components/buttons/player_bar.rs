@@ -56,8 +56,12 @@ impl ChessApp {
     fn player_name_ui(&mut self, ui: &mut egui::Ui, color: &Color) {
         if self.game.history.is_empty() || self.game.end.is_some() {
             match color {
-                White => { ui.text_edit_singleline(&mut self.settings.white_name); }
-                Black => { ui.text_edit_singleline(&mut self.settings.black_name); }
+                White => {
+                    ui.text_edit_singleline(&mut self.settings.white_name);
+                }
+                Black => {
+                    ui.text_edit_singleline(&mut self.settings.black_name);
+                }
             };
         } else {
             match color {
@@ -123,16 +127,28 @@ impl ChessApp {
             };
 
             ui.menu_button(type_label, |ui| {
-                if ui.selectable_label(bot_setting == Human, "Player").clicked() {
+                if ui
+                    .selectable_label(bot_setting == Human, "Player")
+                    .clicked()
+                {
                     bot_setting = Human;
                 }
-                if ui.selectable_label(bot_setting == Bot(Random), "Bot random").clicked() {
+                if ui
+                    .selectable_label(bot_setting == Bot(Random), "Bot random")
+                    .clicked()
+                {
                     bot_setting = Bot(Random);
                 }
-                if ui.selectable_label(bot_setting == Bot(Adaptive), "Bot adaptive").clicked() {
+                if ui
+                    .selectable_label(bot_setting == Bot(Adaptive), "Bot adaptive")
+                    .clicked()
+                {
                     bot_setting = Bot(Adaptive);
                 }
-                if ui.selectable_label(matches!(bot_setting, Bot(Depth(_))), "Bot").clicked() {
+                if ui
+                    .selectable_label(matches!(bot_setting, Bot(Depth(_))), "Bot")
+                    .clicked()
+                {
                     bot_setting = Bot(Depth(current_depth));
                 }
             });

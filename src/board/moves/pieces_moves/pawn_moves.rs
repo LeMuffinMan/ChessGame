@@ -4,11 +4,11 @@ use crate::board::cell::Cell;
 use crate::board::cell::Color;
 use crate::board::cell::Color::*;
 use crate::board::cell::Piece::*;
-use crate::board::moves::move_structs::MoveType;
-use crate::board::moves::move_gen::push_if_legal;
-use crate::board::pin_detection::PinInfos;
 use crate::board::moves::move_gen::aligned_with_pin;
+use crate::board::moves::move_gen::push_if_legal;
 use crate::board::moves::move_structs::MoveList;
+use crate::board::moves::move_structs::MoveType;
+use crate::board::pin_detection::PinInfos;
 
 pub fn pawn_moves(
     origin: &Coord,
@@ -27,29 +27,42 @@ pub fn pawn_moves(
     pawn_move_forward(board, *origin, active_player, list, info);
 }
 
-pub fn pawn_move_forward(board: &mut Board, origin: Coord, active_player: &Color, list: &mut MoveList, info: &PinInfos) {
+pub fn pawn_move_forward(
+    board: &mut Board,
+    origin: Coord,
+    active_player: &Color,
+    list: &mut MoveList,
+    info: &PinInfos,
+) {
     let dir = if *active_player == White { 1 } else { -1 };
     let last_rank = if *active_player == White { 7 } else { 0 };
 
     if let Some(dest) = Board::checked_coord(origin.row as i8 + dir, origin.col as i8)
-        && board.get(&dest) == Cell::Free {
-            push_pawn_dest(&origin, dest, *active_player, board, last_rank, list, info);
+        && board.get(&dest) == Cell::Free
+    {
+        push_pawn_dest(&origin, dest, *active_player, board, last_rank, list, info);
 
-            let initial_row = if *active_player == White {
-                origin.row == 1
-            } else {
-                origin.row == 6
-            };
-            if initial_row
-                && let Some(dest2) =
-                    Board::checked_coord(origin.row as i8 + dir * 2, origin.col as i8)
-                    && board.get(&dest2) == Cell::Free {
-                        push_if_legal(board, &origin, dest2, active_player, list, info);
-                    }
+        let initial_row = if *active_player == White {
+            origin.row == 1
+        } else {
+            origin.row == 6
+        };
+        if initial_row
+            && let Some(dest2) = Board::checked_coord(origin.row as i8 + dir * 2, origin.col as i8)
+            && board.get(&dest2) == Cell::Free
+        {
+            push_if_legal(board, &origin, dest2, active_player, list, info);
         }
+    }
 }
 
-pub fn pawn_diag_en_passant(board: &mut Board, origin: Coord, active_player: &Color, list: &mut MoveList, info: &PinInfos) {
+pub fn pawn_diag_en_passant(
+    board: &mut Board,
+    origin: Coord,
+    active_player: &Color,
+    list: &mut MoveList,
+    info: &PinInfos,
+) {
     let dir = if *active_player == White { 1 } else { -1 };
     let last_rank = if *active_player == White { 7 } else { 0 };
 

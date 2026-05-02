@@ -78,7 +78,14 @@ pub fn get_bot_move(
         }
         Bot(Adaptive) => {
             let mut params = SearchParams::new(ctx, game_history, fifty_count);
-            timed_out_iterative_deepening(board, active_player, 11_u8, depth, BOT_TIMEOUT, &mut params)
+            timed_out_iterative_deepening(
+                board,
+                active_player,
+                11_u8,
+                depth,
+                BOT_TIMEOUT,
+                &mut params,
+            )
         }
         Bot(Random) => {
             let mut move_list = MoveList::new();
