@@ -1,4 +1,19 @@
+# Cargo build output
 target/
-Untitled
-dist
-guide.txt
+
+# Trunk WASM build output
+dist/
+
+# wasm-pack output
+pkg/
+
+# generated with bench-native
+public/native_bench.json
+
+*.env
+.env.*
+
+.idea/
+.vscode/
+*.swp
+*~
