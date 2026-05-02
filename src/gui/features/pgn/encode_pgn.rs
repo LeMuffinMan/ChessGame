@@ -133,7 +133,7 @@ impl ChessApp {
     pub fn is_ambiguous_move(&mut self, piece: &Piece, origin: &Coord, dest: &Coord) {
         if !self.game.history.is_empty() && self.replay_infos.index > 0 {
             let mut prev_board = self.game.board_at(self.replay_infos.index - 1);
-            let prev_player = if (self.replay_infos.index - 1) % 2 == 0 {
+            let prev_player = if (self.replay_infos.index - 1).is_multiple_of(2) {
                 White
             } else {
                 Black

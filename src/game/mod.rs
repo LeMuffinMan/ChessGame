@@ -196,7 +196,7 @@ impl Game {
         self.history.pop();
         let idx = self.history.len();
         self.board = self.board_at(idx);
-        self.active_player = if idx % 2 == 0 { White } else { Black };
+        self.active_player = if idx.is_multiple_of(2) { White } else { Black };
         self.turn = (idx / 2) as u32 + 1;
         self.end = None;
         self.draw.draw_option = None;
