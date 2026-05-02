@@ -7,16 +7,13 @@
 
 ---
 
-I built this project to learn Rust on something real and not exercises or tutorials. The rules are complex enough to punish bad design (and they did), the algorithms are well-documented,  the Chess Programming Wiki, which I discovered exists and is enormous, became my bible over the two intense sprints I spent on this project. Also, seeing how simple evaluation criteria (material value and position) can lead to natural openings and an already decent bot, before improving it until you get mated by the algorithm you built… that's quite exciting. I now aim to integrate UCI to measure its Elo against other engines.
-
-**Speed buys intelligence.**
-Since I haven’t yet implemented parallelism on WASM or threads on native, the goal was to push depth as far as possible within a 300ms budget — enough to keep the UI responsive. What I found satisfying was that each bottleneck was measurable: the bench infrastructure made every optimization visible, and clearing one bottleneck felt like unlocking resources to invest elsewhere. A deeper, faster search means better move ordering pays off more, a richer evaluation stays affordable. That’s the trade-off behind every decision: the ladder mate evaluator is probably where I’m spending too many cycles now, but at least the bot doesn’t miss an easy rook-and-king mate.
+I built this project to learn Rust on something real, not exercises or tutorials. Chess felt like the right choice: the rules are complex enough to punish bad design (and they did), the algorithms are well-documented, and the Chess Programming Wiki became my bible over the two intense sprints I spent on this project. Seeing how simple evaluation criteria can lead to natural openings, then improving until you get mated by the algorithm you built... that was quite the motivation to keep going. I now aim to integrate UCI to measure its Elo against other engines.
 
 **A well-placed hint.**
-A friend who convinced me to start this project and learn Rust along the way gave me one early nudge: model the board around `enum Cell { Occupied(Piece, Color), Free }`. That was enough. Following that thread, I found myself reaching naturally for exhaustive pattern matching, `Option<Coord>` for en passant and check state where null is impossible by construction, zero-size types, traits for abstraction without overhead. I didn’t study Rust — I developed a taste for it.
+A friend who pushed me to start this project gave me one early nudge: model the board around `enum Cell { Occupied(Piece, Color), Free }`. That was enough to get started. Following that thread, I found myself reaching naturally for exhaustive pattern matching, `Option<Coord>` for en passant and check state where null is impossible by construction, traits for abstraction without overhead. Rust’s design makes good patterns feel obvious, and I gradually came to appreciate how much the language was guiding me.
 
 **From 3 seconds to 300ms.**
-The performance story starts at depth 5 taking 3 seconds — purest minimax, no pruning, full board evaluation through a generic `Evaluator` trait at every node. Alpha-beta alone cut that by an order of magnitude. Move ordering (MVV-LVA, killers, history) pushed the branching factor down further. Replacing the per-leaf trait evaluation with an incremental score maintained directly inside `apply` and `undo` removed the evaluation overhead entirely. Then a Transposition Table — 1M entries in a fixed `Vec`, indexed by Zobrist hash, with generation counters to isolate games — collapsed the tree on repeated positions. Depth 5 now runs in under 30ms, depth 11 around 300ms.
+Without parallelism on WASM or threads on native, the goal was to push depth as far as possible within a 300ms budget. What made it satisfying was that each bottleneck was measurable: clearing one felt like unlocking resources to invest in intelligence instead. The story starts at depth 5 taking 3 seconds, purest minimax with no pruning. Alpha-beta alone cut that by an order of magnitude. Move ordering (MVV-LVA, killers, history) pushed the branching factor down further. Replacing the per-leaf evaluation with an incremental score inside `apply` and `undo` removed that overhead entirely. Then a Transposition Table (1M entries in a fixed `Vec`, indexed by Zobrist hash, with generation counters) collapsed the tree on repeated positions. Depth 5 now runs in under 30ms, depth 11 around 300ms.
 
 ---
 
@@ -126,7 +123,7 @@ lib.rs           — WASM entry point
 main.rs          — native entry point
 ```
 
-The `engine/` module has zero dependency on `egui`. It allows us to run our separate benchmark binary with it, and open the path for UCI implementation.
+The `engine/` module has zero dependency on `egui`. It allows me to run a separate benchmark binary and keeps the path open for a future UCI implementation.
 
 
 ---
@@ -187,18 +184,17 @@ Key Rust dependencies: `eframe` / `egui` (GUI), `wasm-bindgen` + `web-sys` (WASM
 ## Roadmap
 
 ### Next steps
-- Deployment on Cloudflare Pages if it enable as I hope WASM parallelism via WebWorkers. Or a VPS as fallback, but the simpliest serverless setup is preffered.
-- Separate UI loop and engine search into dedicated workers — bot thinking time is currently capped to avoid blocking the UI
+- Exploring WebWorkers to parallelize the engine search, while keeping the setup as simple and serverless as possible (Cloudflare Pages is the current target, VPS as fallback)
+- Separate UI loop and engine search into dedicated workers: bot thinking time is currently capped to avoid blocking the UI
 - PGN import (SAN decoder)
-- Optimise more and more following performances measures :
-  - SEE (Static Exchange Evaluation) — evaluate capture sequences before exploring, significant move ordering gain
-  - Lazy sort — score moves on demand instead of full upfront sort
-  - ...
+- Further search optimizations I am evaluating:
+  - SEE (Static Exchange Evaluation): evaluate capture sequences before exploring, significant move ordering gain
+  - Lazy sort: score moves on demand instead of a full upfront sort
 
 ### Backlog
-- UCI protocol to plug my bot with tournament tools, Lichess bot and giving him a ELO
-- Switch to use bitboard to get the last huge performance bump before :
-- Native multithreading for deeper search and WASM parrallelism using WebWorkers.
+- UCI protocol support, to plug into tournament tools and Lichess for an official Elo rating
+- Bitboard representation for the last major performance gain, enabling:
+- Native multithreading for deeper search and WASM parallelism via WebWorkers
 
 ---
 
