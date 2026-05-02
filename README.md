@@ -48,6 +48,10 @@ The native vs WASM comparison requires a local setup — run `just bench-all` af
   <img src="assets/260502_20h39m56s_screenshot.png" width="750" alt="Bench depth 10 WASM - Native" />
 </p>
 
+<td align="right">
+  <strong><a href="https://lemuffinman.github.io/ChessGame/bench.html">▶ Bench in your browser</a></strong>
+</td>
+
 ---
 
 ## Algorithms
