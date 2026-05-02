@@ -14,33 +14,35 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: rustfmt, clippy
 
-      - name: Add wasm target
-        run: rustup target add wasm32-unknown-unknown
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
 
-      - name: Install cargo fmt
-        run: rustup component add rustfmt
-
-      - name: Format test
+      - name: Format check
         run: cargo fmt --all -- --check
 
-      - name: Cargo check
-        run: cargo check --target wasm32-unknown-unknown
-
-      - name: Install Clippy
-        run: rustup component add clippy
-
-      - name: Cargo clippy
+      - name: Cargo clippy (wasm)
         run: cargo clippy --target wasm32-unknown-unknown -- -D warnings
 
-      - name: Install Trunk
-        run: cargo install --locked trunk
+      - name: Cargo clippy (native)
+        run: cargo clippy -- -D warnings
 
-      - name: Build (public-url = /)
+      - name: Cargo test
+        run: cargo test
+
+      - name: Install Trunk
+        run: |
+          curl -sL https://github.com/thedodd/trunk/releases/latest/download/trunk-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          mv trunk ~/.cargo/bin/
+
+      - name: Build
         run: trunk build --release --public-url "/" --no-sri
 
       - name: Package dist
