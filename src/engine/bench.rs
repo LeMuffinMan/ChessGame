@@ -1,7 +1,7 @@
 use crate::Board;
 use crate::board::fen::FenInfo;
 use crate::engine::minimax::{find_best_move, iterative_deepening};
-use crate::engine::search_context::SearchContext;
+use crate::engine::search_context::{SearchContext, SearchParams};
 use std::collections::HashMap;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -59,13 +59,16 @@ pub fn bench_run(fen: &str, depth: u8, max_nodes: u64) -> BenchResult {
     let hashmap: HashMap<u64, usize> = HashMap::new();
 
     if depth > 1 {
-        iterative_deepening(&mut board, active_color, depth - 1, &mut ctx, &hashmap, 0);
-        ctx.stats.reset();
+        let mut params = SearchParams::new(&mut ctx, &hashmap, 0);
+        iterative_deepening(&mut board, active_color, depth - 1, &mut params);
     }
-
+    ctx.stats.reset();
     ctx.stats.max_nodes = max_nodes;
     let t0 = now_ms();
-    find_best_move(&mut board, active_color, depth, &mut ctx, &hashmap, 0, i32::MIN, i32::MAX);
+    {
+        let mut params = SearchParams::new(&mut ctx, &hashmap, 0);
+        find_best_move(&mut board, active_color, depth, i32::MIN, i32::MAX, &mut params);
+    }
     let time_ms = now_ms() - t0;
     BenchResult {
         nodes: ctx.stats.nodes,

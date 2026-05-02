@@ -1,7 +1,7 @@
 use crate::Board;
 use crate::Color;
 use crate::Color::*;
-use crate::board::board::CastleRights;
+use crate::board::CastleRights;
 use crate::board::cell::Cell;
 use crate::board::cell::Cell::*;
 use crate::board::cell::Coord;
@@ -42,7 +42,7 @@ impl Board {
     }
 
     pub fn update_king_move(&mut self, active_player: &Color, m: &Move) {
-        self.update_king_castle(&m.origin, &m.dest, &active_player);
+        self.update_king_castle(&m.origin, &m.dest, active_player);
         match active_player {
             White => {
                 self.white_king = m.dest;
@@ -79,7 +79,7 @@ impl Board {
                 Black => to.row + 1,
             };
             self.en_passant = Some(Coord {
-                row: mid_row as u8,
+                row: mid_row,
                 col: origin.col,
             });
         } else {

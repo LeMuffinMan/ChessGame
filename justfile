@@ -38,3 +38,9 @@ test *args:
 
 perft:
     cargo test perft
+
+clippy-native:
+  cargo clippy --features native
+
+clippy-wasm:
+    cargo clippy --target wasm32-unknown-unknown

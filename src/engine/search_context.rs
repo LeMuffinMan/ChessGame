@@ -2,6 +2,24 @@ use crate::board::moves::move_structs::Move;
 use crate::engine::search_stats::MAX_SEARCH_DEPTH;
 use crate::engine::search_stats::SearchStats;
 use crate::engine::ttentry::TtEntry;
+use std::collections::HashMap;
+
+pub struct SearchParams<'a> {
+    pub ctx: &'a mut SearchContext,
+    pub game_history: &'a HashMap<u64, usize>,
+    pub fifty_count: u32,
+    pub null_move_allowed: bool,
+}
+
+impl<'a> SearchParams<'a> {
+    pub fn new(
+        ctx: &'a mut SearchContext,
+        game_history: &'a HashMap<u64, usize>,
+        fifty_count: u32,
+    ) -> Self {
+        Self { ctx, game_history, fifty_count, null_move_allowed: true }
+    }
+}
 
 pub const TT_SIZE: usize = 1 << 20; // 1 M entrées ≈ 24 MB
 
@@ -11,6 +29,12 @@ pub struct SearchContext {
     pub tt: Vec<TtEntry>,
     pub tt_generation: u8,
     pub stats: SearchStats,
+}
+
+impl Default for SearchContext {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SearchContext {
@@ -56,6 +80,12 @@ pub struct KillerTable {
     moves: [[Option<Move>; 2]; MAX_SEARCH_DEPTH],
 }
 
+impl Default for KillerTable {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl KillerTable {
     pub fn new() -> Self {
         Self {
@@ -79,6 +109,12 @@ impl KillerTable {
 
 pub struct HistoryTable {
     table: [[u32; 64]; 64],
+}
+
+impl Default for HistoryTable {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl HistoryTable {

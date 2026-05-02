@@ -81,10 +81,9 @@ pub fn push_if_legal(
         }
         return;
     }
-    if let Some((dr, dc)) = info.pins[origin.row as usize][origin.col as usize] {
-        if !aligned_with_pin(origin, &dest, dr, dc) {
+    if let Some((dr, dc)) = info.pins[origin.row as usize][origin.col as usize]
+        && !aligned_with_pin(origin, &dest, dr, dc) {
             return;
         }
-    }
     list.push(board.build_move(*origin, dest, *color));
 }

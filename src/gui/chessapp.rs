@@ -56,7 +56,7 @@ impl ChessApp {
         let mut app = Self {
             ui_type,
             history_san: String::new(),
-            timer: other.timer.clone(),
+            timer: other.timer,
             win: None,
             app_mode: Versus(None),
             replay_infos: ReplayInfos::new(),
