@@ -56,7 +56,8 @@ impl Board {
         let orig_sq = m.origin.row as usize * 8 + m.origin.col as usize;
         let dest_sq = m.dest.row as usize * 8 + m.dest.col as usize;
 
-        let dest_piece = *self.get(&m.dest).get_piece().unwrap();
+        let dest_piece = *self.get(&m.dest).get_piece()
+            .expect("apply_move: dest must be occupied after move");
         let orig_piece = if let Promotion(_) = m.move_type {
             Pawn
         } else {

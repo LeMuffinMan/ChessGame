@@ -45,6 +45,8 @@ test *args:
 perft:
     cargo test perft
 
+clippy: clippy-native clippy-wasm
+
 # Run clippy for native target
 clippy-native:
     cargo clippy --features native
