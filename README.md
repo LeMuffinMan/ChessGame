@@ -1,6 +1,6 @@
 <td><h1>ChessGame ♟️</h1></td>
 <td align="right">
-  <strong><a href="https://lemuffinman.github.io/ChessGame/">▶ Play</a></strong>
+  <strong><a href="https://lemuffinman.github.io/ChessGame/">▶ Play live demo</a></strong>
 </td>
 
 ---
@@ -212,6 +212,7 @@ Key Rust dependencies: `eframe` / `egui` (GUI), `wasm-bindgen` + `web-sys` (WASM
 - [Minimax](https://www.chessprogramming.org/Minimax) · [Alpha-Beta](https://www.chessprogramming.org/Alpha-Beta) · [Quiescence Search](https://www.chessprogramming.org/Quiescence_Search)
 - [Transposition Table](https://www.chessprogramming.org/Transposition_Table) · [Zobrist Hashing](https://www.chessprogramming.org/Zobrist_Hashing)
 - [rustic-chess — MVV-LVA](https://rustic-chess.org/search/ordering/mvv_lva.html)
+- [Sebastian Lague Chess Coding Adventure](https://www.youtube.com/watch?v=U4ogK0MIzqk)
 
 **Tools**
 - [egui](https://github.com/emilk/egui)
