@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link data-trunk rel="copy-file" href="public/native_bench.json" />
+        <title>chess_engine — bench</title>
+        <style>
+            :root {
+                --bg: #1b1b1b;
+                --panel: #252525;
+                --widget: #3a3a3a;
+                --widget-hv: #525252;
+                --border: #3f3f3f;
+                --stroke: #6a6a6a;
+                --text: #c8c8c8;
+                --text-strong: #ffffff;
+                --text-weak: #7a7a7a;
+                --accent: #90b4f8;
+                --green: #8bba63;
+                --orange: #ff9500;
+                --red: #f44336;
+                --sep: #272727;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family: "Segoe UI", system-ui, sans-serif;
+                font-size: 13px;
+                line-height: 1.5;
+                background: var(--bg);
+                color: var(--text);
+                max-width: 960px;
+                margin: 0 auto;
+                padding: 24px 20px 56px;
+            }
+
+            /* header */
+            header {
+                margin-bottom: 20px;
+                padding-bottom: 14px;
+                border-bottom: 1px solid var(--border);
+            }
+            .title-line {
+                display: flex;
+                align-items: baseline;
+                gap: 8px;
+                margin-bottom: 5px;
+            }
+            h1 {
+                font-size: 14px;
+                font-weight: 600;
+                font-family: monospace;
+                color: var(--text-strong);
+            }
+            .tag {
+                font-size: 11px;
+                font-family: monospace;
+                color: var(--text-weak);
+                background: var(--widget);
+                border: 1px solid var(--border);
+                border-radius: 3px;
+                padding: 1px 6px;
+            }
+            .meta {
+                font-size: 11px;
+                color: var(--text-weak);
+            }
+            #native-badge {
+                display: none;
+                margin-top: 5px;
+                font-size: 11px;
+                font-family: monospace;
+                color: var(--green);
+            }
+
+            /* controls */
+            .controls {
+                display: flex;
+                align-items: flex-start;
+                gap: 14px;
+                margin-bottom: 14px;
+                flex-wrap: wrap;
+            }
+            .field {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .field label {
+                font-size: 12px;
+                color: var(--text-weak);
+            }
+
+            /* position dropdown */
+            .pos-dropdown {
+                position: relative;
+            }
+            .pos-trigger {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                background: var(--widget);
+                color: var(--text);
+                border: 1px solid var(--stroke);
+                border-radius: 3px;
+                padding: 3px 8px;
+                padding-right: 20px;
+                font-size: 12px;
+                font-family: inherit;
+                cursor: pointer;
+                user-select: none;
+                white-space: nowrap;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a7a7a'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 6px center;
+            }
+            .pos-trigger:hover {
+                border-color: var(--accent);
+            }
+            .pos-trigger .pos-trigger-label {
+                color: var(--text-weak);
+                font-size: 12px;
+            }
+            .pos-panel {
+                display: none;
+                position: absolute;
+                top: calc(100% + 4px);
+                left: 0;
+                z-index: 10;
+                background: var(--panel);
+                border: 1px solid var(--border);
+                border-radius: 3px;
+                padding: 6px 10px;
+                min-width: 140px;
+                flex-direction: column;
+                gap: 4px;
+            }
+            .pos-panel.open {
+                display: flex;
+            }
+            .pos-panel .master-row {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding-bottom: 4px;
+                border-bottom: 1px solid var(--border);
+                margin-bottom: 2px;
+            }
+            .pos-panel .pos-row {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .pos-panel label {
+                font-size: 12px;
+                color: var(--text);
+                cursor: pointer;
+                user-select: none;
+            }
+            .pos-panel .master-row label {
+                color: var(--text-weak);
+                font-size: 11px;
+            }
+            input[type="checkbox"] {
+                accent-color: var(--accent);
+                cursor: pointer;
+                width: 13px;
+                height: 13px;
+            }
+            select {
+                background: var(--widget);
+                color: var(--text);
+                border: 1px solid var(--stroke);
+                border-radius: 3px;
+                padding: 3px 8px;
+                font-size: 12px;
+                font-family: inherit;
+                cursor: pointer;
+                outline: none;
+                appearance: none;
+                -webkit-appearance: none;
+                padding-right: 20px;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a7a7a'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 6px center;
+            }
+            select:hover,
+            select:focus {
+                border-color: var(--accent);
+            }
+
+            button {
+                background: var(--widget);
+                color: var(--text-strong);
+                border: 1px solid var(--stroke);
+                border-radius: 3px;
+                padding: 4px 14px;
+                font-size: 12px;
+                font-family: inherit;
+                cursor: pointer;
+                transition:
+                    background 0.1s,
+                    border-color 0.1s;
+            }
+            button:hover {
+                background: var(--widget-hv);
+                border-color: var(--accent);
+            }
+            button:disabled {
+                color: var(--text-weak);
+                border-color: var(--border);
+                cursor: not-allowed;
+            }
+            button:disabled:hover {
+                background: var(--widget);
+                border-color: var(--border);
+            }
+
+            /* status */
+            #status {
+                font-size: 11px;
+                font-family: monospace;
+                color: var(--text-weak);
+                min-height: 16px;
+                margin-bottom: 10px;
+            }
+
+            /* table */
+            .table-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                border: 1px solid var(--border);
+                border-radius: 4px;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 12px;
+            }
+            thead {
+                background: var(--panel);
+            }
+            th {
+                text-align: left;
+                padding: 6px 10px;
+                border-bottom: 1px solid var(--border);
+                color: var(--text-weak);
+                font-weight: 500;
+                font-size: 11px;
+                white-space: nowrap;
+            }
+            th[title] {
+                cursor: help;
+                text-decoration: underline dotted var(--stroke);
+                text-underline-offset: 2px;
+            }
+            td {
+                padding: 5px 10px;
+                border-bottom: 1px solid var(--sep);
+                font-variant-numeric: tabular-nums;
+                white-space: nowrap;
+            }
+            tr:last-child td {
+                border-bottom: none;
+            }
+            tbody tr:hover td {
+                background: #202020;
+            }
+            .col-pos {
+                color: var(--text-weak);
+                font-size: 11px;
+            }
+            .num {
+                font-family: monospace;
+            }
+            .fast {
+                color: var(--green);
+            }
+            .warn {
+                color: var(--orange);
+            }
+            .slow {
+                color: var(--red);
+            }
+            .aborted {
+                color: var(--orange);
+                font-style: italic;
+            }
+            .sep td {
+                background: var(--panel);
+                padding: 2px;
+                border: none;
+            }
+            .msg td {
+                color: var(--text-weak);
+                font-style: italic;
+                padding: 10px;
+            }
+            .ratio-up {
+                color: var(--green);
+            }
+            .ratio-down {
+                color: var(--red);
+            }
+            .ratio-eq {
+                color: var(--text-weak);
+            }
+            .native-col {
+                color: var(--accent);
+            }
+            .native-th {
+                color: var(--accent);
+            }
+
+            /* responsive */
+            @media (max-width: 600px) {
+                body {
+                    padding: 16px 12px 32px;
+                }
+                .controls {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+                .field {
+                    justify-content: space-between;
+                }
+                select,
+                button {
+                    font-size: 13px;
+                    padding: 6px 10px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="title-line">
+                <h1>ChessGame</h1>
+                <span class="tag">bench</span>
+            </div>
+            <p class="meta">Rust → WASM · single-threaded</p>
+            <p id="native-badge">
+                ▸ native results loaded — WASM / native comparison active
+            </p>
+        </header>
+
+        <div class="controls">
+            <div class="pos-dropdown field">
+                <span class="pos-trigger-label">Positions</span>
+                <div class="pos-trigger" id="pos-trigger">
+                    <span id="pos-trigger-count">2 selected</span>
+                </div>
+                <div class="pos-panel" id="pos-panel">
+                    <div class="master-row">
+                        <input type="checkbox" id="pos-all" />
+                        <label for="pos-all">All</label>
+                    </div>
+                    <div class="pos-row"><input type="checkbox" class="pos-cb" value="Start|rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" checked /><label>Start</label></div>
+                    <div class="pos-row"><input type="checkbox" class="pos-cb" value="Kiwipete|r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1" checked /><label>Kiwipete</label></div>
+                    <div class="pos-row"><input type="checkbox" class="pos-cb" value="KingAttack|4rrk1/pp1n3p/3q2pQ/2p1pb2/2PP4/2P3N1/P2B2PP/4RRK1 b - - 7 19" /><label>KingAttack</label></div>
+                    <div class="pos-row"><input type="checkbox" class="pos-cb" value="PawnEnding|8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 11" /><label>PawnEnding</label></div>
+                    <div class="pos-row"><input type="checkbox" class="pos-cb" value="RookQueen|3q2k1/pb3p1p/4pbp1/2r5/PpN2N2/1P2P2P/5PP1/Q2R2K1 b - - 4 26" /><label>RookQueen</label></div>
+                    <div class="pos-row"><input type="checkbox" class="pos-cb" value="RookPawns|8/pp2r1k1/2p1p3/3pP2p/1P1P1P1P/P5KR/8/8 w - - 0 1" /><label>RookPawns</label></div>
+                    <div class="pos-row"><input type="checkbox" class="pos-cb" value="BishopEnding|8/3p3B/5p2/5P2/p7/PP5b/k7/6K1 w - - 0 1" /><label>BishopEnding</label></div>
+                </div>
+            </div>
+            <div class="field">
+                <label for="min-depth">Min depth</label>
+                <select id="min-depth">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6" selected>6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="max-depth">Max depth</label>
+                <select id="max-depth">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10" selected>10</option>
+                    <option value="11">11</option>
+                </select>
+            </div>
+            <button id="run">▶ Run</button>
+        </div>
+
+        <div id="status"></div>
+
+        <div class="table-wrapper">
+            <table id="main-table">
+                <thead>
+                    <tr id="thead-row">
+                        <th>Depth</th>
+                        <th>Position</th>
+                        <th title="Total alpha-beta nodes visited">Nodes</th>
+                        <th
+                            title="Quiescence search nodes (captures only, depth=0 extension)"
+                        >
+                            Q-nodes
+                        </th>
+                        <th title="Time to return a move">Time</th>
+                        <th title="Nodes per second">NPS</th>
+                        <th
+                            title="Cutoffs / interior nodes × 100. Higher = better move ordering."
+                        >
+                            Cut%
+                        </th>
+                        <th
+                            title="Effective Branching Factor = nodes^(1/depth). Lower = better pruning."
+                        >
+                            EBF
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+
+        <script type="module">
+            import init, { run_bench_single } from "./chess_game.js";
+            await init();
+
+            // dropdown open/close
+            const posTrigger = document.getElementById("pos-trigger");
+            const posPanel = document.getElementById("pos-panel");
+            posTrigger.addEventListener("click", (e) => {
+                e.stopPropagation();
+                posPanel.classList.toggle("open");
+            });
+            document.addEventListener("click", (e) => {
+                if (!posPanel.contains(e.target)) posPanel.classList.remove("open");
+            });
+
+            // master checkbox + count label
+            const masterCb = document.getElementById("pos-all");
+            const posCbs = () => [...document.querySelectorAll(".pos-cb")];
+            const triggerCount = document.getElementById("pos-trigger-count");
+
+            function updateMaster() {
+                const all = posCbs();
+                const n = all.filter((c) => c.checked).length;
+                triggerCount.textContent = `${n} / ${all.length}`;
+                masterCb.checked = n === all.length;
+                masterCb.indeterminate = n > 0 && n < all.length;
+            }
+
+            masterCb.addEventListener("change", () => {
+                posCbs().forEach((cb) => (cb.checked = masterCb.checked));
+                updateMaster();
+            });
+            document.querySelectorAll(".pos-cb").forEach((cb) => {
+                cb.addEventListener("change", updateMaster);
+            });
+            updateMaster();
+
+            async function loadNativeEntries(entries) {
+                nativeResults = {};
+                for (const e of entries)
+                    nativeResults[`${e.depth}-${e.label}`] = e;
+                compareMode = true;
+                setCompareHeaders(true);
+                document.getElementById("native-badge").style.display = "block";
+            }
+
+            fetch("./native_bench.json")
+                .then((r) => (r.ok ? r.json() : null))
+                .then((entries) => {
+                    if (entries) loadNativeEntries(entries);
+                })
+                .catch(() => {});
+
+            const runBtn = document.getElementById("run");
+            const statusEl = document.getElementById("status");
+            const tbody = document.getElementById("tbody");
+            const theadRow = document.getElementById("thead-row");
+
+            // keyed by `${depth}-${label}` → entry
+            const wasmResults = {};
+            let nativeResults = {};
+            let compareMode = false;
+
+            function timeClass(ms) {
+                if (ms < 200) return "fast";
+                if (ms < 500) return "warn";
+                return "slow";
+            }
+            function fmtTime(ms) {
+                if (ms < 1) return "< 1 ms";
+                if (ms < 1000) return ms.toFixed(1) + " ms";
+                return (ms / 1000).toFixed(2) + " s";
+            }
+            function fmtNum(n) {
+                return Number(n).toLocaleString("en-US");
+            }
+            function colCount() {
+                return compareMode ? 11 : 8;
+            }
+
+            function addSeparator() {
+                const tr = document.createElement("tr");
+                tr.className = "sep";
+                tr.innerHTML = `<td colspan="${colCount()}"></td>`;
+                tbody.appendChild(tr);
+            }
+
+            function ratioClass(r) {
+                if (r >= 1.05) return "ratio-up";
+                if (r <= 0.95) return "ratio-down";
+                return "ratio-eq";
+            }
+            function ratioStr(r) {
+                const sign = r >= 1 ? "+" : "";
+                return `${sign}${((r - 1) * 100).toFixed(0)}%`;
+            }
+
+            function addRow(e) {
+                const tr = document.createElement("tr");
+                const timeCol = e.aborted
+                    ? `<span class="aborted">${fmtTime(e.time_ms)} (aborted)</span>`
+                    : `<span class="${timeClass(e.time_ms)}">${fmtTime(e.time_ms)}</span>`;
+                const qNodes =
+                    e.q_nodes > 0
+                        ? fmtNum(e.q_nodes)
+                        : `<span style="color:var(--text-weak)">—</span>`;
+
+                let extra = "";
+                if (compareMode) {
+                    const n = nativeResults[`${e.depth}-${e.label}`];
+                    if (n) {
+                        const ratio = n.nps / (e.nps || 1);
+                        extra =
+                            `<td class="num native-col">${fmtNum(n.nps)} n/s</td>` +
+                            `<td class="num native-col">${fmtTime(n.time_ms)}</td>` +
+                            `<td class="num ${ratioClass(ratio)}">${ratioStr(ratio)}</td>`;
+                    } else {
+                        extra = `<td colspan="3" style="color:var(--text-weak)">—</td>`;
+                    }
+                }
+
+                tr.innerHTML =
+                    `<td class="num">${e.depth}</td>` +
+                    `<td class="col-pos">${e.label}</td>` +
+                    `<td class="num">${fmtNum(e.nodes)}</td>` +
+                    `<td class="num">${qNodes}</td>` +
+                    `<td class="num">${timeCol}</td>` +
+                    `<td class="num">${fmtNum(e.nps)} n/s</td>` +
+                    `<td class="num">${e.cut_pct.toFixed(1)}%</td>` +
+                    `<td class="num">${e.ebf.toFixed(2)}</td>` +
+                    extra;
+                tbody.appendChild(tr);
+            }
+
+            function setCompareHeaders(on) {
+                const existing = theadRow.querySelectorAll(".native-th");
+                existing.forEach((el) => el.remove());
+                if (on) {
+                    ["Native NPS", "Native Time", "Ratio"].forEach((label) => {
+                        const th = document.createElement("th");
+                        th.className = "native-th native-col";
+                        th.textContent = label;
+                        theadRow.appendChild(th);
+                    });
+                }
+            }
+
+            function redrawTable() {
+                tbody.innerHTML = "";
+                const keys = Object.keys(wasmResults).sort((a, b) => {
+                    const [da, la] = a.split("-");
+                    const [db, lb] = b.split("-");
+                    return da - db || la.localeCompare(lb);
+                });
+                let lastDepth = null;
+                for (const k of keys) {
+                    const e = wasmResults[k];
+                    if (e.depth !== lastDepth && lastDepth !== null)
+                        addSeparator();
+                    lastDepth = e.depth;
+                    addRow(e);
+                }
+            }
+
+            runBtn.addEventListener("click", async () => {
+                const minDepth = +document.getElementById("min-depth").value;
+                const maxDepth = +document.getElementById("max-depth").value;
+
+                const selectedPositions = posCbs()
+                    .filter((cb) => cb.checked)
+                    .map((cb) => {
+                        const [label, fen] = cb.value.split("|");
+                        return { label, fen };
+                    });
+
+                if (minDepth > maxDepth) {
+                    statusEl.textContent = "min depth must be ≤ max depth.";
+                    return;
+                }
+                if (selectedPositions.length === 0) {
+                    statusEl.textContent = "select at least one position.";
+                    return;
+                }
+
+                tbody.innerHTML = "";
+                Object.keys(wasmResults).forEach((k) => delete wasmResults[k]);
+                runBtn.disabled = true;
+
+                statusEl.textContent = "loading native results…";
+                await fetch("./native_bench.json")
+                    .then((r) => (r.ok ? r.json() : null))
+                    .then((entries) => {
+                        if (entries) loadNativeEntries(entries);
+                    })
+                    .catch(() => {});
+
+                for (let d = minDepth; d <= maxDepth; d++) {
+                    if (d > minDepth) addSeparator();
+                    for (const { label, fen } of selectedPositions) {
+                        statusEl.textContent = `depth ${d} / ${maxDepth} — ${label}…`;
+                        await new Promise((r) => setTimeout(r, 0));
+
+                        const e = JSON.parse(run_bench_single(fen, label, d));
+                        wasmResults[`${e.depth}-${e.label}`] = e;
+                        addRow(e);
+
+                        await new Promise((r) => setTimeout(r, 0));
+                    }
+                }
+
+                statusEl.textContent = "done.";
+                runBtn.disabled = false;
+            });
+        </script>
+    </body>
+</html>
