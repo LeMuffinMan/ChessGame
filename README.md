@@ -3,17 +3,17 @@
 [![CI](https://github.com/LeMuffinMan/ChessGame/actions/workflows/deploy.yml/badge.svg)](https://github.com/LeMuffinMan/ChessGame/actions/workflows/deploy.yml)
 [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://lemuffinman.github.io/ChessGame/)
 
-Try it live on GitHub Pages: **[▶ Play](https://lemuffinman.github.io/ChessGame/)**
+<p align="center"><strong><a href="https://lemuffinman.github.io/ChessGame/">▶ Play</a></strong></p>
 
 ---
 
 I built this project to learn Rust on something real and not exercises or tutorials. The rules are complex enough to punish bad design (and they did), the algorithms are well-documented,  the Chess Programming Wiki, which I discovered exists and is enormous, became my bible over the two intense sprints I spent on this project. Also, seeing how simple evaluation criteria (material value and position) can lead to natural openings and an already decent bot, before improving it until you get mated by the algorithm you built… that's quite exciting. I now aim to integrate UCI to measure its Elo against other engines.
 
-Since I haven't yet implemented parallelism on WASM or threads on native, the goal was to push my bots to a decent difficulty level at the highest depth possible, trying to limit the time thinking to 300ms time thinking to prevent the ui freeze to be perceptible. Implementing a Transposition Table was probably the most valuable gain. But speed is not enough, the other major challenge was making the bot actually close out a won endgame. King activity changes completely in late game, and the evaluator needed to reflect that. The ladder mate logic might be where I'm spending too many resources now (following tests and benchmarks), but at least the bot doesn't miss an easy rook-and-king ladder mate.
+Since I haven't yet implemented parallelism on WASM or threads on native, the goal was to push depth as far as possible within a 300ms budget — enough to keep the UI responsive. What I found satisfying was that each bottleneck was measurable: the bench infrastructure made every optimization visible, and clearing one bottleneck felt like unlocking resources to invest elsewhere. Speed buys intelligence — a deeper, faster search means better move ordering pays off more, a richer evaluation stays affordable. That's the trade-off behind every decision: the ladder mate evaluator is probably where I'm spending too many cycles now, but at least the bot doesn't miss an easy rook-and-king mate.
 
-The Rust was its own journey. `enum Cell { Occupied(Piece, Color), Free }` sounds obvious in hindsight, but exhaustive pattern matching — the compiler rejecting any unhandled case — changes how you think. `Option<Coord>` for en passant or check state: null is impossible by construction. These aren't just syntax; they shape the design.
+The Rust was its own journey. A friend who pushed me toward this project suggested starting with `enum Cell { Occupied(Piece, Color), Free }` and building `Board` around it — a starter pack and a first taste of what Rust offers. Exhaustive pattern matching, the compiler rejecting any unhandled case, `Option<Coord>` for en passant or check state where null is impossible by construction. These aren't just syntax; they shape the design from the start.
 
-The performance story starts at depth 5 taking 3 seconds — no pruning, full board evaluation through a generic `Evaluator` trait at every node. Alpha-beta alone cut that by an order of magnitude. Move ordering (MVV-LVA, killers, history) pushed the branching factor down further. Replacing the per-leaf trait evaluation with an incremental score maintained directly inside `apply` and `undo` removed the evaluation overhead entirely. Then a Transposition Table — 1M entries in a fixed `Vec`, indexed by Zobrist hash, with generation counters to isolate games — collapsed the tree on repeated positions. After almost 9,000 lines: depth 5 in under 30ms, depth 12 under 300ms. The next jump would be bitboards — but that's a rewrite, not an optimization.
+The performance story starts at depth 5 taking 3 seconds — purest minimax, no pruning, full board evaluation through a generic `Evaluator` trait at every node. Alpha-beta alone cut that by an order of magnitude. Move ordering (MVV-LVA, killers, history) pushed the branching factor down further. Replacing the per-leaf trait evaluation with an incremental score maintained directly inside `apply` and `undo` removed the evaluation overhead entirely. Then a Transposition Table — 1M entries in a fixed `Vec`, indexed by Zobrist hash, with generation counters to isolate games — collapsed the tree on repeated positions. Depth 5 now runs in under 30ms, depth 11 around 300ms. The next jump would be bitboards.
 
 ---
 
@@ -35,23 +35,17 @@ The performance story starts at depth 5 taking 3 seconds — no pruning, full bo
 
 ---
 
-## Under the hood
+## Benchmarks
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full module breakdown.
+The project includes a standalone benchmark page (`bench.html`) that runs the engine against standard positions at increasing depths and reports nodes per second, effective branching factor, and quiescence node ratio.
 
-```
-src/
-├── board/       — board representation, move generation, legality, pin detection
-├── engine/      — alpha-beta, evaluators, TT, Zobrist, move ordering
-├── game/        — GameState (turn, castling rights, en passant, draw conditions)
-├── gui/         — egui panels and components
-└── bin/
-    └── bench.rs — native benchmark binary
-lib.rs           — WASM entry point
-main.rs          — native entry point
-```
+The native vs WASM comparison requires a local setup — run `just bench-all` after cloning to generate `public/native_bench.json` and open `bench.html` in your browser. This comparison is not available on the live demo.
 
-The `engine/` module has zero dependency on `egui`. It allows us to run our separate benchmark binary with it, and open the path for UCI implementation.
+> **Note on reliability:** comparing native and WASM numbers is only meaningful on the same machine. Even then, WASM performance is harder to measure accurately: the browser introduces scheduling noise, lacks SIMD optimizations, and runs single-threaded in a sandboxed environment. Treat WASM NPS as a relative indicator across depths or positions — comparing it to native figures from a different machine has limited value.
+
+<p align="center">
+  <img src="assets/260502_20h39m56s_screenshot.png" width="750" alt="Bench depth 10 WASM - Native" />
+</p>
 
 ---
 
@@ -78,6 +72,13 @@ See [docs/ALGORITHMS.md](docs/ALGORITHMS.md) for context and implementation note
 | Quiescence Search | [CPW](https://www.chessprogramming.org/Quiescence_Search) |
 | Delta Pruning (in quiescence) | [CPW](https://www.chessprogramming.org/Delta_Pruning) |
 
+**Hashing & memory**
+
+| Technique | Ref |
+|---|---|
+| Zobrist Hashing (incremental) | [CPW](https://www.chessprogramming.org/Zobrist_Hashing) |
+| Transposition Table (fixed Vec 1M) | [CPW](https://www.chessprogramming.org/Transposition_Table) |
+
 </td>
 <td valign="top">
 
@@ -89,13 +90,6 @@ See [docs/ALGORITHMS.md](docs/ALGORITHMS.md) for context and implementation note
 | Killer Move Heuristic | [CPW](https://www.chessprogramming.org/Killer_Move) |
 | History Heuristic | [CPW](https://www.chessprogramming.org/History_Heuristic) |
 | TT move ordering | [CPW](https://www.chessprogramming.org/Transposition_Table) |
-
-**Hashing & memory**
-
-| Technique | Ref |
-|---|---|
-| Zobrist Hashing (incremental) | [CPW](https://www.chessprogramming.org/Zobrist_Hashing) |
-| Transposition Table (fixed Vec 1M) | [CPW](https://www.chessprogramming.org/Transposition_Table) |
 
 **Evaluation**
 
@@ -113,20 +107,26 @@ See [docs/ALGORITHMS.md](docs/ALGORITHMS.md) for context and implementation note
 </table>
 
 ---
+## Under the hood
 
-## Benchmarks
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full module breakdown.
 
-The project includes a standalone benchmark page (`bench.html`) that runs the engine against standard positions at increasing depths and reports nodes per second, effective branching factor, and quiescence node ratio.
+```
+src/
+├── board/       — board representation, move generation, legality, pin detection
+├── engine/      — alpha-beta, evaluators, TT, Zobrist, move ordering
+├── game/        — GameState (turn, castling rights, en passant, draw conditions)
+├── gui/         — egui panels and components
+└── bin/
+    └── bench.rs — native benchmark binary
+lib.rs           — WASM entry point
+main.rs          — native entry point
+```
 
-The native vs WASM comparison requires a local setup — run `just bench-all` after cloning to generate `public/native_bench.json` and open `bench.html` in your browser. This comparison is not available on the live demo.
+The `engine/` module has zero dependency on `egui`. It allows us to run our separate benchmark binary with it, and open the path for UCI implementation.
 
-> **Note on reliability:** comparing native and WASM numbers is only meaningful on the same machine. Even then, WASM performance is harder to measure accurately: the browser introduces scheduling noise, lacks SIMD optimizations, and runs single-threaded in a sandboxed environment. Treat WASM NPS as a relative indicator across depths or positions — comparing it to native figures from a different machine has limited value.
 
-<p align="center">
-  <img src="assets/260502_20h39m56s_screenshot.png" width="750" alt="Bench depth 10 WASM - Native" />
-</p>
 ---
-
 ## Running locally
 
 ### Prerequisites
