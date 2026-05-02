@@ -38,6 +38,9 @@ jobs:
           curl -sL https://github.com/thedodd/trunk/releases/latest/download/trunk-x86_64-unknown-linux-gnu.tar.gz | tar xz
           mv trunk ~/.cargo/bin/
 
+      - name: Create native bench stub
+        run: mkdir -p public && echo "[]" > public/native_bench.json
+
       - name: Build
         run: trunk build --release --public-url "/${{ github.event.repository.name }}/"
 
