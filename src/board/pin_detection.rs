@@ -103,13 +103,11 @@ pub fn pin_detection(board: &Board, color: Color) -> PinInfos {
     for (dr, dc) in knight_offsets {
         let r = king.row as i8 + dr;
         let c = king.col as i8 + dc;
-        if let Some(dest) = Board::checked_coord(r, c) {
-            if let Occupied(Knight, cell_color) = board[dest] {
-                if cell_color != color {
+        if let Some(dest) = Board::checked_coord(r, c)
+            && let Occupied(Knight, cell_color) = board[dest]
+                && cell_color != color {
                     info.add_checker(dest);
                 }
-            }
-        }
     }
 
     let pawn_dir: i8 = match color {
@@ -119,13 +117,11 @@ pub fn pin_detection(board: &Board, color: Color) -> PinInfos {
     for dc in [1i8, -1] {
         let r = king.row as i8 + pawn_dir;
         let c = king.col as i8 + dc;
-        if let Some(dest) = Board::checked_coord(r, c) {
-            if let Occupied(Pawn, cell_color) = board[dest] {
-                if cell_color != color {
+        if let Some(dest) = Board::checked_coord(r, c)
+            && let Occupied(Pawn, cell_color) = board[dest]
+                && cell_color != color {
                     info.add_checker(dest);
                 }
-            }
-        }
     }
 
     info

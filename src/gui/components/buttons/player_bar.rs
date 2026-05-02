@@ -4,7 +4,7 @@ use crate::board::cell::Color::*;
 use crate::engine::bot::BotDifficulty::*;
 use crate::engine::bot::PlayerType::*;
 use crate::engine::minimax::timed_out_iterative_deepening;
-use crate::engine::search_context::SearchContext;
+use crate::engine::search_context::{SearchContext, SearchParams};
 use crate::engine::search_stats::MAX_SEARCH_DEPTH;
 use crate::gui::chessapp::AppMode::*;
 use crate::gui::features::timer::GameMode::NoTime;
@@ -78,7 +78,7 @@ impl ChessApp {
                     if let Bot(Depth(ref mut d)) = bot_setting {
                         let depth_label = format!("d={}", d);
                         ui.menu_button(depth_label, |ui| {
-                            for depth in 6..=11 as u8 {
+                            for depth in 6..=11_u8 {
                                 if ui
                                     .selectable_label(*d == depth, format!("d={}", depth))
                                     .clicked()
@@ -145,15 +145,19 @@ impl ChessApp {
                                 .clicked()
                         {
                             if self.hint_highlight == 0 {
+                                let mut hint_ctx = SearchContext::new();
+                                let mut params = SearchParams::new(
+                                    &mut hint_ctx,
+                                    &self.game.draw.board_hashs,
+                                    self.game.draw.draw_moves_count,
+                                );
                                 if let Some(hint_move) = timed_out_iterative_deepening(
                                     &mut self.game.board,
                                     self.game.active_player,
                                     MAX_SEARCH_DEPTH as u8,
-                                    &mut SearchContext::new(),
-                                    &self.game.draw.board_hashs,
-                                    self.game.draw.draw_moves_count,
                                     &mut self.game.depth,
                                     HINT_TIMEOUT,
+                                    &mut params,
                                 ) {
                                     self.game.hint = Some((hint_move.origin, hint_move.dest));
                                 }

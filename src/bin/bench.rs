@@ -30,7 +30,7 @@ fn main() {
             eprintln!(
                 "{:<12} {:>3}  {:>10}  {:>10}  {:>8.1}  {:>10}  {:>5.1}  {:>5.1}  {:>5.2}{}",
                 label, depth,
-                fmt_num(r.nodes), fmt_num(r.quiescence_nodes as u64),
+                fmt_num(r.nodes), fmt_num(r.quiescence_nodes),
                 t, fmt_num(nps),
                 tt_pct, cut_pct, ebf,
                 if r.aborted { " [aborted]" } else { "" }

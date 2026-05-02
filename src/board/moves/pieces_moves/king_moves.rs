@@ -58,37 +58,28 @@ fn king_castles(board: &mut Board, origin: Coord, active_player: &Color, list: &
         let row = origin.row as usize;
         let col = origin.col as usize;
 
-        if rights.short {
-            if board[(row, col + 1)] == Cell::Free && board[(row, col + 2)] == Cell::Free {
-                if let (Some(t), Some(d)) = (
+        if rights.short
+            && board[(row, col + 1)] == Cell::Free && board[(row, col + 2)] == Cell::Free
+                && let (Some(t), Some(d)) = (
                     Board::checked_coord(origin.row as i8, origin.col as i8 + 1),
                     Board::checked_coord(origin.row as i8, origin.col as i8 + 2),
-                ) {
-                    if board.check_move(&origin, &t, active_player).is_some() {
-                        if let Some(m) = board.check_move(&origin, &d, active_player) {
+                )
+                    && board.check_move(&origin, &t, active_player).is_some()
+                        && let Some(m) = board.check_move(&origin, &d, active_player) {
                             list.push(m);
                         }
-                    }
-                }
-            }
-        }
 
-        if rights.long {
-            if board[(row, col - 1)] == Cell::Free
+        if rights.long
+            && board[(row, col - 1)] == Cell::Free
                 && board[(row, col - 2)] == Cell::Free
                 && board[(row, col - 3)] == Cell::Free
-            {
-                if let (Some(t), Some(d)) = (
+                && let (Some(t), Some(d)) = (
                     Board::checked_coord(origin.row as i8, origin.col as i8 - 1),
                     Board::checked_coord(origin.row as i8, origin.col as i8 - 2),
-                ) {
-                    if board.check_move(&origin, &t, active_player).is_some() {
-                        if let Some(m) = board.check_move(&origin, &d, active_player) {
+                )
+                    && board.check_move(&origin, &t, active_player).is_some()
+                        && let Some(m) = board.check_move(&origin, &d, active_player) {
                             list.push(m);
                         }
-                    }
-                }
-            }
-        }
     }
 }

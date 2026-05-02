@@ -18,6 +18,12 @@ pub struct SearchStats {
     pub quiescence_nodes: u64,
 }
 
+impl Default for SearchStats {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SearchStats {
     pub fn new() -> Self {
         Self {

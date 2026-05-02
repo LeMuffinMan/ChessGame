@@ -57,7 +57,7 @@ static ZOBRIST: OnceLock<ZobristTable> = OnceLock::new();
 
 //&'static : the table will live for the all program duration
 pub fn zobrist() -> &'static ZobristTable {
-    ZOBRIST.get_or_init(|| ZobristTable::generate())
+    ZOBRIST.get_or_init(ZobristTable::generate)
 }
 
 //to generate a pseudo-random sequence, we often use state = state * A + B were A and B are defined constants (chosen to guarantee long period and bit distribution)

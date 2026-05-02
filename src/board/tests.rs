@@ -1,5 +1,5 @@
 use crate::board::Board;
-use crate::board::board::CastleRights;
+use crate::board::CastleRights;
 use crate::board::cell::Cell::{Free, Occupied};
 use crate::board::cell::Color::{Black, White};
 use crate::board::cell::Coord;

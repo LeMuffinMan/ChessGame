@@ -31,8 +31,8 @@ pub fn pawn_move_forward(board: &mut Board, origin: Coord, active_player: &Color
     let dir = if *active_player == White { 1 } else { -1 };
     let last_rank = if *active_player == White { 7 } else { 0 };
 
-    if let Some(dest) = Board::checked_coord(origin.row as i8 + dir, origin.col as i8) {
-        if board.get(&dest) == Cell::Free {
+    if let Some(dest) = Board::checked_coord(origin.row as i8 + dir, origin.col as i8)
+        && board.get(&dest) == Cell::Free {
             push_pawn_dest(&origin, dest, *active_player, board, last_rank, list, info);
 
             let initial_row = if *active_player == White {
@@ -40,17 +40,13 @@ pub fn pawn_move_forward(board: &mut Board, origin: Coord, active_player: &Color
             } else {
                 origin.row == 6
             };
-            if initial_row {
-                if let Some(dest2) =
+            if initial_row
+                && let Some(dest2) =
                     Board::checked_coord(origin.row as i8 + dir * 2, origin.col as i8)
-                {
-                    if board.get(&dest2) == Cell::Free {
+                    && board.get(&dest2) == Cell::Free {
                         push_if_legal(board, &origin, dest2, active_player, list, info);
                     }
-                }
-            }
         }
-    }
 }
 
 pub fn pawn_diag_en_passant(board: &mut Board, origin: Coord, active_player: &Color, list: &mut MoveList, info: &PinInfos) {
@@ -61,7 +57,7 @@ pub fn pawn_diag_en_passant(board: &mut Board, origin: Coord, active_player: &Co
         if let Some(dest) = Board::checked_coord(origin.row as i8 + dir, origin.col as i8 + dc) {
             let target = board.get(&dest);
             let is_enemy = target.get_piece().is_some() && !target.is_color(active_player);
-            let is_ep = board.en_passant.map_or(false, |ep| ep == dest);
+            let is_ep = board.en_passant == Some(dest);
 
             if is_enemy || is_ep {
                 push_pawn_dest(&origin, dest, *active_player, board, last_rank, list, info);
@@ -97,7 +93,7 @@ pub fn push_pawn_dest(
             }
         }
     } else {
-        let is_ep = board.en_passant.map_or(false, |ep| ep == dest);
+        let is_ep = board.en_passant == Some(dest);
         if is_ep {
             if let Some(m) = board.check_move(origin, &dest, &color) {
                 list.push(m);

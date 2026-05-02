@@ -11,10 +11,10 @@ use crate::engine::evaluator::{
     BISHOP_VALUE, KNIGHT_VALUE, PAWN_VALUE, QUEEN_VALUE, ROOK_VALUE, evaluate,
 };
 use crate::engine::move_ordering::move_order_score;
-use crate::engine::search_context::{SearchContext, TT_SIZE};
+use crate::engine::search_context::{SearchContext, SearchParams, TT_SIZE};
 use crate::engine::ttentry::{TtEntry, TtFlag};
 use crate::engine::zobris_table::zobrist;
-use std::collections::HashMap;
+
 #[cfg(target_arch = "wasm32")]
 fn now_ms() -> f64 {
     web_sys::window()
@@ -42,49 +42,45 @@ pub fn minimax(
     active_player: Color,
     mut alpha: i32,
     mut beta: i32,
-    ctx: &mut SearchContext,
-    null_move_allowed: bool,
-    game_history: &HashMap<u64, usize>,
-    fifty_count: u32,
     ply: u8,
+    params: &mut SearchParams,
 ) -> i32 {
-    ctx.incremente_node();
+    params.ctx.incremente_node();
 
-    if ctx.stats.max_nodes > 0 && ctx.stats.nodes >= ctx.stats.max_nodes {
-        ctx.stats.aborted = true;
+    if params.ctx.stats.max_nodes > 0 && params.ctx.stats.nodes >= params.ctx.stats.max_nodes {
+        params.ctx.stats.aborted = true;
         return 0;
     }
 
-    if game_history.get(&board.hash).copied().unwrap_or(0) >= 2 {
+    if params.game_history.get(&board.hash).copied().unwrap_or(0) >= 2 {
         return 0;
     }
 
-    if fifty_count >= 100 {
+    if params.fifty_count >= 100 {
         return 0;
     }
 
     if depth == 0 {
-        ctx.stats.leafs += 1;
-        return quiescence_minimax(board, alpha, beta, active_player, ctx, 4, ply + 1);
+        params.ctx.stats.leafs += 1;
+        return quiescence_minimax(board, alpha, beta, active_player, params.ctx, 4, ply + 1);
     }
 
     let orig_alpha = alpha;
     let orig_beta = beta;
 
-    // we probe the tt first
     let mut tt_move: Option<Move> = None;
     {
         let idx = (board.hash as usize) & (TT_SIZE - 1);
-        let entry = ctx.tt[idx];
+        let entry = params.ctx.tt[idx];
         if entry.key == board.hash {
             tt_move = entry.best_move;
-            if entry.generation == ctx.tt_generation && entry.depth >= depth {
+            if entry.generation == params.ctx.tt_generation && entry.depth >= depth {
                 match entry.flag {
                     TtFlag::Exact => {
-                        ctx.stats.cutoffs += 1;
-                        ctx.stats.cutoffs_per_depth[ctx.stats.depth] += 1;
-                        ctx.stats.total_cutoffs_depth += ctx.stats.depth;
-                        ctx.stats.tt_hits += 1;
+                        params.ctx.stats.cutoffs += 1;
+                        params.ctx.stats.cutoffs_per_depth[params.ctx.stats.depth] += 1;
+                        params.ctx.stats.total_cutoffs_depth += params.ctx.stats.depth;
+                        params.ctx.stats.tt_hits += 1;
                         let score = score_from_tt(entry.score, ply as i32);
                         return score;
                     }
@@ -92,10 +88,10 @@ pub fn minimax(
                     TtFlag::UpperBound => beta = beta.min(entry.score),
                 }
                 if alpha >= beta {
-                    ctx.stats.cutoffs += 1;
-                    ctx.stats.cutoffs_per_depth[ctx.stats.depth] += 1;
-                    ctx.stats.total_cutoffs_depth += ctx.stats.depth;
-                    ctx.stats.tt_hits += 1;
+                    params.ctx.stats.cutoffs += 1;
+                    params.ctx.stats.cutoffs_per_depth[params.ctx.stats.depth] += 1;
+                    params.ctx.stats.total_cutoffs_depth += params.ctx.stats.depth;
+                    params.ctx.stats.tt_hits += 1;
                     let score = score_from_tt(entry.score, ply as i32);
                     return score;
                 }
@@ -111,7 +107,6 @@ pub fn minimax(
         return if is_king_exposed(board, &active_player) {
             is_mate_or_pat(active_player, ply)
         } else {
-            //we want a winning bot to see a pat as not a good option
             const STALEMATE_CONTEMPT: i32 = 50;
             if board.score > 300 {
                 -STALEMATE_CONTEMPT
@@ -128,16 +123,12 @@ pub fn minimax(
         Color::Black => Color::White,
     };
 
-    //if we found a quite move which gave advantage at same depth but other subbranch, it could be a fork, or a near mate,
-    // our moveordering could lead us to explore them later, so killers list is our "strong choices" among previous quiet moves tested
-    // so we want to try in first these move in other sub branches or depth, to cut earlier
-    let [killer1, killer2] = ctx.killers.get(depth as usize);
+    let [killer1, killer2] = params.ctx.killers.get(depth as usize);
 
-    // when we reached d=3 at least, and we are not in check situation and we are not in zugzwang (endgame)
-    // benefiting of the alpha / beta pruning, we can simulate we pass our turn, then check deeper
-    // if doing so, we are still in advantage, opponent would not play rationnaly
-    // the move who led us at our initial depth so we want to cut this branch
-    if null_move_allowed
+    let original_null = params.null_move_allowed;
+    let original_fifty = params.fifty_count;
+
+    if params.null_move_allowed
         && depth >= 3
         && board.check.is_none()
         && has_non_pawn_material(board, active_player)
@@ -151,6 +142,7 @@ pub fn minimax(
             board.hash ^= zt.en_passant[ep.col as usize];
         }
         board.en_passant = None;
+        params.null_move_allowed = false;
         if active_player == Color::White {
             let null_score = minimax(
                 board,
@@ -158,14 +150,12 @@ pub fn minimax(
                 opponent,
                 beta.saturating_sub(1),
                 beta,
-                ctx,
-                false,
-                game_history,
-                fifty_count,
                 ply + 1,
+                params,
             );
             board.en_passant = prev_ep;
             board.hash = prev_hash;
+            params.null_move_allowed = original_null;
             if null_score >= beta {
                 return beta;
             }
@@ -176,21 +166,21 @@ pub fn minimax(
                 opponent,
                 alpha,
                 alpha.saturating_add(1),
-                ctx,
-                false,
-                game_history,
-                fifty_count,
                 ply + 1,
+                params,
             );
             board.en_passant = prev_ep;
             board.hash = prev_hash;
+            params.null_move_allowed = original_null;
             if null_score <= alpha {
                 return alpha;
             }
         }
     }
 
-    //to compare with selective sort
+    // All recursive calls in the move loop use null_move_allowed = true
+    params.null_move_allowed = true;
+
     if active_player == Color::White {
         moves.sort_unstable_by_key(|mv| {
             std::cmp::Reverse(move_order_score(
@@ -198,15 +188,13 @@ pub fn minimax(
                 board[(mv.origin.row as usize, mv.origin.col as usize)].get_piece(),
                 killer1,
                 killer2,
-                &ctx.history,
+                &params.ctx.history,
                 tt_move,
             ))
         });
         let mut max_eval = i32::MIN;
         let mut best_move_found: Option<Move> = None;
         for (i, &m) in moves.iter().enumerate() {
-            // futility pruning : near the leafes, in a quiet situation, we want to seek moves that would give
-            // an advantage now, so we skip the quiet moves, except if it could give a queen advantage (estimation of a good gain)
             if depth == 1
                 && m.capture == Free
                 && !matches!(m.move_type, Promotion(_))
@@ -215,81 +203,43 @@ pub fn minimax(
             {
                 continue;
             }
-            let new_fifty = update_fifty_count(board, &m, fifty_count);
+            params.fifty_count = update_fifty_count(board, &m, original_fifty);
             board.apply_move(&m, active_player);
             let gives_check = is_king_exposed(board, &opponent);
 
-            // check extension : if we won't have the depth to evaluate the result of the answer to this check (d will be 0, then -1, in quiecence search),
-            // we check now with an extended depth to guarantee to have at least an answer to the check position, before geting a score
-            // depth == 1 : we don't want to generalise this check, only near the leafs
             let ext: u8 = u8::from(gives_check && depth == 1);
-            ctx.stats.depth += 1;
+            params.ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(
-                    board,
-                    depth - 1 + ext,
-                    opponent,
-                    alpha,
-                    beta,
-                    ctx,
-                    true,
-                    game_history,
-                    new_fifty,
-                    ply + 1,
-                )
+                minimax(board, depth - 1 + ext, opponent, alpha, beta, ply + 1, params)
             } else {
-                //for (at first sight) bad moves, we prune as much as possible
                 let is_quiet = m.capture == Free
                     && !matches!(m.move_type, Promotion(_))
                     && m.check.is_none()
                     && killer1 != Some(m)
                     && killer2 != Some(m);
 
-                //Late move reduction: in a quiet situation, early in the tree, but after 3 iterations in available moves,
-                // r works as ext, if we already iterated 3 times, this move might be bad or average
-                // So, we want to search r deeper now, scouting if this move worth to explore or to skip
                 let r: u8 = if is_quiet && !gives_check && depth >= 3 && i >= 3 {
                     if i >= 6 { 2 } else { 1 }
                 } else {
                     0
                 };
-                //Primary variation search : we send a null window for the first moves and the subs ones.
-                // It's betting it's bad, and reducing search in it, but still giving a chance to prove it could lead to something better
                 let scout = minimax(
                     board,
                     (depth - 1 + ext).saturating_sub(r),
                     opponent,
                     alpha,
                     alpha.saturating_add(1),
-                    ctx,
-                    true,
-                    game_history,
-                    new_fifty,
                     ply + 1,
+                    params,
                 );
-                // scout <= alpha : the move is bad as we bet, we won't research and benefit of the scout economy
-                // scout > alpha r == 0 : fail high: the cut is reliable, we return scout, and the cutoff will occure by the caller
-                // scout > alpha && r == 0 && scout > beta : the score was in the window, but we didnt gave the full window to search
-                //  So we want to research with full window to get the real value of this move
-                // scout > alpha && r > 0 : we were near the leafs and a may be a fail-high, so we want to research to confirm it and cut by caller if yes
                 if scout > alpha && (r > 0 || scout < beta) {
-                    minimax(
-                        board,
-                        depth - 1 + ext,
-                        opponent,
-                        alpha,
-                        beta,
-                        ctx,
-                        true,
-                        game_history,
-                        new_fifty,
-                        ply + 1,
-                    )
+                    minimax(board, depth - 1 + ext, opponent, alpha, beta, ply + 1, params)
                 } else {
                     scout
                 }
             };
-            ctx.stats.depth -= 1;
+            params.ctx.stats.depth -= 1;
+            params.fifty_count = original_fifty;
             board.undo_move(m, active_player);
 
             if score > max_eval {
@@ -299,19 +249,17 @@ pub fn minimax(
             alpha = alpha.max(score);
             if alpha >= beta {
                 if m.capture == Free {
-                    ctx.killers.update(depth as usize, m);
+                    params.ctx.killers.update(depth as usize, m);
                     let from = m.origin.row as usize * 8 + m.origin.col as usize;
                     let to = m.dest.row as usize * 8 + m.dest.col as usize;
-                    // history keep quiet moves which occured a cut, ponderated with depth : a high depth cut is more interesting to keep
-                    ctx.history.update(from, to, depth);
+                    params.ctx.history.update(from, to, depth);
                 }
-                ctx.stats.cutoffs += 1;
-                ctx.stats.cutoffs_per_depth[ctx.stats.depth] += 1;
-                ctx.stats.total_cutoffs_depth += ctx.stats.depth;
+                params.ctx.stats.cutoffs += 1;
+                params.ctx.stats.cutoffs_per_depth[params.ctx.stats.depth] += 1;
+                params.ctx.stats.total_cutoffs_depth += params.ctx.stats.depth;
                 break;
             }
         }
-        //faire une fonction get_flag
         let flag = if max_eval <= orig_alpha {
             TtFlag::UpperBound
         } else if max_eval >= orig_beta {
@@ -321,12 +269,20 @@ pub fn minimax(
         };
         if max_eval != i32::MIN {
             let idx = (board.hash as usize) & (TT_SIZE - 1);
-            let slot = &ctx.tt[idx];
-            if slot.key == 0 || slot.generation != ctx.tt_generation || depth >= slot.depth {
-                ctx.tt[idx] = TtEntry { key: board.hash, score: score_to_tt(max_eval, ply as i32), depth, generation: ctx.tt_generation, flag, best_move: best_move_found };
-                ctx.stats.tt_stores += 1;
+            let slot = &params.ctx.tt[idx];
+            if slot.key == 0 || slot.generation != params.ctx.tt_generation || depth >= slot.depth {
+                params.ctx.tt[idx] = TtEntry {
+                    key: board.hash,
+                    score: score_to_tt(max_eval, ply as i32),
+                    depth,
+                    generation: params.ctx.tt_generation,
+                    flag,
+                    best_move: best_move_found,
+                };
+                params.ctx.stats.tt_stores += 1;
             }
         }
+        params.null_move_allowed = original_null;
         max_eval
     } else {
         moves.sort_unstable_by_key(|mv| {
@@ -335,7 +291,7 @@ pub fn minimax(
                 board[(mv.origin.row as usize, mv.origin.col as usize)].get_piece(),
                 killer1,
                 killer2,
-                &ctx.history,
+                &params.ctx.history,
                 tt_move,
             ))
         });
@@ -350,24 +306,13 @@ pub fn minimax(
             {
                 continue;
             }
-            let new_fifty = update_fifty_count(board, &m, fifty_count);
+            params.fifty_count = update_fifty_count(board, &m, original_fifty);
             board.apply_move(&m, active_player);
             let gives_check = is_king_exposed(board, &opponent);
             let ext: u8 = u8::from(gives_check && depth == 1);
-            ctx.stats.depth += 1;
+            params.ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(
-                    board,
-                    depth - 1 + ext,
-                    opponent,
-                    alpha,
-                    beta,
-                    ctx,
-                    true,
-                    game_history,
-                    new_fifty,
-                    ply + 1,
-                )
+                minimax(board, depth - 1 + ext, opponent, alpha, beta, ply + 1, params)
             } else {
                 let is_quiet = m.capture == Free
                     && !matches!(m.move_type, Promotion(_))
@@ -385,30 +330,17 @@ pub fn minimax(
                     opponent,
                     beta.saturating_sub(1),
                     beta,
-                    ctx,
-                    true,
-                    game_history,
-                    new_fifty,
                     ply + 1,
+                    params,
                 );
                 if scout < beta && (r > 0 || scout > alpha) {
-                    minimax(
-                        board,
-                        depth - 1 + ext,
-                        opponent,
-                        alpha,
-                        beta,
-                        ctx,
-                        true,
-                        game_history,
-                        new_fifty,
-                        ply + 1,
-                    )
+                    minimax(board, depth - 1 + ext, opponent, alpha, beta, ply + 1, params)
                 } else {
                     scout
                 }
             };
-            ctx.stats.depth -= 1;
+            params.ctx.stats.depth -= 1;
+            params.fifty_count = original_fifty;
             board.undo_move(m, active_player);
 
             if score < min_eval {
@@ -418,14 +350,14 @@ pub fn minimax(
             beta = beta.min(score);
             if alpha >= beta {
                 if m.capture == Free {
-                    ctx.killers.update(depth as usize, m);
+                    params.ctx.killers.update(depth as usize, m);
                     let from = m.origin.row as usize * 8 + m.origin.col as usize;
                     let to = m.dest.row as usize * 8 + m.dest.col as usize;
-                    ctx.history.update(from, to, depth);
+                    params.ctx.history.update(from, to, depth);
                 }
-                ctx.stats.cutoffs += 1;
-                ctx.stats.cutoffs_per_depth[ctx.stats.depth] += 1;
-                ctx.stats.total_cutoffs_depth += ctx.stats.depth;
+                params.ctx.stats.cutoffs += 1;
+                params.ctx.stats.cutoffs_per_depth[params.ctx.stats.depth] += 1;
+                params.ctx.stats.total_cutoffs_depth += params.ctx.stats.depth;
                 break;
             }
         }
@@ -438,12 +370,20 @@ pub fn minimax(
         };
         if min_eval != i32::MAX {
             let idx = (board.hash as usize) & (TT_SIZE - 1);
-            let slot = &ctx.tt[idx];
-            if slot.key == 0 || slot.generation != ctx.tt_generation || depth >= slot.depth {
-                ctx.tt[idx] = TtEntry { key: board.hash, score: score_to_tt(min_eval, ply as i32), depth, generation: ctx.tt_generation, flag, best_move: best_move_found };
-                ctx.stats.tt_stores += 1;
+            let slot = &params.ctx.tt[idx];
+            if slot.key == 0 || slot.generation != params.ctx.tt_generation || depth >= slot.depth {
+                params.ctx.tt[idx] = TtEntry {
+                    key: board.hash,
+                    score: score_to_tt(min_eval, ply as i32),
+                    depth,
+                    generation: params.ctx.tt_generation,
+                    flag,
+                    best_move: best_move_found,
+                };
+                params.ctx.stats.tt_stores += 1;
             }
         }
+        params.null_move_allowed = original_null;
         min_eval
     }
 }
@@ -460,11 +400,10 @@ fn update_fifty_count(board: &Board, m: &Move, fifty_count: u32) -> u32 {
 fn has_non_pawn_material(board: &Board, color: Color) -> bool {
     for row in 0..8usize {
         for col in 0..8usize {
-            if let Occupied(piece, c) = board[(row, col)] {
-                if c == color && !matches!(piece, Pawn | King) {
+            if let Occupied(piece, c) = board[(row, col)]
+                && c == color && !matches!(piece, Pawn | King) {
                     return true;
                 }
-            }
         }
     }
     false
@@ -482,11 +421,9 @@ pub fn find_best_move(
     board: &mut Board,
     active_player: Color,
     depth: u8,
-    ctx: &mut SearchContext,
-    game_history: &HashMap<u64, usize>,
-    fifty_count: u32,
     alpha: i32,
     beta: i32,
+    params: &mut SearchParams,
 ) -> (Option<Move>, i32) {
     let mut move_list = MoveList::new();
     generate_moves(board, &active_player, &mut move_list, false);
@@ -503,12 +440,14 @@ pub fn find_best_move(
 
     let tt_move = {
         let idx = (board.hash as usize) & (TT_SIZE - 1);
-        let e = ctx.tt[idx];
+        let e = params.ctx.tt[idx];
         if e.key == board.hash { e.best_move } else { None }
     };
     let mut best_move = None;
     let mut best_score;
-    let [killer1, killer2] = ctx.killers.get(depth as usize);
+    let [killer1, killer2] = params.ctx.killers.get(depth as usize);
+    let original_fifty = params.fifty_count;
+    params.null_move_allowed = true;
 
     if active_player == Color::White {
         moves.sort_unstable_by_key(|mv| {
@@ -517,31 +456,20 @@ pub fn find_best_move(
                 board[(mv.origin.row as usize, mv.origin.col as usize)].get_piece(),
                 killer1,
                 killer2,
-                &ctx.history,
+                &params.ctx.history,
                 tt_move,
             ))
         });
         best_score = i32::MIN;
         let mut alpha = alpha;
         for (i, &m) in moves.iter().enumerate() {
-            let new_fifty = update_fifty_count(board, &m, fifty_count);
+            params.fifty_count = update_fifty_count(board, &m, original_fifty);
             board.apply_move(&m, active_player);
             let gives_check = is_king_exposed(board, &opponent);
             let ext: u8 = u8::from(gives_check && depth == 1);
-            ctx.stats.depth += 1;
+            params.ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(
-                    board,
-                    depth - 1 + ext,
-                    opponent,
-                    alpha,
-                    beta,
-                    ctx,
-                    true,
-                    game_history,
-                    new_fifty,
-                    0,
-                )
+                minimax(board, depth - 1 + ext, opponent, alpha, beta, 0, params)
             } else {
                 let scout = minimax(
                     board,
@@ -549,30 +477,17 @@ pub fn find_best_move(
                     opponent,
                     alpha,
                     alpha.saturating_add(1),
-                    ctx,
-                    true,
-                    game_history,
-                    new_fifty,
                     0,
+                    params,
                 );
                 if scout > alpha {
-                    minimax(
-                        board,
-                        depth - 1 + ext,
-                        opponent,
-                        alpha,
-                        beta,
-                        ctx,
-                        true,
-                        game_history,
-                        new_fifty,
-                        0,
-                    )
+                    minimax(board, depth - 1 + ext, opponent, alpha, beta, 0, params)
                 } else {
                     scout
                 }
             };
-            ctx.stats.depth -= 1;
+            params.ctx.stats.depth -= 1;
+            params.fifty_count = original_fifty;
             board.undo_move(m, active_player);
             if score > best_score {
                 best_score = score;
@@ -587,31 +502,20 @@ pub fn find_best_move(
                 board[(mv.origin.row as usize, mv.origin.col as usize)].get_piece(),
                 killer1,
                 killer2,
-                &ctx.history,
+                &params.ctx.history,
                 tt_move,
             ))
         });
         best_score = i32::MAX;
         let mut beta = beta;
         for (i, &m) in moves.iter().enumerate() {
-            let new_fifty = update_fifty_count(board, &m, fifty_count);
+            params.fifty_count = update_fifty_count(board, &m, original_fifty);
             board.apply_move(&m, active_player);
             let gives_check = is_king_exposed(board, &opponent);
             let ext: u8 = u8::from(gives_check && depth == 1);
-            ctx.stats.depth += 1;
+            params.ctx.stats.depth += 1;
             let score = if i == 0 {
-                minimax(
-                    board,
-                    depth - 1 + ext,
-                    opponent,
-                    alpha,
-                    beta,
-                    ctx,
-                    true,
-                    game_history,
-                    new_fifty,
-                    0,
-                )
+                minimax(board, depth - 1 + ext, opponent, alpha, beta, 0, params)
             } else {
                 let scout = minimax(
                     board,
@@ -619,30 +523,17 @@ pub fn find_best_move(
                     opponent,
                     beta.saturating_sub(1),
                     beta,
-                    ctx,
-                    true,
-                    game_history,
-                    new_fifty,
                     0,
+                    params,
                 );
                 if scout < beta {
-                    minimax(
-                        board,
-                        depth - 1 + ext,
-                        opponent,
-                        alpha,
-                        beta,
-                        ctx,
-                        true,
-                        game_history,
-                        new_fifty,
-                        0,
-                    )
+                    minimax(board, depth - 1 + ext, opponent, alpha, beta, 0, params)
                 } else {
                     scout
                 }
             };
-            ctx.stats.depth -= 1;
+            params.ctx.stats.depth -= 1;
+            params.fifty_count = original_fifty;
             board.undo_move(m, active_player);
             if score < best_score {
                 best_score = score;
@@ -655,17 +546,12 @@ pub fn find_best_move(
     (best_move, best_score)
 }
 
-// Aspiration window search for a single depth.
-// Tries a narrow window [prev_score - delta, prev_score + delta] and widens on fail.
-// Falls back to full window after MATE_SCORE widening to guarantee termination.
 fn aspiration_search(
     board: &mut Board,
     active_player: Color,
     depth: u8,
-    ctx: &mut SearchContext,
-    game_history: &HashMap<u64, usize>,
-    fifty_count: u32,
     prev_score: i32,
+    params: &mut SearchParams,
 ) -> (Option<Move>, i32) {
     const INIT_DELTA: i32 = 50;
     let mut delta = INIT_DELTA;
@@ -673,11 +559,10 @@ fn aspiration_search(
     let mut beta = prev_score.saturating_add(delta);
 
     loop {
-        ctx.stats.reset();
-        let (mv, score) =
-            find_best_move(board, active_player, depth, ctx, game_history, fifty_count, alpha, beta);
+        params.ctx.stats.reset();
+        let (mv, score) = find_best_move(board, active_player, depth, alpha, beta, params);
 
-        if ctx.stats.aborted {
+        if params.ctx.stats.aborted {
             return (mv, score);
         }
 
@@ -692,11 +577,8 @@ fn aspiration_search(
         }
 
         if delta >= MATE_SCORE {
-            ctx.stats.reset();
-            return find_best_move(
-                board, active_player, depth, ctx, game_history, fifty_count,
-                i32::MIN, i32::MAX,
-            );
+            params.ctx.stats.reset();
+            return find_best_move(board, active_player, depth, i32::MIN, i32::MAX, params);
         }
     }
 }
@@ -705,23 +587,21 @@ pub fn timed_out_iterative_deepening(
     board: &mut Board,
     active_player: Color,
     max_depth: u8,
-    ctx: &mut SearchContext,
-    game_history: &HashMap<u64, usize>,
-    fifty_count: u32,
     reached_depth: &mut u8,
     timeout: f64,
+    params: &mut SearchParams,
 ) -> Option<Move> {
     let mut best_move = None;
     let mut prev_score = 0i32;
     let start = now_ms();
     for depth in 1..=max_depth {
         let (candidate, score) = if depth <= 2 {
-            ctx.stats.reset();
-            find_best_move(board, active_player, depth, ctx, game_history, fifty_count, i32::MIN, i32::MAX)
+            params.ctx.stats.reset();
+            find_best_move(board, active_player, depth, i32::MIN, i32::MAX, params)
         } else {
-            aspiration_search(board, active_player, depth, ctx, game_history, fifty_count, prev_score)
+            aspiration_search(board, active_player, depth, prev_score, params)
         };
-        if ctx.stats.aborted {
+        if params.ctx.stats.aborted {
             break;
         }
         if candidate.is_some() {
@@ -740,20 +620,18 @@ pub fn iterative_deepening(
     board: &mut Board,
     active_player: Color,
     max_depth: u8,
-    ctx: &mut SearchContext,
-    game_history: &HashMap<u64, usize>,
-    fifty_count: u32,
+    params: &mut SearchParams,
 ) -> Option<Move> {
     let mut best_move = None;
     let mut prev_score = 0i32;
     for depth in 1..=max_depth {
         let (candidate, score) = if depth <= 2 {
-            ctx.stats.reset();
-            find_best_move(board, active_player, depth, ctx, game_history, fifty_count, i32::MIN, i32::MAX)
+            params.ctx.stats.reset();
+            find_best_move(board, active_player, depth, i32::MIN, i32::MAX, params)
         } else {
-            aspiration_search(board, active_player, depth, ctx, game_history, fifty_count, prev_score)
+            aspiration_search(board, active_player, depth, prev_score, params)
         };
-        if ctx.stats.aborted {
+        if params.ctx.stats.aborted {
             break;
         }
         if candidate.is_some() {
@@ -804,7 +682,14 @@ pub fn quiescence_minimax(
                 let idx = (board.hash as usize) & (TT_SIZE - 1);
                 let slot = &ctx.tt[idx];
                 if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {
-                    ctx.tt[idx] = TtEntry { key: board.hash, score: score_to_tt(stand_pat, ply as i32), depth: q_depth, generation: ctx.tt_generation, flag: TtFlag::LowerBound, best_move: None };
+                    ctx.tt[idx] = TtEntry {
+                        key: board.hash,
+                        score: score_to_tt(stand_pat, ply as i32),
+                        depth: q_depth,
+                        generation: ctx.tt_generation,
+                        flag: TtFlag::LowerBound,
+                        best_move: None,
+                    };
                 }
             }
             return beta;
@@ -818,7 +703,14 @@ pub fn quiescence_minimax(
                 let idx = (board.hash as usize) & (TT_SIZE - 1);
                 let slot = &ctx.tt[idx];
                 if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {
-                    ctx.tt[idx] = TtEntry { key: board.hash, score: score_to_tt(stand_pat, ply as i32), depth: q_depth, generation: ctx.tt_generation, flag: TtFlag::UpperBound, best_move: None };
+                    ctx.tt[idx] = TtEntry {
+                        key: board.hash,
+                        score: score_to_tt(stand_pat, ply as i32),
+                        depth: q_depth,
+                        generation: ctx.tt_generation,
+                        flag: TtFlag::UpperBound,
+                        best_move: None,
+                    };
                 }
             }
             return alpha;
@@ -841,7 +733,14 @@ pub fn quiescence_minimax(
             let idx = (board.hash as usize) & (TT_SIZE - 1);
             let slot = &ctx.tt[idx];
             if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {
-                ctx.tt[idx] = TtEntry { key: board.hash, score: score_to_tt(result, ply as i32), depth: q_depth, generation: ctx.tt_generation, flag, best_move: None };
+                ctx.tt[idx] = TtEntry {
+                    key: board.hash,
+                    score: score_to_tt(result, ply as i32),
+                    depth: q_depth,
+                    generation: ctx.tt_generation,
+                    flag,
+                    best_move: None,
+                };
             }
         }
         return result;
@@ -890,7 +789,14 @@ pub fn quiescence_minimax(
                     let idx = (board.hash as usize) & (TT_SIZE - 1);
                     let slot = &ctx.tt[idx];
                     if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {
-                        ctx.tt[idx] = TtEntry { key: board.hash, score: score_to_tt(alpha, ply as i32), depth: q_depth, generation: ctx.tt_generation, flag: TtFlag::LowerBound, best_move: best_move_found };
+                        ctx.tt[idx] = TtEntry {
+                            key: board.hash,
+                            score: score_to_tt(alpha, ply as i32),
+                            depth: q_depth,
+                            generation: ctx.tt_generation,
+                            flag: TtFlag::LowerBound,
+                            best_move: best_move_found,
+                        };
                     }
                 }
                 return beta;
@@ -905,7 +811,14 @@ pub fn quiescence_minimax(
                     let idx = (board.hash as usize) & (TT_SIZE - 1);
                     let slot = &ctx.tt[idx];
                     if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {
-                        ctx.tt[idx] = TtEntry { key: board.hash, score: score_to_tt(beta, ply as i32), depth: q_depth, generation: ctx.tt_generation, flag: TtFlag::UpperBound, best_move: best_move_found };
+                        ctx.tt[idx] = TtEntry {
+                            key: board.hash,
+                            score: score_to_tt(beta, ply as i32),
+                            depth: q_depth,
+                            generation: ctx.tt_generation,
+                            flag: TtFlag::UpperBound,
+                            best_move: best_move_found,
+                        };
                     }
                 }
                 return alpha;
@@ -925,7 +838,14 @@ pub fn quiescence_minimax(
         let idx = (board.hash as usize) & (TT_SIZE - 1);
         let slot = &ctx.tt[idx];
         if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {
-            ctx.tt[idx] = TtEntry { key: board.hash, score: score_to_tt(result, ply as i32), depth: q_depth, generation: ctx.tt_generation, flag, best_move: best_move_found };
+            ctx.tt[idx] = TtEntry {
+                key: board.hash,
+                score: score_to_tt(result, ply as i32),
+                depth: q_depth,
+                generation: ctx.tt_generation,
+                flag,
+                best_move: best_move_found,
+            };
         }
     }
     result

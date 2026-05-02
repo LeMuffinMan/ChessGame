@@ -1,5 +1,5 @@
 use crate::Board;
-use crate::board::board::CastleRights;
+use crate::board::CastleRights;
 use crate::board::cell::Cell;
 use crate::board::cell::Color;
 use crate::board::cell::Color::*;
@@ -53,6 +53,12 @@ const MAX_MOVES: usize = 256;
 pub struct MoveList {
     pub moves: [Move; MAX_MOVES],
     pub count: usize,
+}
+
+impl Default for MoveList {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl MoveList {
