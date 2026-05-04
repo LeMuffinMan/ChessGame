@@ -18,3 +18,7 @@ public/native_bench.json
 *.swp
 *~
 stockfish
+books
+results_1500.pgn results.pgn
+results_1500.pgn results.pgn
+*.pgn

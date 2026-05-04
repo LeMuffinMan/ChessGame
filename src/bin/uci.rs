@@ -127,7 +127,7 @@ impl Engine {
                 self.game = Game::new();
                 i += 1;
             }
-            Some("fen") => return Ok(()), // not yet implemented
+            Some("fen") => return Ok(()), // todo
             _ => {}
         }
         if words.get(i).copied() == Some("moves") {
