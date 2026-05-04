@@ -41,11 +41,11 @@ bench-all *args:
 uci:
     cargo build --bin uci --features=native
 
-# Runs our engine against itself to debug uci
+# Run the engine against Stockfish to debug uci
 test-uci: uci
     cutechess-cli \
-    -engine cmd=./target/debug/uci proto=uci name=test \
-    -engine cmd=./target/debug/uci proto=uci name=tst \
+    -engine cmd=./stockfish proto=uci name=SF \
+    -engine cmd=./target/debug/uci proto=uci name=CG \
     -each tc=1+0.1 \
     -games 2 \
     -debug all
