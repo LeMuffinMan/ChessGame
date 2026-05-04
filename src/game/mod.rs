@@ -351,4 +351,49 @@ impl Game {
             _ => false,
         }
     }
+    pub fn uci_new() -> Self {
+        let fen_info = Board::board_from_fen(
+            "rn1qkbnr/pppbpppp/8/3p4/8/2NP1NP1/PPP1PPBP/R1BQK2R w KQkq - 0 1",
+        );
+
+        let board = fen_info.board;
+
+        Game {
+            board: board.clone(),
+            initial_board: board,
+            active_player: fen_info.active_color,
+            end: None,
+            turn: fen_info.fullmove,
+            threaten_cells: Vec::new(),
+            legals_moves: Vec::new(),
+            draw: DrawState::default(),
+            history: Vec::new(),
+            depth: 0,
+            hint: None,
+        }
+    }
+
+    pub fn from_fen(fen: &str) -> Self {
+        let fen_info = Board::board_from_fen(fen);
+
+        let board = fen_info.board;
+
+        Game {
+            board: board.clone(),
+            initial_board: board,
+            active_player: fen_info.active_color,
+            end: None,
+            turn: fen_info.fullmove,
+            threaten_cells: Vec::new(),
+            legals_moves: Vec::new(),
+            draw: DrawState {
+                draw_moves_count: fen_info.halfmove_clock,
+                board_hashs: HashMap::new(),
+                draw_option: None,
+            },
+            history: Vec::new(),
+            depth: 0,
+            hint: None,
+        }
+    }
 }

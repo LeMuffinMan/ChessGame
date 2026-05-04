@@ -49,19 +49,20 @@ test-uci: uci
         -each proto=uci tc=60+1 \
         -games 1 \
         -repeat \
-        -debug all
+        -debug all \
+        -openings file=books/8mvs_big_+80_+109.epd format=epd order=random
 
 elo-uci : uci
     cutechess-cli \
-        -engine name=SF_1500 cmd=./stockfish option.UCI_LimitStrength=true option.UCI_Elo=1500 \
+        -engine name=SF_1800 cmd=./stockfish option.UCI_LimitStrength=true option.UCI_Elo=1800 \
         -engine name=ChessGame cmd=./target/release/uci \
         -each proto=uci tc=60+1 \
         -games 100 \
-        -concurrency 4 \
+        -concurrency 5 \
         -repeat \
-        -pgnout results_1500.pgn
+        -openings file=books/8mvs_big_+80_+109.epd format=epd order=random \
+        -pgnout results_1800.pgn
 
-# -openings file=books/8mvs_big_+80_+109.epd format=epd order=random
 
 # Run tests
 test *args:

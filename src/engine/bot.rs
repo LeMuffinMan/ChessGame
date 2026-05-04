@@ -14,7 +14,7 @@ use crate::engine::search_context::{SearchContext, SearchParams};
 use crate::gui::chessapp::AppMode::*;
 use std::collections::HashMap;
 
-const MAX_DEPTH: u8 = 11;
+pub const MAX_DEPTH: u8 = 11;
 
 #[cfg(target_arch = "wasm32")]
 fn now_ms() -> f64 {
