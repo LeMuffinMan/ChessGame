@@ -7,6 +7,8 @@ use chess_game::game::Game;
 use std::error::Error;
 use std::io;
 use std::io::{BufRead, Write};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
 
 // todo : enums errors
@@ -23,6 +25,7 @@ struct Engine {
     infinite: bool,
     game: Game,
     search_ctx: SearchContext,
+    stop_search: Arc<AtomicBool>,
 }
 
 impl Default for Engine {
@@ -43,9 +46,10 @@ impl Engine {
             infinite: false,
             game: Game::new(),
             search_ctx: SearchContext::new(),
+            stop_search: Arc::new(AtomicBool::new(false)),
         }
     }
-    fn search(&mut self) -> Option<Move> {
+    fn search(&mut self, stop_ptr: Arc<AtomicBool>) -> Option<Move> {
         get_bot_move(
             &Bot(Depth(11)),
             &mut self.game.board,
@@ -56,8 +60,7 @@ impl Engine {
             &mut self.game.depth,
         )
         //
-        //iterative_deepening(board, active_player, 11, depth, BOT_TIMEOUT, &mut params)
-        //on ajoute un booleen a iterative
+        //
     }
 }
 
@@ -66,7 +69,7 @@ fn main() -> Result<()> {
     // * The engine should boot and wait for input from the GUI,
     //   the engine should wait for the "isready" or "setoption" command to set up its internal parameters
     //   as the boot process should be as quick as possible.
-    let engine = Engine::new();
+    let mut engine = Engine::new();
     for line in stdin.lock().lines() {
         let line = line?;
         //   Example: "debug on\n" and  "   debug     on  \n" and "\t  debug \t  \t\ton\t  \n"
@@ -167,7 +170,7 @@ impl Engine {
         Ok(())
     }
 
-    fn cmd_go(&self, words: Vec<&str>) -> Result<()> {
+    fn cmd_go(&mut self, words: Vec<&str>) -> Result<()> {
         // * Before the engine is asked to search on a position, there will always be a position command
         //   to tell the engine about the current position.
         // if engine.game.board.is_none() {
@@ -240,9 +243,10 @@ impl Engine {
             }
         }
         let mut engine_handle = self.clone();
-
+        self.stop_search.store(false, Ordering::Relaxed);
+        let stop_ptr = Arc::clone(&self.stop_search);
         thread::spawn(move || {
-            if let Some(mv) = engine_handle.search() {
+            if let Some(mv) = engine_handle.search(stop_ptr) {
                 println!("bestmove {}", mv.to_uci());
             } else {
                 println!("info string error: no move found");
@@ -259,6 +263,8 @@ impl Engine {
         //
         // stop calculating as soon as possible,
         // don't forget the "bestmove" and possibly the "ponder" token when finishing the search
+        //
+        self.stop_search.store(true, Ordering::Relaxed);
         Ok(())
     }
 
