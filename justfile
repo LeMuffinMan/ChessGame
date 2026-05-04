@@ -37,9 +37,11 @@ bench-all *args:
     @if [ ! -f {{PUBLIC_DIR}}/native_bench.json ]; then just bench-native; fi
     just wasm-release {{args}}
 
+# Build uci
 uci:
     cargo build --bin uci --features=native
 
+# Runs our engine against itself to debug uci
 test-uci: uci
     cutechess-cli \
     -engine cmd=./target/debug/uci proto=uci name=test \

@@ -1,10 +1,8 @@
 use std::io;
-use std::io::{BufRead, Write};
+use std::io::{BufRead, Result, Write};
 
-fn main() -> io::Result<()> {
+fn main() -> Result<()> {
     let stdin = io::stdin();
-    let mut stdout = io::stdout();
-
     // * The engine should boot and wait for input from the GUI,
     //   the engine should wait for the "isready" or "setoption" command to set up its internal parameters
     //   as the boot process should be as quick as possible.
@@ -16,25 +14,25 @@ fn main() -> io::Result<()> {
         // we might need to trim our line and split whitespace ?
         match line {
             Ok(line) => match line.as_str() {
-                "uci" => cmd_uci(),
+                "uci" => cmd_uci()?,
                 "quit" => break,
-                "setoption" => cmd_setoption(),
-                "position" => cmd_position(),
-                "ucinewgame" => cmd_ucinewgame(),
-                "isready" => cmd_isready(),
-                "go" => cmd_go(),
-                "stop" => cmd_stop(),
-                "ponderhit" => cmd_pounderhit(),
-                "debug" => cmd_debug(),
-                "register" => cmd_register(),
-                _ => cmd_unknown(),
+                "setoption" => cmd_setoption()?,
+                "position" => cmd_position()?,
+                "ucinewgame" => cmd_ucinewgame()?,
+                "isready" => cmd_isready()?,
+                "go" => cmd_go()?,
+                "stop" => cmd_stop()?,
+                "ponderhit" => cmd_pounderhit()?,
+                "debug" => cmd_debug()?,
+                "register" => cmd_register()?,
+                _ => cmd_unknown(&line)?,
             },
             Err(e) => {
                 println!("Error stdin: {}", e);
                 break;
             }
         }
-        match stdout.flush() {
+        match io::stdout().flush() {
             Ok(()) => {}
             Err(e) => {
                 println!("Error flushing stdout: {}", e)
@@ -44,7 +42,7 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn cmd_setoption() {
+fn cmd_setoption() -> Result<()> {
     // * setoption name <id> [value <x>]
     // this is sent to the engine when the user wants to change the internal parameters
     // of the engine. For the "button" type no value is needed.
@@ -58,9 +56,10 @@ fn cmd_setoption() {
     //    "setoption name Style value Risky\n"
     //    "setoption name Clear Hash\n"
     //    "setoption name NalimovPath value c:\chess\tb\4;c:\chess\tb\5\n"
+    Ok(())
 }
 
-fn cmd_position() {
+fn cmd_position() -> Result<()> {
     // * Before the engine is asked to search on a position, there will always be a position command
     //   to tell the engine about the current position.
     // * position [fen <fenstring> | startpos ]  moves <move1> .... <movei>
@@ -69,9 +68,10 @@ fn cmd_position() {
     // if the game was played  from the start position the string "startpos" will be sent
     // Note: no "new" command is needed. However, if this position is from a different game than
     // the last position sent to the engine, the GUI should have sent a "ucinewgame" inbetween.
+    Ok(())
 }
 
-fn cmd_ucinewgame() {
+fn cmd_ucinewgame() -> Result<()> {
     // this is sent to the engine when the next search (started with "position" and "go") will be from
     // a different game. This can be a new game the engine should play or a new game it should analyse but
     // also the next position from a testsuite with positions only.
@@ -80,9 +80,11 @@ fn cmd_ucinewgame() {
     // So the engine should not rely on this command even though all new GUIs should support it.
     // As the engine's reaction to "ucinewgame" can take some time the GUI should always send "isready"
     // after "ucinewgame" to wait for the engine to finish its operation.
+    Ok(())
 }
 
-fn cmd_isready() {
+fn cmd_isready() -> Result<()> {
+    let mut stdout = io::stdout();
     // this is used to synchronize the engine with the GUI. When the GUI has sent a command or
     // multiple commands that can take some time to complete,
     // this command can be used to wait for the engine to be ready again or
@@ -93,9 +95,10 @@ fn cmd_isready() {
     // This command must always be answered with "readyok" and can be sent also when the engine is calculating
     // in which case the engine should also immediately answer with "readyok" without stopping the search.
     writeln!(stdout, "readyok")?;
+    Ok(())
 }
 
-fn cmd_go() {
+fn cmd_go() -> Result<()> {
     // * Before the engine is asked to search on a position, there will always be a position command
     //   to tell the engine about the current position.
     // We must handle error go without position first
@@ -146,40 +149,46 @@ fn cmd_go() {
     // 	search exactly x mseconds
     // * infinite
     // 	search until the "stop" command. Do not exit the search without being told so in this mode!
+    Ok(())
 }
 
-fn cmd_stop() {
+fn cmd_stop() -> Result<()> {
     // * if the engine receives a command which is not supposed to come, for example "stop" when the engine is
     //   not calculating, it should also just ignore it.
     //
     // stop calculating as soon as possible,
     // don't forget the "bestmove" and possibly the "ponder" token when finishing the search
+    Ok(())
 }
 
-fn cmd_pounderhit() {
+fn cmd_pounderhit() -> Result<()> {
     // the user has played the expected move. This will be sent if the engine was told to ponder on the same move
     // the user has played. The engine should continue searching but switch from pondering to normal search.
+    Ok(())
 }
 
-fn cmd_unknown() {
+fn cmd_unknown(line: &str) -> Result<()> {
+    let mut stdout = io::stdout();
     // * if the engine or the GUI receives an unknown command or token it should just ignore it and try to
     //   parse the rest of the string in this line.
     //   Examples: "joho debug on\n" should switch the debug mode on given that joho is not defined,
     //             "debug joho on\n" will be undefined however.
     // pour chaque line un splitword
     writeln!(stdout, "cmd not found: {line}")?;
+    Ok(())
 }
 
-fn cmd_debug() {
+fn cmd_debug() -> Result<()> {
     // * debug [ on | off ]
     // switch the debug mode of the engine on and off.
     // In debug mode the engine should send additional infos to the GUI, e.g. with the "info string" command,
     // to help debugging, e.g. the commands that the engine has received etc.
     // This mode should be switched off by default and this command can be sent
     // any time, also when the engine is thinking.
+    Ok(())
 }
 
-fn cmd_register() {
+fn cmd_register() -> Result<()> {
     // this is the command to try to register an engine or to tell the engine that registration
     // will be done later. This command should always be sent if the engine	has sent "registration error"
     // at program startup.
@@ -193,9 +202,11 @@ fn cmd_register() {
     // Example:
     //    "register later"
     //    "register name Stefan MK code 4359874324"
+    Ok(())
 }
 
-fn cmd_uci() {
+fn cmd_uci() -> Result<()> {
+    let mut stdout = io::stdout();
     // tell engine to use the uci (universal chess interface),
     // this will be sent once as a first command after program boot
     // to tell the engine to switch to uci mode.
@@ -206,4 +217,5 @@ fn cmd_uci() {
     writeln!(stdout, "id name ChessGame")?;
     writeln!(stdout, "id author Muffin")?;
     writeln!(stdout, "uciok")?;
+    Ok(())
 }
