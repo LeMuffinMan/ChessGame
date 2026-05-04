@@ -7,8 +7,7 @@ use chess_game::game::Game;
 use std::error::Error;
 use std::io;
 use std::io::{BufRead, Write};
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::Ordering;
 use std::thread;
 
 // todo : enums errors
@@ -25,7 +24,6 @@ struct Engine {
     infinite: bool,
     game: Game,
     search_ctx: SearchContext,
-    stop_search: Arc<AtomicBool>,
 }
 
 impl Default for Engine {
@@ -46,10 +44,9 @@ impl Engine {
             infinite: false,
             game: Game::new(),
             search_ctx: SearchContext::new(),
-            stop_search: Arc::new(AtomicBool::new(false)),
         }
     }
-    fn search(&mut self, stop_ptr: Arc<AtomicBool>) -> Option<Move> {
+    fn search(&mut self) -> Option<Move> {
         get_bot_move(
             &Bot(Depth(11)),
             &mut self.game.board,
@@ -59,8 +56,6 @@ impl Engine {
             self.game.draw.draw_moves_count,
             &mut self.game.depth,
         )
-        //
-        //
     }
 }
 
@@ -243,16 +238,19 @@ impl Engine {
             }
         }
         let mut engine_handle = self.clone();
-        self.stop_search.store(false, Ordering::Relaxed);
-        let stop_ptr = Arc::clone(&self.stop_search);
+        engine_handle
+            .search_ctx
+            .stop
+            .store(false, Ordering::Relaxed);
         thread::spawn(move || {
-            if let Some(mv) = engine_handle.search(stop_ptr) {
-                println!("bestmove {}", mv.to_uci());
-            } else {
-                println!("info string error: no move found");
-            }
+            let mv_str = engine_handle
+                .search()
+                .map(|mv| mv.to_uci())
+                .unwrap_or_else(|| "0000".to_string());
+            println!("bestmove {}", mv_str);
+            eprintln!("la");
+            eprintln!("{}", format!("ici: {}", mv_str));
             let _ = std::io::stdout().flush();
-            //todo error handling
         });
         Ok(())
     }
@@ -264,7 +262,7 @@ impl Engine {
         // stop calculating as soon as possible,
         // don't forget the "bestmove" and possibly the "ponder" token when finishing the search
         //
-        self.stop_search.store(true, Ordering::Relaxed);
+        self.search_ctx.stop.store(true, Ordering::Relaxed);
         Ok(())
     }
 
