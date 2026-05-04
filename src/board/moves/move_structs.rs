@@ -34,10 +34,10 @@ impl Move {
     }
     pub fn to_uci(&self) -> String {
         let origin_col = (b'a' + self.origin.col) as char;
-        let origin_row = (b'1' + self.origin.row) as char;
+        let origin_row = (b'1' + 7 - self.origin.row) as char;
 
         let dest_col = (b'a' + self.dest.col) as char;
-        let dest_row = (b'1' + self.dest.row) as char;
+        let dest_row = (b'1' + 7 - self.dest.row) as char;
 
         format!("{}{}{}{}", origin_col, origin_row, dest_col, dest_row)
     }
