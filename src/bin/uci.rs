@@ -68,6 +68,7 @@ fn main() -> Result<()> {
     let mut engine = Engine::new();
     for line in stdin.lock().lines() {
         let line = line?;
+        eprintln!("line = {line}");
         //   Example: "debug on\n" and  "   debug     on  \n" and "\t  debug \t  \t\ton\t  \n"
         //   all set the debug mode of the engine on.
         let words: Vec<&str> = line.split_whitespace().collect();
@@ -260,8 +261,6 @@ impl Engine {
                 .map(|mv| mv.to_uci())
                 .unwrap_or_else(|| "0000".to_string());
             println!("bestmove {}", mv_str);
-            eprintln!("la");
-            eprintln!("{}", format!("ici: {}", mv_str));
             let _ = std::io::stdout().flush();
         });
         Ok(())

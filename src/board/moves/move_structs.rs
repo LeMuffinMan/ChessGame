@@ -170,9 +170,9 @@ impl Board {
             return None;
         }
         let origin_col = b[0].checked_sub(b'a').filter(|&c| c < 8)?;
-        let origin_row = b[1].checked_sub(b'1').filter(|&r| r < 8).map(|r| 7 - r)?;
+        let origin_row = b[1].checked_sub(b'1').filter(|&r| r < 8)?;
         let dest_col = b[2].checked_sub(b'a').filter(|&c| c < 8)?;
-        let dest_row = b[3].checked_sub(b'1').filter(|&r| r < 8).map(|r| 7 - r)?;
+        let dest_row = b[3].checked_sub(b'1').filter(|&r| r < 8)?;
 
         let origin = Coord {
             row: origin_row,
