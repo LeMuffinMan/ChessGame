@@ -107,11 +107,11 @@ pub fn minimax(
         return if is_king_exposed(board, &active_player) {
             is_mate_or_pat(active_player, ply)
         } else {
-            const STALEMATE_CONTEMPT: i32 = 50;
+            let stalemate: i32 = 50;
             if board.score > 300 {
-                -STALEMATE_CONTEMPT
+                -stalemate
             } else if board.score < -300 {
-                STALEMATE_CONTEMPT
+                stalemate
             } else {
                 0
             }
@@ -590,8 +590,7 @@ fn aspiration_search(
     prev_score: i32,
     params: &mut SearchParams,
 ) -> (Option<Move>, i32) {
-    const INIT_DELTA: i32 = 50;
-    let mut delta = INIT_DELTA;
+    let mut delta = 50;
     let mut alpha = prev_score.saturating_sub(delta);
     let mut beta = prev_score.saturating_add(delta);
 
@@ -629,7 +628,7 @@ pub fn timed_out_iterative_deepening(
     params: &mut SearchParams,
 ) -> Option<Move> {
     let mut best_move = None;
-    let mut prev_score = 0i32;
+    let mut prev_score = 0;
     let start = now_ms();
     for depth in 1..=max_depth {
         let (candidate, score) = if depth <= 2 {
@@ -657,10 +656,13 @@ pub fn iterative_deepening(
     board: &mut Board,
     active_player: Color,
     max_depth: u8,
+    reached_depth: &mut u8,
+    timeout: f64,
     params: &mut SearchParams,
 ) -> Option<Move> {
     let mut best_move = None;
-    let mut prev_score = 0i32;
+    let mut prev_score = 0;
+    let start = if timeout > 0.0 { now_ms() } else { 0.0 };
     for depth in 1..=max_depth {
         let (candidate, score) = if depth <= 2 {
             params.ctx.stats.reset();
@@ -672,8 +674,12 @@ pub fn iterative_deepening(
             break;
         }
         if candidate.is_some() {
+            *reached_depth = depth;
             best_move = candidate;
             prev_score = score;
+        }
+        if timeout > 0.0 && now_ms() - start > timeout {
+            break;
         }
     }
     best_move
@@ -811,11 +817,11 @@ pub fn quiescence_minimax(
             },
             Free => 0,
         };
-        const DELTA: i32 = 200;
-        if active_player == Color::White && stand_pat + capture_value + DELTA < alpha {
+        let delta = 200;
+        if active_player == Color::White && stand_pat + capture_value + delta < alpha {
             continue;
         }
-        if active_player == Color::Black && stand_pat - capture_value - DELTA > beta {
+        if active_player == Color::Black && stand_pat - capture_value - delta > beta {
             continue;
         }
 

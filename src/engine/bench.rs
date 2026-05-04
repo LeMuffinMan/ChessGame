@@ -85,7 +85,14 @@ pub fn bench_run(fen: &str, depth: u8, max_nodes: u64) -> BenchResult {
 
     if depth > 1 {
         let mut params = SearchParams::new(&mut ctx, &hashmap, 0);
-        iterative_deepening(&mut board, active_color, depth - 1, &mut params);
+        iterative_deepening(
+            &mut board,
+            active_color,
+            depth - 1,
+            &mut 0,
+            0.0,
+            &mut params,
+        );
     }
     ctx.stats.reset();
     ctx.stats.max_nodes = max_nodes;
@@ -162,7 +169,6 @@ pub fn entry_json(label: &str, depth: u8, r: &BenchResult, time_ms: f64) -> Stri
     )
 }
 
-// Wasm export: runs a single position at a given depth, returns one JSON entry.
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub fn run_bench_single(fen: &str, label: &str, depth: u8) -> String {
     if depth < 1 {
