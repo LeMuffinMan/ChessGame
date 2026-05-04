@@ -39,7 +39,7 @@ bench-all *args:
 
 # Build uci
 uci:
-    cargo build --bin uci --features=native
+    cargo build --release --bin uci --features=native
 
 # Run the engine against Stockfish to debug uci
 test-uci: uci
