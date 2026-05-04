@@ -4,6 +4,12 @@ use crate::engine::search_stats::SearchStats;
 use crate::engine::ttentry::TtEntry;
 use std::collections::HashMap;
 
+#[cfg(not(target_arch = "wasm32"))]
+use std::sync::{
+    Arc,
+    atomic::{AtomicBool, Ordering},
+};
+
 pub struct SearchParams<'a> {
     pub ctx: &'a mut SearchContext,
     pub game_history: &'a HashMap<u64, usize>,
@@ -35,6 +41,8 @@ pub struct SearchContext {
     pub tt: Vec<TtEntry>,
     pub tt_generation: u8,
     pub stats: SearchStats,
+    #[cfg(not(target_arch = "wasm32"))]
+    pub stop: Arc<AtomicBool>,
 }
 
 impl Default for SearchContext {
@@ -51,7 +59,16 @@ impl SearchContext {
             tt: vec![TtEntry::default(); TT_SIZE],
             tt_generation: 0,
             stats: SearchStats::new(),
+            #[cfg(not(target_arch = "wasm32"))]
+            stop: Arc::new(AtomicBool::new(false)),
         }
+    }
+
+    pub fn should_stop(&self) -> bool {
+        #[cfg(not(target_arch = "wasm32"))]
+        return self.stop.load(Ordering::Relaxed);
+        #[cfg(target_arch = "wasm32")]
+        false
     }
 
     pub fn reset_for_new_game(&mut self) {

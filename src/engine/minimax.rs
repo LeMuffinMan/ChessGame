@@ -47,7 +47,9 @@ pub fn minimax(
 ) -> i32 {
     params.ctx.incremente_node();
 
-    if params.ctx.stats.max_nodes > 0 && params.ctx.stats.nodes >= params.ctx.stats.max_nodes {
+    if params.ctx.stats.max_nodes > 0 && params.ctx.stats.nodes >= params.ctx.stats.max_nodes
+        || params.ctx.should_stop()
+    {
         params.ctx.stats.aborted = true;
         return 0;
     }
@@ -631,6 +633,9 @@ pub fn iterative_deepening(
     let mut prev_score = 0;
     let start = if timeout > 0.0 { now_ms() } else { 0.0 };
     for depth in 1..=max_depth {
+        if params.ctx.should_stop() {
+            break;
+        }
         let (candidate, score) = if depth <= 2 {
             params.ctx.stats.reset();
             find_best_move(board, active_player, depth, i32::MIN, i32::MAX, params)
@@ -638,6 +643,9 @@ pub fn iterative_deepening(
             aspiration_search(board, active_player, depth, prev_score, params)
         };
         if params.ctx.stats.aborted {
+            if best_move.is_none() {
+                best_move = candidate;
+            }
             break;
         }
         if candidate.is_some() {
@@ -662,6 +670,11 @@ pub fn quiescence_minimax(
     ply: u8,
 ) -> i32 {
     ctx.stats.quiescence_nodes += 1;
+
+    if ctx.should_stop() {
+        ctx.stats.aborted = true;
+        return 0;
+    }
 
     let orig_alpha = alpha;
     let orig_beta = beta;
@@ -880,9 +893,9 @@ pub fn quiescence_minimax(
 
 fn score_to_tt(score: i32, ply: i32) -> i32 {
     if score > MATE_THRESHOLD {
-        score + ply
+        score.saturating_add(ply)
     } else if score < -MATE_THRESHOLD {
-        score - ply
+        score.saturating_sub(ply)
     } else {
         score
     }
@@ -890,9 +903,9 @@ fn score_to_tt(score: i32, ply: i32) -> i32 {
 
 fn score_from_tt(score: i32, ply: i32) -> i32 {
     if score > MATE_THRESHOLD {
-        score - ply
+        score.saturating_sub(ply)
     } else if score < -MATE_THRESHOLD {
-        score + ply
+        score.saturating_add(ply)
     } else {
         score
     }
