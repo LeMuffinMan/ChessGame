@@ -17,3 +17,4 @@ public/native_bench.json
 .vscode/
 *.swp
 *~
+stockfish

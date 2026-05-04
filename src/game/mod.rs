@@ -65,6 +65,7 @@ pub enum GameEvent {
     PromotionPending(Coord),
 }
 
+#[derive(Clone)]
 pub struct Game {
     pub board: Board,
     pub active_player: Color,

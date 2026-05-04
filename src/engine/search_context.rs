@@ -28,6 +28,7 @@ impl<'a> SearchParams<'a> {
 
 pub const TT_SIZE: usize = 1 << 20; // 1 M entrées ≈ 24 MB
 
+#[derive(Clone)]
 pub struct SearchContext {
     pub killers: KillerTable,
     pub history: HistoryTable,
@@ -78,6 +79,7 @@ impl SearchContext {
     }
 }
 
+#[derive(Clone)]
 pub struct KillerTable {
     moves: [[Option<Move>; 2]; MAX_SEARCH_DEPTH],
 }
@@ -109,6 +111,7 @@ impl KillerTable {
     }
 }
 
+#[derive(Clone)]
 pub struct HistoryTable {
     table: [[u32; 64]; 64],
 }

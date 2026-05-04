@@ -1,5 +1,6 @@
 pub const MAX_SEARCH_DEPTH: usize = 128;
 
+#[derive(Clone)]
 pub struct SearchStats {
     pub depth: usize,
     pub nodes: u64,
