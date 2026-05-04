@@ -14,6 +14,8 @@ use crate::engine::search_context::{SearchContext, SearchParams};
 use crate::gui::chessapp::AppMode::*;
 use std::collections::HashMap;
 
+const MAX_DEPTH: u8 = 11;
+
 #[cfg(target_arch = "wasm32")]
 fn now_ms() -> f64 {
     web_sys::window()
@@ -77,7 +79,14 @@ pub fn get_bot_move(
         }
         Bot(Adaptive) => {
             let mut params = SearchParams::new(ctx, game_history, fifty_count);
-            iterative_deepening(board, active_player, 11, depth, BOT_TIMEOUT, &mut params)
+            iterative_deepening(
+                board,
+                active_player,
+                MAX_DEPTH,
+                depth,
+                BOT_TIMEOUT,
+                &mut params,
+            )
         }
         Bot(Random) => {
             let mut move_list = MoveList::new();

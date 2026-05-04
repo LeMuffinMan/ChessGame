@@ -4,7 +4,7 @@ default:
 DIST_DIR := "dist"
 PUBLIC_DIR := "public"
 FEATURES := "native"
-DEFAULT_DEPTH := "11"
+DEFAULT_DEPTH := "20"
 
 alias t := test
 alias b := bench-all
@@ -44,11 +44,24 @@ uci:
 # Run the engine against Stockfish to debug uci
 test-uci: uci
     cutechess-cli \
-    -engine cmd=./stockfish proto=uci name=SF \
-    -engine cmd=./target/debug/uci proto=uci name=CG \
-    -each tc=1+0.1 \
-    -games 10 \
-    -debug all
+        -engine name=Stockfish_Easy cmd=./stockfish option.Skill\ Level=0 \
+        -engine name=ChessGame cmd=./target/release/uci \
+        -each proto=uci tc=60+1 \
+        -games 1 \
+        -repeat \
+        -debug all
+
+elo-uci : uci
+    cutechess-cli \
+        -engine name=SF_1500 cmd=./stockfish option.UCI_LimitStrength=true option.UCI_Elo=1500 \
+        -engine name=ChessGame cmd=./target/release/uci \
+        -each proto=uci tc=60+1 \
+        -games 100 \
+        -concurrency 4 \
+        -repeat \
+        -pgnout results_1500.pgn
+
+# -openings file=books/8mvs_big_+80_+109.epd format=epd order=random
 
 # Run tests
 test *args:
