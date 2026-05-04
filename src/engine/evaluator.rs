@@ -160,7 +160,7 @@ fn rook_cut_bonus(board: &Board, strong_color: Color, weak_king: Coord) -> i32 {
 
 // +35 per bishop sharing a diag with the weak king
 fn bishop_cut_bonus(board: &Board, strong_color: Color, weak_king: Coord) -> i32 {
-    let mut bonus = 0i32;
+    let mut bonus = 0;
     let k_diag = weak_king.row as i8 - weak_king.col as i8;
     let k_anti = weak_king.row as i8 + weak_king.col as i8;
     for r in 0..8usize {
@@ -196,9 +196,9 @@ fn king_corner_pressure(king: Coord) -> i32 {
 
 // the less  mobility the weak king has, the better the score is
 fn king_freedom(weak_king: Coord, board: &Board, strong_color: Color) -> i32 {
-    let mut count = 0i32;
-    for dr in -1i8..=1 {
-        for dc in -1i8..=1 {
+    let mut count = 0;
+    for dr in -1..=1 {
+        for dc in -1..=1 {
             if dr == 0 && dc == 0 {
                 continue;
             }

@@ -10,7 +10,6 @@ use crate::board::moves::move_structs::MoveType::Promotion;
 use crate::engine::bot::BotDifficulty::*;
 use crate::engine::bot::PlayerType::*;
 use crate::engine::minimax::iterative_deepening;
-use crate::engine::minimax::timed_out_iterative_deepening;
 use crate::engine::search_context::{SearchContext, SearchParams};
 use crate::gui::chessapp::AppMode::*;
 use std::collections::HashMap;
@@ -74,18 +73,11 @@ pub fn get_bot_move(
     match difficulty {
         Bot(Depth(d)) => {
             let mut params = SearchParams::new(ctx, game_history, fifty_count);
-            iterative_deepening(board, active_player, *d, &mut params)
+            iterative_deepening(board, active_player, *d, depth, 0.0, &mut params)
         }
         Bot(Adaptive) => {
             let mut params = SearchParams::new(ctx, game_history, fifty_count);
-            timed_out_iterative_deepening(
-                board,
-                active_player,
-                11_u8,
-                depth,
-                BOT_TIMEOUT,
-                &mut params,
-            )
+            iterative_deepening(board, active_player, 11, depth, BOT_TIMEOUT, &mut params)
         }
         Bot(Random) => {
             let mut move_list = MoveList::new();
