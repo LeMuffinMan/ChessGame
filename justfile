@@ -47,7 +47,7 @@ test-uci: uci
     -engine cmd=./stockfish proto=uci name=SF \
     -engine cmd=./target/debug/uci proto=uci name=CG \
     -each tc=1+0.1 \
-    -games 2 \
+    -games 10 \
     -debug all
 
 # Run tests
