@@ -37,6 +37,17 @@ bench-all *args:
     @if [ ! -f {{PUBLIC_DIR}}/native_bench.json ]; then just bench-native; fi
     just wasm-release {{args}}
 
+uci:
+    cargo build --bin uci --features=native
+
+test-uci: uci
+    cutechess-cli \
+    -engine cmd=./target/debug/uci proto=uci name=test \
+    -engine cmd=./target/debug/uci proto=uci name=tst \
+    -each tc=1+0.1 \
+    -games 2 \
+    -debug all
+
 # Run tests
 test *args:
     cargo test {{args}}
