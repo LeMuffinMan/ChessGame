@@ -1,9 +1,8 @@
 use chess_game::board::cell::Color;
+use chess_game::board::cell::Color::*;
 use chess_game::board::moves::move_structs::Move;
-use chess_game::engine::bot::BotDifficulty::*;
-use chess_game::engine::bot::PlayerType::*;
-use chess_game::engine::bot::get_bot_move;
-use chess_game::engine::search_context::SearchContext;
+use chess_game::engine::minimax::iterative_deepening;
+use chess_game::engine::search_context::{SearchContext, SearchParams};
 use chess_game::game::Game;
 use std::error::Error;
 use std::io;
@@ -16,6 +15,7 @@ type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 #[derive(Clone)]
 struct Engine {
+    movetime: f64,
     wtime: f64,
     btime: f64,
     winc: f64,
@@ -36,6 +36,7 @@ impl Default for Engine {
 impl Engine {
     fn new() -> Self {
         Self {
+            movetime: 0.0,
             wtime: 0.0,
             btime: 0.0,
             winc: 0.0,
@@ -48,14 +49,40 @@ impl Engine {
         }
     }
     fn search(&mut self) -> Option<Move> {
-        get_bot_move(
-            &Bot(Depth(11)),
-            &mut self.game.board,
-            self.game.active_player,
+        let budget = if self.movetime > 0.0 {
+            self.movetime
+        } else {
+            let (time, inc) = if self.game.active_player == White {
+                (self.wtime, self.winc)
+            } else {
+                (self.btime, self.binc)
+            };
+
+            let mut b = (time as f64 / 30.0) + (inc as f64 * 0.8);
+
+            let hard_limit = time as f64 * 0.9;
+            if b > hard_limit {
+                b = hard_limit;
+            }
+
+            if b < 50.0 && time as f64 > 50.0 {
+                b = 50.0;
+            }
+            b
+        };
+        let mut params = SearchParams::new(
             &mut self.search_ctx,
             &self.game.draw.board_hashs,
             self.game.draw.draw_moves_count,
+        );
+        eprintln!("{}", format!("Budget = {}", budget));
+        iterative_deepening(
+            &mut self.game.board,
+            self.game.active_player,
+            11,
             &mut self.game.depth,
+            budget,
+            &mut params,
         )
     }
 }
@@ -127,7 +154,12 @@ impl Engine {
                 self.game = Game::new();
                 i += 1;
             }
-            Some("fen") => return Ok(()), // todo
+            Some("fen") => {
+                i += 1;
+                let fen = words[i..i + 6].join(" ");
+                self.game = Game::from_fen(&fen);
+                i += 6;
+            }
             _ => {}
         }
         if words.get(i).copied() == Some("moves") {
@@ -233,24 +265,64 @@ impl Engine {
         // * infinite
         // 	search until the "stop" command. Do not exit the search without being told so in this mode!
         //
-        for w in &words[1..words.len()] {
+        let mut engine_handle = self.clone();
+        for (i, w) in words.iter().enumerate().skip(1) {
             match *w {
-                // "searchmoves" => {}
-                // "pounder" => {}
-                "wtime" => {}
-                "btime" => {}
-                "winc" => {}
-                "binc" => {}
-                // "movetogo" => {}
-                "depth" => {}
-                "nodes" => {}
-                // "movetime" => {}
-                // "mate" => {}
-                "infinite" => {}
-                _ => continue,
+                "movetime" => {
+                    if let Some(val) = words.get(i + 1) {
+                        if let Ok(v) = val.parse::<f64>() {
+                            engine_handle.movetime = v;
+                        }
+                    }
+                }
+                "wtime" => {
+                    if let Some(val) = words.get(i + 1) {
+                        if let Ok(v) = val.parse::<f64>() {
+                            engine_handle.wtime = v;
+                        }
+                    }
+                }
+                "btime" => {
+                    if let Some(val) = words.get(i + 1) {
+                        if let Ok(v) = val.parse::<f64>() {
+                            engine_handle.btime = v;
+                        }
+                    }
+                }
+                "winc" => {
+                    if let Some(val) = words.get(i + 1) {
+                        if let Ok(v) = val.parse::<f64>() {
+                            engine_handle.winc = v;
+                        }
+                    }
+                }
+                "binc" => {
+                    if let Some(val) = words.get(i + 1) {
+                        if let Ok(v) = val.parse::<f64>() {
+                            engine_handle.binc = v;
+                        }
+                    }
+                }
+                "depth" => {
+                    if let Some(val) = words.get(i + 1) {
+                        if let Ok(v) = val.parse::<usize>() {
+                            engine_handle.depth = v;
+                        }
+                    }
+                }
+                "nodes" => {
+                    if let Some(val) = words.get(i + 1) {
+                        if let Ok(v) = val.parse::<usize>() {
+                            engine_handle.nodes = v;
+                        }
+                    }
+                }
+                "infinite" => {
+                    engine_handle.infinite = true;
+                }
+                _ => {}
             }
         }
-        let mut engine_handle = self.clone();
         engine_handle
             .search_ctx
             .stop
