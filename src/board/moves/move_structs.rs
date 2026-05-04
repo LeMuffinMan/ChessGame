@@ -39,7 +39,21 @@ impl Move {
         let dest_col = (b'a' + self.dest.col) as char;
         let dest_row = (b'1' + self.dest.row) as char;
 
-        format!("{}{}{}{}", origin_col, origin_row, dest_col, dest_row)
+        let promotion = if let Promotion(piece) = self.move_type {
+            match piece {
+                Rook => "r",
+                Knight => "n",
+                Bishop => "b",
+                Queen => "q",
+                _ => unreachable!("Promotion can't be other piece"),
+            }
+        } else {
+            ""
+        };
+        format!(
+            "{}{}{}{}{}",
+            origin_col, origin_row, dest_col, dest_row, promotion
+        )
     }
 }
 
