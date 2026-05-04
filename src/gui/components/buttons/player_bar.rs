@@ -4,7 +4,7 @@ use crate::board::cell::Color::*;
 use crate::engine::bot::BotDifficulty::*;
 use crate::engine::bot::PlayerType;
 use crate::engine::bot::PlayerType::*;
-use crate::engine::minimax::timed_out_iterative_deepening;
+use crate::engine::minimax::iterative_deepening;
 use crate::engine::search_context::{SearchContext, SearchParams};
 use crate::engine::search_stats::MAX_SEARCH_DEPTH;
 use crate::gui::chessapp::AppMode::*;
@@ -108,7 +108,7 @@ impl ChessApp {
             if let Bot(Depth(ref mut d)) = bot_setting {
                 let depth_label = format!("d={}", d);
                 ui.menu_button(depth_label, |ui| {
-                    for depth in 6..=11_u8 {
+                    for depth in 6..=11 {
                         if ui
                             .selectable_label(*d == depth, format!("d={}", depth))
                             .clicked()
@@ -180,7 +180,7 @@ impl ChessApp {
                     &self.game.draw.board_hashs,
                     self.game.draw.draw_moves_count,
                 );
-                if let Some(hint_move) = timed_out_iterative_deepening(
+                if let Some(hint_move) = iterative_deepening(
                     &mut self.game.board,
                     self.game.active_player,
                     MAX_SEARCH_DEPTH as u8,

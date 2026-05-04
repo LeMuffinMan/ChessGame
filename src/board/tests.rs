@@ -127,8 +127,8 @@ fn test_apply_undo_castle_left() {
 
 fn empty_board_with_kings() -> Board {
     let mut board = Board::init_board();
-    for r in 0..8usize {
-        for c in 0..8usize {
+    for r in 0..8 {
+        for c in 0..8 {
             board[(r, c)] = Free;
         }
     }
@@ -240,8 +240,8 @@ fn test_generate_moves_after_e4_black() {
 #[test]
 fn test_generate_moves_stalemate() {
     let mut board = Board::init_board();
-    for r in 0..8usize {
-        for c in 0..8usize {
+    for r in 0..8 {
+        for c in 0..8 {
             board[(r, c)] = Free;
         }
     }
@@ -371,8 +371,8 @@ fn test_pawn_double_push_blocked_by_intermediate() {
 #[test]
 fn test_rook_stops_after_capture() {
     let mut board = Board::init_board();
-    for r in 0..8usize {
-        for c in 0..8usize {
+    for r in 0..8 {
+        for c in 0..8 {
             board[(r, c)] = Free;
         }
     }

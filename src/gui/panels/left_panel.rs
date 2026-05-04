@@ -7,7 +7,6 @@ use crate::gui::chessapp::AppMode::*;
 use egui::Context;
 
 impl ChessApp {
-    //Shows turn infos, resign / draw options, new game option and timer options
     pub fn left_panel_desktop(&mut self, ctx: &Context) {
         egui::SidePanel::left("left_panel")
             .default_width(270.0)

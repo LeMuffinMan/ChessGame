@@ -619,39 +619,6 @@ fn aspiration_search(
     }
 }
 
-pub fn timed_out_iterative_deepening(
-    board: &mut Board,
-    active_player: Color,
-    max_depth: u8,
-    reached_depth: &mut u8,
-    timeout: f64,
-    params: &mut SearchParams,
-) -> Option<Move> {
-    let mut best_move = None;
-    let mut prev_score = 0;
-    let start = now_ms();
-    for depth in 1..=max_depth {
-        let (candidate, score) = if depth <= 2 {
-            params.ctx.stats.reset();
-            find_best_move(board, active_player, depth, i32::MIN, i32::MAX, params)
-        } else {
-            aspiration_search(board, active_player, depth, prev_score, params)
-        };
-        if params.ctx.stats.aborted {
-            break;
-        }
-        if candidate.is_some() {
-            *reached_depth = depth;
-            best_move = candidate;
-            prev_score = score;
-        }
-        if now_ms() - start > timeout {
-            break;
-        }
-    }
-    best_move
-}
-
 pub fn iterative_deepening(
     board: &mut Board,
     active_player: Color,

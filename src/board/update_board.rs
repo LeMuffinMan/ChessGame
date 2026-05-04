@@ -96,13 +96,13 @@ impl Board {
         if dif_col == -2 {
             let col = to.col as usize;
             if col > 0 {
-                self[(row, 0usize)] = Cell::Free;
+                self[(row, 0)] = Cell::Free;
                 self[(row, col + 1)] = Cell::Occupied(Rook, *color);
             }
         } else if dif_col == 2 {
             let col = to.col as usize;
             if col > 0 {
-                self[(row, 7usize)] = Cell::Free;
+                self[(row, 7)] = Cell::Free;
                 self[(row, col - 1)] = Cell::Occupied(Rook, *color);
             }
         }
