@@ -19,38 +19,26 @@ impl ChessApp {
         self.url_with_blob_export(pgn)
     }
     fn url_with_blob_export(&mut self, pgn: String) -> Result<(), JsValue> {
-        //we create a Js to build the sequence needed for the blob
         let parts = Array::new();
         parts.push(&JsValue::from_str(&pgn));
 
-        //we create a Binary Large OBject representing our pgn content, in memory
         let blob = Blob::new_with_str_sequence(&parts.into())?;
 
-        //return a string of type blob:<origin>/<id> usable as href.
-        //needed to reference the blob Blob from the Document Object Model.
         let url = Url::create_object_url_with_blob(&blob)?;
 
-        // get window and docuemnt
-        // unwrap is not enough we need to handle it here
         let window = window().unwrap();
         let doc = window.document().unwrap();
 
-        //we create the "link" to our blob
         let link = doc.create_element("a")?.dyn_into::<HtmlAnchorElement>()?;
         link.set_href(&url);
         link.set_download("chessgame.pgn");
 
-        //hide the link we created
         let elem: &HtmlElement = link.unchecked_ref(); // cast en HtmlElement
         elem.style().set_property("display", "none")?;
-        //put the element in the DOM
         doc.body().unwrap().append_child(&link)?;
-        // trigger download, as if we clicked a download link
         link.click();
 
-        // delete the DOM link for cleaning
         doc.body().unwrap().remove_child(&link)?;
-        //free blob browser ressources alocated
         Url::revoke_object_url(&url)?;
 
         Ok(())

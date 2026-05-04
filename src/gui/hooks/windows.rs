@@ -189,8 +189,8 @@ impl ChessApp {
                     .anchor(egui::Align2::CENTER_CENTER, [0.0, -365.0])
                     .show(ctx, |ui| {
                         let style = ui.style_mut();
-                        style.spacing.icon_width = 40.0; // largeur de la checkbox
-                        style.spacing.icon_spacing = 8.0; // espace entre checkbox et texte
+                        style.spacing.icon_width = 40.0;
+                        style.spacing.icon_spacing = 8.0;
 
                         ui.add_space(20.0);
                         ui.horizontal(|ui| {
@@ -233,7 +233,7 @@ impl ChessApp {
                                 ui.add_space(20.0);
                                 if ui.button(RichText::new("Download").size(30.0)).clicked() {
                                     #[cfg(target_arch = "wasm32")]
-                                    let _ = self.export_pgn(); //Todo : handle error
+                                    let _ = self.export_pgn();
                                     self.win = None;
                                 }
                                 ui.add_space(20.0);

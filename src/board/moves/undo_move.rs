@@ -49,7 +49,7 @@ impl Board {
         self[(row as usize, r_dest as usize)] = Cell::Free;
         self[(row as usize, r_orig as usize)] = rook;
 
-        self[(row as usize, 4usize)] = Cell::Occupied(King, active_player);
+        self[(row as usize, 4)] = Cell::Occupied(King, active_player);
         self[m.dest] = Cell::Free;
 
         if active_player == White {

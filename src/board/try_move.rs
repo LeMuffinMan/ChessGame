@@ -71,9 +71,6 @@ impl ChessApp {
                 Ok | Check => {
                     let prev_board = self.game.board_at(self.game.history.len() - 1);
                     self.add_history_san(&from, &to, &prev_board);
-                    // if self.game.end.is_none() && self.is_bot_turn() {
-                    //     self.bot_pending = true;
-                    // }
                 }
             }
         }

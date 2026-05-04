@@ -115,7 +115,7 @@ pub fn pin_detection(board: &Board, color: Color) -> PinInfos {
         Color::White => 1,
         Color::Black => -1,
     };
-    for dc in [1i8, -1] {
+    for dc in [1, -1] {
         let r = king.row as i8 + pawn_dir;
         let c = king.col as i8 + dc;
         if let Some(dest) = Board::checked_coord(r, c)

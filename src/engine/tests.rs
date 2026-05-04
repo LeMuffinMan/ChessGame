@@ -18,8 +18,8 @@ fn coord(row: u8, col: u8) -> Coord {
 
 fn empty_board(white_king: Coord, black_king: Coord) -> Board {
     let mut board = Board::init_board();
-    for r in 0..8usize {
-        for c in 0..8usize {
+    for r in 0..8 {
+        for c in 0..8 {
             board[(r, c)] = Free;
         }
     }
