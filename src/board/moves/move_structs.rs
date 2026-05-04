@@ -34,10 +34,10 @@ impl Move {
     }
     pub fn to_uci(&self) -> String {
         let origin_col = (b'a' + self.origin.col) as char;
-        let origin_row = (b'1' + 7 - self.origin.row) as char;
+        let origin_row = (b'1' + self.origin.row) as char;
 
         let dest_col = (b'a' + self.dest.col) as char;
-        let dest_row = (b'1' + 7 - self.dest.row) as char;
+        let dest_row = (b'1' + self.dest.row) as char;
 
         format!("{}{}{}{}", origin_col, origin_row, dest_col, dest_row)
     }
@@ -162,5 +162,40 @@ impl Board {
             }
             _ => Regular,
         }
+    }
+
+    pub fn move_from_uci(&self, word: &str, active_player: Color) -> Option<Move> {
+        let b = word.as_bytes();
+        if b.len() < 4 {
+            return None;
+        }
+        let origin_col = b[0].checked_sub(b'a').filter(|&c| c < 8)?;
+        let origin_row = b[1].checked_sub(b'1').filter(|&r| r < 8).map(|r| 7 - r)?;
+        let dest_col = b[2].checked_sub(b'a').filter(|&c| c < 8)?;
+        let dest_row = b[3].checked_sub(b'1').filter(|&r| r < 8).map(|r| 7 - r)?;
+
+        let origin = Coord {
+            row: origin_row,
+            col: origin_col,
+        };
+        let dest = Coord {
+            row: dest_row,
+            col: dest_col,
+        };
+
+        let m_type = if b.len() >= 5 {
+            let piece = match b[4] {
+                b'q' => Queen,
+                b'r' => Rook,
+                b'b' => Bishop,
+                b'n' => Knight,
+                _ => return None,
+            };
+            Promotion(piece)
+        } else {
+            self.get_move_type(origin, dest, self[origin].get_piece())
+        };
+
+        Some(self.create_move(origin, dest, active_player, m_type))
     }
 }

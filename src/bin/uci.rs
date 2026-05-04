@@ -1,3 +1,4 @@
+use chess_game::board::cell::Color;
 use chess_game::board::moves::move_structs::Move;
 use chess_game::engine::bot::BotDifficulty::*;
 use chess_game::engine::bot::PlayerType::*;
@@ -109,7 +110,8 @@ impl Engine {
         Ok(())
     }
 
-    fn cmd_position(&self, _words: Vec<&str>) -> Result<()> {
+    // board_hashs not actualized for fifty_move / triple repetition !
+    fn cmd_position(&mut self, words: Vec<&str>) -> Result<()> {
         // * Before the engine is asked to search on a position, there will always be a position command
         //   to tell the engine about the current position.
         // * position [fen <fenstring> | startpos ]  moves <move1> .... <movei>
@@ -118,21 +120,31 @@ impl Engine {
         // if the game was played  from the start position the string "startpos" will be sent
         // Note: no "new" command is needed. However, if this position is from a different game than
         // the last position sent to the engine, the GUI should have sent a "ucinewgame" inbetween.
-        // match words.get(1).copied() {
-        //     Some("startpos") => { engine.game.board::new_board() },
-        //     None => { },
-        //     _ => { engine.game.board::from_fen() },
-        // }
-        // match words.get(2).copied() {
-        //     Some("moves") => {
-        //         let mut active_player = White;
-        //         for m in words[3.. words.len()] {
-        //             let mv = parse_move(m);
-        //             engine.game.board.apply_move(mv, active_player);
-        //             active_player = if active_player == White { Black } else { White };
-        //         }
-        //     }
-        // }
+        let mut i = 1;
+        match words.get(i).copied() {
+            Some("startpos") => {
+                self.game = Game::new();
+                i += 1;
+            }
+            Some("fen") => return Ok(()), // not yet implemented
+            _ => {}
+        }
+        if words.get(i).copied() == Some("moves") {
+            i += 1;
+            for mv_str in &words[i..] {
+                if let Some(mv) = self
+                    .game
+                    .board
+                    .move_from_uci(mv_str, self.game.active_player)
+                {
+                    self.game.board.apply_move(&mv, self.game.active_player);
+                    self.game.active_player = match self.game.active_player {
+                        Color::White => Color::Black,
+                        Color::Black => Color::White,
+                    };
+                }
+            }
+        }
         Ok(())
     }
 
