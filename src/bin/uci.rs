@@ -138,7 +138,6 @@ impl Engine {
         Ok(())
     }
 
-    // board_hashs not actualized for fifty_move / triple repetition !
     fn cmd_position(&mut self, words: Vec<&str>) -> Result<()> {
         // * Before the engine is asked to search on a position, there will always be a position command
         //   to tell the engine about the current position.
@@ -175,6 +174,12 @@ impl Engine {
                         Color::White => Color::Black,
                         Color::Black => Color::White,
                     };
+                    *self
+                        .game
+                        .draw
+                        .board_hashs
+                        .entry(self.game.board.hash)
+                        .or_insert(0) += 1;
                 }
             }
         }
