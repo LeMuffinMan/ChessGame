@@ -47,7 +47,7 @@ pub fn generate_moves(
                         Queen => {
                             queen_moves(&origin, active_player, board, list, capture_only, &info)
                         }
-                        King => king_moves(&origin, active_player, board, list, capture_only),
+                        King => king_moves(&origin, active_player, board, list, capture_only, &info),
                     }
                 }
             }

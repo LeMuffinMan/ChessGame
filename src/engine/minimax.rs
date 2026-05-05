@@ -132,7 +132,7 @@ pub fn minimax(
 
     if params.null_move_allowed
         && depth >= 3
-        && board.check.is_none()
+        && !is_king_exposed(board, &active_player)
         && has_non_pawn_material(board, active_player)
         && has_non_pawn_material(board, opponent)
     {

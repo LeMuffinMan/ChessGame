@@ -4,6 +4,7 @@ use crate::board::cell::Cell;
 use crate::board::cell::Color;
 use crate::board::cell::Color::*;
 use crate::board::moves::move_structs::MoveList;
+use crate::board::pin_detection::PinInfos;
 
 pub fn king_moves(
     origin: &Coord,
@@ -11,12 +12,13 @@ pub fn king_moves(
     board: &mut Board,
     list: &mut MoveList,
     capture_only: bool,
+    info: &PinInfos,
 ) {
     king_offsets(board, *origin, capture_only, active_player, list);
     if capture_only {
         return;
     }
-    king_castles(board, *origin, active_player, list);
+    king_castles(board, *origin, active_player, list, info);
 }
 
 fn king_offsets(
@@ -47,8 +49,8 @@ fn king_offsets(
     }
 }
 
-fn king_castles(board: &mut Board, origin: Coord, active_player: &Color, list: &mut MoveList) {
-    if board.check.is_none() {
+fn king_castles(board: &mut Board, origin: Coord, active_player: &Color, list: &mut MoveList, info: &PinInfos) {
+    if info.checker_count == 0 {
         let rights = if *active_player == White {
             board.white_castle
         } else {
