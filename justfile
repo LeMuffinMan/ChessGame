@@ -4,7 +4,6 @@ default:
 DIST_DIR := "dist"
 PUBLIC_DIR := "public"
 FEATURES := "native"
-DEFAULT_DEPTH := "20"
 
 alias t := test
 alias b := bench-all
@@ -27,14 +26,14 @@ native *args:
 native-release *args:
     cargo run --release --bin chess_game --features={{FEATURES}} {{args}}
 
-# Generate public/native_bench.json at given depth (default: 11)
-bench-native depth=DEFAULT_DEPTH:
+# Generate public/native_bench.json at given depth
+bench-native depth:
     @mkdir -p {{PUBLIC_DIR}}
     cargo run --release --features {{FEATURES}} --bin bench -- {{depth}} > {{PUBLIC_DIR}}/native_bench.json
 
 # Run native bench (if missing) then build WASM release
-bench-all *args:
-    @if [ ! -f {{PUBLIC_DIR}}/native_bench.json ]; then just bench-native; fi
+bench-all depth *args:
+    just bench-native {{depth}}
     just wasm-release {{args}}
 
 # Build uci
@@ -52,14 +51,14 @@ test-uci: build-uci
         -debug all \
         -openings file=books/8mvs_big_+80_+109.epd format=epd order=random
 
-# Run an elo test : elo-uci <bot_elo> <nb_games> 
-elo-uci elo games: build-uci
+# Run an elo test : elo-uci <bot_elo> <nb_games>
+elo-uci elo games concurrency: build-uci
     cutechess-cli \
         -engine name=SF_{{elo}} cmd=./stockfish option.UCI_LimitStrength=true option.UCI_Elo={{elo}} \
         -engine name=ChessGame cmd=./target/release/uci \
         -each proto=uci tc=60+1 \
         -games {{games}} \
-        -concurrency 5 \
+        -concurrency {{concurrency}} \
         -repeat \
         -openings file=books/8mvs_big_+80_+109.epd format=epd order=random \
         -pgnout results_{{elo}}.pgn
