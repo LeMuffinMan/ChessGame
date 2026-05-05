@@ -38,11 +38,11 @@ bench-all *args:
     just wasm-release {{args}}
 
 # Build uci
-uci:
+build-uci:
     cargo build --release --bin uci --features=native
 
 # Run the engine against Stockfish to debug uci
-test-uci: uci
+test-uci: build-uci
     cutechess-cli \
         -engine name=Stockfish_Easy cmd=./stockfish option.Skill\ Level=0 \
         -engine name=ChessGame cmd=./target/release/uci \
@@ -52,17 +52,17 @@ test-uci: uci
         -debug all \
         -openings file=books/8mvs_big_+80_+109.epd format=epd order=random
 
-elo-uci : uci
+# Run an elo test : elo-uci <bot_elo> <nb_games> 
+elo-uci elo games: build-uci
     cutechess-cli \
-        -engine name=SF_1800 cmd=./stockfish option.UCI_LimitStrength=true option.UCI_Elo=1800 \
+        -engine name=SF_{{elo}} cmd=./stockfish option.UCI_LimitStrength=true option.UCI_Elo={{elo}} \
         -engine name=ChessGame cmd=./target/release/uci \
         -each proto=uci tc=60+1 \
-        -games 100 \
+        -games {{games}} \
         -concurrency 5 \
         -repeat \
         -openings file=books/8mvs_big_+80_+109.epd format=epd order=random \
-        -pgnout results_1800.pgn
-
+        -pgnout results_{{elo}}.pgn
 
 # Run tests
 test *args:
