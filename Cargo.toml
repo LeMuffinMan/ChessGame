@@ -8,6 +8,8 @@ chrono = "0.4.42"
 eframe = "0.32.2"
 egui = "0.32.2"
 log = "0.4.28"
+serde = "1.0.228"
+serde_json = "1.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_log = "1.0.0"

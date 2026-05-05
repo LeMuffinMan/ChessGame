@@ -19,19 +19,19 @@ wasm-release *args:
     just wasm --release {{args}}
 
 # Run native binary (debug)
-native *args:
-    cargo run --bin chess_game --features={{FEATURES}} {{args}}
+native:
+    cargo run --bin chess_game --features={{FEATURES}}
 
 # Run native binary (release)
-native-release *args:
-    cargo run --release --bin chess_game --features={{FEATURES}} {{args}}
+native-release:
+    cargo run --release --bin chess_game --features={{FEATURES}}
 
 # Generate public/native_bench.json at given depth
 bench-native depth:
     @mkdir -p {{PUBLIC_DIR}}
-    cargo run --release --features {{FEATURES}} --bin bench -- {{depth}} > {{PUBLIC_DIR}}/native_bench.json
+    cargo run --release --features {{FEATURES}} --bin bench -- measure {{depth}} > {{PUBLIC_DIR}}/native_bench.json
 
-# Run native bench (if missing) then build WASM release
+# Run native bench (if missing) with <depth> then build WASM release
 bench-all depth *args:
     just bench-native {{depth}}
     just wasm-release {{args}}
@@ -62,6 +62,11 @@ elo-uci elo games concurrency: build-uci
         -repeat \
         -openings file=books/8mvs_big_+80_+109.epd format=epd order=random \
         -pgnout results_{{elo}}.pgn
+
+ci-fast treshold:
+    cargo build --release --bin chess_game --features={{FEATURES}}
+    cargo run --release --features=native --bin bench -- measure 11 > bench_results/current.json
+    cargo run --release --features=native --bin bench -- compare bench_results/baseline.json bench_results/current.json {{treshold}}
 
 # Run tests
 test *args:
