@@ -174,11 +174,10 @@ pub fn run_bench_single(fen: &str, label: &str, depth: u8) -> String {
     if depth < 1 {
         return "{}".to_string();
     }
-    let (r, t) = run_n(fen, depth, 0);
-    entry_json(label, depth, &r, t)
+    let r = bench_run(fen, depth, 0);
+    entry_json(label, depth, &r, r.time_ms)
 }
 
-// Kept for backwards compatibility with the native bench binary.
 pub fn run_bench(depth: u8, mode: u8) -> String {
     if depth < 1 {
         return "[]".to_string();
@@ -191,25 +190,9 @@ pub fn run_bench(depth: u8, mode: u8) -> String {
     let entries: Vec<String> = positions
         .iter()
         .map(|(label, fen)| {
-            let (r, t) = run_n(fen, depth, 0);
-            entry_json(label, depth, &r, t)
+            let r = bench_run(fen, depth, 0);
+            entry_json(label, depth, &r, r.time_ms)
         })
         .collect();
     format!("[{}]", entries.join(","))
-}
-
-pub fn run_n(fen: &str, depth: u8, max_nodes: u64) -> (BenchResult, f64) {
-    const NB_RUNS: usize = 5;
-
-    let stats_result = bench_run(fen, depth, max_nodes);
-    let mut min_time = stats_result.time_ms;
-
-    for _ in 1..NB_RUNS {
-        let t = bench_run(fen, depth, max_nodes).time_ms;
-        if t < min_time {
-            min_time = t;
-        }
-    }
-
-    (stats_result, min_time)
 }
