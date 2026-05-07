@@ -32,7 +32,8 @@ impl<'a> SearchParams<'a> {
     }
 }
 
-pub const TT_SIZE: usize = 1 << 20; // 1 M entrées ≈ 24 MB
+// we should fix this size following the timing
+pub const TT_SIZE: usize = 1 << 25;
 
 #[derive(Clone)]
 pub struct SearchContext {
