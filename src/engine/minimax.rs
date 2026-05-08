@@ -658,8 +658,28 @@ pub fn iterative_deepening(
             let nodes = params.ctx.stats.cumulative_nodes;
             params.ctx.stats.depth_results.push((depth, score, elapsed, nodes));
         }
-        if timeout > 0.0 && (now_ms() - start) > timeout {
-            break;
+        if timeout > 0.0 {
+            let elapsed = now_ms() - start;
+            if elapsed >= timeout {
+                break;
+            }
+            let n = params.ctx.stats.depth_results.len();
+            if n >= 2 {
+                let t_curr = params.ctx.stats.depth_results[n - 1].2 as f64;
+                let t_prev = params.ctx.stats.depth_results[n - 2].2 as f64;
+                let t_before = if n >= 3 { params.ctx.stats.depth_results[n - 3].2 as f64 } else { 0.0 };
+                let per_curr = t_curr - t_prev;
+                let per_prev = t_prev - t_before;
+                let remaining = timeout - elapsed;
+                // If remaining > 2× current depth time, always try — plenty of budget.
+                // Prediction only kicks in when we're close to the limit.
+                if per_curr >= 1.0 && per_prev >= 1.0 && remaining < per_curr * 2.0 {
+                    let ratio = (per_curr / per_prev).clamp(1.0, 5.0);
+                    if per_curr * ratio > remaining {
+                        break;
+                    }
+                }
+            }
         }
     }
     best_move

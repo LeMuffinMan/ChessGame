@@ -1,7 +1,6 @@
 use crate::Board;
 use crate::ChessApp;
 use crate::Color;
-use crate::board::cell::Cell;
 use crate::board::cell::Color::*;
 use crate::board::moves::move_gen::generate_moves;
 use crate::board::moves::move_structs::Move;
@@ -14,7 +13,7 @@ use crate::engine::search_context::{SearchContext, SearchParams};
 use crate::gui::chessapp::AppMode::*;
 use std::collections::HashMap;
 
-pub const MAX_DEPTH: u8 = 11;
+pub const MAX_DEPTH: u8 = 16;
 
 #[cfg(target_arch = "wasm32")]
 fn now_ms() -> f64 {
@@ -49,7 +48,7 @@ fn random_index(len: usize) -> usize {
     nanos % len
 }
 
-const BOT_TIMEOUT: f64 = 150.0;
+const BOT_TIMEOUT: f64 = 300.0;
 
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum BotDifficulty {
