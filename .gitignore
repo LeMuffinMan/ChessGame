@@ -23,3 +23,4 @@ results_1500.pgn results.pgn
 results_1500.pgn results.pgn
 *.pgn
 *.json
+!bench_results/baseline.json
