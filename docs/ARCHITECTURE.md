@@ -12,8 +12,9 @@ src/
 │   ├── threat.rs            — threat map generation
 │   ├── is_king_exposed.rs   — legality check via ray casting
 │   ├── pin_detection.rs     — absolute pin detection
-│   ├── try_move.rs          — move validation entry point
+│   ├── try_move.rs          — move validation entry point (GUI level)
 │   ├── utils.rs
+│   ├── tests.rs             — board unit tests
 │   └── moves/
 │       ├── move_structs.rs  — Move, MoveType, MoveList
 │       ├── move_gen.rs      — generate_moves (all pieces)
@@ -30,16 +31,16 @@ src/
 │   ├── evaluator.rs         — evaluate(), king safety, mop-up, PST blending
 │   ├── move_ordering.rs     — MVV-LVA, killer, history, TT move scoring
 │   ├── search_context.rs    — SearchContext, SearchParams, HistoryTable, KillerTable
-│   ├── search_stats.rs      — SearchStats (nodes, cutoffs, TT hits…)
+│   ├── search_stats.rs      — SearchStats (nodes, cutoffs, TT hits, depth results)
 │   ├── ttentry.rs           — TtEntry, TtFlag (Exact / LowerBound / UpperBound)
-│   ├── zobris_table.rs      — ZobristTable (thread_local + OnceLock)
+│   ├── zobrist.rs           — ZobristTable (thread_local + OnceLock)
 │   ├── pst_maps.rs          — piece-square tables (opening + endgame)
 │   ├── bench.rs             — bench infrastructure, WASM exports
 │   ├── bot.rs               — bot move dispatch (difficulty → depth + time budget)
 │   └── tests.rs             — engine unit tests
 │
 ├── game/
-│   └── mod.rs               — Game struct: try_move, history Vec<Move>, draw conditions
+│   └── mod.rs               — Game struct: try_move, try_move_promotion, history Vec<Move>, draw conditions
 │
 ├── gui/                     — egui UI, zero engine logic
 │   ├── chessapp.rs          — ChessApp, eframe::App impl
@@ -53,7 +54,8 @@ src/
 │   └── hooks/               — promotion window, modal hooks
 │
 ├── bin/
-│   └── bench.rs             — native benchmark binary (stdout JSON)
+│   ├── bench.rs             — native benchmark binary (stdout JSON)
+│   └── uci.rs               — UCI binary, speaks the Universal Chess Interface protocol
 │
 ├── lib.rs                   — WASM entry point (wasm_bindgen exports)
 └── main.rs                  — native entry point
@@ -79,7 +81,7 @@ This makes the search loop allocation-free: no cloning, no heap, just stack fram
 
 ### Engine / GUI separation
 
-`engine/` and `game/` have zero dependency on `egui`. The GUI (`ChessApp`) calls `ChessGame::try_move` and `bot::find_move`; it contains no chess rules. This boundary makes it possible to run the engine headless (`src/bin/bench.rs`) and will allow a UCI binary (`src/bin/uci.rs`) without touching the GUI.
+`engine/` and `game/` have zero dependency on `egui`. The GUI (`ChessApp`) calls `Game::try_move` and `bot::get_bot_move`; it contains no chess rules. This boundary makes it possible to run the engine headless as `src/bin/bench.rs` (benchmarks) and `src/bin/uci.rs` (UCI protocol) without touching the GUI.
 
 ### Transposition Table
 
@@ -91,12 +93,12 @@ A `ZobristTable` is initialized once via `thread_local! + OnceLock` and accessed
 
 ---
 
-## Data flow: one bot move
+## Data flow: one bot move (GUI)
 
 ```
 ChessApp::update()
-  └── bot::find_move(board, color, difficulty)
-        └── minimax::timed_out_iterative_deepening(...)
+  └── bot::get_bot_move(board, color, difficulty, ctx, ...)
+        └── minimax::iterative_deepening(board, color, max_depth, budget, params)
               ├── aspiration_search(depth, prev_score)
               │     └── find_best_move(alpha, beta)
               │           └── minimax(depth-1, ...)  [recursive]
@@ -108,4 +110,16 @@ ChessApp::update()
               │                 ├── quiescence_minimax at depth=0
               │                 └── TT store
               └── best_move → ChessApp → GUI highlight
+```
+
+## Data flow: UCI binary
+
+```
+stdin (cutechess-cli / Lichess bot)
+  └── uci.rs main loop
+        ├── "uci"       → print engine identity + options
+        ├── "position"  → apply FEN + move list to Game
+        └── "go"        → spawn search thread
+                            └── minimax::iterative_deepening(...)
+                                  └── best_move → println!("bestmove {}")
 ```
