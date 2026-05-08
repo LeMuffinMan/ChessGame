@@ -8,6 +8,7 @@ impl ChessApp {
             .clicked()
         {
             self.app_mode = Replay;
+            self.last_move = None;
         }
     }
 }
