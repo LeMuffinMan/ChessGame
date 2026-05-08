@@ -4,7 +4,7 @@
 <td align="right">
   <strong><a href="https://lemuffinman.github.io/ChessGame/">▶ Play live demo</a></strong>
   &nbsp;·&nbsp;
-  <strong><a href="https://lichess.org/@/LeMuffinBot">♟ LeMuffinBot on Lichess</a></strong>
+  <strong><a href="https://lichess.org/@/LeMuffinBot">♟ Play against me on Lichess</a></strong>
 </td>
 </tr>
 </table>
