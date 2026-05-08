@@ -633,7 +633,7 @@ pub fn iterative_deepening(
     let mut prev_score = 0;
     let start = if timeout > 0.0 { now_ms() } else { 0.0 };
     for depth in 1..=max_depth {
-        if params.ctx.should_stop() {
+        if best_move.is_some() && params.ctx.should_stop() {
             break;
         }
         let (candidate, score) = if depth <= 2 {
