@@ -11,13 +11,13 @@
 
 ---
 
-I built this project to learn Rust on something real, not exercises or tutorials. Chess felt like the right choice: the rules are complex enough to punish bad design (and they did), the algorithms are well-documented, and the Chess Programming Wiki became my bible over the intense sprints I spent on this project. Seeing how simple evaluation criteria can lead to natural openings, then improving until you get mated by the algorithm you built... that was quite the motivation to keep going. The engine now speaks UCI, plays on Lichess as [LeMuffinBot](https://lichess.org/@/LeMuffinBot), and its Elo is measured against Stockfish with cutechess-cli.
+I built this project to learn Rust on something real, not exercises or tutorials. Chess felt like the right choice: the rules are complex enough to punish bad design (and they did), the algorithms are well-documented, and the Chess Programming Wiki became my bible over the intense sprints I spent on this project. Seeing how simple evaluation criteria can lead to natural openings, then improving until you get mated by the algorithm you built... that was quite the motivation to keep going. The engine now speaks UCI, plays on [Lichess](https://lichess.org/@/LeMuffinBot) with bots of elo 1900 - 2100, and its Elo is estimated 2050 against Stockfish 2000 elo with cutechess-cli on 1000 games.
 
 **A well-placed hint.**
 A friend who suggested I give Rust a try pointed me toward one early design choice: model the board around `enum Cell { Occupied(Piece, Color), Free }`. That was enough to get started. Following that thread, I found myself reaching naturally for exhaustive pattern matching, `Option<Coord>` for en passant and check state where null is impossible by construction, traits for abstraction without overhead. Rust's design makes good patterns feel obvious, and I gradually came to appreciate how much the language was guiding me.
 
 **From 3 seconds to 300ms.**
-The engine is deliberately single-threaded for now — the goal was to get the algorithm as efficient as possible before thinking about parallelism. A clean, well-optimized single-threaded search is a better starting point than rushing into multithreading on top of a slow base. What made it satisfying was that each bottleneck was measurable: clearing one felt like unlocking resources to invest in intelligence instead. The story starts at depth 5 taking 3 seconds on the starting position in WASM, purest minimax with no pruning. Alpha-beta alone cut that by an order of magnitude. Move ordering (MVV-LVA, killers, history) pushed the branching factor down further. Replacing the per-leaf evaluation with an incremental score inside `apply` and `undo` removed that overhead entirely. Then a Transposition Table (1M entries in a fixed `Vec`, indexed by Zobrist hash, with generation counters) collapsed the tree on repeated positions. Depth 5 now runs in under 30ms, depth 11 around 300ms — still the starting position, still single-threaded WASM.
+The engine is deliberately single-threaded for now, the goal was to get the algorithm as efficient as possible before thinking about parallelism, which will complicate the native / wasm code division. Without threads, optimisation were progressive. It was satisfying to see how each bottleneck was measurable: clearing one felt like unlocking resources to invest in intelligence instead. The story starts at depth 5 taking 3 seconds on the starting position in WASM, purest minimax with no pruning. Alpha-beta alone improved a lot the performances. Move ordering (MVV-LVA, killers, history) pushed the branching factor down further. Replacing the per-leaf evaluation with an incremental score inside `apply` and `undo` let us reach depth 9. Then a Transposition Table make us see the depths 12 - 16 depending of the tactic complecity of positions. Depth 5 at start position now runs in under 30ms, depth 11 around 300ms.
 
 ---
 
@@ -29,13 +29,13 @@ The engine is deliberately single-threaded for now — the goal was to get the a
 
 - **Play chess** — human vs human, human vs bot, or bot vs bot with all common chess features
 - **Standard timers** — with standard time controls (blitz, rapid…) in human vs human games
-- **AI opponent** — alpha-beta engine at configurable depth, three difficulty levels with iterative deepening
+- **AI opponent** — alpha-beta engine at configurable depth, with adaptative time budget to prevent long ui freeze (until web workers implementation).
 - **Hint system** — ask for the engine's best move suggestion at any point
 - **Replay & PGN** — game replay and PGN export
 - **Bench page** — standalone `bench.html` comparing performance across positions and depths (native vs WASM if running locally)
 - **Portable** — WASM build runs in any browser on any device; native binary available for desktop and benchmarking
 - **Responsive** — dedicated UI for desktop and mobile
-- **Lichess bot** — the engine plays on Lichess as [LeMuffinBot](https://lichess.org/@/LeMuffinBot) via the UCI protocol
+- **Lichess bot** — the engine plays on [Lichess](https://lichess.org/@/LeMuffinBot) via the UCI protocol
 
 <p align="center">
   <img src="assets/mobile_demo.gif" width="225" alt="Mobile demo" />
@@ -47,9 +47,9 @@ The engine is deliberately single-threaded for now — the goal was to get the a
 
 The project includes a standalone benchmark page (`bench.html`) that runs the engine against standard positions at increasing depths and reports nodes per second, effective branching factor, and quiescence node ratio.
 
-The native vs WASM comparison requires a local setup — run `just bench-all 11` after cloning to generate `public/native_bench.json` and open `bench.html` in your browser. This comparison is not available on the live demo.
+The native vs WASM comparison requires a local setup, run `just bench-all 11` after cloning to generate `public/native_bench.json` and open `bench.html` in your browser. This comparison is not available on the live demo.
 
-> **Note on reliability:** comparing native and WASM numbers is only meaningful on the same machine. Even then, WASM performance is harder to measure accurately: the browser introduces scheduling noise, lacks SIMD optimizations, and runs single-threaded in a sandboxed environment. Treat WASM NPS as a relative indicator across depths or positions — comparing it to native figures from a different machine has limited value.
+> **Note on reliability:** comparing native and WASM numbers is only meaningful on the same machine. Even then, WASM performance is harder to measure accurately: the browser introduces scheduling noise, lacks SIMD optimizations, and runs single-threaded in a sandboxed environment. Treat WASM NPS as a relative indicator across depths or positions, comparing it to native figures from a different machine has limited value.
 
 <p align="center">
   <img src="assets/260502_20h39m56s_screenshot.png" width="750" alt="Bench depth 10 WASM - Native" />
@@ -65,16 +65,12 @@ The native vs WASM comparison requires a local setup — run `just bench-all 11`
 
 The engine exposes a `uci` binary (`src/bin/uci.rs`) that implements a subset of the [Universal Chess Interface](http://download.shredderchess.com/div/uci.zip) protocol — enough to plug into tournament tools and run on Lichess. The implementation is intentionally partial: it covers the commands actually needed in practice (`uci`, `isready`, `ucinewgame`, `position`, `go`, `stop`, `setoption`, `debug`). The full spec is documented in `src/bin/uci_requirements.txt`.
 
-Time management on the `go` command uses a simple budget formula with a predictive guard: after each completed depth, the engine estimates whether the next depth is likely to exceed the remaining budget before starting it.
-
-**Playing against other engines locally** requires [cutechess-cli](https://github.com/cutechess/cutechess) and a Stockfish binary in the project root:
+**Playing against other engines locally** requires [cutechess-cli](https://github.com/cutechess/cutechess) and a [Stockfish](https://github.com/official-stockfish/Stockfish) binary in the project root:
 
 ```bash
 just test-uci              # one debug game vs Stockfish skill 0
 just elo-uci 1500 100 4    # 100 games vs SF@1500, 4 concurrent
 ```
-
-**LeMuffinBot** plays on Lichess at [lichess.org/@/LeMuffinBot](https://lichess.org/@/LeMuffinBot).
 
 ---
 
@@ -105,8 +101,8 @@ See [docs/ALGORITHMS.md](docs/ALGORITHMS.md) for context and implementation note
 
 | Technique | Ref |
 |---|---|
-| Zobrist Hashing (incremental) | [CPW](https://www.chessprogramming.org/Zobrist_Hashing) |
-| Transposition Table (fixed Vec 1M) | [CPW](https://www.chessprogramming.org/Transposition_Table) |
+| Zobrist Hashing | [CPW](https://www.chessprogramming.org/Zobrist_Hashing) |
+| Transposition Table | [CPW](https://www.chessprogramming.org/Transposition_Table) |
 
 </td>
 <td valign="top">
@@ -256,7 +252,7 @@ Key Rust dependencies: `eframe` / `egui` (GUI), `wasm-bindgen` + `web-sys` (WASM
 - [Transposition Table](https://www.chessprogramming.org/Transposition_Table) · [Zobrist Hashing](https://www.chessprogramming.org/Zobrist_Hashing)
 - [rustic-chess — MVV-LVA](https://rustic-chess.org/search/ordering/mvv_lva.html)
 - [Sebastian Lague Chess Coding Adventure](https://www.youtube.com/watch?v=U4ogK0MIzqk)
-- [Stockfish](https://github.com/official-stockfish/Stockfish) — reference for bench positions and UCI behaviour
+- [Stockfish](https://github.com/official-stockfish/Stockfish) — reference for bench positions, unit tests and UCI behaviour
 
 **UCI protocol**
 - [UCI specification](http://download.shredderchess.com/div/uci.zip) (ShredderChess) — the spec used to implement `src/bin/uci.rs`
