@@ -94,6 +94,7 @@ impl SearchContext {
         self.stats.nodes_per_depth[self.stats.depth] += 1;
         self.stats.total_node_depth += self.stats.depth;
         self.stats.nodes += 1;
+        self.stats.cumulative_nodes += 1;
     }
 }
 

@@ -631,7 +631,9 @@ pub fn iterative_deepening(
 ) -> Option<Move> {
     let mut best_move = None;
     let mut prev_score = 0;
-    let start = if timeout > 0.0 { now_ms() } else { 0.0 };
+    params.ctx.stats.depth_results.clear();
+    params.ctx.stats.cumulative_nodes = 0;
+    let start = now_ms();
     for depth in 1..=max_depth {
         if best_move.is_some() && params.ctx.should_stop() {
             break;
@@ -652,8 +654,11 @@ pub fn iterative_deepening(
             *reached_depth = depth;
             best_move = candidate;
             prev_score = score;
+            let elapsed = (now_ms() - start) as u64;
+            let nodes = params.ctx.stats.cumulative_nodes;
+            params.ctx.stats.depth_results.push((depth, score, elapsed, nodes));
         }
-        if timeout > 0.0 && now_ms() - start > timeout {
+        if timeout > 0.0 && (now_ms() - start) > timeout {
             break;
         }
     }
@@ -670,6 +675,7 @@ pub fn quiescence_minimax(
     ply: u8,
 ) -> i32 {
     ctx.stats.quiescence_nodes += 1;
+    ctx.stats.cumulative_nodes += 1;
 
     if ctx.should_stop() {
         ctx.stats.aborted = true;
