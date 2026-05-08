@@ -21,7 +21,10 @@ impl ChessApp {
             );
             ui.scope_builder(egui::UiBuilder::new().max_rect(rect), |ui| {
                 ui.horizontal(|ui| {
-                    ui.hyperlink_to("Benchmark", "https://lemuffinman.github.io/ChessGame/bench.html");
+                    ui.hyperlink_to(
+                        "Benchmark",
+                        "https://lemuffinman.github.io/ChessGame/bench.html",
+                    );
                     ui.separator();
                     ui.hyperlink_to("Source code", "https://github.com/LeMuffinMan/ChessGame");
                     ui.separator();
