@@ -149,16 +149,37 @@ impl ChessApp {
         self.search_ctx.stats.bot_time_thinking = end - start;
         self.search_ctx.stats.nps();
         if let Some(m) = bot_move {
-            let bot_color = self.game.active_player;
-            self.try_move(m.origin, m.dest);
             if let Promotion(piece) = m.move_type {
-                self.game.board[(m.dest.row as usize, m.dest.col as usize)] =
-                    Cell::Occupied(piece, bot_color);
-                self.promoteinfo = None;
-                self.win = None;
-                if self.game.end.is_none() && self.is_bot_turn() {
-                    self.bot_pending = true;
+                let prev_board = self.game.board.clone();
+                if let Some(event) = self.game.try_move_promotion(m.origin, m.dest, piece) {
+                    use crate::game::End;
+                    use crate::game::GameEvent::*;
+                    use crate::gui::chessapp::AppMode::Versus;
+
+                    self.last_move = Some((m.origin, m.dest));
+                    match event {
+                        Checkmate => {
+                            self.app_mode = Versus(Some(End::Checkmate));
+                            self.timer.active = false;
+                        }
+                        Stalemate => {
+                            self.app_mode = Versus(Some(End::Pat));
+                            self.timer.active = false;
+                        }
+                        Draw => {
+                            self.app_mode = Versus(Some(End::Draw));
+                        }
+                        _ => {}
+                    }
+                    self.add_history_san(&m.origin, &m.dest, &prev_board);
+                    if self.game.end.is_none() && self.is_bot_turn() {
+                        self.bot_pending = true;
+                    }
+                    self.hint_highlight = 0;
+                    self.game.hint = None;
                 }
+            } else {
+                self.try_move(m.origin, m.dest);
             }
         }
     }
