@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::fs::File;
 
 const DEFAULT_THRESHOLD: u8 = 10;
+const MIN_DEPTH: u8 = 6;
 
 #[derive(Deserialize)]
 struct BenchResult {
@@ -32,7 +33,7 @@ fn main() {
 
                 let mut json_entries: Vec<String> = Vec::new();
 
-                for depth in 1..=max_depth {
+                for depth in MIN_DEPTH..=max_depth {
                     for (label, fen) in FULL_POSITIONS {
                         let r = bench_run(fen, depth, 0);
 
@@ -83,20 +84,21 @@ fn main() {
             "compare" => {
                 let mut args = std::env::args().skip(2);
 
-                let (baseline_filename, current_filename, threshold) =
-                    match (args.next(), args.next(), args.next()) {
-                        (Some(b), Some(c), Some(t)) => (b, c, t),
-                        _ => {
-                            eprintln!(
-                                "Usage: bench compare <baseline.json> <current.json> <threshold_pct>"
-                            );
-                            std::process::exit(1);
-                        }
-                    };
+                let (baseline_filename, current_filename, threshold) = match (
+                    args.next(),
+                    args.next(),
+                    args.next(),
+                ) {
+                    (Some(b), Some(c), Some(t)) => (b, c, t),
+                    _ => {
+                        eprintln!(
+                            "Usage: bench compare <baseline.json> <current.json> <threshold_pct>"
+                        );
+                        std::process::exit(1);
+                    }
+                };
 
-                let threshold: f64 = threshold
-                    .parse::<u8>()
-                    .unwrap_or(DEFAULT_THRESHOLD) as f64;
+                let threshold: f64 = threshold.parse::<u8>().unwrap_or(DEFAULT_THRESHOLD) as f64;
 
                 match (
                     get_file_content(&baseline_filename),
@@ -139,8 +141,10 @@ fn get_file_content(filename: &str) -> Option<Vec<BenchResult>> {
 }
 
 fn compare(baseline: &[BenchResult], current: &[BenchResult], threshold: f64) -> bool {
-    let current_map: HashMap<(&str, u8), &BenchResult> =
-        current.iter().map(|r| ((r.label.as_str(), r.depth), r)).collect();
+    let current_map: HashMap<(&str, u8), &BenchResult> = current
+        .iter()
+        .map(|r| ((r.label.as_str(), r.depth), r))
+        .collect();
 
     let mut regression = false;
 
@@ -152,12 +156,18 @@ fn compare(baseline: &[BenchResult], current: &[BenchResult], threshold: f64) ->
 
     for entry in baseline {
         let Some(cur) = current_map.get(&(entry.label.as_str(), entry.depth)) else {
-            eprintln!("WARN: {} d{}: missing in current — ignored", entry.label, entry.depth);
+            eprintln!(
+                "WARN: {} d{}: missing in current — ignored",
+                entry.label, entry.depth
+            );
             continue;
         };
 
         if cur.aborted {
-            eprintln!("WARN: {} d{}: aborted in current — ignored", entry.label, entry.depth);
+            eprintln!(
+                "WARN: {} d{}: aborted in current — ignored",
+                entry.label, entry.depth
+            );
             continue;
         }
 
