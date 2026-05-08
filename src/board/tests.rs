@@ -306,7 +306,7 @@ fn test_castle_denied_king_in_check() {
     let mut board = Board::init_board();
     board[(0, 5)] = Free;
     board[(0, 6)] = Free;
-    board.check = Some(coord(0, 4));
+    board[(2, 3)] = Occupied(Knight, Black);
     board.sync_hash(White);
     assert!(!has_move(&mut board, &White, coord(0, 4), coord(0, 6)));
 }
