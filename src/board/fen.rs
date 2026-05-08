@@ -110,6 +110,8 @@ impl Board {
 
         let fullmove = parts.next().unwrap_or("1").parse::<u32>().unwrap_or(1);
 
+        board.sync_hash(active_color);
+
         FenInfo {
             board,
             active_color,
