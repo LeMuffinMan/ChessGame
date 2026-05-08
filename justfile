@@ -1,30 +1,25 @@
 default:
     @just --list
 
-DIST_DIR := "dist"
 PUBLIC_DIR := "public"
 FEATURES := "native"
 
 alias t := test
 alias b := bench-all
-alias n := native-release
-alias w := wasm-release
+alias n := native-run
+alias w := wasm-run
 
-# Start trunk dev server with hot-reload
-wasm *args:
+wasm-run *args:
+    trunk serve --release {{args}}
+
+wasm-run-debug *args:
     trunk serve {{args}}
 
-# Build WASM release and start trunk
-wasm-release *args:
-    just wasm --release {{args}}
-
-# Run native binary (debug)
-native:
-    cargo run --bin chess_game --features={{FEATURES}}
-
-# Run native binary (release)
-native-release:
+native-run:
     cargo run --release --bin chess_game --features={{FEATURES}}
+
+native-run-debug:
+    cargo run --bin chess_game --features={{FEATURES}}
 
 # Generate public/native_bench.json at given depth
 bench-native depth:
@@ -34,7 +29,7 @@ bench-native depth:
 # Run native bench (if missing) with <depth> then build WASM release
 bench-all depth *args:
     just bench-native {{depth}}
-    just wasm-release {{args}}
+    just wasm-run {{args}}
 
 # Build uci
 build-uci:
@@ -56,17 +51,26 @@ elo-uci elo games concurrency: build-uci
     cutechess-cli \
         -engine name=SF_{{elo}} cmd=./stockfish option.UCI_LimitStrength=true option.UCI_Elo={{elo}} \
         -engine name=ChessGame cmd=./target/release/uci \
-        -each proto=uci tc=60+1 \
+        -each proto=uci tc=1+1 \
         -games {{games}} \
         -concurrency {{concurrency}} \
         -repeat \
         -openings file=books/8mvs_big_+80_+109.epd format=epd order=random \
         -pgnout results_{{elo}}.pgn
 
-ci-fast treshold:
-    cargo build --release --bin chess_game --features={{FEATURES}}
+bench-regression-test:
     cargo run --release --features=native --bin bench -- measure 11 > bench_results/current.json
-    cargo run --release --features=native --bin bench -- compare bench_results/baseline.json bench_results/current.json {{treshold}}
+    cargo run --release --features=native --bin bench -- compare bench_results/baseline.json bench_results/current.json 5
+
+update-bench-baseline:
+    @mkdir -p bench_results
+    cargo run --release --features=native --bin bench -- measure 11 > bench_results/baseline.json
+    git add bench_results/baseline.json
+    git commit -m "chore: update bench baseline"
+
+ci-fast: build-uci test bench-regression-test
+
+
 
 # Run tests
 test *args:
