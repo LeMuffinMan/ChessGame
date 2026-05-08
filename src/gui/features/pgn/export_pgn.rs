@@ -31,7 +31,15 @@ impl ChessApp {
 
         let link = doc.create_element("a")?.dyn_into::<HtmlAnchorElement>()?;
         link.set_href(&url);
-        link.set_download("chessgame.pgn");
+        let name = self.settings.file_name.trim().to_string();
+        let name = if name.is_empty() {
+            "chessgame.pgn".to_string()
+        } else if name.ends_with(".pgn") {
+            name
+        } else {
+            format!("{}.pgn", name)
+        };
+        link.set_download(&name);
 
         let elem: &HtmlElement = link.unchecked_ref(); // cast en HtmlElement
         elem.style().set_property("display", "none")?;

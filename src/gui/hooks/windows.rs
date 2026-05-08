@@ -279,6 +279,9 @@ impl ChessApp {
                         };
                         self.update_threaten_cells();
                         self.update_legals_moves();
+                        self.settings.from_cell = None;
+                        self.settings.piece_legals_moves.clear();
+                        self.last_move = self.game.history.last().map(|m| (m.origin, m.dest));
                     }
                     ui.add_space(30.0);
                     if ui.button("Decline").clicked() {

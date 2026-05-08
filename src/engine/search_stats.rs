@@ -17,6 +17,8 @@ pub struct SearchStats {
     pub tt_hits: usize,
     pub tt_stores: usize,
     pub quiescence_nodes: u64,
+    pub depth_results: Vec<(u8, i32, u64, u64)>,
+    pub cumulative_nodes: u64,
 }
 
 impl Default for SearchStats {
@@ -43,6 +45,8 @@ impl SearchStats {
             tt_hits: 0,
             tt_stores: 0,
             quiescence_nodes: 0,
+            depth_results: Vec::new(),
+            cumulative_nodes: 0,
         }
     }
 
@@ -68,6 +72,8 @@ impl SearchStats {
         self.tt_hits = 0;
         self.tt_stores = 0;
         self.quiescence_nodes = 0;
+        // depth_results is NOT reset here — it accumulates across ID iterations
+        // and is cleared explicitly at the start of iterative_deepening
     }
 
     pub fn format_time(ms: f64) -> String {

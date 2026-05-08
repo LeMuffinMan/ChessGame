@@ -72,15 +72,6 @@ impl ChessApp {
                     && self.settings.show_legals_moves
                 {
                     p.rect_filled(cell, 0.0, green[idx as usize]);
-                } else if let Some((from, to)) = self.last_move
-                    && (coord == from || coord == to)
-                    && self.settings.show_last_move
-                {
-                    p.rect_filled(cell, 0.0, blue[idx as usize]);
-                } else if let Some(from) = self.settings.from_cell
-                    && coord == from
-                {
-                    p.rect_filled(cell, 0.0, blue[idx as usize]);
                 } else if let Some((origin, _)) = self.game.hint
                     && origin == coord
                     && self.hint_highlight > 0
@@ -91,6 +82,15 @@ impl ChessApp {
                     && self.hint_highlight > 1
                 {
                     p.rect_filled(cell, 0.0, hint[idx as usize]);
+                } else if let Some((from, to)) = self.last_move
+                    && (coord == from || coord == to)
+                    && self.settings.show_last_move
+                {
+                    p.rect_filled(cell, 0.0, blue[idx as usize]);
+                } else if let Some(from) = self.settings.from_cell
+                    && coord == from
+                {
+                    p.rect_filled(cell, 0.0, blue[idx as usize]);
                 } else {
                     p.rect_filled(cell, 0.0, colors[idx as usize]);
                 }
