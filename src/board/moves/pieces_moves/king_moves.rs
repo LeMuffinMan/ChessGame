@@ -49,7 +49,13 @@ fn king_offsets(
     }
 }
 
-fn king_castles(board: &mut Board, origin: Coord, active_player: &Color, list: &mut MoveList, info: &PinInfos) {
+fn king_castles(
+    board: &mut Board,
+    origin: Coord,
+    active_player: &Color,
+    list: &mut MoveList,
+    info: &PinInfos,
+) {
     if info.checker_count == 0 {
         let rights = if *active_player == White {
             board.white_castle

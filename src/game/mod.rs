@@ -176,16 +176,17 @@ impl Game {
         Some(self.after_move())
     }
 
-    pub fn try_move_promotion(&mut self, from: Coord, to: Coord, piece: Piece) -> Option<GameEvent> {
+    pub fn try_move_promotion(
+        &mut self,
+        from: Coord,
+        to: Coord,
+        piece: Piece,
+    ) -> Option<GameEvent> {
         let mut move_list = MoveList::new();
         generate_moves(&mut self.board, &self.active_player, &mut move_list, false);
         let m = move_list.moves[..move_list.count]
             .iter()
-            .find(|m| {
-                m.origin == from
-                    && m.dest == to
-                    && m.move_type == MoveType::Promotion(piece)
-            })
+            .find(|m| m.origin == from && m.dest == to && m.move_type == MoveType::Promotion(piece))
             .copied()?;
 
         self.board.apply_move(&m, self.active_player);

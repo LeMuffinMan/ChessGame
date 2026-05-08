@@ -10,10 +10,18 @@ use crate::gui::hooks::promote::PromoteInfo;
 
 impl ChessApp {
     pub fn try_move(&mut self, from: Coord, to: Coord) {
-        let promote_row = if self.game.active_player == White { 7u8 } else { 0u8 };
+        let promote_row = if self.game.active_player == White {
+            7u8
+        } else {
+            0u8
+        };
         if self.game.board[from].get_piece() == Some(&Pawn)
             && to.row == promote_row
-            && self.game.legals_moves.iter().any(|m| m.origin == from && m.dest == to)
+            && self
+                .game
+                .legals_moves
+                .iter()
+                .any(|m| m.origin == from && m.dest == to)
         {
             self.promoteinfo = Some(PromoteInfo {
                 from,
