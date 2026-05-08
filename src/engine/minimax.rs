@@ -656,7 +656,11 @@ pub fn iterative_deepening(
             prev_score = score;
             let elapsed = (now_ms() - start) as u64;
             let nodes = params.ctx.stats.cumulative_nodes;
-            params.ctx.stats.depth_results.push((depth, score, elapsed, nodes));
+            params
+                .ctx
+                .stats
+                .depth_results
+                .push((depth, score, elapsed, nodes));
         }
         if timeout > 0.0 {
             let elapsed = now_ms() - start;
@@ -667,7 +671,11 @@ pub fn iterative_deepening(
             if n >= 2 {
                 let t_curr = params.ctx.stats.depth_results[n - 1].2 as f64;
                 let t_prev = params.ctx.stats.depth_results[n - 2].2 as f64;
-                let t_before = if n >= 3 { params.ctx.stats.depth_results[n - 3].2 as f64 } else { 0.0 };
+                let t_before = if n >= 3 {
+                    params.ctx.stats.depth_results[n - 3].2 as f64
+                } else {
+                    0.0
+                };
                 let per_curr = t_curr - t_prev;
                 let per_prev = t_prev - t_before;
                 let remaining = timeout - elapsed;

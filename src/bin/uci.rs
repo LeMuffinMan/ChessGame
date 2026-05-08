@@ -294,8 +294,7 @@ impl Engine {
         self.search_handle = Some(thread::spawn(move || {
             let board_hashs = game.draw.board_hashs.clone();
             let draw_count = game.draw.draw_moves_count;
-            let mut params =
-                SearchParams::new(&mut search_ctx, &board_hashs, draw_count);
+            let mut params = SearchParams::new(&mut search_ctx, &board_hashs, draw_count);
 
             let mv_str = iterative_deepening(
                 &mut game.board,
@@ -309,7 +308,11 @@ impl Engine {
             .unwrap_or_else(|| "0000".to_string());
 
             for (depth, score, elapsed_ms, nodes) in &params.ctx.stats.depth_results {
-                let nps = if *elapsed_ms > 0 { nodes * 1000 / elapsed_ms } else { 0 };
+                let nps = if *elapsed_ms > 0 {
+                    nodes * 1000 / elapsed_ms
+                } else {
+                    0
+                };
                 println!(
                     "info depth {depth} score cp {score} nodes {nodes} nps {nps} time {elapsed_ms}"
                 );
@@ -318,7 +321,9 @@ impl Engine {
             let _ = io::stdout().flush();
             if debug {
                 if let Some((depth, _, elapsed_ms, nodes)) = params.ctx.stats.depth_results.last() {
-                    eprintln!("[debug] bestmove={mv_str} depth={depth} time={elapsed_ms}ms nodes={nodes}");
+                    eprintln!(
+                        "[debug] bestmove={mv_str} depth={depth} time={elapsed_ms}ms nodes={nodes}"
+                    );
                 }
             }
         }));
