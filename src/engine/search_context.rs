@@ -32,8 +32,8 @@ impl<'a> SearchParams<'a> {
     }
 }
 
-// we should fix this size following the timing
-pub const TT_SIZE: usize = 1 << 25;
+//  should fix this size following the timing ?
+pub const TT_SIZE: usize = 1 << 20;
 
 #[derive(Clone)]
 pub struct SearchContext {
