@@ -69,7 +69,10 @@ impl ChessApp {
                 });
                 ui.vertical_centered(|ui| {
                     ui.add_space(30.0);
-                    ui.hyperlink_to("Benchmark", "https://lemuffinman.github.io/ChessGame/bench.html");
+                    ui.hyperlink_to(
+                        "Benchmark",
+                        "https://lemuffinman.github.io/ChessGame/bench.html",
+                    );
                     ui.hyperlink_to("Source code", "https://github.com/LeMuffinMan/ChessGame");
                     ui.hyperlink_to("Lichess", "https://lichess.org/@/LeMuffinBot");
                 });
