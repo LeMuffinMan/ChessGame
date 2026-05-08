@@ -319,12 +319,12 @@ impl Engine {
             }
             println!("bestmove {mv_str}");
             let _ = io::stdout().flush();
-            if debug {
-                if let Some((depth, _, elapsed_ms, nodes)) = params.ctx.stats.depth_results.last() {
-                    eprintln!(
-                        "[debug] bestmove={mv_str} depth={depth} time={elapsed_ms}ms nodes={nodes}"
-                    );
-                }
+            if debug
+                && let Some((depth, _, elapsed_ms, nodes)) = params.ctx.stats.depth_results.last()
+            {
+                eprintln!(
+                    "[debug] bestmove={mv_str} depth={depth} time={elapsed_ms}ms nodes={nodes}"
+                );
             }
         }));
 
