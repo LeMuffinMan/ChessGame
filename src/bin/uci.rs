@@ -130,6 +130,8 @@ impl Engine {
     fn cmd_uci(&self) -> Result<()> {
         println!("id name ChessGame");
         println!("id author Muffin");
+        println!("option name Hash type spin default 32 min 1 max 2048");
+        println!("option name Threads type spin default 1 min 1 max 1");
         println!("uciok");
         io::stdout().flush()?;
         Ok(())
