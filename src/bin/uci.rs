@@ -13,6 +13,8 @@ use std::thread;
 // todo : enums errors
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
+const MAX_DEPTH_UCI: u8 = 12;
+
 #[derive(Clone)]
 struct Engine {
     movetime: f64,
@@ -70,6 +72,13 @@ impl Engine {
             }
             b
         };
+        if budget > 0.0 && !self.infinite {
+            let stop = self.search_ctx.stop.clone();
+            thread::spawn(move || {
+                thread::sleep(std::time::Duration::from_millis(budget as u64));
+                stop.store(true, Ordering::Relaxed);
+            });
+        }
         let mut params = SearchParams::new(
             &mut self.search_ctx,
             &self.game.draw.board_hashs,
@@ -79,7 +88,7 @@ impl Engine {
         iterative_deepening(
             &mut self.game.board,
             self.game.active_player,
-            11,
+            MAX_DEPTH_UCI,
             &mut self.game.depth,
             budget,
             &mut params,
@@ -186,16 +195,9 @@ impl Engine {
         Ok(())
     }
 
-    fn cmd_ucinewgame(&self) -> Result<()> {
-        // this is sent to the engine when the next search (started with "position" and "go") will be from
-        // a different game. This can be a new game the engine should play or a new game it should analyse but
-        // also the next position from a testsuite with positions only.
-        // If the GUI hasn't sent a "ucinewgame" before the first "position" command, the engine shouldn't
-        // expect any further ucinewgame commands as the GUI is probably not supporting the ucinewgame command.
-        // So the engine should not rely on this command even though all new GUIs should support it.
-        // As the engine's reaction to "ucinewgame" can take some time the GUI should always send "isready"
-        // after "ucinewgame" to wait for the engine to finish its operation.
-        // engine.game = Game::new();
+    fn cmd_ucinewgame(&mut self) -> Result<()> {
+        self.game = Game::new();
+        self.search_ctx.reset_for_new_game();
         Ok(())
     }
 
@@ -328,10 +330,9 @@ impl Engine {
                 _ => {}
             }
         }
-        engine_handle
-            .search_ctx
-            .stop
-            .store(false, Ordering::Relaxed);
+        let fresh_stop = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+        self.search_ctx.stop = fresh_stop.clone();
+        engine_handle.search_ctx.stop = fresh_stop;
         thread::spawn(move || {
             let mv_str = engine_handle
                 .search()
@@ -361,13 +362,7 @@ impl Engine {
     }
 
     fn cmd_unknown(&self, line: &str) -> Result<()> {
-        // * if the engine or the GUI receives an unknown command or token it should just ignore it and try to
-        //   parse the rest of the string in this line.
-        //   Examples: "joho debug on\n" should switch the debug mode on given that joho is not defined,
-        //             "debug joho on\n" will be undefined however.
-        // pour chaque line un splitword
-        println!("cmd not found: {line}");
-        std::io::stdout().flush()?;
+        eprintln!("cmd not found: {line}");
         Ok(())
     }
 
