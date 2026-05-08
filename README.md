@@ -1,17 +1,23 @@
+<table>
+<tr>
 <td><h1>ChessGame ♟️</h1></td>
 <td align="right">
   <strong><a href="https://lemuffinman.github.io/ChessGame/">▶ Play live demo</a></strong>
+  &nbsp;·&nbsp;
+  <strong><a href="https://lichess.org/@/LeMuffinBot">♟ LeMuffinBot on Lichess</a></strong>
 </td>
+</tr>
+</table>
 
 ---
 
-I built this project to learn Rust on something real, not exercises or tutorials. Chess felt like the right choice: the rules are complex enough to punish bad design (and they did), the algorithms are well-documented, and the Chess Programming Wiki became my bible over the intense sprints I spent on this project. Seeing how simple evaluation criteria can lead to natural openings, then improving until you get mated by the algorithm you built... that was quite the motivation to keep going. I now aim to integrate UCI to measure its Elo against other engines.
+I built this project to learn Rust on something real, not exercises or tutorials. Chess felt like the right choice: the rules are complex enough to punish bad design (and they did), the algorithms are well-documented, and the Chess Programming Wiki became my bible over the intense sprints I spent on this project. Seeing how simple evaluation criteria can lead to natural openings, then improving until you get mated by the algorithm you built... that was quite the motivation to keep going. The engine now speaks UCI, plays on Lichess as [LeMuffinBot](https://lichess.org/@/LeMuffinBot), and its Elo is measured against Stockfish with cutechess-cli.
 
 **A well-placed hint.**
-A friend who suggested I give Rust a try pointed me toward one early design choice: model the board around `enum Cell { Occupied(Piece, Color), Free }`. That was enough to get started. Following that thread, I found myself reaching naturally for exhaustive pattern matching, `Option<Coord>` for en passant and check state where null is impossible by construction, traits for abstraction without overhead. Rust’s design makes good patterns feel obvious, and I gradually came to appreciate how much the language was guiding me.
+A friend who suggested I give Rust a try pointed me toward one early design choice: model the board around `enum Cell { Occupied(Piece, Color), Free }`. That was enough to get started. Following that thread, I found myself reaching naturally for exhaustive pattern matching, `Option<Coord>` for en passant and check state where null is impossible by construction, traits for abstraction without overhead. Rust's design makes good patterns feel obvious, and I gradually came to appreciate how much the language was guiding me.
 
 **From 3 seconds to 300ms.**
-Without parallelism on WASM or threads on native, the goal was to push depth as far as possible within a 300ms budget. What made it satisfying was that each bottleneck was measurable: clearing one felt like unlocking resources to invest in intelligence instead. The story starts at depth 5 taking 3 seconds, purest minimax with no pruning. Alpha-beta alone cut that by an order of magnitude. Move ordering (MVV-LVA, killers, history) pushed the branching factor down further. Replacing the per-leaf evaluation with an incremental score inside `apply` and `undo` removed that overhead entirely. Then a Transposition Table (1M entries in a fixed `Vec`, indexed by Zobrist hash, with generation counters) collapsed the tree on repeated positions. Depth 5 now runs in under 30ms, depth 11 around 300ms.
+The engine is deliberately single-threaded for now — the goal was to get the algorithm as efficient as possible before thinking about parallelism. A clean, well-optimized single-threaded search is a better starting point than rushing into multithreading on top of a slow base. What made it satisfying was that each bottleneck was measurable: clearing one felt like unlocking resources to invest in intelligence instead. The story starts at depth 5 taking 3 seconds on the starting position in WASM, purest minimax with no pruning. Alpha-beta alone cut that by an order of magnitude. Move ordering (MVV-LVA, killers, history) pushed the branching factor down further. Replacing the per-leaf evaluation with an incremental score inside `apply` and `undo` removed that overhead entirely. Then a Transposition Table (1M entries in a fixed `Vec`, indexed by Zobrist hash, with generation counters) collapsed the tree on repeated positions. Depth 5 now runs in under 30ms, depth 11 around 300ms — still the starting position, still single-threaded WASM.
 
 ---
 
@@ -22,13 +28,14 @@ Without parallelism on WASM or threads on native, the goal was to push depth as 
 ## What it does
 
 - **Play chess** — human vs human, human vs bot, or bot vs bot with all common chess features
-- **Standard Timers** —  with standard time controls (blitz, rapid…) in human vs human games
+- **Standard timers** — with standard time controls (blitz, rapid…) in human vs human games
 - **AI opponent** — alpha-beta engine at configurable depth, three difficulty levels with iterative deepening
 - **Hint system** — ask for the engine's best move suggestion at any point
 - **Replay & PGN** — game replay and PGN export
-- **Bench page** — standalone `bench.html` comparing performance across positions and depths (native vs WASM if running localy)
+- **Bench page** — standalone `bench.html` comparing performance across positions and depths (native vs WASM if running locally)
 - **Portable** — WASM build runs in any browser on any device; native binary available for desktop and benchmarking
 - **Responsive** — dedicated UI for desktop and mobile
+- **Lichess bot** — the engine plays on Lichess as [LeMuffinBot](https://lichess.org/@/LeMuffinBot) via the UCI protocol
 
 <p align="center">
   <img src="assets/mobile_demo.gif" width="225" alt="Mobile demo" />
@@ -40,7 +47,7 @@ Without parallelism on WASM or threads on native, the goal was to push depth as 
 
 The project includes a standalone benchmark page (`bench.html`) that runs the engine against standard positions at increasing depths and reports nodes per second, effective branching factor, and quiescence node ratio.
 
-The native vs WASM comparison requires a local setup — run `just bench-all` after cloning to generate `public/native_bench.json` and open `bench.html` in your browser. This comparison is not available on the live demo.
+The native vs WASM comparison requires a local setup — run `just bench-all 11` after cloning to generate `public/native_bench.json` and open `bench.html` in your browser. This comparison is not available on the live demo.
 
 > **Note on reliability:** comparing native and WASM numbers is only meaningful on the same machine. Even then, WASM performance is harder to measure accurately: the browser introduces scheduling noise, lacks SIMD optimizations, and runs single-threaded in a sandboxed environment. Treat WASM NPS as a relative indicator across depths or positions — comparing it to native figures from a different machine has limited value.
 
@@ -51,6 +58,23 @@ The native vs WASM comparison requires a local setup — run `just bench-all` af
 <td align="right">
   <strong><a href="https://lemuffinman.github.io/ChessGame/bench.html">▶ Bench in your browser</a></strong>
 </td>
+
+---
+
+## UCI & Lichess bot
+
+The engine exposes a `uci` binary (`src/bin/uci.rs`) that implements a subset of the [Universal Chess Interface](http://download.shredderchess.com/div/uci.zip) protocol — enough to plug into tournament tools and run on Lichess. The implementation is intentionally partial: it covers the commands actually needed in practice (`uci`, `isready`, `ucinewgame`, `position`, `go`, `stop`, `setoption`, `debug`). The full spec is documented in `src/bin/uci_requirements.txt`.
+
+Time management on the `go` command uses a simple budget formula with a predictive guard: after each completed depth, the engine estimates whether the next depth is likely to exceed the remaining budget before starting it.
+
+**Playing against other engines locally** requires [cutechess-cli](https://github.com/cutechess/cutechess) and a Stockfish binary in the project root:
+
+```bash
+just test-uci              # one debug game vs Stockfish skill 0
+just elo-uci 1500 100 4    # 100 games vs SF@1500, 4 concurrent
+```
+
+**LeMuffinBot** plays on Lichess at [lichess.org/@/LeMuffinBot](https://lichess.org/@/LeMuffinBot).
 
 ---
 
@@ -112,6 +136,7 @@ See [docs/ALGORITHMS.md](docs/ALGORITHMS.md) for context and implementation note
 </table>
 
 ---
+
 ## Under the hood
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full module breakdown.
@@ -120,18 +145,19 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full module breakdown.
 src/
 ├── board/       — board representation, move generation, legality, pin detection
 ├── engine/      — alpha-beta, evaluators, TT, Zobrist, move ordering
-├── game/        — GameState (turn, castling rights, en passant, draw conditions)
+├── game/        — Game struct (turn, castling rights, en passant, draw conditions)
 ├── gui/         — egui panels and components
 └── bin/
-    └── bench.rs — native benchmark binary
+    ├── bench.rs — native benchmark binary
+    └── uci.rs   — UCI binary (partial implementation of the UCI protocol)
 lib.rs           — WASM entry point
 main.rs          — native entry point
 ```
 
-The `engine/` module has zero dependency on `egui`. It allows me to run a separate benchmark binary and keeps the path open for a future UCI implementation.
-
+The `engine/` and `game/` modules have zero dependency on `egui`. This is what makes it possible to run the engine headless as a benchmark binary or a UCI binary without touching the GUI.
 
 ---
+
 ## Running locally
 
 ### Prerequisites
@@ -150,25 +176,35 @@ cargo install --locked trunk
 cargo install just
 ```
 
+**Optional — required for UCI commands only:**
+- [cutechess-cli](https://github.com/cutechess/cutechess) — to run `just test-uci` and `just elo-uci`
+- A `./stockfish` binary in the project root
+
 ### Commands
 
-`just` wraps `cargo` to handle compilation targets (WASM vs native) and debug/release profiles, and pipelines multi-step workflows. You can always use raw `cargo` commands instead.
+`just` wraps `cargo` to handle compilation targets (WASM vs native) and debug/release profiles. You can always use raw `cargo` commands instead.
 
 ```bash
 # WASM — runs in the browser via trunk
-just wasm          # dev server with hot-reload → http://127.0.0.1:8080
-just wasm-release  # release build (optimized, use before benchmarking WASM)
+just w             # release dev server → http://127.0.0.1:8080
+just wasm-run-debug  # debug build (faster compile)
 
 # Native — runs as a desktop binary
-just native        # debug build (fast compile, use during development)
-just n             # release build (full optimizations, use for actual play)
+just n             # release build (full optimizations)
+just native-run-debug  # debug build (faster compile)
 
-# Bench — native vs WASM comparison
-just bench-all     # generate native_bench.json then start WASM → bench.html
+# Bench
+just bench-all 11  # generate native_bench.json then start WASM → bench.html
+
+# UCI
+just build-uci             # compile the UCI binary
+just test-uci              # one game vs Stockfish (requires cutechess-cli)
+just elo-uci 1500 100 4    # Elo estimate (requires cutechess-cli)
 
 # Quality
-just test          # cargo test
-just clippy        # clippy for both native and wasm32 targets
+just test      # cargo test
+just clippy    # clippy for both native and wasm32 targets
+just ci-fast   # build-uci + tests + bench regression
 ```
 
 See [docs/JUSTFILE.md](docs/JUSTFILE.md) for the full command reference.
@@ -180,7 +216,8 @@ See [docs/JUSTFILE.md](docs/JUSTFILE.md) for the full command reference.
 | `rustup` | [rustup.rs](https://rustup.rs) | Rust toolchain |
 | `wasm32-unknown-unknown` | `rustup target add wasm32-unknown-unknown` | WASM compilation target |
 | `trunk` | `cargo install --locked trunk` | WASM bundler and dev server |
-| `just` *(optional)* | `cargo install just` | Task runner — QoL wrapper around cargo |
+| `just` *(optional)* | `cargo install just` | Task runner — convenience wrapper around cargo |
+| `cutechess-cli` *(optional)* | [github.com/cutechess/cutechess](https://github.com/cutechess/cutechess) | Run games between engines — needed for `test-uci` and `elo-uci` |
 
 Key Rust dependencies: `eframe` / `egui` (GUI), `wasm-bindgen` + `web-sys` (WASM bridge), `chrono` (timers).
 
@@ -189,17 +226,16 @@ Key Rust dependencies: `eframe` / `egui` (GUI), `wasm-bindgen` + `web-sys` (WASM
 ## Roadmap
 
 ### Next steps
-- Exploring WebWorkers to parallelize the engine search, while keeping the setup as simple and serverless as possible (Cloudflare Pages is the current target, VPS as fallback)
-- Separate UI loop and engine search into dedicated workers: bot thinking time is currently capped to avoid blocking the UI
-- PGN import (SAN decoder)
-- Further search optimizations I am evaluating:
-  - SEE (Static Exchange Evaluation): evaluate capture sequences before exploring, significant move ordering gain
-  - Lazy sort: score moves on demand instead of a full upfront sort
 
-### Backlog
-- UCI protocol support, to plug into tournament tools and Lichess for an official Elo rating
-- Bitboard representation for the last major performance gain, enabling:
-- Native multithreading for deeper search and WASM parallelism via WebWorkers
+- **Bitboard representation** — the current `[[Cell; 8]; 8]` board is not suited for multithreading and leaves performance on the table. Switching to bitboards is the prerequisite for everything below, and probably the biggest refactor ahead.
+- **WebWorkers (WASM)** — decouple the UI loop from the engine so the bot thinking no longer blocks the browser. The engine runs in a worker, the UI stays responsive.
+- **Multithreading (native)** — once bitboards are in and the engine is thread-safe, parallelize the search on native.
+- **WASM parallelism** — same goal as native multithreading, through WebWorkers + SharedArrayBuffer.
+- **PGN import** — SAN decoder to load games from a PGN file.
+- **Further search optimizations:**
+  - SEE (Static Exchange Evaluation): evaluate capture sequences before exploring, for a significant move ordering gain
+  - Lazy sort: score moves on demand instead of a full upfront sort
+  - ...
 
 ---
 
@@ -220,8 +256,13 @@ Key Rust dependencies: `eframe` / `egui` (GUI), `wasm-bindgen` + `web-sys` (WASM
 - [Transposition Table](https://www.chessprogramming.org/Transposition_Table) · [Zobrist Hashing](https://www.chessprogramming.org/Zobrist_Hashing)
 - [rustic-chess — MVV-LVA](https://rustic-chess.org/search/ordering/mvv_lva.html)
 - [Sebastian Lague Chess Coding Adventure](https://www.youtube.com/watch?v=U4ogK0MIzqk)
+- [Stockfish](https://github.com/official-stockfish/Stockfish) — reference for bench positions and UCI behaviour
+
+**UCI protocol**
+- [UCI specification](http://download.shredderchess.com/div/uci.zip) (ShredderChess) — the spec used to implement `src/bin/uci.rs`
 
 **Tools**
 - [egui](https://github.com/emilk/egui)
 - [trunk](https://trunkrs.dev/)
 - [just](https://github.com/casey/just)
+- [cutechess-cli](https://github.com/cutechess/cutechess)
