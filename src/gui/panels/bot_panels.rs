@@ -14,12 +14,20 @@ impl ChessApp {
 
     pub fn bot_source_code_panel_desktop(&self, ctx: &egui::Context) {
         egui::TopBottomPanel::bottom("source code").show(ctx, |ui| {
-            ui.with_layout(
-                egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
-                |ui| {
-                    ui.hyperlink_to("Source code", "https://github.com/LeMuffinMan/ChessGame");
-                },
+            let content_width = 500.0;
+            let rect = egui::Rect::from_center_size(
+                ui.max_rect().center(),
+                egui::vec2(content_width, ui.max_rect().height()),
             );
+            ui.scope_builder(egui::UiBuilder::new().max_rect(rect), |ui| {
+                ui.horizontal(|ui| {
+                    ui.hyperlink_to("Benchmark", "https://lemuffinman.github.io/ChessGame/bench.html");
+                    ui.separator();
+                    ui.hyperlink_to("Source code", "https://github.com/LeMuffinMan/ChessGame");
+                    ui.separator();
+                    ui.hyperlink_to("Lichess", "https://lichess.org/@/LeMuffinBot");
+                });
+            });
         });
     }
 }

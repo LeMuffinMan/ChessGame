@@ -40,9 +40,6 @@ jobs:
       - name: Install just
         uses: extractions/setup-just@v2
 
-      - name: Build UCI
-        run: just build-uci
-
       - name: Bench regression
         run: just bench-regression-test
 
@@ -50,6 +47,9 @@ jobs:
         run: |
           curl -sL https://github.com/thedodd/trunk/releases/latest/download/trunk-x86_64-unknown-linux-gnu.tar.gz | tar xz
           mv trunk ~/.cargo/bin/
+
+      - name: Generate native bench stub
+        run: mkdir -p public && echo '[]' > public/native_bench.json
 
       - name: Build
         run: trunk build --release --public-url "/" --no-sri
