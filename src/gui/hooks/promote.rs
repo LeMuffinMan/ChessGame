@@ -1,6 +1,5 @@
 use crate::Board;
 use crate::Color;
-use crate::board::cell::Cell;
 use crate::board::cell::Color::*;
 use crate::board::cell::Coord;
 use crate::board::cell::Piece;
@@ -45,50 +44,52 @@ impl ChessApp {
         }
         None
     }
-    //if a player promoted a pawn, try_move didnt finished it's work, so we do it here
     pub fn update_promote(&mut self) {
-        if let Some(promote_info) = &self.promoteinfo
-            && let Some(coord) = promote_info.pawn_to_promote
-            && let Some(piece) = promote_info.promote
-            && self.replay_infos.index == self.game.history.len()
-        {
-            let color = if self.game.active_player == White {
-                Black
-            } else {
-                White
-            };
-            self.game.board[(coord.row as usize, coord.col as usize)] =
-                Cell::Occupied(piece, color);
+        let (from, to, prev_board, piece) = match &self.promoteinfo {
+            Some(info)
+                if info.pawn_to_promote.is_some()
+                    && info.promote.is_some()
+                    && self.replay_infos.index == self.game.history.len() =>
+            {
+                (
+                    info.from,
+                    info.to,
+                    info.prev_board.clone(),
+                    info.promote.unwrap(),
+                )
+            }
+            _ => return,
+        };
 
-            self.update_threaten_cells();
-            self.update_legals_moves();
+        self.promoteinfo = None;
+        self.win = None;
 
-            let k = match self.game.active_player {
-                White => self.game.board.white_king,
-                Black => self.game.board.black_king,
-            };
-            if self.game.threaten_cells.contains(&k) {
-                self.game.board.check = Some(k);
-            }
-            if self.game.legals_moves.is_empty() {
-                use crate::game::End;
-                if self.game.threaten_cells.contains(&k) {
-                    self.game.end = Some(End::Checkmate);
-                } else {
-                    self.game.end = Some(End::Pat);
+        if let Some(event) = self.game.try_move_promotion(from, to, piece) {
+            use crate::game::End;
+            use crate::game::GameEvent::*;
+            use crate::gui::chessapp::AppMode::Versus;
+
+            self.last_move = Some((from, to));
+            match event {
+                Checkmate => {
+                    self.app_mode = Versus(Some(End::Checkmate));
+                    self.timer.active = false;
                 }
-            }
-            if let Some(promoteinfo) = &self.promoteinfo {
-                let from = promoteinfo.from;
-                let to = promoteinfo.to;
-                let prev_board = promoteinfo.prev_board.clone();
-                self.add_history_san(&from, &to, &prev_board);
-                if self.game.end.is_none() && self.is_bot_turn() {
-                    self.bot_pending = true;
+                Stalemate => {
+                    self.app_mode = Versus(Some(End::Pat));
+                    self.timer.active = false;
                 }
+                Draw => {
+                    self.app_mode = Versus(Some(End::Draw));
+                }
+                _ => {}
             }
-            self.promoteinfo = None;
-            self.win = None;
+            self.add_history_san(&from, &to, &prev_board);
+            if self.game.end.is_none() && self.is_bot_turn() {
+                self.bot_pending = true;
+            }
+            self.hint_highlight = 0;
+            self.game.hint = None;
         }
     }
     pub fn get_promotion_input(&mut self, ctx: &egui::Context) {

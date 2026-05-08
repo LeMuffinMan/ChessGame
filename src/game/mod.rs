@@ -7,7 +7,7 @@ use crate::board::cell::Piece;
 use crate::board::cell::Piece::*;
 use crate::board::is_king_exposed::is_king_exposed;
 use crate::board::moves::move_gen::generate_moves;
-use crate::board::moves::move_structs::{Move, MoveList};
+use crate::board::moves::move_structs::{Move, MoveList, MoveType};
 use crate::game::GameEvent::*;
 use crate::game::{DrawOption::*, DrawRule::*};
 use std::collections::HashMap;
@@ -171,6 +171,45 @@ impl Game {
 
         if let Some(coord) = self.find_promotion() {
             return Some(PromotionPending(coord));
+        }
+
+        Some(self.after_move())
+    }
+
+    pub fn try_move_promotion(&mut self, from: Coord, to: Coord, piece: Piece) -> Option<GameEvent> {
+        let mut move_list = MoveList::new();
+        generate_moves(&mut self.board, &self.active_player, &mut move_list, false);
+        let m = move_list.moves[..move_list.count]
+            .iter()
+            .find(|m| {
+                m.origin == from
+                    && m.dest == to
+                    && m.move_type == MoveType::Promotion(piece)
+            })
+            .copied()?;
+
+        self.board.apply_move(&m, self.active_player);
+        if is_king_exposed(&self.board, &self.active_player) {
+            self.board.undo_move(m, self.active_player);
+            return None;
+        }
+
+        self.history.push(m);
+        self.fifty_moves_draw_check(&m);
+
+        if self.impossible_mate_check() {
+            self.end = Some(End::Draw);
+            return Some(Draw);
+        }
+        self.add_hash();
+
+        if let Some(Available(TripleRepetition(_))) = self.draw.draw_option {
+            self.end = Some(End::Draw);
+            return Some(Draw);
+        }
+
+        if self.active_player == Black {
+            self.turn += 1;
         }
 
         Some(self.after_move())

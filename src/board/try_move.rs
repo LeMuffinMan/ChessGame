@@ -2,12 +2,31 @@ use crate::Board;
 use crate::ChessApp;
 use crate::Color::*;
 use crate::Coord;
+use crate::board::cell::Piece::Pawn;
 use crate::game::End;
 use crate::game::GameEvent::*;
 use crate::gui::chessapp::AppMode::*;
+use crate::gui::hooks::promote::PromoteInfo;
 
 impl ChessApp {
     pub fn try_move(&mut self, from: Coord, to: Coord) {
+        let promote_row = if self.game.active_player == White { 7u8 } else { 0u8 };
+        if self.game.board[from].get_piece() == Some(&Pawn)
+            && to.row == promote_row
+            && self.game.legals_moves.iter().any(|m| m.origin == from && m.dest == to)
+        {
+            self.promoteinfo = Some(PromoteInfo {
+                from,
+                to,
+                prev_board: self.game.board.clone(),
+                pawn_to_promote: Some(to),
+                promote: None,
+            });
+            self.settings.from_cell = None;
+            self.settings.piece_legals_moves.clear();
+            return;
+        }
+
         let mover = self.game.active_player;
         let is_first = self.game.history.is_empty();
 
