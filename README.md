@@ -11,13 +11,13 @@
 
 ---
 
-I built this project to learn Rust on something real, not exercises or tutorials. Chess felt like the right choice: the rules are complex enough to punish bad design (and they did), the algorithms are well-documented, and the Chess Programming Wiki became my bible over the intense sprints I spent on this project. Seeing how simple evaluation criteria can lead to natural openings, then improving until you get mated by the algorithm you built... that was quite the motivation to keep going. The engine now speaks UCI, plays on [Lichess](https://lichess.org/@/LeMuffinBot) with bots of elo 1900 - 2100, and its Elo is estimated 2050 against Stockfish 2000 elo with cutechess-cli on 1000 games.
+I built this project to learn Rust on something real, not exercises or tutorials. Chess felt like the right choice: the rules are complex enough to punish bad design (and they did), the algorithms are well-documented, and the Chess Programming Wiki became my bible over the intense sprints I spent on this project. Seeing how simple evaluation criteria can lead to natural openings, then improving until you get mated by the algorithm you built... that was quite the motivation to keep going. The engine now speaks UCI, plays on [Lichess](https://lichess.org/@/LeMuffinBot) with bots of Elo 1900 - 2100, and its Elo is estimated 2050 against Stockfish 2000 elo with cutechess-cli on 1000 games.
 
 **A well-placed hint.**
 A friend who suggested I give Rust a try pointed me toward one early design choice: model the board around `enum Cell { Occupied(Piece, Color), Free }`. That was enough to get started. Following that thread, I found myself reaching naturally for exhaustive pattern matching, `Option<Coord>` for en passant and check state where null is impossible by construction, traits for abstraction without overhead. Rust's design makes good patterns feel obvious, and I gradually came to appreciate how much the language was guiding me.
 
 **From 3 seconds to 300ms.**
-The engine is deliberately single-threaded for now, the goal was to get the algorithm as efficient as possible before thinking about parallelism, which will complicate the native / wasm code division. Without threads, optimisation were progressive. It was satisfying to see how each bottleneck was measurable: clearing one felt like unlocking resources to invest in intelligence instead. The story starts at depth 5 taking 3 seconds on the starting position in WASM, purest minimax with no pruning. Alpha-beta alone improved a lot the performances. Move ordering (MVV-LVA, killers, history) pushed the branching factor down further. Replacing the per-leaf evaluation with an incremental score inside `apply` and `undo` let us reach depth 9. Then a Transposition Table make us see the depths 12 - 16 depending of the tactic complecity of positions. Depth 5 at start position now runs in under 30ms, depth 11 around 300ms.
+The engine is deliberately single-threaded for now, the goal was to get the algorithm as efficient as possible before thinking about parallelism, which will complicate the native / wasm code division. With this this contraint, it was satisfying to see how each bottleneck was measurable: clearing one felt like unlocking resources to invest in intelligence instead. The story starts at depth 5 taking 3 seconds on the starting position in WASM, purest minimax with no pruning. Alpha-beta alone improved a lot the performances. Move ordering (MVV-LVA, killers, history) pushed the branching factor down further. Replacing the per-leaf evaluation with an incremental score inside `apply` and `undo` let us reach depth 9. Then a Transposition Table make us see the depths 12 - 16 depending of the tactic complexity of positions. In WASM. now Depth 5 at start position runs in under 30ms, depth 11 around 300ms.
 
 ---
 
@@ -65,9 +65,13 @@ The native vs WASM comparison requires a local setup, run `just bench-all 11` af
 
 The engine exposes a `uci` binary (`src/bin/uci.rs`) that implements a subset of the [Universal Chess Interface](http://download.shredderchess.com/div/uci.zip) protocol — enough to plug into tournament tools and run on Lichess. The implementation is intentionally partial: it covers the commands actually needed in practice (`uci`, `isready`, `ucinewgame`, `position`, `go`, `stop`, `setoption`, `debug`). The full spec is documented in `src/bin/uci_requirements.txt`.
 
-**Playing against other engines locally** requires [cutechess-cli](https://github.com/cutechess/cutechess) and a [Stockfish](https://github.com/official-stockfish/Stockfish) binary in the project root:
+**Playing against other engines locally** requires [cutechess-cli](https://github.com/cutechess/cutechess) and a another engine to play with, i used [Stockfish](https://github.com/official-stockfish/Stockfish) compiling from source:
 
 ```bash
+git clone https://github.com/official-stockfish/Stockfish
+cd Stockfish/src
+make -j profile-build
+cp Stockfish ../../ && cd ../../
 just test-uci              # one debug game vs Stockfish skill 0
 just elo-uci 1500 100 4    # 100 games vs SF@1500, 4 concurrent
 ```
@@ -95,7 +99,7 @@ See [docs/ALGORITHMS.md](docs/ALGORITHMS.md) for context and implementation note
 | Futility Pruning | [CPW](https://www.chessprogramming.org/Futility_Pruning) |
 | Check Extensions | [CPW](https://www.chessprogramming.org/Check_Extensions) |
 | Quiescence Search | [CPW](https://www.chessprogramming.org/Quiescence_Search) |
-| Delta Pruning (in quiescence) | [CPW](https://www.chessprogramming.org/Delta_Pruning) |
+| Delta Pruning | [CPW](https://www.chessprogramming.org/Delta_Pruning) |
 
 **Hashing & memory**
 
@@ -145,7 +149,7 @@ src/
 ├── gui/         — egui panels and components
 └── bin/
     ├── bench.rs — native benchmark binary
-    └── uci.rs   — UCI binary (partial implementation of the UCI protocol)
+    └── uci.rs   — UCI interpretor binary
 lib.rs           — WASM entry point
 main.rs          — native entry point
 ```
@@ -223,11 +227,10 @@ Key Rust dependencies: `eframe` / `egui` (GUI), `wasm-bindgen` + `web-sys` (WASM
 
 ### Next steps
 
-- **Bitboard representation** — the current `[[Cell; 8]; 8]` board is not suited for multithreading and leaves performance on the table. Switching to bitboards is the prerequisite for everything below, and probably the biggest refactor ahead.
+- **Bitboard representation** — the current `[[Cell; 8]; 8]` board is not suited for multithreading and leaves performance on the table. I'm considering switching to bitboards as prerequisite for everything below, and probably the biggest refactor ahead.
 - **WebWorkers (WASM)** — decouple the UI loop from the engine so the bot thinking no longer blocks the browser. The engine runs in a worker, the UI stays responsive.
 - **Multithreading (native)** — once bitboards are in and the engine is thread-safe, parallelize the search on native.
 - **WASM parallelism** — same goal as native multithreading, through WebWorkers + SharedArrayBuffer.
-- **PGN import** — SAN decoder to load games from a PGN file.
 - **Further search optimizations:**
   - SEE (Static Exchange Evaluation): evaluate capture sequences before exploring, for a significant move ordering gain
   - Lazy sort: score moves on demand instead of a full upfront sort
