@@ -1,0 +1,3 @@
+# For demonstration purpose, cache-busting is disabled, needed for bench.html
+[build]
+filehash = false
