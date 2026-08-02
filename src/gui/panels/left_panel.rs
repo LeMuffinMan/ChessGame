@@ -63,7 +63,7 @@ impl ChessApp {
                 }
             }
             if self.settings.allow_undo {
-                ui.menu_button(format!("{}", &self.settings.undo_limit), |ui| {
+                ui.menu_button(format!("{}", self.settings.undo_limit), |ui| {
                     for i in 0..6 {
                         self.selectable_value_undo(ui, i);
                     }
