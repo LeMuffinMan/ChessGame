@@ -27,13 +27,18 @@ future n'est implémentée par anticipation.
 
 ## Ce qui existe déjà et sera réutilisé
 
-- **FEN import** : `Board::board_from_fen` (`src/board/fen.rs`) — charge
-  directement des positions Stockfish exportées en FEN depuis Python. Pas
-  de serializer FEN côté Rust, mais pas bloquant (`python-chess` a déjà
+- **FEN import/export** : `Board::board_from_fen` / `Board::to_fen`
+  (`src/board/fen.rs`) — permet de charger/sauver des positions en FEN
+  côté Rust. Pas bloquant côté Python non plus (`python-chess` a
   `board.fen()`).
-- **Pas de parser PGN en Rust** (seulement export SAN dans
-  `src/gui/features/pgn/encode_pgn.rs`) → l'extraction de positions depuis
-  une base PGN (ex. Lichess) se fera côté **Python** (`python-chess`).
+- **Import/export PGN en Rust** (`src/gui/features/pgn/`) : feature de
+  l'app (coller/charger une partie PGN pour la rejouer dans l'UI,
+  symétrique à l'export existant), **sans lien avec la Phase 1**. Ce
+  décodeur ne lit qu'une seule partie à la fois et n'est pas fait pour
+  traiter une base PGN entière. Le dataset NNUE (Phase 1) reste **100%
+  Python** (`python-chess`) : extraction depuis une base PGN, labelling
+  (subprocess Stockfish UCI), dédoublonnage, split train/val/test — cohérent
+  avec la règle du projet **ML → Python, reste → Rust**.
 - **Point d'appel unique d'`evaluate()`** : `src/engine/minimax.rs:736`,
   dans `quiescence_minimax`, comme stand-pat score. La recherche délègue à
   la quiescence dès profondeur 0 → l'eval NN sera appelée à **chaque nœud
@@ -57,12 +62,22 @@ spéciale des scores de mat).
   self-play aléatoire, pour une distribution de positions réaliste — c'est
   l'approche standard pour ce type de distillation (utilisée par Stockfish
   NNUE lui-même et par des projets comme Maia Chess).
-- Script Python (`python-chess` + Stockfish en subprocess UCI),
-  échantillonnage de positions par partie, dédoublonnage par FEN, split
-  train/val/test.
+- Script Python (`python-chess`) : parse la base PGN, rejoue les coups,
+  échantillonne des positions par partie, exporte en FEN.
+- Script Python (Stockfish en subprocess UCI) : labellise chaque FEN,
+  dédoublonne, split train/val/test.
+- Le décodeur PGN Rust de l'app (`src/gui/features/pgn/decode_pgn.rs`)
+  n'intervient pas ici : il est pensé pour importer une partie à la fois
+  dans l'UI, pas pour traiter une base de plusieurs milliers de parties.
 
 **Livrable validable** : dataset + script reproductible + stats
 (distribution des évals, taille du dataset, temps de génération).
+
+**Ressource** : [Lichess Elite Database](https://database.nikonoel.fr/)
+(source PGN, parties 2400+ contre 2200+, filtrée par mois) ; page
+[Training datasets](https://github.com/official-stockfish/nnue-pytorch/wiki/Training-datasets)
+du wiki nnue-pytorch pour la façon dont l'équipe Stockfish organise/filtre
+ses propres données.
 
 ### Phase 2 — Entraînement (PyTorch)
 - Encodage board → features : v1 simple, 768 = 6 pièces × 2 couleurs × 64
@@ -77,12 +92,21 @@ spéciale des scores de mat).
 qualitative sur positions connues (NN vs Stockfish vs eval heuristique
 actuelle).
 
+**Ressource** : [nnue-pytorch](https://github.com/official-stockfish/nnue-pytorch)
+(trainer PyTorch officiel de Stockfish) — archi, encodage HalfKP/HalfKA,
+loss sigmoïde ; [Chess Programming Wiki — NNUE](https://www.chessprogramming.org/NNUE)
+pour la théorie (feature transformer, accumulateur incrémental).
+
 ### Phase 3 — Export des poids
 Script d'export des poids/biais PyTorch vers un format binaire simple
 consommable par Rust (f32, quantization int16 différée si besoin de
 vitesse).
 
 **Livrable validable** : fichier de poids + doc du format binaire.
+
+**Ressource** : [`serialize.py`](https://github.com/official-stockfish/nnue-pytorch/blob/master/serialize.py)
+de nnue-pytorch — référence concrète pour la quantization
+(`round(poids_float * 127)`, int16) et le layout binaire d'un export NNUE.
 
 ### Phase 4 — Inférence Rust (wasm32)
 - Nouveau module (ex. `src/engine/nnue.rs`), poids chargés via
@@ -97,6 +121,11 @@ vitesse).
 **Livrable validable** : bot jouable (natif + wasm local) utilisant l'eval
 NN.
 
+**Ressource** : [bullet](https://github.com/jw1912/bullet) (trainer NNUE
+Rust le plus utilisé côté moteurs hobby) — sa doc et ses exemples de code
+d'inférence sont une bonne référence pour écrire le forward pass à la
+main, même si l'entraînement lui-même reste en Python ici.
+
 ### Phase 5 — Validation / mesure de force
 Matchs engine vs engine via l'infra UCI existante (`src/bin/uci.rs`,
 `justfile` `test-uci`/`elo-uci`, cutechess-cli) : bot NN vs bot heuristique
@@ -104,8 +133,22 @@ actuel, et vs Stockfish.
 
 **Livrable validable** : résultats de matchs (score, Elo estimé).
 
+**Ressource** : [Ordo](https://github.com/michiguel/Ordo) — calcule un
+classement Elo à partir d'un PGN de résultats de matchs, complémentaire à
+cutechess-cli déjà utilisé dans `justfile`.
+
 ### Phase 6 — Itérations (stretch, plus tard)
 - Quantization int16 si besoin de vitesse.
 - Encodage king-relative (HalfKP).
 - Second projet initial : modèle de coups entraîné sur PGN, une fois le
   pipeline ML rodé.
+- Scale du dataset (cloud GPU/CPU, éventuellement génération par self-play)
+  si le petit NNUE hobby donne satisfaction et que l'envie/le temps sont
+  là — **non engagé**, à réévaluer après la Phase 5 seulement.
+
+**Ressource** : [Marlinflow](https://github.com/dsekercioglu/marlinflow)
+(alternative à bullet, mêmes usages de référence) pour la quantization et
+l'encodage king-relative ; le
+[Testing guide](https://github.com/LeelaChessZero/lc0/wiki/Testing-guide)
+de lc0 et l'infra [fishtest](https://tests.stockfishchess.org/tests) de
+Stockfish si le stretch goal self-play est un jour repris sérieusement.

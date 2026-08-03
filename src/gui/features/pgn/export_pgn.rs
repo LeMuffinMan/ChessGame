@@ -18,6 +18,34 @@ impl ChessApp {
         let pgn = self.generate_pgn_content();
         self.url_with_blob_export(pgn)
     }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl ChessApp {
+    pub fn export_pgn_native(&mut self) -> std::io::Result<()> {
+        let pgn = self.generate_pgn_content();
+        let name = self.settings.file_name.trim().to_string();
+        let name = if name.is_empty() {
+            "chessgame.pgn".to_string()
+        } else if name.ends_with(".pgn") {
+            name
+        } else {
+            format!("{name}.pgn")
+        };
+        let path = self.settings.file_path_input.trim();
+        let path = if path.is_empty() {
+            std::path::PathBuf::from(&name)
+        } else {
+            std::path::PathBuf::from(path)
+        };
+        std::fs::write(&path, pgn)?;
+        self.settings.file_path = Some(path);
+        Ok(())
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl ChessApp {
     fn url_with_blob_export(&mut self, pgn: String) -> Result<(), JsValue> {
         let parts = Array::new();
         parts.push(&JsValue::from_str(&pgn));
@@ -51,8 +79,10 @@ impl ChessApp {
 
         Ok(())
     }
+}
 
-    fn generate_pgn_content(&mut self) -> String {
+impl ChessApp {
+    pub fn generate_pgn_content(&mut self) -> String {
         let mut pgn = String::new();
         pgn.push_str("[Event \"Casual Game\"]\n[Site \"https://lemuffinman.github.io/ChessGame/\"]\n[UTCDate \"");
         pgn.push_str(Utc::now().format("%Y.%m.%d").to_string().as_str());

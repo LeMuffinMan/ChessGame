@@ -265,3 +265,9 @@ Key Rust dependencies: `eframe` / `egui` (GUI), `wasm-bindgen` + `web-sys` (WASM
 - [trunk](https://trunkrs.dev/)
 - [just](https://github.com/casey/just)
 - [cutechess-cli](https://github.com/cutechess/cutechess)
+
+**NNUE**
+- [python-nnue](https://github.com/official-stockfish/nnue-pytorch)
+- [bullet](https://github.com/jw1912/bullet)
+- [Chess Programming Wiki](https://www.chessprogramming.org/NNUE)
+- [PGN Deep learning : Maia](https://www.maiachess.com/)

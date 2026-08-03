@@ -30,7 +30,6 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 
     //we try to catch the JS object window to interact with
     let window = web_sys::window().expect("no global `window`");
-    //this is the html content of the page
     let document = window.document().expect("should have a document");
     let Some(element) = document.get_element_by_id("chessappid") else {
         return Ok(());
@@ -41,7 +40,6 @@ pub fn start() -> Result<(), wasm_bindgen::JsValue> {
 
     let is_mobile = {
         let ua = window.navigator().user_agent().unwrap_or_default();
-        //this line detects a mobile or desktop environment
         ua.to_lowercase().contains("mobi")
             || window.inner_width().unwrap().as_f64().unwrap_or(1024.0) < 800.0
     };

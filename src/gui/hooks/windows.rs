@@ -198,22 +198,26 @@ impl ChessApp {
                         style.spacing.icon_spacing = 8.0;
 
                         ui.add_space(20.0);
-                        ui.horizontal(|ui| {
-                            ui.vertical_centered(|ui| {
-                                ui.label(&self.history_san);
-                                ui.add_space(20.0);
-                                ui.text_edit_singleline(&mut self.settings.file_name);
-                                if ui.button(RichText::new("Download").size(30.0)).clicked() {
-                                    #[cfg(target_arch = "wasm32")]
-                                    let _ = self.export_pgn();
-                                    self.win = None;
-                                }
-                                ui.add_space(40.0);
+                        if !self.game.history.is_empty() {
+                            ui.horizontal(|ui| {
+                                ui.vertical_centered(|ui| {
+                                    ui.label(&self.history_san);
+                                    ui.add_space(20.0);
+                                    ui.text_edit_singleline(&mut self.settings.file_name);
+                                    if ui.button(RichText::new("Download").size(30.0)).clicked() {
+                                        self.export_pgn_any();
+                                        self.win = None;
+                                    }
+                                    ui.add_space(20.0);
+                                });
                             });
-                        });
+                            ui.separator();
+                        }
+                        self.pgn_import_section(ui);
                         ui.vertical_centered(|ui| {
                             if ui.button("Cancel").clicked() {
                                 self.win = None;
+                                self.settings.pgn_import_error = None;
                             }
                         });
                         ui.add_space(20.0);
@@ -230,29 +234,78 @@ impl ChessApp {
                         style.spacing.icon_spacing = 8.0;
 
                         ui.add_space(20.0);
-                        ui.horizontal(|ui| {
-                            ui.vertical_centered(|ui| {
-                                ui.label(&self.history_san);
-                                ui.add_space(20.0);
-                                ui.text_edit_singleline(&mut self.settings.file_name);
-                                ui.add_space(20.0);
-                                if ui.button(RichText::new("Download").size(30.0)).clicked() {
-                                    #[cfg(target_arch = "wasm32")]
-                                    let _ = self.export_pgn();
-                                    self.win = None;
-                                }
-                                ui.add_space(20.0);
+                        if !self.game.history.is_empty() {
+                            ui.horizontal(|ui| {
+                                ui.vertical_centered(|ui| {
+                                    ui.label(&self.history_san);
+                                    ui.add_space(20.0);
+                                    ui.text_edit_singleline(&mut self.settings.file_name);
+                                    ui.add_space(20.0);
+                                    if ui.button(RichText::new("Download").size(30.0)).clicked() {
+                                        self.export_pgn_any();
+                                        self.win = None;
+                                    }
+                                    ui.add_space(20.0);
+                                });
                             });
-                        });
+                            ui.separator();
+                        }
+                        self.pgn_import_section(ui);
                         ui.vertical_centered(|ui| {
                             if ui.button("Cancel").clicked() {
                                 self.win = None;
+                                self.settings.pgn_import_error = None;
                             }
                         });
                         ui.add_space(20.0);
                     });
             }
         }
+    }
+
+    fn export_pgn_any(&mut self) {
+        #[cfg(target_arch = "wasm32")]
+        let _ = self.export_pgn();
+        #[cfg(not(target_arch = "wasm32"))]
+        let _ = self.export_pgn_native();
+    }
+
+    fn pgn_import_section(&mut self, ui: &mut egui::Ui) {
+        ui.vertical_centered(|ui| {
+            ui.label("Import a game (PGN)");
+            ui.add_space(8.0);
+            ui.add(
+                egui::TextEdit::multiline(&mut self.settings.pgn_import_text)
+                    .hint_text("Paste PGN text here")
+                    .desired_rows(4)
+                    .desired_width(f32::INFINITY),
+            );
+            ui.add_space(8.0);
+            if ui.button("Import").clicked() {
+                match self.import_pgn(&self.settings.pgn_import_text.clone()) {
+                    Ok(()) => self.win = None,
+                    Err(e) => self.settings.pgn_import_error = Some(e),
+                }
+            }
+
+            #[cfg(not(target_arch = "wasm32"))]
+            {
+                ui.add_space(12.0);
+                ui.text_edit_singleline(&mut self.settings.file_path_input);
+                if ui.button("Load from file").clicked() {
+                    match self.import_pgn_from_path(&self.settings.file_path_input.clone()) {
+                        Ok(()) => self.win = None,
+                        Err(e) => self.settings.pgn_import_error = Some(e),
+                    }
+                }
+            }
+
+            if let Some(err) = &self.settings.pgn_import_error {
+                ui.add_space(8.0);
+                ui.colored_label(egui::Color32::from_rgb(220, 80, 80), err);
+            }
+        });
+        ui.add_space(20.0);
     }
     pub fn ask_undo(&mut self, ctx: &egui::Context) {
         egui::Window::new("Accept undo ?")

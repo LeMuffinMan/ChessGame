@@ -48,7 +48,7 @@ impl ChessApp {
 
     pub fn lobby_buttons(&mut self, ui: &mut egui::Ui) {
         let gap = 20.0;
-        let indent = centered_indent(ui, &["Settings", "Timer", "New"], gap);
+        let indent = centered_indent(ui, &["Settings", "Timer", "Import", "New"], gap);
         ui.horizontal(|ui| {
             ui.add_space(indent);
             self.settings_button(ui);
@@ -58,6 +58,13 @@ impl ChessApp {
                 .clicked()
             {
                 self.win = Some(WinDia::Timer);
+            }
+            ui.add_space(gap);
+            if ui
+                .add_enabled(self.win.is_none(), egui::Button::new("Import"))
+                .clicked()
+            {
+                self.win = Some(WinDia::Pgn);
             }
             ui.add_space(gap);
             self.new_game_button(ui);

@@ -119,4 +119,67 @@ impl Board {
             fullmove,
         }
     }
+
+    pub fn to_fen(&self, active_color: Color, halfmove_clock: u32, fullmove: u32) -> String {
+        let mut placement = String::new();
+        for row in (0..8i8).rev() {
+            let mut empty_run = 0u8;
+            for col in 0..8 {
+                match self[(row as usize, col as usize)] {
+                    Occupied(piece, color) => {
+                        if empty_run > 0 {
+                            placement.push_str(&empty_run.to_string());
+                            empty_run = 0;
+                        }
+                        let c = match piece {
+                            Pawn => 'p',
+                            Rook => 'r',
+                            Knight => 'n',
+                            Bishop => 'b',
+                            Queen => 'q',
+                            King => 'k',
+                        };
+                        placement.push(if color == White {
+                            c.to_ascii_uppercase()
+                        } else {
+                            c
+                        });
+                    }
+                    Cell::Free => empty_run += 1,
+                }
+            }
+            if empty_run > 0 {
+                placement.push_str(&empty_run.to_string());
+            }
+            if row > 0 {
+                placement.push('/');
+            }
+        }
+
+        let active = if active_color == White { "w" } else { "b" };
+
+        let mut castling = String::new();
+        if self.white_castle.short {
+            castling.push('K');
+        }
+        if self.white_castle.long {
+            castling.push('Q');
+        }
+        if self.black_castle.short {
+            castling.push('k');
+        }
+        if self.black_castle.long {
+            castling.push('q');
+        }
+        if castling.is_empty() {
+            castling.push('-');
+        }
+
+        let en_passant = match self.en_passant {
+            Some(coord) => format!("{}{}", (b'a' + coord.col) as char, (b'1' + coord.row) as char),
+            None => "-".to_string(),
+        };
+
+        format!("{placement} {active} {castling} {en_passant} {halfmove_clock} {fullmove}")
+    }
 }

@@ -22,6 +22,13 @@ impl ChessApp {
                     if self.settings.white_bot == Human && self.settings.black_bot == Human {
                         self.timer_increment(ui, ctx);
                     }
+                    ui.separator();
+                    if ui
+                        .add_enabled(self.win.is_none(), egui::Button::new("Import PGN"))
+                        .clicked()
+                    {
+                        self.win = Some(crate::gui::hooks::windows::WinDia::Pgn);
+                    }
                 }
 
                 if self.app_mode == Replay {
