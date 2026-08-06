@@ -1,8 +1,4 @@
-"""Phase 1 — génération d'un dataset (FEN, eval Stockfish) pour l'entraînement NNUE.
-
-Convention : eval_cp est TOUJOURS du point de vue des Blancs (positif = bon
-pour les Blancs), pour rester cohérent avec `evaluator::evaluate()` côté Rust.
-
+"""
 Usage:
     python generate_dataset.py \
         --pgn lichess_elite_2024-01.pgn \

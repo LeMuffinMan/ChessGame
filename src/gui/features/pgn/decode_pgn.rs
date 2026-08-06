@@ -199,12 +199,6 @@ fn resolve_move(game: &Game, san: &SanMove) -> Option<(Coord, Coord)> {
 }
 
 impl ChessApp {
-    /// Imports a single PGN game (tag pairs optional) into a fresh `Game`,
-    /// replaying every move so the app ends up in the same state as if the
-    /// moves had been played by hand. Purely text-based, used identically on
-    /// wasm32 (pasted text) and native (pasted text or a file loaded via
-    /// `import_pgn_from_path`). Nothing here touches the NNUE ML dataset
-    /// pipeline, which stays Python-only.
     pub fn import_pgn(&mut self, pgn_text: &str) -> Result<(), String> {
         let (tokens, result_token) = tokenize_movetext(pgn_text);
         if tokens.is_empty() {
