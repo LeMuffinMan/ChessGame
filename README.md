@@ -11,7 +11,7 @@
 
 ---
 
-I built this project to learn Rust on something real, not exercises or tutorials. Chess felt like the right choice: the rules are complex enough to punish bad design (and they did), the algorithms are well-documented, and the Chess Programming Wiki became my bible over the intense sprints I spent on this project. Seeing how simple evaluation criteria can lead to natural openings, then improving until you get mated by the algorithm you built... that was quite the motivation to keep going. The engine now speaks UCI, plays on [Lichess](https://lichess.org/@/LeMuffinBot) with bots of Elo 1900 - 2100, and its Elo is estimated 2050 against Stockfish 2000 elo with cutechess-cli on 1000 games.
+I built this project to learn Rust on something real, not exercises or tutorials. Chess felt like the right choice: the rules are complex enough to punish bad design (and they did), the algorithms are well-documented, and the Chess Programming Wiki became my bible over the intense sprints I spent on this project. Seeing how simple evaluation criteria can lead to natural openings, then improving until you get mated by the algorithm you built... that was quite the motivation to keep going. The engine now speaks UCI and plays on [Lichess](https://lichess.org/@/LeMuffinBot) at around 1900 blitz over 6000+ games. Measured with cutechess-cli: 55.8% against Stockfish limited to 1900 Elo (830 games), 47.8% against Stockfish limited to 2000 Elo (1062 games).
 
 **A well-placed hint.**
 A friend who suggested I give Rust a try pointed me toward one early design choice: model the board around `enum Cell { Occupied(Piece, Color), Free }`. That was enough to get started. Following that thread, I found myself reaching naturally for exhaustive pattern matching, `Option<Coord>` for en passant and check state where null is impossible by construction, traits for abstraction without overhead. Rust's design makes good patterns feel obvious, and I gradually came to appreciate how much the language was guiding me.
@@ -220,21 +220,6 @@ See [docs/JUSTFILE.md](docs/JUSTFILE.md) for the full command reference.
 | `cutechess-cli` *(optional)* | [github.com/cutechess/cutechess](https://github.com/cutechess/cutechess) | Run games between engines — needed for `test-uci` and `elo-uci` |
 
 Key Rust dependencies: `eframe` / `egui` (GUI), `wasm-bindgen` + `web-sys` (WASM bridge), `chrono` (timers).
-
----
-
-## Roadmap
-
-### Next steps
-
-- **Bitboard representation** — the current `[[Cell; 8]; 8]` board is not suited for multithreading and leaves performance on the table. I'm considering switching to bitboards as prerequisite for everything below, and probably the biggest refactor ahead.
-- **WebWorkers (WASM)** — decouple the UI loop from the engine so the bot thinking no longer blocks the browser. The engine runs in a worker, the UI stays responsive.
-- **Multithreading (native)** — once bitboards are in and the engine is thread-safe, parallelize the search on native.
-- **WASM parallelism** — same goal as native multithreading, through WebWorkers + SharedArrayBuffer.
-- **Further search optimizations:**
-  - SEE (Static Exchange Evaluation): evaluate capture sequences before exploring, for a significant move ordering gain
-  - Lazy sort: score moves on demand instead of a full upfront sort
-  - ...
 
 ---
 
