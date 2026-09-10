@@ -7,10 +7,14 @@ use crate::board::cell::Coord;
 use crate::board::cell::Piece::{King, Pawn, Queen, Rook};
 use crate::board::moves::move_gen::generate_moves;
 use crate::board::moves::move_structs::MoveList;
+use crate::engine::bench::{KIWIPETE_FEN, PAWN_ENDING_FEN};
 use crate::engine::evaluator::{evaluate, get_piece_value_at, non_pawn_raw};
 use crate::engine::minimax::{find_best_move, minimax};
 use crate::engine::search_context::{SearchContext, SearchParams};
 use std::collections::HashMap;
+
+const POSITION_4_FEN: &str = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
+const POSITION_5_FEN: &str = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
 
 fn coord(row: u8, col: u8) -> Coord {
     Coord { row, col }
@@ -86,26 +90,125 @@ pub fn perft(board: &mut Board, color: Color, depth: u8) -> u64 {
 }
 
 #[test]
-fn perft_d1() {
+fn perft_start_d1() {
     let mut board = Board::init_board();
     assert_eq!(perft(&mut board, White, 1), 20);
 }
 
 #[test]
-fn perft_d2() {
+fn perft_start_d2() {
     let mut board = Board::init_board();
     assert_eq!(perft(&mut board, White, 2), 400);
 }
 
 #[test]
-fn perft_d3() {
+fn perft_start_d3() {
     let mut board = Board::init_board();
     assert_eq!(perft(&mut board, White, 3), 8902);
 }
+
 #[test]
-fn perft_d4() {
+fn perft_start_d4() {
     let mut board = Board::init_board();
     assert_eq!(perft(&mut board, White, 4), 197281);
+}
+
+#[test]
+fn perft_kiwipete_d1() {
+    let fen = Board::board_from_fen(KIWIPETE_FEN);
+    let mut board = fen.board;
+    assert_eq!(perft(&mut board, fen.active_color, 1), 48);
+}
+
+#[test]
+fn perft_kiwipete_d2() {
+    let fen = Board::board_from_fen(KIWIPETE_FEN);
+    let mut board = fen.board;
+    assert_eq!(perft(&mut board, fen.active_color, 2), 2039);
+}
+
+#[test]
+fn perft_kiwipete_d3() {
+    let fen = Board::board_from_fen(KIWIPETE_FEN);
+    let mut board = fen.board;
+    assert_eq!(perft(&mut board, fen.active_color, 3), 97862);
+}
+
+#[test]
+fn perft_pawn_ending_d1() {
+    let fen = Board::board_from_fen(PAWN_ENDING_FEN);
+    let mut board = fen.board;
+    assert_eq!(perft(&mut board, fen.active_color, 1), 14);
+}
+
+#[test]
+fn perft_pawn_ending_d2() {
+    let fen = Board::board_from_fen(PAWN_ENDING_FEN);
+    let mut board = fen.board;
+    assert_eq!(perft(&mut board, fen.active_color, 2), 191);
+}
+
+#[test]
+fn perft_pawn_ending_d3() {
+    let fen = Board::board_from_fen(PAWN_ENDING_FEN);
+    let mut board = fen.board;
+    assert_eq!(perft(&mut board, fen.active_color, 3), 2812);
+}
+
+#[test]
+fn perft_pawn_ending_d4() {
+    let fen = Board::board_from_fen(PAWN_ENDING_FEN);
+    let mut board = fen.board;
+    assert_eq!(perft(&mut board, fen.active_color, 4), 43238);
+}
+
+#[test]
+fn perft_position_4_d1() {
+    let fen = Board::board_from_fen(POSITION_4_FEN);
+    let mut board = fen.board;
+    assert_eq!(perft(&mut board, fen.active_color, 1), 6);
+}
+
+#[test]
+fn perft_position_4_d2() {
+    let fen = Board::board_from_fen(POSITION_4_FEN);
+    let mut board = fen.board;
+    assert_eq!(perft(&mut board, fen.active_color, 2), 264);
+}
+
+#[test]
+fn perft_position_4_d3() {
+    let fen = Board::board_from_fen(POSITION_4_FEN);
+    let mut board = fen.board;
+    assert_eq!(perft(&mut board, fen.active_color, 3), 9467);
+}
+
+#[test]
+fn perft_position_4_d4() {
+    let fen = Board::board_from_fen(POSITION_4_FEN);
+    let mut board = fen.board;
+    assert_eq!(perft(&mut board, fen.active_color, 4), 422333);
+}
+
+#[test]
+fn perft_position_5_d1() {
+    let fen = Board::board_from_fen(POSITION_5_FEN);
+    let mut board = fen.board;
+    assert_eq!(perft(&mut board, fen.active_color, 1), 44);
+}
+
+#[test]
+fn perft_position_5_d2() {
+    let fen = Board::board_from_fen(POSITION_5_FEN);
+    let mut board = fen.board;
+    assert_eq!(perft(&mut board, fen.active_color, 2), 1486);
+}
+
+#[test]
+fn perft_position_5_d3() {
+    let fen = Board::board_from_fen(POSITION_5_FEN);
+    let mut board = fen.board;
+    assert_eq!(perft(&mut board, fen.active_color, 3), 62379);
 }
 
 #[test]

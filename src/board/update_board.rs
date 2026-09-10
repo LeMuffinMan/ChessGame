@@ -11,16 +11,12 @@ use crate::engine::evaluator::{get_piece_value_at, non_pawn_raw};
 
 impl Board {
     pub fn update_capture_rook(&mut self, m: &Move) {
-        if let Cell::Occupied(Rook, color) = m.capture {
-            let rights = match color {
-                White => &mut self.white_castle,
-                Black => &mut self.black_castle,
-            };
+        if let Cell::Occupied(Rook, _) = m.capture {
             match (m.dest.row, m.dest.col) {
-                (0, 0) => rights.long = false,
-                (0, 7) => rights.short = false,
-                (7, 0) => rights.long = false,
-                (7, 7) => rights.short = false,
+                (0, 0) => self.white_castle.long = false,
+                (0, 7) => self.white_castle.short = false,
+                (7, 0) => self.black_castle.long = false,
+                (7, 7) => self.black_castle.short = false,
                 _ => {}
             }
         }

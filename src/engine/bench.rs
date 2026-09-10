@@ -6,15 +6,17 @@ use std::collections::HashMap;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
+pub const KIWIPETE_FEN: &str =
+    "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+
+pub const PAWN_ENDING_FEN: &str = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 11";
+
 pub const QUICK_POSITIONS: &[(&str, &str)] = &[
     (
         "Start",
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
     ),
-    (
-        "Kiwipete",
-        "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
-    ),
+    ("Kiwipete", KIWIPETE_FEN),
 ];
 
 pub const FULL_POSITIONS: &[(&str, &str)] = &[
@@ -22,15 +24,12 @@ pub const FULL_POSITIONS: &[(&str, &str)] = &[
         "Start",
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
     ),
-    (
-        "Kiwipete",
-        "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
-    ),
+    ("Kiwipete", KIWIPETE_FEN),
     (
         "KingAttack",
         "4rrk1/pp1n3p/3q2pQ/2p1pb2/2PP4/2P3N1/P2B2PP/4RRK1 b - - 7 19",
     ),
-    ("PawnEnding", "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 11"),
+    ("PawnEnding", PAWN_ENDING_FEN),
     (
         "RookQueen",
         "3q2k1/pb3p1p/4pbp1/2r5/PpN2N2/1P2P2P/5PP1/Q2R2K1 b - - 4 26",
