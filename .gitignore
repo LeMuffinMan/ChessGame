@@ -31,8 +31,8 @@ results_*.pgn
 # ML (NNUE) — datasets & Python artifacts
 ml/*.pgn
 ml/data/
-docs/ml/*.pgn
-docs/data/
+# documentation interne (hors dépôt)
+docs/
 __pycache__/
 *.pyc
 .venv/
