@@ -180,7 +180,7 @@ fn compare(baseline: &[BenchResult], current: &[BenchResult], threshold: f64) ->
             0.0
         };
 
-        let flag = if nodes_delta > threshold { " ❌" } else { "" };
+        let flag = if nodes_delta > threshold { " FAIL" } else { "" };
 
         eprintln!(
             "{:<12} {:>3}  {:>12}  {:>12}  {:>+7.1}%{}",
@@ -199,9 +199,9 @@ fn compare(baseline: &[BenchResult], current: &[BenchResult], threshold: f64) ->
 
     eprintln!("{}", "-".repeat(55));
     if regression {
-        eprintln!("✗ Régression (seuil : {}%)", threshold);
+        eprintln!("FAIL: regression above {threshold}% threshold");
     } else {
-        eprintln!("✓ No regression (seuil : {}%)", threshold);
+        eprintln!("OK: no regression above {threshold}% threshold");
     }
 
     regression
