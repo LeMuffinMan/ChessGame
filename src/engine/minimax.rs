@@ -259,6 +259,10 @@ pub fn minimax(
             params.fifty_count = original_fifty;
             board.undo_move(m, active_player);
 
+            if params.ctx.stats.aborted {
+                break;
+            }
+
             if score > max_eval {
                 max_eval = score;
                 best_move_found = Some(m);
@@ -284,7 +288,7 @@ pub fn minimax(
         } else {
             TtFlag::Exact
         };
-        if max_eval != i32::MIN {
+        if !params.ctx.stats.aborted && max_eval != i32::MIN {
             let idx = (board.hash as usize) & (TT_SIZE - 1);
             let slot = &params.ctx.tt[idx];
             if slot.key == 0 || slot.generation != params.ctx.tt_generation || depth >= slot.depth {
@@ -376,6 +380,10 @@ pub fn minimax(
             params.fifty_count = original_fifty;
             board.undo_move(m, active_player);
 
+            if params.ctx.stats.aborted {
+                break;
+            }
+
             if score < min_eval {
                 min_eval = score;
                 best_move_found = Some(m);
@@ -401,7 +409,7 @@ pub fn minimax(
         } else {
             TtFlag::Exact
         };
-        if min_eval != i32::MAX {
+        if !params.ctx.stats.aborted && min_eval != i32::MAX {
             let idx = (board.hash as usize) & (TT_SIZE - 1);
             let slot = &params.ctx.tt[idx];
             if slot.key == 0 || slot.generation != params.ctx.tt_generation || depth >= slot.depth {
@@ -528,6 +536,12 @@ pub fn find_best_move(
             params.ctx.stats.depth -= 1;
             params.fifty_count = original_fifty;
             board.undo_move(m, active_player);
+            if params.ctx.stats.aborted {
+                if best_move.is_none() {
+                    best_move = Some(m);
+                }
+                break;
+            }
             if score > best_score {
                 best_score = score;
                 alpha = score;
@@ -574,6 +588,12 @@ pub fn find_best_move(
             params.ctx.stats.depth -= 1;
             params.fifty_count = original_fifty;
             board.undo_move(m, active_player);
+            if params.ctx.stats.aborted {
+                if best_move.is_none() {
+                    best_move = Some(m);
+                }
+                break;
+            }
             if score < best_score {
                 best_score = score;
                 beta = score;
@@ -705,7 +725,7 @@ pub fn quiescence_minimax(
     ctx.stats.quiescence_nodes += 1;
     ctx.stats.cumulative_nodes += 1;
 
-    if ctx.should_stop() {
+    if ctx.stats.aborted || ctx.should_stop() {
         ctx.stats.aborted = true;
         return 0;
     }
@@ -843,6 +863,10 @@ pub fn quiescence_minimax(
         let score = quiescence_minimax(board, alpha, beta, opponent, ctx, depth - 1, ply + 1);
         board.undo_move(m, active_player);
 
+        if ctx.stats.aborted {
+            break;
+        }
+
         if active_player == Color::White {
             if score > alpha {
                 alpha = score;
@@ -908,7 +932,7 @@ pub fn quiescence_minimax(
     } else {
         TtFlag::Exact
     };
-    {
+    if !ctx.stats.aborted {
         let idx = (board.hash as usize) & (TT_SIZE - 1);
         let slot = &ctx.tt[idx];
         if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {

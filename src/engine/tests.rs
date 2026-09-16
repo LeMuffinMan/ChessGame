@@ -355,3 +355,37 @@ fn castle_not_generated_while_in_check() {
         assert_eq!(got, expected, "{fen}");
     }
 }
+
+#[test]
+fn aborted_search_keeps_a_move_and_leaves_tt_untouched() {
+    let mut board = Board::init_board();
+    let history = HashMap::new();
+
+    let mut ctx = test_ctx();
+    ctx.stats.max_nodes = 1;
+    let aborted_move = {
+        let mut params = SearchParams::new(&mut ctx, &history, 0);
+        find_best_move(&mut board, White, 6, i32::MIN, i32::MAX, &mut params).0
+    };
+    assert!(ctx.stats.aborted, "the search should have been aborted");
+    assert!(
+        aborted_move.is_some(),
+        "an aborted search must still return a legal move"
+    );
+    assert_eq!(
+        ctx.stats.tt_stores, 0,
+        "an aborted search must not write to the transposition table"
+    );
+
+    let mut ctx = test_ctx();
+    let full_move = {
+        let mut params = SearchParams::new(&mut ctx, &history, 0);
+        find_best_move(&mut board, White, 6, i32::MIN, i32::MAX, &mut params).0
+    };
+    assert!(!ctx.stats.aborted);
+    assert!(full_move.is_some());
+    assert!(
+        ctx.stats.tt_stores > 0,
+        "a complete search is expected to fill the transposition table"
+    );
+}
