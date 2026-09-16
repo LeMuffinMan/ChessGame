@@ -66,13 +66,14 @@ elo-uci elo games concurrency: build-uci
 build-uci-ref ref:
     ./scripts/build-uci-ref.sh {{ref}}
 
-# SPRT the current build against a git ref: sprt-ref <ref> [games] [concurrency] [tc] — requires cutechess-cli
-sprt-ref ref games="1000" concurrency="3" tc="10+0.1": build-uci (build-uci-ref ref)
+# SPRT the current build against a git ref: sprt-ref <ref> [rounds] [concurrency] [tc] — requires cutechess-cli
+sprt-ref ref rounds="500" concurrency="3" tc="60+0.6": build-uci (build-uci-ref ref)
     cutechess-cli \
-        -engine name=ref cmd=./target/ref-bins/uci-ref \
         -engine name=current cmd=./target/release/uci \
+        -engine name=ref cmd=./target/ref-bins/uci-ref \
         -each proto=uci tc={{tc}} \
-        -games {{games}} \
+        -rounds {{rounds}} \
+        -games 2 \
         -concurrency {{concurrency}} \
         -repeat \
         -openings file=books/8mvs_big_+80_+109.epd format=epd order=random \
