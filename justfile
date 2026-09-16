@@ -90,8 +90,8 @@ clippy: clippy-native clippy-wasm
 
 # Run clippy for native target
 clippy-native:
-    cargo clippy --features native
+    cargo clippy --all-targets --features native
 
 # Run clippy for WASM target
 clippy-wasm:
-    cargo clippy --target wasm32-unknown-unknown
+    cargo clippy --target wasm32-unknown-unknown --all-targets

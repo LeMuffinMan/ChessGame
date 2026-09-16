@@ -74,17 +74,17 @@ pub fn perft(board: &mut Board, color: Color, depth: u8) -> u64 {
 
     let mut move_list = MoveList::new();
     generate_moves(board, &color, &mut move_list, false);
-    let moves = &mut move_list.moves[..move_list.count];
+    let moves = &move_list.moves[..move_list.count];
 
     let opponent = match color {
         White => Black,
         Black => White,
     };
 
-    for i in 0..moves.len() {
-        board.apply_move(&moves[i], color);
+    for m in moves {
+        board.apply_move(m, color);
         res += perft(board, opponent, depth - 1);
-        board.undo_move(moves[i], color);
+        board.undo_move(*m, color);
     }
     res
 }

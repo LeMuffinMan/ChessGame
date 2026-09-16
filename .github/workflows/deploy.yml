@@ -25,10 +25,10 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Cargo clippy (wasm)
-        run: cargo clippy --target wasm32-unknown-unknown -- -D warnings
+        run: cargo clippy --target wasm32-unknown-unknown --all-targets -- -D warnings
 
       - name: Cargo clippy (native)
-        run: cargo clippy -- -D warnings
+        run: cargo clippy --all-targets --features native -- -D warnings
 
       - name: Cargo test
         run: cargo test
