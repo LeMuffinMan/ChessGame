@@ -12,6 +12,7 @@ struct BenchResult {
     depth: u8,
     nodes: u64,
     q_nodes: u64,
+    time_ms: f64,
     aborted: bool,
 }
 
@@ -147,12 +148,16 @@ fn compare(baseline: &[BenchResult], current: &[BenchResult], threshold: f64) ->
         .collect();
 
     let mut regression = false;
+    let mut base_nodes_total = 0u64;
+    let mut cur_nodes_total = 0u64;
+    let mut base_time_total = 0.0;
+    let mut cur_time_total = 0.0;
 
     eprintln!(
-        "{:<12} {:>3}  {:>12}  {:>12}  {:>8}",
-        "Position", "D", "Nodes base", "Nodes cur", "Nodes Δ%"
+        "{:<12} {:>3}  {:>12}  {:>12}  {:>8}  {:>9}  {:>9}  {:>8}",
+        "Position", "D", "Nodes base", "Nodes cur", "Nodes Δ%", "ms base", "ms cur", "ms Δ%"
     );
-    eprintln!("{}", "-".repeat(55));
+    eprintln!("{}", "-".repeat(86));
 
     for entry in baseline {
         let Some(cur) = current_map.get(&(entry.label.as_str(), entry.depth)) else {
@@ -180,29 +185,68 @@ fn compare(baseline: &[BenchResult], current: &[BenchResult], threshold: f64) ->
             0.0
         };
 
+        let time_delta = if entry.time_ms > 0.0 {
+            (cur.time_ms - entry.time_ms) / entry.time_ms * 100.0
+        } else {
+            0.0
+        };
+
         let flag = if nodes_delta > threshold { " FAIL" } else { "" };
 
         eprintln!(
-            "{:<12} {:>3}  {:>12}  {:>12}  {:>+7.1}%{}",
+            "{:<12} {:>3}  {:>12}  {:>12}  {:>+7.1}%  {:>9.1}  {:>9.1}  {:>+7.1}%{}",
             entry.label,
             entry.depth,
             fmt_num(base_total),
             fmt_num(cur_total),
             nodes_delta,
+            entry.time_ms,
+            cur.time_ms,
+            time_delta,
             flag,
         );
 
         if nodes_delta > threshold {
             regression = true;
         }
+
+        base_nodes_total += base_total;
+        cur_nodes_total += cur_total;
+        base_time_total += entry.time_ms;
+        cur_time_total += cur.time_ms;
     }
 
-    eprintln!("{}", "-".repeat(55));
-    if regression {
-        eprintln!("FAIL: regression above {threshold}% threshold");
+    let total_nodes_delta = if base_nodes_total > 0 {
+        (cur_nodes_total as f64 - base_nodes_total as f64) / base_nodes_total as f64 * 100.0
     } else {
-        eprintln!("OK: no regression above {threshold}% threshold");
+        0.0
+    };
+    let total_time_delta = if base_time_total > 0.0 {
+        (cur_time_total - base_time_total) / base_time_total * 100.0
+    } else {
+        0.0
+    };
+
+    eprintln!("{}", "-".repeat(86));
+    eprintln!(
+        "{:<12} {:>3}  {:>12}  {:>12}  {:>+7.1}%  {:>9.1}  {:>9.1}  {:>+7.1}%",
+        "TOTAL",
+        "",
+        fmt_num(base_nodes_total),
+        fmt_num(cur_nodes_total),
+        total_nodes_delta,
+        base_time_total,
+        cur_time_total,
+        total_time_delta,
+    );
+
+    eprintln!("{}", "-".repeat(86));
+    if regression {
+        eprintln!("FAIL: node count regression above {threshold}% threshold");
+    } else {
+        eprintln!("OK: no node count regression above {threshold}% threshold");
     }
+    eprintln!("Timings are indicative only and never fail the comparison.");
 
     regression
 }
