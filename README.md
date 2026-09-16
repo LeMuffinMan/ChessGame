@@ -80,8 +80,6 @@ just elo-uci 1500 100 4    # 100 games vs SF@1500, 4 concurrent
 
 ## Algorithms
 
-See [docs/ALGORITHMS.md](docs/ALGORITHMS.md) for context and implementation notes on each technique.
-
 <table>
 <tr>
 <td valign="top">
@@ -138,8 +136,6 @@ See [docs/ALGORITHMS.md](docs/ALGORITHMS.md) for context and implementation note
 ---
 
 ## Under the hood
-
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full module breakdown.
 
 ```
 src/
@@ -207,7 +203,7 @@ just clippy    # clippy for both native and wasm32 targets
 just ci-fast   # build-uci + tests + bench regression
 ```
 
-See [docs/JUSTFILE.md](docs/JUSTFILE.md) for the full command reference.
+Run `just --list` for the full command reference.
 
 ### Dependencies
 
