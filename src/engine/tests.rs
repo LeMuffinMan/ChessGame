@@ -9,7 +9,7 @@ use crate::board::moves::move_gen::generate_moves;
 use crate::board::moves::move_structs::MoveList;
 use crate::engine::bench::{KIWIPETE_FEN, PAWN_ENDING_FEN};
 use crate::engine::evaluator::{evaluate, get_piece_value_at, non_pawn_raw};
-use crate::engine::minimax::{find_best_move, minimax};
+use crate::engine::minimax::{find_best_move, iterative_deepening, minimax};
 use crate::engine::search_context::{SearchContext, SearchParams};
 use std::collections::HashMap;
 
@@ -387,5 +387,66 @@ fn aborted_search_keeps_a_move_and_leaves_tt_untouched() {
     assert!(
         ctx.stats.tt_stores > 0,
         "a complete search is expected to fill the transposition table"
+    );
+}
+
+#[test]
+fn a_past_deadline_aborts_the_search_and_keeps_a_move() {
+    let mut board = Board::init_board();
+    let history = HashMap::new();
+
+    let mut ctx = test_ctx();
+    ctx.stats.deadline = 1.0;
+    let aborted_move = {
+        let mut params = SearchParams::new(&mut ctx, &history, 0);
+        find_best_move(&mut board, White, 8, i32::MIN, i32::MAX, &mut params).0
+    };
+    let aborted_nodes = ctx.stats.cumulative_nodes;
+    assert!(
+        ctx.stats.aborted,
+        "an expired deadline should abort the search"
+    );
+    assert!(
+        aborted_move.is_some(),
+        "a search stopped by the deadline must still return a legal move"
+    );
+
+    let mut ctx = test_ctx();
+    let full_move = {
+        let mut params = SearchParams::new(&mut ctx, &history, 0);
+        find_best_move(&mut board, White, 8, i32::MIN, i32::MAX, &mut params).0
+    };
+    let full_nodes = ctx.stats.cumulative_nodes;
+    assert!(!ctx.stats.aborted);
+    assert!(full_move.is_some());
+    assert!(
+        aborted_nodes * 10 < full_nodes,
+        "deadline stopped after {aborted_nodes} nodes, full search took {full_nodes}"
+    );
+}
+
+#[test]
+fn iterative_deepening_arms_the_deadline_from_the_timeout() {
+    let mut board = Board::init_board();
+    let history = HashMap::new();
+    let mut ctx = test_ctx();
+    let mut reached = 0;
+
+    {
+        let mut params = SearchParams::new(&mut ctx, &history, 0);
+        iterative_deepening(&mut board, White, 2, &mut reached, 0.0, &mut params);
+    }
+    assert_eq!(
+        ctx.stats.deadline, 0.0,
+        "a search without timeout must stay unbounded"
+    );
+
+    {
+        let mut params = SearchParams::new(&mut ctx, &history, 0);
+        iterative_deepening(&mut board, White, 2, &mut reached, 50.0, &mut params);
+    }
+    assert!(
+        ctx.stats.deadline > 0.0,
+        "a timeout must arm the in-search deadline"
     );
 }

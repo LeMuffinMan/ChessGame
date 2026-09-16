@@ -35,6 +35,11 @@ fn now_ms() -> f64 {
 
 const MATE_SCORE: i32 = 1_000_000;
 const MATE_THRESHOLD: i32 = 990_000;
+const LIMIT_CHECK_MASK: u64 = 2047;
+
+fn limits_reached(ctx: &SearchContext) -> bool {
+    ctx.should_stop() || (ctx.stats.deadline > 0.0 && now_ms() >= ctx.stats.deadline)
+}
 
 pub fn minimax(
     board: &mut Board,
@@ -47,9 +52,16 @@ pub fn minimax(
 ) -> i32 {
     params.ctx.incremente_node();
 
-    if params.ctx.stats.max_nodes > 0 && params.ctx.stats.nodes >= params.ctx.stats.max_nodes
-        || params.ctx.should_stop()
-    {
+    if params.ctx.stats.aborted {
+        return 0;
+    }
+
+    if params.ctx.stats.max_nodes > 0 && params.ctx.stats.nodes >= params.ctx.stats.max_nodes {
+        params.ctx.stats.aborted = true;
+        return 0;
+    }
+
+    if params.ctx.stats.cumulative_nodes & LIMIT_CHECK_MASK == 0 && limits_reached(params.ctx) {
         params.ctx.stats.aborted = true;
         return 0;
     }
@@ -654,8 +666,9 @@ pub fn iterative_deepening(
     params.ctx.stats.depth_results.clear();
     params.ctx.stats.cumulative_nodes = 0;
     let start = now_ms();
+    params.ctx.stats.deadline = if timeout > 0.0 { start + timeout } else { 0.0 };
     for depth in 1..=max_depth {
-        if best_move.is_some() && params.ctx.should_stop() {
+        if best_move.is_some() && limits_reached(params.ctx) {
             break;
         }
         let (candidate, score) = if depth <= 2 {
@@ -725,7 +738,11 @@ pub fn quiescence_minimax(
     ctx.stats.quiescence_nodes += 1;
     ctx.stats.cumulative_nodes += 1;
 
-    if ctx.stats.aborted || ctx.should_stop() {
+    if ctx.stats.aborted {
+        return 0;
+    }
+
+    if ctx.stats.cumulative_nodes & LIMIT_CHECK_MASK == 0 && limits_reached(ctx) {
         ctx.stats.aborted = true;
         return 0;
     }
