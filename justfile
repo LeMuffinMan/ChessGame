@@ -62,6 +62,23 @@ elo-uci elo games concurrency: build-uci
         -openings file=books/8mvs_big_+80_+109.epd format=epd order=random \
         -pgnout results_{{elo}}.pgn
 
+# Build the UCI binary of a git ref into target/ref-bins — leaves the working tree untouched
+build-uci-ref ref:
+    ./scripts/build-uci-ref.sh {{ref}}
+
+# SPRT the current build against a git ref: sprt-ref <ref> [games] [concurrency] [tc] — requires cutechess-cli
+sprt-ref ref games="1000" concurrency="3" tc="10+0.1": build-uci (build-uci-ref ref)
+    cutechess-cli \
+        -engine name=ref cmd=./target/ref-bins/uci-ref \
+        -engine name=current cmd=./target/release/uci \
+        -each proto=uci tc={{tc}} \
+        -games {{games}} \
+        -concurrency {{concurrency}} \
+        -repeat \
+        -openings file=books/8mvs_big_+80_+109.epd format=epd order=random \
+        -sprt elo0=0 elo1=10 alpha=0.05 beta=0.05 \
+        -pgnout "results_sprt_$(git rev-parse --short {{ref}})_$(date +%Y%m%d-%H%M%S).pgn"
+
 # Run bench at depth 11 and compare against baseline (fails if regression > 5%)
 bench-regression-test:
     cargo run --release --features=native --bin bench -- measure 11 > bench_results/current.json
