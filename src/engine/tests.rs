@@ -304,3 +304,54 @@ fn test_checkmate_returns_mate_score() {
         "checkmate should return a large positive score (white wins), got {score}"
     );
 }
+
+fn legal_moves_uci(fen: &str) -> Vec<String> {
+    let mut fen_info = Board::board_from_fen(fen);
+    let mut list = MoveList::new();
+    generate_moves(
+        &mut fen_info.board,
+        &fen_info.active_color,
+        &mut list,
+        false,
+    );
+    let mut uci: Vec<String> = list.moves[..list.count]
+        .iter()
+        .map(|m| m.to_uci())
+        .collect();
+    uci.sort();
+    uci
+}
+
+#[test]
+fn castle_not_generated_while_in_check() {
+    let cases = [
+        (
+            "r1bqk2r/p4pp1/1p1p4/2pP3B/1b6/2NnP3/PP1B1PPP/R2QK2R w KQkq - 1 5",
+            "e1g1",
+            vec!["e1e2", "e1f1"],
+        ),
+        (
+            "r3k2r/p6p/2p1p2B/b1ppPn1Q/8/2P5/P7/4N2K b kq - 4 19",
+            "e8c8",
+            vec!["e8d7", "e8d8", "e8e7"],
+        ),
+        (
+            "r2qk2r/pp2bppp/3p1nn1/2pPp3/Q1P1P3/2N2NPb/PP2BP1P/1RB1K2R b Kkq - 2 2",
+            "e8g8",
+            vec!["b7b5", "d8d7", "e8f8", "f6d7", "h3d7"],
+        ),
+        (
+            "r3k1r1/5p2/pqp2np1/4Q2p/2p1P3/2N2P1N/PP4PP/2K2R2 b q - 0 13",
+            "e8c8",
+            vec!["e8d7", "e8d8", "e8f8"],
+        ),
+    ];
+    for (fen, castle, expected) in cases {
+        let got = legal_moves_uci(fen);
+        assert!(
+            !got.contains(&castle.to_string()),
+            "{fen} generated {castle}"
+        );
+        assert_eq!(got, expected, "{fen}");
+    }
+}
