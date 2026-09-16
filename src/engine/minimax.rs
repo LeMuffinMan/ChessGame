@@ -838,8 +838,22 @@ pub fn quiescence_minimax(
         Color::White
     };
 
-    for i in 0..move_list.count {
-        let m = move_list.moves[i];
+    let moves = &mut move_list.moves[..move_list.count];
+    moves.sort_unstable_by_key(|mv| {
+        std::cmp::Reverse(match mv.capture {
+            Occupied(piece, _) => match piece {
+                Pawn => PAWN_VALUE,
+                Knight => KNIGHT_VALUE,
+                Bishop => BISHOP_VALUE,
+                Rook => ROOK_VALUE,
+                Queen => QUEEN_VALUE,
+                King => 0,
+            },
+            Free => 0,
+        })
+    });
+
+    for &m in moves.iter() {
         let capture_value = match m.capture {
             Occupied(piece, _) => match piece {
                 Pawn => PAWN_VALUE,
