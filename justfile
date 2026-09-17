@@ -50,17 +50,25 @@ test-uci: build-uci
         -debug all \
         -openings file=books/8mvs_big_+80_+109.epd format=epd order=random
 
-# Run Elo estimate: elo-uci <elo> <games> <concurrency> — requires cutechess-cli + stockfish
-elo-uci elo games concurrency: build-uci
+# Elo against Stockfish: elo-uci <elo> [rounds] [concurrency] [tc] — requires cutechess-cli + stockfish
+# rounds are opening pairs, so the match plays 2*rounds games and then stops
+elo-uci elo rounds="200" concurrency="3" tc="60+1": build-uci
     cutechess-cli \
-        -engine name=SF_{{elo}} cmd=./stockfish option.UCI_LimitStrength=true option.UCI_Elo={{elo}} \
         -engine name=ChessGame cmd=./target/release/uci \
-        -each proto=uci tc=1+1 \
-        -games {{games}} \
+        -engine name=SF_{{elo}} cmd=./stockfish option.UCI_LimitStrength=true option.UCI_Elo={{elo}} \
+        -each proto=uci tc={{tc}} \
+        -rounds {{rounds}} \
+        -games 2 \
         -concurrency {{concurrency}} \
         -repeat \
+        -ratinginterval 10 \
         -openings file=books/8mvs_big_+80_+109.epd format=epd order=random \
-        -pgnout results_{{elo}}.pgn
+        -pgnout "results_{{elo}}_$(date +%Y%m%d-%H%M%S).pgn"
+
+# Binary health check of the current build, self play: sanity [rounds] [tc] [concurrency]
+# Reports forfeits, illegal moves, stalls and crashes only — never an Elo
+sanity rounds="10" tc="10+0.1" concurrency="3": build-uci
+    ./scripts/sanity.sh {{rounds}} {{tc}} {{concurrency}}
 
 # Build the UCI binary of a git ref into target/ref-bins — leaves the working tree untouched
 build-uci-ref ref:
@@ -76,6 +84,7 @@ sprt-ref ref rounds="500" concurrency="3" tc="60+0.6": build-uci (build-uci-ref 
         -games 2 \
         -concurrency {{concurrency}} \
         -repeat \
+        -ratinginterval 10 \
         -openings file=books/8mvs_big_+80_+109.epd format=epd order=random \
         -sprt elo0=0 elo1=10 alpha=0.05 beta=0.05 \
         -pgnout "results_sprt_$(git rev-parse --short {{ref}})_$(date +%Y%m%d-%H%M%S).pgn"
