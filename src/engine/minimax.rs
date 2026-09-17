@@ -37,6 +37,7 @@ fn now_ms() -> f64 {
 const MATE_SCORE: i32 = 1_000_000;
 const MATE_THRESHOLD: i32 = 990_000;
 const LIMIT_CHECK_MASK: u64 = 2047;
+const QUIESCENCE_MAX_PLIES: i8 = 4;
 
 fn limits_reached(ctx: &SearchContext) -> bool {
     ctx.should_stop() || (ctx.stats.deadline > 0.0 && now_ms() >= ctx.stats.deadline)
@@ -77,7 +78,15 @@ pub fn minimax(
 
     if depth == 0 {
         params.ctx.stats.leafs += 1;
-        return quiescence_minimax(board, alpha, beta, active_player, params.ctx, 4, ply + 1);
+        return quiescence_minimax(
+            board,
+            alpha,
+            beta,
+            active_player,
+            params.ctx,
+            QUIESCENCE_MAX_PLIES,
+            ply + 1,
+        );
     }
 
     let orig_alpha = alpha;
