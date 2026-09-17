@@ -9,9 +9,10 @@ use crate::board::moves::move_structs::MoveType::Promotion;
 use crate::engine::bot::BotDifficulty::*;
 use crate::engine::bot::PlayerType::*;
 use crate::engine::minimax::iterative_deepening;
-use crate::engine::search_context::{SearchContext, SearchParams};
+use crate::engine::search_context::SearchParams;
+use crate::engine::time_manager::{Budget, DEFAULT_MOVE_OVERHEAD_MS, TimeControl, plan};
 use crate::gui::chessapp::AppMode::*;
-use std::collections::HashMap;
+use crate::gui::features::timer::{GameMode, Timer};
 
 pub const MAX_DEPTH: u8 = 16;
 
@@ -48,7 +49,28 @@ fn random_index(len: usize) -> usize {
     nanos % len
 }
 
-const BOT_TIMEOUT: f64 = 300.0;
+const UI_RESPONSIVENESS_CAP_MS: f64 = 300.0;
+const NO_CLOCK_BUDGET_MS: f64 = 300.0;
+
+fn adaptive_budget(timer: &Timer, active_player: Color, legal_moves: usize) -> Budget {
+    if timer.mode == GameMode::NoTime || !timer.active {
+        return Budget::fixed(NO_CLOCK_BUDGET_MS);
+    }
+    let remaining_s = match active_player {
+        White => timer.white_time,
+        Black => timer.black_time,
+    };
+    plan(
+        &TimeControl {
+            remaining_ms: remaining_s * 1000.0,
+            increment_ms: timer.increment * 1000.0,
+            moves_to_go: None,
+        },
+        legal_moves,
+        DEFAULT_MOVE_OVERHEAD_MS,
+    )
+    .capped_at(UI_RESPONSIVENESS_CAP_MS)
+}
 
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum BotDifficulty {
@@ -66,26 +88,19 @@ pub fn get_bot_move(
     difficulty: &PlayerType,
     board: &mut Board,
     active_player: Color,
-    ctx: &mut SearchContext,
-    game_history: &HashMap<u64, usize>,
-    fifty_count: u32,
+    params: &mut SearchParams,
     depth: &mut u8,
+    timer: &Timer,
 ) -> Option<Move> {
     match difficulty {
         Bot(Depth(d)) => {
-            let mut params = SearchParams::new(ctx, game_history, fifty_count);
-            iterative_deepening(board, active_player, *d, depth, 0.0, &mut params)
+            iterative_deepening(board, active_player, *d, depth, Budget::UNLIMITED, params)
         }
         Bot(Adaptive) => {
-            let mut params = SearchParams::new(ctx, game_history, fifty_count);
-            iterative_deepening(
-                board,
-                active_player,
-                MAX_DEPTH,
-                depth,
-                BOT_TIMEOUT,
-                &mut params,
-            )
+            let mut move_list = MoveList::new();
+            generate_moves(board, &active_player, &mut move_list, false);
+            let budget = adaptive_budget(timer, active_player, move_list.count);
+            iterative_deepening(board, active_player, MAX_DEPTH, depth, budget, params)
         }
         Bot(Random) => {
             let mut move_list = MoveList::new();
@@ -135,15 +150,21 @@ impl ChessApp {
         };
         self.search_ctx.reset_search_stats();
         let start = now_ms();
-        let bot_move = get_bot_move(
-            difficulty,
-            &mut self.game.board,
-            self.game.active_player,
-            &mut self.search_ctx,
-            &self.game.draw.board_hashs,
-            self.game.draw.draw_moves_count,
-            &mut self.game.depth,
-        );
+        let bot_move = {
+            let mut params = SearchParams::new(
+                &mut self.search_ctx,
+                &self.game.draw.board_hashs,
+                self.game.draw.draw_moves_count,
+            );
+            get_bot_move(
+                difficulty,
+                &mut self.game.board,
+                self.game.active_player,
+                &mut params,
+                &mut self.game.depth,
+                &self.timer,
+            )
+        };
         let end = now_ms();
         self.search_ctx.stats.bot_time_thinking = end - start;
         self.search_ctx.stats.nps();

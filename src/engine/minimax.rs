@@ -12,6 +12,7 @@ use crate::engine::evaluator::{
 };
 use crate::engine::move_ordering::move_order_score;
 use crate::engine::search_context::{SearchContext, SearchParams, TT_SIZE};
+use crate::engine::time_manager::Budget;
 use crate::engine::ttentry::{TtEntry, TtFlag};
 use crate::engine::zobrist::zobrist;
 
@@ -658,7 +659,7 @@ pub fn iterative_deepening(
     active_player: Color,
     max_depth: u8,
     reached_depth: &mut u8,
-    timeout: f64,
+    budget: Budget,
     params: &mut SearchParams,
 ) -> Option<Move> {
     let mut best_move = None;
@@ -666,7 +667,11 @@ pub fn iterative_deepening(
     params.ctx.stats.depth_results.clear();
     params.ctx.stats.cumulative_nodes = 0;
     let start = now_ms();
-    params.ctx.stats.deadline = if timeout > 0.0 { start + timeout } else { 0.0 };
+    params.ctx.stats.deadline = if budget.hard_ms > 0.0 {
+        start + budget.hard_ms
+    } else {
+        0.0
+    };
     for depth in 1..=max_depth {
         if best_move.is_some() && limits_reached(params.ctx) {
             break;
@@ -695,9 +700,9 @@ pub fn iterative_deepening(
                 .depth_results
                 .push((depth, score, elapsed, nodes));
         }
-        if timeout > 0.0 {
+        if budget.soft_ms > 0.0 {
             let elapsed = now_ms() - start;
-            if elapsed >= timeout {
+            if elapsed >= budget.soft_ms {
                 break;
             }
             let n = params.ctx.stats.depth_results.len();
@@ -711,7 +716,7 @@ pub fn iterative_deepening(
                 };
                 let per_curr = t_curr - t_prev;
                 let per_prev = t_prev - t_before;
-                let remaining = timeout - elapsed;
+                let remaining = budget.soft_ms - elapsed;
                 // If remaining > 2× current depth time, always try — plenty of budget.
                 // Prediction only kicks in when we're close to the limit.
                 if per_curr >= 1.0 && per_prev >= 1.0 && remaining < per_curr * 2.0 {

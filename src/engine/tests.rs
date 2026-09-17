@@ -11,6 +11,7 @@ use crate::engine::bench::{KIWIPETE_FEN, PAWN_ENDING_FEN};
 use crate::engine::evaluator::{evaluate, get_piece_value_at, non_pawn_raw};
 use crate::engine::minimax::{find_best_move, iterative_deepening, minimax};
 use crate::engine::search_context::{SearchContext, SearchParams};
+use crate::engine::time_manager::{Budget, TimeControl, plan};
 use std::collections::HashMap;
 
 const POSITION_4_FEN: &str = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
@@ -434,7 +435,14 @@ fn iterative_deepening_arms_the_deadline_from_the_timeout() {
 
     {
         let mut params = SearchParams::new(&mut ctx, &history, 0);
-        iterative_deepening(&mut board, White, 2, &mut reached, 0.0, &mut params);
+        iterative_deepening(
+            &mut board,
+            White,
+            2,
+            &mut reached,
+            Budget::UNLIMITED,
+            &mut params,
+        );
     }
     assert_eq!(
         ctx.stats.deadline, 0.0,
@@ -443,10 +451,100 @@ fn iterative_deepening_arms_the_deadline_from_the_timeout() {
 
     {
         let mut params = SearchParams::new(&mut ctx, &history, 0);
-        iterative_deepening(&mut board, White, 2, &mut reached, 50.0, &mut params);
+        iterative_deepening(
+            &mut board,
+            White,
+            2,
+            &mut reached,
+            Budget::fixed(50.0),
+            &mut params,
+        );
     }
     assert!(
         ctx.stats.deadline > 0.0,
         "a timeout must arm the in-search deadline"
     );
+}
+
+fn tc(remaining_ms: f64, increment_ms: f64, moves_to_go: Option<u32>) -> TimeControl {
+    TimeControl {
+        remaining_ms,
+        increment_ms,
+        moves_to_go,
+    }
+}
+
+#[test]
+fn plan_never_commits_more_than_the_clock_holds() {
+    let overheads = [0.0, 50.0, 100.0, 300.0];
+    let remainings = [200.0, 1_000.0, 10_000.0, 60_000.0, 600_000.0];
+    let increments = [0.0, 100.0, 600.0, 1_000.0];
+    let to_go = [None, Some(1), Some(5), Some(40)];
+
+    for &overhead in &overheads {
+        for &remaining in &remainings {
+            if remaining <= overhead {
+                continue;
+            }
+            for &inc in &increments {
+                for &mtg in &to_go {
+                    let Budget { soft_ms, hard_ms } = plan(&tc(remaining, inc, mtg), 30, overhead);
+                    assert!(
+                        hard_ms + overhead <= remaining,
+                        "remaining={remaining} inc={inc} mtg={mtg:?} overhead={overhead} \
+                         would commit {hard_ms} + {overhead} overhead"
+                    );
+                    assert!(soft_ms <= hard_ms, "soft {soft_ms} above hard {hard_ms}");
+                    assert!(soft_ms > 0.0, "soft budget must stay positive");
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn plan_reserves_the_move_overhead() {
+    let control = tc(10_000.0, 100.0, None);
+    let generous = plan(&control, 30, 0.0);
+    let careful = plan(&control, 30, 500.0);
+    assert!(
+        careful.hard_ms < generous.hard_ms,
+        "a larger overhead must shrink the budget"
+    );
+}
+
+#[test]
+fn plan_returns_the_minimum_for_a_single_legal_move() {
+    let budget = plan(&tc(60_000.0, 1_000.0, None), 1, 100.0);
+    assert_eq!(budget.soft_ms, budget.hard_ms);
+    assert!(
+        budget.hard_ms < 100.0,
+        "a forced move must not consume a full budget, got {}",
+        budget.hard_ms
+    );
+}
+
+#[test]
+fn moves_to_go_spends_faster_than_sudden_death() {
+    let control = tc(60_000.0, 0.0, None);
+    let sudden_death = plan(&control, 30, 100.0);
+    let ten_left = plan(&tc(60_000.0, 0.0, Some(10)), 30, 100.0);
+    assert!(
+        ten_left.soft_ms > sudden_death.soft_ms,
+        "a known move count must allow a larger share"
+    );
+}
+
+#[test]
+fn the_increment_raises_the_budget() {
+    let without = plan(&tc(10_000.0, 0.0, None), 30, 100.0);
+    let with = plan(&tc(10_000.0, 1_000.0, None), 30, 100.0);
+    assert!(with.soft_ms > without.soft_ms);
+}
+
+#[test]
+fn plan_survives_a_nearly_flagged_clock() {
+    let budget = plan(&tc(120.0, 100.0, None), 30, 100.0);
+    assert!(budget.soft_ms > 0.0);
+    assert!(budget.hard_ms <= 20.0, "got {}", budget.hard_ms);
 }

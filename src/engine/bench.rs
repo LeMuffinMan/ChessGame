@@ -2,6 +2,7 @@ use crate::Board;
 use crate::board::fen::FenInfo;
 use crate::engine::minimax::{find_best_move, iterative_deepening};
 use crate::engine::search_context::{SearchContext, SearchParams};
+use crate::engine::time_manager::Budget;
 use std::collections::HashMap;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -89,7 +90,7 @@ pub fn bench_run(fen: &str, depth: u8, max_nodes: u64) -> BenchResult {
             active_color,
             depth - 1,
             &mut 0,
-            0.0,
+            Budget::UNLIMITED,
             &mut params,
         );
     }

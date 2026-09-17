@@ -1,7 +1,12 @@
 use chess_game::board::cell::Color::*;
+use chess_game::board::moves::move_gen::generate_moves;
 use chess_game::board::moves::move_structs::Move;
+use chess_game::board::moves::move_structs::MoveList;
 use chess_game::engine::minimax::iterative_deepening;
 use chess_game::engine::search_context::{SearchContext, SearchParams};
+use chess_game::engine::time_manager::{
+    Budget, DEFAULT_MOVE_OVERHEAD_MS, MIN_THINK_MS, TimeControl, plan,
+};
 use chess_game::game::Game;
 use std::error::Error;
 use std::io;
@@ -23,6 +28,7 @@ struct GoParams {
     binc: f64,
     depth: u8,
     nodes: u64,
+    movestogo: Option<u32>,
     infinite: bool,
 }
 
@@ -30,6 +36,7 @@ impl Default for GoParams {
     fn default() -> Self {
         Self {
             movetime: 0.0,
+            movestogo: None,
             wtime: 0.0,
             btime: 0.0,
             winc: 0.0,
@@ -43,36 +50,39 @@ impl Default for GoParams {
 
 struct Engine {
     game: Game,
-    search_ctx: SearchContext,
+    search_ctx: Option<SearchContext>,
+    stop: Arc<AtomicBool>,
     debug: bool,
-    search_handle: Option<thread::JoinHandle<()>>,
+    move_overhead_ms: f64,
+    search_handle: Option<thread::JoinHandle<SearchContext>>,
 }
 
 impl Engine {
     fn new() -> Self {
         Self {
             game: Game::new(),
-            search_ctx: SearchContext::new(),
+            search_ctx: Some(SearchContext::new()),
+            stop: Arc::new(AtomicBool::new(false)),
             debug: false,
+            move_overhead_ms: DEFAULT_MOVE_OVERHEAD_MS,
             search_handle: None,
         }
     }
 
     fn wait_search(&mut self) {
-        if let Some(h) = self.search_handle.take() {
-            let _ = h.join();
+        if let Some(h) = self.search_handle.take()
+            && let Ok(ctx) = h.join()
+        {
+            self.search_ctx = Some(ctx);
         }
     }
 
-    fn compute_budget(&self, p: &GoParams) -> f64 {
-        if p.infinite {
-            return 0.0;
+    fn compute_budget(&self, p: &GoParams, legal_moves: usize) -> Budget {
+        if p.infinite || p.depth > 0 || p.nodes > 0 {
+            return Budget::UNLIMITED;
         }
         if p.movetime > 0.0 {
-            return p.movetime;
-        }
-        if p.depth > 0 || p.nodes > 0 {
-            return 0.0;
+            return Budget::fixed((p.movetime - self.move_overhead_ms).max(MIN_THINK_MS));
         }
         let (time, inc) = if self.game.active_player == White {
             (p.wtime, p.winc)
@@ -80,17 +90,17 @@ impl Engine {
             (p.btime, p.binc)
         };
         if time == 0.0 {
-            return 0.0;
+            return Budget::UNLIMITED;
         }
-        let mut b = time / 30.0 + inc * 0.8;
-        let hard_limit = time * 0.9;
-        if b > hard_limit {
-            b = hard_limit;
-        }
-        if b < 50.0 && time > 50.0 {
-            b = 50.0;
-        }
-        b
+        plan(
+            &TimeControl {
+                remaining_ms: time,
+                increment_ms: inc,
+                moves_to_go: p.movestogo,
+            },
+            legal_moves,
+            self.move_overhead_ms,
+        )
     }
 }
 
@@ -132,6 +142,10 @@ impl Engine {
         println!("id author Muffin");
         println!("option name Hash type spin default 32 min 1 max 2048");
         println!("option name Threads type spin default 1 min 1 max 1");
+        println!(
+            "option name Move Overhead type spin default {} min 0 max 5000",
+            DEFAULT_MOVE_OVERHEAD_MS as u32
+        );
         println!("uciok");
         io::stdout().flush()?;
         Ok(())
@@ -144,12 +158,27 @@ impl Engine {
     }
 
     fn cmd_ucinewgame(&mut self) -> Result<()> {
+        self.wait_search();
         self.game = Game::new();
-        self.search_ctx.reset_for_new_game();
+        if let Some(ctx) = self.search_ctx.as_mut() {
+            ctx.reset_for_new_game();
+        }
         Ok(())
     }
 
-    fn cmd_setoption(&self, _words: &[&str]) -> Result<()> {
+    fn cmd_setoption(&mut self, words: &[&str]) -> Result<()> {
+        let name_at = words.iter().position(|w| *w == "name");
+        let value_at = words.iter().position(|w| *w == "value");
+        if let (Some(n), Some(v)) = (name_at, value_at)
+            && v > n
+        {
+            let name = words[n + 1..v].join(" ").to_lowercase();
+            if name == "move overhead"
+                && let Some(ms) = words.get(v + 1).and_then(|s| s.parse::<f64>().ok())
+            {
+                self.move_overhead_ms = ms.clamp(0.0, 5000.0);
+            }
+        }
         Ok(())
     }
 
@@ -163,7 +192,7 @@ impl Engine {
     }
 
     fn cmd_stop(&self) -> Result<()> {
-        self.search_ctx.stop.store(true, Ordering::Relaxed);
+        self.stop.store(true, Ordering::Relaxed);
         Ok(())
     }
 
@@ -212,6 +241,7 @@ impl Engine {
     }
 
     fn cmd_go(&mut self, words: Vec<&str>) -> Result<()> {
+        self.wait_search();
         let mut go = GoParams::default();
         let mut i = 1;
         while i < words.len() {
@@ -258,13 +288,26 @@ impl Engine {
                         i += 1;
                     }
                 }
+                "movestogo" => {
+                    if let Some(v) = words.get(i + 1).and_then(|s| s.parse::<u32>().ok()) {
+                        go.movestogo = Some(v);
+                        i += 1;
+                    }
+                }
                 "infinite" => go.infinite = true,
                 _ => {}
             }
             i += 1;
         }
 
-        let budget = self.compute_budget(&go);
+        let mut move_list = MoveList::new();
+        generate_moves(
+            &mut self.game.board,
+            &self.game.active_player,
+            &mut move_list,
+            false,
+        );
+        let budget = self.compute_budget(&go, move_list.count);
         let max_depth = if go.depth > 0 {
             go.depth.min(MAX_DEPTH_UCI)
         } else {
@@ -272,21 +315,20 @@ impl Engine {
         };
 
         let fresh_stop = Arc::new(AtomicBool::new(false));
-        self.search_ctx.stop = fresh_stop.clone();
+        self.stop = fresh_stop.clone();
 
         let debug = self.debug;
         let mut game = self.game.clone();
-        let mut search_ctx = self.search_ctx.clone();
+        let mut search_ctx = self.search_ctx.take().unwrap_or_default();
         search_ctx.stop = fresh_stop.clone();
+        search_ctx.reset_search_stats();
+        search_ctx.stats.max_nodes = go.nodes;
 
-        if go.nodes > 0 {
-            search_ctx.stats.max_nodes = go.nodes;
-        }
-
-        if budget > 0.0 {
+        if budget.hard_ms > 0.0 {
             let stop = fresh_stop.clone();
+            let watchdog_ms = budget.hard_ms as u64;
             thread::spawn(move || {
-                thread::sleep(Duration::from_millis(budget as u64));
+                thread::sleep(Duration::from_millis(watchdog_ms));
                 stop.store(true, Ordering::Relaxed);
             });
         }
@@ -294,38 +336,42 @@ impl Engine {
         self.search_handle = Some(thread::spawn(move || {
             let board_hashs = game.draw.board_hashs.clone();
             let draw_count = game.draw.draw_moves_count;
-            let mut params = SearchParams::new(&mut search_ctx, &board_hashs, draw_count);
-
-            let mv_str = iterative_deepening(
-                &mut game.board,
-                game.active_player,
-                max_depth,
-                &mut game.depth,
-                budget,
-                &mut params,
-            )
-            .map(|mv: Move| mv.to_uci())
-            .unwrap_or_else(|| "0000".to_string());
-
-            for (depth, score, elapsed_ms, nodes) in &params.ctx.stats.depth_results {
-                let nps = if *elapsed_ms > 0 {
-                    nodes * 1000 / elapsed_ms
-                } else {
-                    0
-                };
-                println!(
-                    "info depth {depth} score cp {score} nodes {nodes} nps {nps} time {elapsed_ms}"
-                );
-            }
-            println!("bestmove {mv_str}");
-            let _ = io::stdout().flush();
-            if debug
-                && let Some((depth, _, elapsed_ms, nodes)) = params.ctx.stats.depth_results.last()
             {
-                eprintln!(
-                    "[debug] bestmove={mv_str} depth={depth} time={elapsed_ms}ms nodes={nodes}"
-                );
+                let mut params = SearchParams::new(&mut search_ctx, &board_hashs, draw_count);
+
+                let mv_str = iterative_deepening(
+                    &mut game.board,
+                    game.active_player,
+                    max_depth,
+                    &mut game.depth,
+                    budget,
+                    &mut params,
+                )
+                .map(|mv: Move| mv.to_uci())
+                .unwrap_or_else(|| "0000".to_string());
+
+                for (depth, score, elapsed_ms, nodes) in &params.ctx.stats.depth_results {
+                    let nps = if *elapsed_ms > 0 {
+                        nodes * 1000 / elapsed_ms
+                    } else {
+                        0
+                    };
+                    println!(
+                        "info depth {depth} score cp {score} nodes {nodes} nps {nps} time {elapsed_ms}"
+                    );
+                }
+                println!("bestmove {mv_str}");
+                let _ = io::stdout().flush();
+                if debug
+                    && let Some((depth, _, elapsed_ms, nodes)) =
+                        params.ctx.stats.depth_results.last()
+                {
+                    eprintln!(
+                        "[debug] bestmove={mv_str} depth={depth} time={elapsed_ms}ms nodes={nodes}"
+                    );
+                }
             }
+            search_ctx
         }));
 
         Ok(())

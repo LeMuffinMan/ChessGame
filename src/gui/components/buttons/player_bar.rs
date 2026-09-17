@@ -7,6 +7,7 @@ use crate::engine::bot::PlayerType::*;
 use crate::engine::minimax::iterative_deepening;
 use crate::engine::search_context::{SearchContext, SearchParams};
 use crate::engine::search_stats::MAX_SEARCH_DEPTH;
+use crate::engine::time_manager::Budget;
 use crate::gui::chessapp::AppMode::*;
 use crate::gui::features::timer::GameMode::NoTime;
 use crate::gui::panels::bot_panels::format_time;
@@ -185,7 +186,7 @@ impl ChessApp {
                     self.game.active_player,
                     MAX_SEARCH_DEPTH as u8,
                     &mut self.game.depth,
-                    HINT_TIMEOUT,
+                    Budget::fixed(HINT_TIMEOUT),
                     &mut params,
                 ) {
                     self.game.hint = Some((hint_move.origin, hint_move.dest));
