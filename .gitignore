@@ -29,11 +29,5 @@ books/
 results_*.pgn
 results_*.log
 
-# ML (NNUE) — datasets & Python artifacts
-ml/*.pgn
-ml/data/
 # documentation interne (hors dépôt)
 docs/
-__pycache__/
-*.pyc
-.venv/
