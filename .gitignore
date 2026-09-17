@@ -27,6 +27,7 @@ books/
 
 # cutechess-cli game records
 results_*.pgn
+results_*.log
 
 # ML (NNUE) — datasets & Python artifacts
 ml/*.pgn

@@ -19,7 +19,9 @@ if pgrep -x cutechess-cli >/dev/null; then
 fi
 
 expected=$((rounds * 2))
-pgn="results_sanity_$(date +%Y%m%d-%H%M%S).pgn"
+stamp=$(date +%Y%m%d-%H%M%S)
+pgn="results_sanity_$stamp.pgn"
+log="results_sanity_$stamp.log"
 
 cutechess-cli \
     -engine name=a cmd=./target/release/uci \
@@ -30,7 +32,7 @@ cutechess-cli \
     -concurrency "$concurrency" \
     -repeat \
     -openings file=books/8mvs_big_+80_+109.epd format=epd order=random \
-    -pgnout "$pgn" || true
+    -pgnout "$pgn" > "$log" 2>&1 || true
 
 count() { grep -c "$1" "$pgn" 2>/dev/null || true; }
 
@@ -43,24 +45,22 @@ unfinished=$(count '^\[Result "\*"\]')
 missing=$((expected - played))
 [ "$missing" -lt 0 ] && missing=0
 
-printf '\n%-22s %s\n' "pgn" "$pgn"
-printf '%-22s %s vs %s at %s\n\n' "match" "a" "b" "$tc"
-printf '%-22s %6d\n' "games played" "$played"
-printf '%-22s %6d\n' "games missing" "$missing"
-printf '%-22s %6d\n' "time forfeits" "$forfeits"
-printf '%-22s %6d\n' "illegal moves" "$illegal"
-printf '%-22s %6d\n' "abandoned games" "$abandoned"
-printf '%-22s %6d\n' "unfinished games" "$unfinished"
-printf '%-22s %6d\n' "  of which stalled" "$stalled"
+printf '%-12s %s\n'   "pgn"        "$pgn"
+printf '%-12s %s\n'   "log"        "$log"
+printf '%-12s %s\n\n' "tc"         "$tc"
+printf '%-12s %5d\n'  "played"     "$played"
+printf '%-12s %5d\n'  "missing"    "$missing"
+printf '%-12s %5d\n'  "forfeits"   "$forfeits"
+printf '%-12s %5d\n'  "illegal"    "$illegal"
+printf '%-12s %5d\n'  "abandoned"  "$abandoned"
+printf '%-12s %5d\n'  "unfinished" "$unfinished"
+printf '%-12s %5d\n'  "stalled"    "$stalled"
 
 failures=$((missing + forfeits + illegal + abandoned + unfinished))
 
-printf '\nno elo is reported here on purpose: two identical binaries decide nothing,\n'
-printf 'and a self play elo of a few dozen points is pure noise.\n\n'
-
 if [ "$failures" -ne 0 ]; then
-    echo "SANITY FAILED: $failures binary criteria tripped"
+    printf '\nSANITY KO: %d\n' "$failures"
     exit 1
 fi
 
-echo "SANITY OK: $played games, none lost on time, none illegal, none stalled"
+printf '\nSANITY OK\n'
