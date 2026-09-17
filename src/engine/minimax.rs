@@ -38,6 +38,7 @@ const MATE_SCORE: i32 = 1_000_000;
 const MATE_THRESHOLD: i32 = 990_000;
 const LIMIT_CHECK_MASK: u64 = 2047;
 const QUIESCENCE_MAX_PLIES: i8 = 4;
+const QUIESCENCE_TT_DEPTH: u8 = 0;
 
 fn limits_reached(ctx: &SearchContext) -> bool {
     ctx.should_stop() || (ctx.stats.deadline > 0.0 && now_ms() >= ctx.stats.deadline)
@@ -763,14 +764,13 @@ pub fn quiescence_minimax(
 
     let orig_alpha = alpha;
     let orig_beta = beta;
-    let q_depth = depth.max(0) as u8;
 
     {
         let idx = (board.hash as usize) & (TT_SIZE - 1);
         let entry = ctx.tt[idx];
         if entry.key == board.hash
             && entry.generation == ctx.tt_generation
-            && entry.depth >= q_depth
+            && entry.depth == QUIESCENCE_TT_DEPTH
         {
             let s = score_from_tt(entry.score, ply as i32);
             match entry.flag {
@@ -792,11 +792,14 @@ pub fn quiescence_minimax(
             {
                 let idx = (board.hash as usize) & (TT_SIZE - 1);
                 let slot = &ctx.tt[idx];
-                if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {
+                if slot.key == 0
+                    || slot.generation != ctx.tt_generation
+                    || slot.depth == QUIESCENCE_TT_DEPTH
+                {
                     ctx.tt[idx] = TtEntry {
                         key: board.hash,
                         score: score_to_tt(stand_pat, ply as i32),
-                        depth: q_depth,
+                        depth: QUIESCENCE_TT_DEPTH,
                         generation: ctx.tt_generation,
                         flag: TtFlag::LowerBound,
                         best_move: None,
@@ -813,11 +816,14 @@ pub fn quiescence_minimax(
             {
                 let idx = (board.hash as usize) & (TT_SIZE - 1);
                 let slot = &ctx.tt[idx];
-                if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {
+                if slot.key == 0
+                    || slot.generation != ctx.tt_generation
+                    || slot.depth == QUIESCENCE_TT_DEPTH
+                {
                     ctx.tt[idx] = TtEntry {
                         key: board.hash,
                         score: score_to_tt(stand_pat, ply as i32),
-                        depth: q_depth,
+                        depth: QUIESCENCE_TT_DEPTH,
                         generation: ctx.tt_generation,
                         flag: TtFlag::UpperBound,
                         best_move: None,
@@ -847,11 +853,14 @@ pub fn quiescence_minimax(
         {
             let idx = (board.hash as usize) & (TT_SIZE - 1);
             let slot = &ctx.tt[idx];
-            if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {
+            if slot.key == 0
+                || slot.generation != ctx.tt_generation
+                || slot.depth == QUIESCENCE_TT_DEPTH
+            {
                 ctx.tt[idx] = TtEntry {
                     key: board.hash,
                     score: score_to_tt(result, ply as i32),
-                    depth: q_depth,
+                    depth: QUIESCENCE_TT_DEPTH,
                     generation: ctx.tt_generation,
                     flag,
                     best_move: None,
@@ -923,12 +932,12 @@ pub fn quiescence_minimax(
                     let slot = &ctx.tt[idx];
                     if slot.key == 0
                         || slot.generation != ctx.tt_generation
-                        || q_depth >= slot.depth
+                        || slot.depth == QUIESCENCE_TT_DEPTH
                     {
                         ctx.tt[idx] = TtEntry {
                             key: board.hash,
                             score: score_to_tt(alpha, ply as i32),
-                            depth: q_depth,
+                            depth: QUIESCENCE_TT_DEPTH,
                             generation: ctx.tt_generation,
                             flag: TtFlag::LowerBound,
                             best_move: best_move_found,
@@ -948,12 +957,12 @@ pub fn quiescence_minimax(
                     let slot = &ctx.tt[idx];
                     if slot.key == 0
                         || slot.generation != ctx.tt_generation
-                        || q_depth >= slot.depth
+                        || slot.depth == QUIESCENCE_TT_DEPTH
                     {
                         ctx.tt[idx] = TtEntry {
                             key: board.hash,
                             score: score_to_tt(beta, ply as i32),
-                            depth: q_depth,
+                            depth: QUIESCENCE_TT_DEPTH,
                             generation: ctx.tt_generation,
                             flag: TtFlag::UpperBound,
                             best_move: best_move_found,
@@ -980,11 +989,14 @@ pub fn quiescence_minimax(
     if !ctx.stats.aborted {
         let idx = (board.hash as usize) & (TT_SIZE - 1);
         let slot = &ctx.tt[idx];
-        if slot.key == 0 || slot.generation != ctx.tt_generation || q_depth >= slot.depth {
+        if slot.key == 0
+            || slot.generation != ctx.tt_generation
+            || slot.depth == QUIESCENCE_TT_DEPTH
+        {
             ctx.tt[idx] = TtEntry {
                 key: board.hash,
                 score: score_to_tt(result, ply as i32),
-                depth: q_depth,
+                depth: QUIESCENCE_TT_DEPTH,
                 generation: ctx.tt_generation,
                 flag,
                 best_move: best_move_found,

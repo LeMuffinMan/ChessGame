@@ -9,9 +9,10 @@ use crate::board::moves::move_gen::generate_moves;
 use crate::board::moves::move_structs::MoveList;
 use crate::engine::bench::{KIWIPETE_FEN, PAWN_ENDING_FEN};
 use crate::engine::evaluator::{evaluate, get_piece_value_at, non_pawn_raw};
-use crate::engine::minimax::{find_best_move, iterative_deepening, minimax};
-use crate::engine::search_context::{SearchContext, SearchParams};
+use crate::engine::minimax::{find_best_move, iterative_deepening, minimax, quiescence_minimax};
+use crate::engine::search_context::{SearchContext, SearchParams, TT_SIZE};
 use crate::engine::time_manager::{Budget, TimeControl, plan};
+use crate::engine::ttentry::{TtEntry, TtFlag};
 use std::collections::HashMap;
 
 const POSITION_4_FEN: &str = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
@@ -547,4 +548,71 @@ fn plan_survives_a_nearly_flagged_clock() {
     let budget = plan(&tc(120.0, 100.0, None), 30, 100.0);
     assert!(budget.soft_ms > 0.0);
     assert!(budget.hard_ms <= 20.0, "got {}", budget.hard_ms);
+}
+
+const POISON_SCORE: i32 = 123_456;
+
+#[test]
+fn quiescence_neither_reads_nor_evicts_a_main_search_entry() {
+    let fen = Board::board_from_fen(KIWIPETE_FEN);
+    let mut board = fen.board;
+    recompute_score(&mut board);
+    board.sync_hash(fen.active_color);
+
+    let mut ctx = test_ctx();
+    let idx = (board.hash as usize) & (TT_SIZE - 1);
+    ctx.tt[idx] = TtEntry {
+        key: board.hash,
+        score: POISON_SCORE,
+        depth: 5,
+        generation: ctx.tt_generation,
+        flag: TtFlag::Exact,
+        best_move: None,
+    };
+
+    let score = quiescence_minimax(
+        &mut board,
+        -1_000_000,
+        1_000_000,
+        fen.active_color,
+        &mut ctx,
+        4,
+        0,
+    );
+
+    assert_ne!(
+        score, POISON_SCORE,
+        "quiescence must not return a main search entry"
+    );
+    assert_eq!(
+        ctx.tt[idx].depth, 5,
+        "quiescence must not evict a main search entry"
+    );
+    assert_eq!(ctx.tt[idx].score, POISON_SCORE);
+}
+
+#[test]
+fn quiescence_only_ever_writes_at_its_own_depth() {
+    let fen = Board::board_from_fen(KIWIPETE_FEN);
+    let mut board = fen.board;
+    recompute_score(&mut board);
+    board.sync_hash(fen.active_color);
+
+    let mut ctx = test_ctx();
+    quiescence_minimax(
+        &mut board,
+        -1_000_000,
+        1_000_000,
+        fen.active_color,
+        &mut ctx,
+        4,
+        0,
+    );
+
+    let written = ctx.tt.iter().filter(|e| e.key != 0).count();
+    assert!(written > 0, "quiescence is expected to fill some slots");
+    assert!(
+        ctx.tt.iter().filter(|e| e.key != 0).all(|e| e.depth == 0),
+        "a quiescence entry must never claim a main search depth"
+    );
 }
