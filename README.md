@@ -17,7 +17,7 @@ I built this project to learn Rust on something real, not exercises or tutorials
 A friend who suggested I give Rust a try pointed me toward one early design choice: model the board around `enum Cell { Occupied(Piece, Color), Free }`. That was enough to get started. Following that thread, I found myself reaching naturally for exhaustive pattern matching, `Option<Coord>` for en passant and check state where null is impossible by construction, traits for abstraction without overhead. Rust's design makes good patterns feel obvious, and I gradually came to appreciate how much the language was guiding me.
 
 **From 3 seconds to 300ms.**
-The engine is deliberately single-threaded for now, the goal was to get the algorithm as efficient as possible before thinking about parallelism, which will complicate the native / wasm code division. With this this contraint, it was satisfying to see how each bottleneck was measurable: clearing one felt like unlocking resources to invest in intelligence instead. The story starts at depth 5 taking 3 seconds on the starting position in WASM, purest minimax with no pruning. Alpha-beta alone improved a lot the performances. Move ordering (MVV-LVA, killers, history) pushed the branching factor down further. Replacing the per-leaf evaluation with an incremental score inside `apply` and `undo` let us reach depth 9. Then a Transposition Table make us see the depths 12 - 16 depending of the tactic complexity of positions. In WASM. now Depth 5 at start position runs in under 30ms, depth 11 around 300ms.
+The engine is deliberately single-threaded for now, the goal was to get the algorithm as efficient as possible before thinking about parallelism, which will complicate the native / wasm code division. With this contraint, it was satisfying to see how each bottleneck was measurable: clearing one felt like unlocking resources to invest in intelligence instead. The story starts at depth 5 taking 3 seconds on the starting position in WASM, purest minimax with no pruning. Alpha-beta alone improved a lot the performances. Move ordering (MVV-LVA, killers, history) pushed the branching factor down further. Replacing the per-leaf evaluation with an incremental score inside `apply` and `undo` let us reach depth 9. Then a Transposition Table make us see the depths 12 - 16 depending of the tactic complexity of positions. In WASM, on my computer or phone, now Depth 5 at start position runs in under 30ms, depth 11 around 300ms.
 
 ---
 
@@ -45,7 +45,7 @@ The engine is deliberately single-threaded for now, the goal was to get the algo
 
 ## Benchmarks
 
-The project includes a standalone benchmark page (`bench.html`) that runs the engine against standard positions at increasing depths and reports nodes per second, effective branching factor, and quiescence node ratio.
+The project includes a standalone benchmark page (`bench.html`) that runs the engine against standard positions at increasing depths and reports datas such as nodes per second, effective branching factor, or quiescence node ratio.
 
 The native vs WASM comparison requires a local setup, run `just bench-all 11` after cloning to generate `public/native_bench.json` and open `bench.html` in your browser. This comparison is not available on the live demo.
 
@@ -71,8 +71,10 @@ The engine exposes a `uci` binary (`src/bin/uci.rs`) that implements a subset of
 git clone https://github.com/official-stockfish/Stockfish
 cd Stockfish/src
 make -j profile-build
-cp Stockfish ../../ && cd ../../
-just test-uci              # one debug game vs Stockfish skill 0
+```
+Copy the stockfish binary at root of ChessGame and : 
+
+```bash
 just elo-uci 1500 100 4    # 100 games vs SF@1500, 4 concurrent
 ```
 
